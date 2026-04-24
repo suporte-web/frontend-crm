@@ -58,11 +58,14 @@ type TrackingApiResponse = {
     header?: {
       remetente?: string;
       destinatario?: string;
+      [key: string]: unknown;
     };
     items?: {
       item?: TrackingApiItem | TrackingApiItem[];
     };
+    [key: string]: unknown;
   };
+  [key: string]: unknown;
 };
 
 type TrackingStage = {
@@ -72,6 +75,18 @@ type TrackingStage = {
   reached: boolean;
   current: boolean;
   timestamp: string | null;
+};
+
+type DeadlineInfo = {
+  label: string;
+  detail: string;
+  className: string;
+};
+
+type DeliveryDisplay = {
+  title: string;
+  value: string;
+  detail: string;
 };
 
 function formatCnpj(value: string) {
@@ -86,10 +101,10 @@ function formatCnpj(value: string) {
 
 function getQueryTypeLabel(type: TrackingQueryType) {
   const map: Record<TrackingQueryType, string> = {
-    nro_nf: 'Número da nota fiscal',
-    pedido: 'Número do pedido',
+    nro_nf: 'Numero da nota fiscal',
+    pedido: 'Numero do pedido',
     chave_nfe: 'Chave da NFe',
-    nro_coleta: 'Número da coleta',
+    nro_coleta: 'Numero da coleta',
   };
 
   return map[type];
@@ -106,8 +121,12 @@ function getValueFieldPlaceholder(type: TrackingQueryType) {
   return map[type];
 }
 
+function isRecord(value: unknown): value is Record<string, unknown> {
+  return Boolean(value) && typeof value === 'object' && !Array.isArray(value);
+}
+
 function normalizeItems(data: unknown): TrackingApiItem[] {
-  if (!data || typeof data !== 'object') return [];
+  if (!isRecord(data)) return [];
 
   const response = data as TrackingApiResponse;
   const rawItems = response.tracking?.items?.item;
@@ -117,12 +136,44 @@ function normalizeItems(data: unknown): TrackingApiItem[] {
   return [rawItems];
 }
 
-function formatDateTime(date?: string) {
-  if (!date) return '-';
+function parseFlexibleDate(value?: string | null) {
+  if (!value) return null;
 
-  const parsed = new Date(date);
+  const nativeDate = new Date(value);
+
+  if (!Number.isNaN(nativeDate.getTime())) {
+    return nativeDate;
+  }
+
+  const match = value.match(
+    /^(\d{2})[\/-](\d{2})[\/-](\d{4})(?:\s+(\d{2}):(\d{2})(?::(\d{2}))?)?$/,
+  );
+
+  if (!match) return null;
+
+  const [, day, month, year, hour = '00', minute = '00', second = '00'] = match;
+  const parsed = new Date(
+    Number(year),
+    Number(month) - 1,
+    Number(day),
+    Number(hour),
+    Number(minute),
+    Number(second),
+  );
 
   if (Number.isNaN(parsed.getTime())) {
+    return null;
+  }
+
+  return parsed;
+}
+
+function formatDateTime(date?: string | null) {
+  if (!date) return '-';
+
+  const parsed = parseFlexibleDate(date);
+
+  if (!parsed) {
     return date;
   }
 
@@ -132,20 +183,114 @@ function formatDateTime(date?: string) {
   }).format(parsed);
 }
 
+function formatDate(date?: string | null) {
+  if (!date) return '-';
+
+  const parsed = parseFlexibleDate(date);
+
+  if (!parsed) {
+    return date;
+  }
+
+  return new Intl.DateTimeFormat('pt-BR', {
+    dateStyle: 'medium',
+  }).format(parsed);
+}
+
+function findStringByKeys(value: unknown, keys: string[]): string | null {
+  if (Array.isArray(value)) {
+    for (const entry of value) {
+      const found = findStringByKeys(entry, keys);
+
+      if (found) {
+        return found;
+      }
+    }
+
+    return null;
+  }
+
+  if (!isRecord(value)) {
+    return null;
+  }
+
+  for (const [key, entryValue] of Object.entries(value)) {
+    if (
+      keys.includes(key) &&
+      typeof entryValue === 'string' &&
+      entryValue.trim()
+    ) {
+      return entryValue.trim();
+    }
+  }
+
+  for (const entryValue of Object.values(value)) {
+    const found = findStringByKeys(entryValue, keys);
+
+    if (found) {
+      return found;
+    }
+  }
+
+  return null;
+}
+
+function getEstimatedDeliveryDate(data: TrackingApiResponse | null) {
+  return findStringByKeys(data, [
+    'previsao_entrega',
+    'previsaoEntrega',
+    'data_previsao_entrega',
+    'dataPrevistaEntrega',
+    'entrega_prevista',
+    'prazo_entrega',
+    'prazoEntrega',
+    'previsao',
+  ]);
+}
+
+function getTransportDocument(data: TrackingApiResponse | null) {
+  return findStringByKeys(data, [
+    'documento_transporte',
+    'documentoTransporte',
+    'nro_cte',
+    'nr_cte',
+    'cte',
+    'conhecimento',
+    'nro_documento',
+  ]);
+}
+
+function getDestinationLabel(
+  data: TrackingApiResponse | null,
+  latestItem: TrackingApiItem | null,
+) {
+  const explicitDestination = findStringByKeys(data, [
+    'cidade_destino',
+    'cidadeDestino',
+    'destino',
+    'cidade_entrega',
+    'cidadeEntrega',
+  ]);
+
+  if (explicitDestination) {
+    return explicitDestination;
+  }
+
+  return latestItem?.cidade || '-';
+}
+
 function getStatusInfo(items: TrackingApiItem[]) {
   if (!items.length) {
     return {
-      label: 'Sem movimentações',
+      label: 'Sem movimentacoes',
       className: 'bg-zinc-100 text-zinc-700 border-zinc-200',
     };
   }
 
   const latest = items[items.length - 1];
-  const ocorrencia = (latest.ocorrencia || '').toUpperCase();
-  const tipo = (latest.tipo || '').toUpperCase();
-  const descricao = `${ocorrencia} ${tipo}`;
+  const combinedText = `${latest.ocorrencia || ''} ${latest.tipo || ''}`.toUpperCase();
 
-  if (descricao.includes('ENTREGUE') || descricao.includes('ENTREGA')) {
+  if (combinedText.includes('ENTREGUE') || combinedText.includes('ENTREGA')) {
     return {
       label: 'Entregue',
       className: 'bg-emerald-100 text-emerald-800 border-emerald-200',
@@ -153,12 +298,12 @@ function getStatusInfo(items: TrackingApiItem[]) {
   }
 
   if (
-    descricao.includes('TRANSITO') ||
-    descricao.includes('TRANSPORTE') ||
-    descricao.includes('INFORMATIVO')
+    combinedText.includes('TRANSITO') ||
+    combinedText.includes('TRANSPORTE') ||
+    combinedText.includes('INFORMATIVO')
   ) {
     return {
-      label: 'Em trânsito',
+      label: 'Em transito',
       className: 'bg-blue-100 text-blue-800 border-blue-200',
     };
   }
@@ -176,6 +321,23 @@ function getLatestItem(items: TrackingApiItem[]) {
 
 function getTrackingText(item: TrackingApiItem) {
   return `${item.ocorrencia || ''} ${item.tipo || ''} ${item.descricao || ''}`.toUpperCase();
+}
+
+function splitOccurrenceLabel(ocorrencia?: string) {
+  const value = ocorrencia?.trim() || '';
+  const match = value.match(/^(\d+)\s*-\s*(.+)$/);
+
+  if (!match) {
+    return {
+      code: null,
+      label: value || 'Movimentacao registrada',
+    };
+  }
+
+  return {
+    code: match[1],
+    label: match[2],
+  };
 }
 
 function includesAny(text: string, values: string[]) {
@@ -203,6 +365,8 @@ function getTrackingStages(items: TrackingApiItem[]): TrackingStage[] {
     'EXPEDI',
     'SEPARA',
     'PROCESS',
+    'DOCUMENTO DE TRANSPORTE EMITIDO',
+    'MERCADORIA RECEBIDA PARA TRANSPORTE',
   ];
 
   const transitKeywords = [
@@ -248,7 +412,7 @@ function getTrackingStages(items: TrackingApiItem[]): TrackingStage[] {
   return [
     {
       title: 'Pedido localizado',
-      description: 'Consulta encontrada e encomenda identificada.',
+      description: 'Consulta encontrada e embarque identificado.',
       icon: Package,
       reached: hasItems,
       current: currentStageIndex === 0,
@@ -257,16 +421,16 @@ function getTrackingStages(items: TrackingApiItem[]): TrackingStage[] {
         : null,
     },
     {
-      title: 'Em preparo',
-      description: 'Coleta, separação ou embarque em andamento.',
+      title: 'Em processamento',
+      description: 'Documento emitido, coleta ou recebimento para transporte.',
       icon: PackageCheck,
       reached: hasProcessing || hasTransit || hasDelivered,
       current: currentStageIndex === 1,
       timestamp: findLatestStageDate(items, processingKeywords),
     },
     {
-      title: 'A caminho',
-      description: 'Carga em trânsito ou rota de entrega.',
+      title: 'Em rota',
+      description: 'Carga em transito ou em roteiro de entrega.',
       icon: Truck,
       reached: hasTransit || hasDelivered,
       current: currentStageIndex === 2,
@@ -274,7 +438,7 @@ function getTrackingStages(items: TrackingApiItem[]): TrackingStage[] {
     },
     {
       title: 'Entregue',
-      description: 'Recebimento confirmado pelo destinatário.',
+      description: 'Recebimento confirmado pelo destinatario.',
       icon: CheckCircle2,
       reached: hasDelivered,
       current: currentStageIndex === 3,
@@ -328,7 +492,7 @@ function getMovementVisual(item: TrackingApiItem) {
       icon: Truck,
       iconWrapClass: 'bg-blue-100 text-blue-700 border-blue-200',
       badgeClass: 'bg-blue-50 text-blue-700 border-blue-200',
-      label: 'Em trânsito',
+      label: 'Em transito',
     };
   }
 
@@ -336,7 +500,9 @@ function getMovementVisual(item: TrackingApiItem) {
     text.includes('COLETA') ||
     text.includes('POSTADO') ||
     text.includes('EMBARQUE') ||
-    text.includes('EXPEDICAO')
+    text.includes('EXPEDICAO') ||
+    text.includes('DOCUMENTO DE TRANSPORTE EMITIDO') ||
+    text.includes('MERCADORIA RECEBIDA PARA TRANSPORTE')
   ) {
     return {
       icon: PackageCheck,
@@ -363,13 +529,13 @@ function getMovementVisual(item: TrackingApiItem) {
     text.includes('ERRO') ||
     text.includes('RECUSA') ||
     text.includes('DEVOL') ||
-    text.includes('OCORRÊNCIA')
+    text.includes('OCORRENCIA')
   ) {
     return {
       icon: AlertCircle,
       iconWrapClass: 'bg-red-100 text-red-700 border-red-200',
       badgeClass: 'bg-red-50 text-red-700 border-red-200',
-      label: 'Atenção',
+      label: 'Atencao',
     };
   }
 
@@ -377,7 +543,112 @@ function getMovementVisual(item: TrackingApiItem) {
     icon: CircleDashed,
     iconWrapClass: 'bg-zinc-100 text-zinc-700 border-zinc-200',
     badgeClass: 'bg-zinc-50 text-zinc-700 border-zinc-200',
-    label: item.tipo || 'Movimentação',
+    label: item.tipo || 'Movimentacao',
+  };
+}
+
+function getDeadlineInfo(
+  items: TrackingApiItem[],
+  estimatedDelivery: string | null,
+): DeadlineInfo {
+  const deliveredKeywords = [
+    'ENTREGUE',
+    'ENTREGA',
+    'RECEBIDO',
+    'RECEBEDOR',
+    'ASSINADO',
+    'COMPROVANTE',
+  ];
+
+  const latestDeliveredAt = findLatestStageDate(items, deliveredKeywords);
+  const estimatedDate = parseFlexibleDate(estimatedDelivery);
+  const deliveredDate = parseFlexibleDate(latestDeliveredAt);
+
+  if (deliveredDate) {
+    if (estimatedDate && deliveredDate.getTime() > estimatedDate.getTime()) {
+      return {
+        label: 'Entregue com atraso',
+        detail: `Conclusao registrada em ${formatDateTime(latestDeliveredAt)}.`,
+        className: 'border-amber-200 bg-amber-50 text-amber-800',
+      };
+    }
+
+    return {
+      label: 'Entregue no prazo',
+      detail: `Baixa confirmada em ${formatDateTime(latestDeliveredAt)}.`,
+      className: 'border-emerald-200 bg-emerald-50 text-emerald-800',
+    };
+  }
+
+  if (!estimatedDate) {
+    return {
+      label: 'Previsao pendente',
+      detail: 'A consulta nao retornou data prevista de entrega.',
+      className: 'border-zinc-200 bg-zinc-50 text-zinc-700',
+    };
+  }
+
+  const now = new Date();
+  const remainingMs = estimatedDate.getTime() - now.getTime();
+  const remainingHours = Math.round(remainingMs / (1000 * 60 * 60));
+
+  if (remainingMs < 0) {
+    return {
+      label: 'Prazo em atraso',
+      detail: `Previsao encerrada em ${formatDate(estimatedDelivery)}.`,
+      className: 'border-red-200 bg-red-50 text-red-800',
+    };
+  }
+
+  if (remainingHours <= 24) {
+    return {
+      label: 'Entrega prevista hoje',
+      detail: `Janela prevista ate ${formatDateTime(estimatedDelivery)}.`,
+      className: 'border-blue-200 bg-blue-50 text-blue-800',
+    };
+  }
+
+  return {
+    label: 'Dentro do prazo',
+    detail: `Entrega prevista para ${formatDate(estimatedDelivery)}.`,
+    className: 'border-emerald-200 bg-emerald-50 text-emerald-800',
+  };
+}
+
+function getDeliveryDisplay(
+  items: TrackingApiItem[],
+  estimatedDelivery: string | null,
+  destinationLabel: string,
+): DeliveryDisplay {
+  const deliveredKeywords = [
+    'ENTREGUE',
+    'ENTREGA',
+    'RECEBIDO',
+    'RECEBEDOR',
+    'ASSINADO',
+    'COMPROVANTE',
+  ];
+
+  const latestDeliveredAt = findLatestStageDate(items, deliveredKeywords);
+
+  if (latestDeliveredAt) {
+    return {
+      title: 'Entrega concluida',
+      value: formatDateTime(latestDeliveredAt),
+      detail:
+        destinationLabel !== '-'
+          ? `Baixa final registrada para ${destinationLabel}.`
+          : 'Baixa final registrada no historico da carga.',
+    };
+  }
+
+  return {
+    title: 'Previsao de entrega',
+    value: formatDateTime(estimatedDelivery),
+    detail:
+      destinationLabel !== '-'
+        ? `Destino operacional: ${destinationLabel}`
+        : 'Sem destino detalhado no retorno.',
   };
 }
 
@@ -389,7 +660,6 @@ export default function TrackingsPage() {
     tipoConsulta: 'nro_nf',
     valor: '',
   });
-
   const [isLoading, setIsLoading] = useState(false);
   const [errorMessage, setErrorMessage] = useState('');
   const [responseData, setResponseData] = useState<unknown>(null);
@@ -399,7 +669,7 @@ export default function TrackingsPage() {
     process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001/api';
 
   const trackingData = useMemo(() => {
-    if (!responseData || typeof responseData !== 'object') return null;
+    if (!isRecord(responseData)) return null;
     return responseData as TrackingApiResponse;
   }, [responseData]);
 
@@ -407,7 +677,30 @@ export default function TrackingsPage() {
   const latestItem = useMemo(() => getLatestItem(items), [items]);
   const statusInfo = useMemo(() => getStatusInfo(items), [items]);
   const trackingStages = useMemo(() => getTrackingStages(items), [items]);
-
+  const estimatedDelivery = useMemo(
+    () => getEstimatedDeliveryDate(trackingData),
+    [trackingData],
+  );
+  const transportDocument = useMemo(
+    () => getTransportDocument(trackingData),
+    [trackingData],
+  );
+  const deadlineInfo = useMemo(
+    () => getDeadlineInfo(items, estimatedDelivery),
+    [estimatedDelivery, items],
+  );
+  const destinationLabel = useMemo(
+    () => getDestinationLabel(trackingData, latestItem),
+    [latestItem, trackingData],
+  );
+  const currentOccurrence = useMemo(
+    () => splitOccurrenceLabel(latestItem?.ocorrencia),
+    [latestItem?.ocorrencia],
+  );
+  const deliveryDisplay = useMemo(
+    () => getDeliveryDisplay(items, estimatedDelivery, destinationLabel),
+    [destinationLabel, estimatedDelivery, items],
+  );
   const formattedResponse = useMemo(() => {
     if (!responseData) return '';
     return JSON.stringify(responseData, null, 2);
@@ -430,7 +723,7 @@ export default function TrackingsPage() {
     setResponseData(null);
 
     if (!formData.cnpj.trim()) {
-      setErrorMessage('Informe o CNPJ do destinatário.');
+      setErrorMessage('Informe o CNPJ do destinatario.');
       return;
     }
 
@@ -475,7 +768,7 @@ export default function TrackingsPage() {
       if (error instanceof Error) {
         setErrorMessage(error.message);
       } else {
-        setErrorMessage('Não foi possível consultar o rastreamento.');
+        setErrorMessage('Nao foi possivel consultar o rastreamento.');
       }
     } finally {
       setIsLoading(false);
@@ -501,14 +794,14 @@ export default function TrackingsPage() {
         <Card className="rounded-3xl border-zinc-200 shadow-sm">
           <CardHeader className="border-b border-zinc-100 pb-6">
             <div className="max-w-3xl">
-              <p className="text-sm font-medium text-zinc-500">Logística</p>
+              <p className="text-sm font-medium text-zinc-500">Logistica</p>
               <CardTitle className="mt-1 text-3xl font-bold tracking-tight text-zinc-900">
                 Rastreamento de encomenda
               </CardTitle>
               <CardDescription className="mt-2 text-sm text-zinc-600">
-                Consulte a situação da entrega informando o CNPJ, o tipo de
-                consulta e o valor correspondente. A busca será feita pelo seu
-                backend, que por sua vez consulta a SSW.
+                Consulte a situacao da entrega informando o CNPJ, o tipo de
+                consulta e o valor correspondente. A busca e feita pelo backend
+                e traduzida aqui como painel de monitoramento de prazo.
               </CardDescription>
             </div>
           </CardHeader>
@@ -519,7 +812,7 @@ export default function TrackingsPage() {
                 Dados para consulta
               </CardTitle>
               <CardDescription className="mt-1 text-sm text-zinc-500">
-                Preencha os campos conforme o contrato do endpoint público de
+                Preencha os campos conforme o contrato do endpoint publico de
                 rastreamento.
               </CardDescription>
             </div>
@@ -527,13 +820,13 @@ export default function TrackingsPage() {
             <div className="mt-8 grid grid-cols-1 gap-4 md:grid-cols-2">
               <div>
                 <label className="mb-2 block text-sm font-medium text-zinc-700">
-                  CNPJ do destinatário
+                  CNPJ do destinatario
                 </label>
                 <Input
                   type="text"
                   value={formData.cnpj}
-                  onChange={(e) =>
-                    updateField('cnpj', formatCnpj(e.target.value))
+                  onChange={(event) =>
+                    updateField('cnpj', formatCnpj(event.target.value))
                   }
                   placeholder="00.000.000/0000-00"
                   className="h-12 rounded-2xl"
@@ -546,8 +839,11 @@ export default function TrackingsPage() {
                 </label>
                 <select
                   value={formData.tipoConsulta}
-                  onChange={(e) =>
-                    updateField('tipoConsulta', e.target.value as TrackingQueryType)
+                  onChange={(event) =>
+                    updateField(
+                      'tipoConsulta',
+                      event.target.value as TrackingQueryType,
+                    )
                   }
                   className="flex h-12 w-full rounded-2xl border border-input bg-background px-4 py-3 text-sm ring-offset-background focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2"
                 >
@@ -569,7 +865,7 @@ export default function TrackingsPage() {
                 <Input
                   type="text"
                   value={formData.valor}
-                  onChange={(e) => updateField('valor', e.target.value)}
+                  onChange={(event) => updateField('valor', event.target.value)}
                   placeholder={getValueFieldPlaceholder(formData.tipoConsulta)}
                   className="h-12 rounded-2xl"
                 />
@@ -582,7 +878,9 @@ export default function TrackingsPage() {
                 <Input
                   type="text"
                   value={formData.siglaEmp}
-                  onChange={(e) => updateField('siglaEmp', e.target.value)}
+                  onChange={(event) =>
+                    updateField('siglaEmp', event.target.value)
+                  }
                   placeholder="Ex: ABC"
                   className="h-12 rounded-2xl"
                 />
@@ -595,7 +893,7 @@ export default function TrackingsPage() {
                 <Input
                   type="text"
                   value={formData.senha}
-                  onChange={(e) => updateField('senha', e.target.value)}
+                  onChange={(event) => updateField('senha', event.target.value)}
                   placeholder="Preencha apenas se a consulta exigir senha"
                   className="h-12 rounded-2xl"
                 />
@@ -651,7 +949,7 @@ export default function TrackingsPage() {
                 Consultando rastreamento
               </h3>
               <p className="mt-2 text-sm text-blue-700">
-                Aguarde enquanto buscamos as informações da encomenda.
+                Aguarde enquanto buscamos as informacoes da encomenda.
               </p>
             </CardContent>
           </Card>
@@ -662,46 +960,166 @@ export default function TrackingsPage() {
             <section className="grid grid-cols-1 gap-4 md:grid-cols-2 xl:grid-cols-4">
               <Card className="rounded-3xl border-zinc-200 shadow-sm">
                 <CardContent className="p-5">
-                  <p className="text-sm text-zinc-500">Consulta</p>
-                  <h2 className="mt-2 text-2xl font-bold text-zinc-900">
+                  <p className="text-sm text-zinc-500">Consulta monitorada</p>
+                  <h2 className="mt-2 text-xl font-bold text-zinc-900">
                     {formData.valor || '-'}
                   </h2>
+                  <p className="mt-2 text-sm text-zinc-500">
+                    {transportDocument
+                      ? `Documento ${transportDocument}`
+                      : getQueryTypeLabel(formData.tipoConsulta)}
+                  </p>
                 </CardContent>
               </Card>
 
               <Card className="rounded-3xl border-zinc-200 shadow-sm">
                 <CardContent className="p-5">
-                  <p className="text-sm text-zinc-500">Status</p>
-                  <div className="mt-3">
+                  <p className="text-sm text-zinc-500">Ocorrencia atual</p>
+                  <div className="mt-3 flex flex-wrap items-center gap-2">
+                    {currentOccurrence.code && (
+                      <Badge
+                        variant="outline"
+                        className="rounded-full px-3 py-1 text-xs font-semibold text-zinc-700"
+                      >
+                        Codigo {currentOccurrence.code}
+                      </Badge>
+                    )}
                     <Badge
                       className={`rounded-full border px-3 py-1 text-sm font-semibold ${statusInfo.className}`}
                     >
                       {statusInfo.label}
                     </Badge>
                   </div>
-                </CardContent>
-              </Card>
-
-              <Card className="rounded-3xl border-zinc-200 shadow-sm">
-                <CardContent className="p-5">
-                  <p className="text-sm text-zinc-500">Mensagem</p>
-                  <h2 className="mt-2 text-base font-semibold text-zinc-900">
-                    {trackingData?.tracking?.message || '-'}
+                  <h2 className="mt-3 text-base font-semibold text-zinc-900">
+                    {currentOccurrence.label}
                   </h2>
                 </CardContent>
               </Card>
 
               <Card className="rounded-3xl border-zinc-200 shadow-sm">
                 <CardContent className="p-5">
-                  <p className="text-sm text-zinc-500">Última atualização</p>
+                  <p className="text-sm text-zinc-500">{deliveryDisplay.title}</p>
                   <h2 className="mt-2 text-base font-semibold text-zinc-900">
-                    {formatDateTime(
-                      latestItem?.data_hora_efetiva || latestItem?.data_hora,
-                    )}
+                    {deliveryDisplay.value}
                   </h2>
+                  <p className="mt-2 text-sm text-zinc-500">{deliveryDisplay.detail}</p>
+                </CardContent>
+              </Card>
+
+              <Card className="rounded-3xl border-zinc-200 shadow-sm">
+                <CardContent className="p-5">
+                  <p className="text-sm text-zinc-500">
+                    Monitoramento de prazo
+                  </p>
+                  <div
+                    className={`mt-3 rounded-2xl border px-4 py-3 ${deadlineInfo.className}`}
+                  >
+                    <p className="text-sm font-semibold">{deadlineInfo.label}</p>
+                    <p className="mt-1 text-sm opacity-80">
+                      {deadlineInfo.detail}
+                    </p>
+                  </div>
                 </CardContent>
               </Card>
             </section>
+
+            <Card className="overflow-hidden rounded-3xl border-zinc-200 shadow-sm">
+              <CardHeader className="border-b border-zinc-100">
+                <CardTitle className="text-lg text-zinc-900">
+                  Painel logistico do destino
+                </CardTitle>
+                <CardDescription className="text-sm text-zinc-500">
+                  Leitura rapida da rota, do prazo prometido e do ponto atual da
+                  carga.
+                </CardDescription>
+              </CardHeader>
+
+              <CardContent className="p-0">
+                <div className="grid gap-0 lg:grid-cols-[1.4fr_0.8fr]">
+                  <div className="border-b border-zinc-100 p-6 lg:border-b-0 lg:border-r">
+                    <div className="grid gap-4 md:grid-cols-3">
+                      <div className="rounded-3xl border border-zinc-200 bg-zinc-50 p-5">
+                        <p className="text-xs font-semibold uppercase tracking-[0.24em] text-zinc-500">
+                          Origem
+                        </p>
+                        <p className="mt-3 text-sm font-semibold text-zinc-900">
+                          {trackingData?.tracking?.header?.remetente || '-'}
+                        </p>
+                        <p className="mt-2 text-sm text-zinc-500">
+                          Embarcador da consulta.
+                        </p>
+                      </div>
+
+                      <div className="rounded-3xl border border-blue-200 bg-blue-50 p-5">
+                        <p className="text-xs font-semibold uppercase tracking-[0.24em] text-blue-700">
+                          Posicao atual
+                        </p>
+                        <p className="mt-3 text-sm font-semibold text-zinc-900">
+                          {latestItem ? getLocationLabel(latestItem) : '-'}
+                        </p>
+                        <p className="mt-2 text-sm text-zinc-600">
+                          Ultima baixa em{' '}
+                          {formatDateTime(
+                            latestItem?.data_hora_efetiva || latestItem?.data_hora,
+                          )}
+                          .
+                        </p>
+                      </div>
+
+                      <div className="rounded-3xl border border-emerald-200 bg-emerald-50 p-5">
+                        <p className="text-xs font-semibold uppercase tracking-[0.24em] text-emerald-700">
+                          Destino
+                        </p>
+                        <p className="mt-3 text-sm font-semibold text-zinc-900">
+                          {trackingData?.tracking?.header?.destinatario || '-'}
+                        </p>
+                        <p className="mt-2 text-sm text-zinc-600">
+                          {destinationLabel !== '-'
+                            ? `Praca de entrega: ${destinationLabel}.`
+                            : 'Destino sem cidade detalhada no retorno.'}
+                        </p>
+                      </div>
+                    </div>
+                  </div>
+
+                  <div className="p-6">
+                    <div className="rounded-3xl border border-zinc-200 bg-white p-5 shadow-sm">
+                      <p className="text-xs font-semibold uppercase tracking-[0.24em] text-zinc-500">
+                        Dashboard de prazo
+                      </p>
+                      <h3 className="mt-3 text-lg font-semibold text-zinc-900">
+                        {deadlineInfo.label}
+                      </h3>
+                      <p className="mt-2 text-sm text-zinc-600">
+                        {deadlineInfo.detail}
+                      </p>
+
+                      <div className="mt-5 grid gap-3">
+                        <div className="rounded-2xl border border-zinc-200 bg-zinc-50 px-4 py-3">
+                          <p className="text-xs font-semibold uppercase tracking-wide text-zinc-500">
+                            {deliveryDisplay.title}
+                          </p>
+                          <p className="mt-2 text-sm font-semibold text-zinc-900">
+                            {deliveryDisplay.value}
+                          </p>
+                        </div>
+
+                        <div className="rounded-2xl border border-zinc-200 bg-zinc-50 px-4 py-3">
+                          <p className="text-xs font-semibold uppercase tracking-wide text-zinc-500">
+                            Ultima atualizacao
+                          </p>
+                          <p className="mt-2 text-sm font-semibold text-zinc-900">
+                            {formatDateTime(
+                              latestItem?.data_hora_efetiva || latestItem?.data_hora,
+                            )}
+                          </p>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </CardContent>
+            </Card>
 
             <Card className="rounded-3xl border-zinc-200 shadow-sm">
               <CardHeader>
@@ -709,7 +1127,8 @@ export default function TrackingsPage() {
                   Etapas da encomenda
                 </CardTitle>
                 <CardDescription className="text-sm text-zinc-500">
-                  A barra abaixo se adapta ao retorno atual do rastreamento.
+                  A leitura abaixo usa as ocorrencias da API para mostrar a
+                  evolucao operacional da carga.
                 </CardDescription>
               </CardHeader>
 
@@ -778,69 +1197,16 @@ export default function TrackingsPage() {
               </CardContent>
             </Card>
 
-            <section className="grid grid-cols-1 gap-6 xl:grid-cols-3">
-              <Card className="rounded-3xl border-zinc-200 shadow-sm xl:col-span-1">
-                <CardHeader>
-                  <CardTitle className="text-lg text-zinc-900">
-                    Dados do embarque
-                  </CardTitle>
-                </CardHeader>
-
-                <CardContent className="space-y-4">
-                  <div>
-                    <p className="text-sm text-zinc-500">Remetente</p>
-                    <p className="mt-1 text-sm font-semibold text-zinc-900">
-                      {trackingData?.tracking?.header?.remetente || '-'}
-                    </p>
-                  </div>
-
-                  <div>
-                    <p className="text-sm text-zinc-500">Destinatário</p>
-                    <p className="mt-1 text-sm font-semibold text-zinc-900">
-                      {trackingData?.tracking?.header?.destinatario || '-'}
-                    </p>
-                  </div>
-
-                  <div>
-                    <p className="text-sm text-zinc-500">Tipo de consulta</p>
-                    <p className="mt-1 text-sm font-semibold text-zinc-900">
-                      {getQueryTypeLabel(formData.tipoConsulta)}
-                    </p>
-                  </div>
-
-                  <div>
-                    <p className="text-sm text-zinc-500">CNPJ informado</p>
-                    <p className="mt-1 text-sm font-semibold text-zinc-900">
-                      {formData.cnpj || '-'}
-                    </p>
-                  </div>
-
-                  <div>
-                    <p className="text-sm text-zinc-500">Última unidade</p>
-                    <p className="mt-1 text-sm font-semibold text-zinc-900">
-                      {latestItem ? getLocationLabel(latestItem) : '-'}
-                    </p>
-                  </div>
-
-                  {latestItem?.nome_recebedor && (
-                    <div>
-                      <p className="text-sm text-zinc-500">Recebedor</p>
-                      <p className="mt-1 text-sm font-semibold text-zinc-900">
-                        {latestItem.nome_recebedor}
-                      </p>
-                    </div>
-                  )}
-                </CardContent>
-              </Card>
-
-              <Card className="rounded-3xl border-zinc-200 shadow-sm xl:col-span-2">
+            <section className="grid grid-cols-1 gap-6">
+              <Card className="rounded-3xl border-zinc-200 shadow-sm">
                 <CardHeader className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
                   <div>
                     <CardTitle className="text-lg text-zinc-900">
-                      Histórico de movimentações
+                      Historico de movimentacoes
                     </CardTitle>
                     <CardDescription className="text-sm text-zinc-500">
-                      Eventos retornados pela consulta de rastreamento.
+                      Eventos retornados pela consulta de rastreamento, com
+                      destaque para a ocorrencia operacional.
                     </CardDescription>
                   </div>
 
@@ -857,12 +1223,13 @@ export default function TrackingsPage() {
                 <CardContent>
                   {items.length === 0 ? (
                     <div className="rounded-2xl border border-zinc-200 bg-zinc-50 p-6 text-sm text-zinc-500">
-                      Nenhuma movimentação encontrada.
+                      Nenhuma movimentacao encontrada.
                     </div>
                   ) : (
                     <div className="space-y-4">
                       {items.map((item, index) => {
                         const visual = getMovementVisual(item);
+                        const occurrence = splitOccurrenceLabel(item.ocorrencia);
                         const Icon = visual.icon;
                         const isLast = index === items.length - 1;
 
@@ -902,15 +1269,24 @@ export default function TrackingsPage() {
                                           {item.tipo}
                                         </Badge>
                                       )}
+
+                                      {occurrence.code && (
+                                        <Badge
+                                          variant="outline"
+                                          className="rounded-full px-3 py-1 text-xs font-semibold text-zinc-700"
+                                        >
+                                          Cod. {occurrence.code}
+                                        </Badge>
+                                      )}
                                     </div>
 
                                     <h4 className="mt-3 text-base font-semibold text-zinc-900">
-                                      {item.ocorrencia || 'Movimentação registrada'}
+                                      {occurrence.label}
                                     </h4>
 
                                     <p className="mt-1 text-sm leading-6 text-zinc-600">
                                       {item.descricao ||
-                                        'Sem descrição adicional para esta movimentação.'}
+                                        'Sem descricao adicional para esta movimentacao.'}
                                     </p>
                                   </div>
 
@@ -921,7 +1297,7 @@ export default function TrackingsPage() {
                                       )}
                                     </p>
                                     <p className="mt-1 text-xs uppercase tracking-wide text-zinc-500">
-                                      Atualização do evento
+                                      Atualizacao do evento
                                     </p>
                                   </div>
                                 </div>

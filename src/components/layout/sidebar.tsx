@@ -9,6 +9,7 @@ import {
   Megaphone,
   PackageSearch,
   Ticket,
+  Truck,
   UserPlus,
   Users,
 } from 'lucide-react';
@@ -41,6 +42,12 @@ const menuItems: MenuItem[] = [
     label: 'Dashboard',
     icon: LayoutDashboard,
     roles: ['ADMIN', 'GESTAO', 'COMERCIAL', 'MARKETING', 'CLIENTE'],
+  },
+  {
+    href: '/entregas',
+    label: 'Entregas',
+    icon: Truck,
+    roles: ['ADMIN', 'GESTAO', 'COMERCIAL', 'MARKETING'],
   },
   {
     href: '/trackings',
