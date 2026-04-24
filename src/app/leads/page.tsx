@@ -2,7 +2,7 @@
 
 import Link from 'next/link';
 import { useEffect, useMemo, useState } from 'react';
-import { MessageCircleMore, UserPlus } from 'lucide-react';
+import { MessageCircleMore, Sparkles, UserPlus } from 'lucide-react';
 import { AppLayout } from '@/components/layout/app-layout';
 import { LeadForm } from '@/components/leads/lead-form';
 import {
@@ -40,7 +40,11 @@ export default function LeadsPage() {
   const [importLoading, setImportLoading] = useState(false);
   const [whatsLoading, setWhatsLoading] = useState(false);
   const [pageError, setPageError] = useState('');
-  const [toast, setToast] = useState<{ title: string; message: string; variant: 'success' | 'error' } | null>(null);
+  const [toast, setToast] = useState<{
+    title: string;
+    message: string;
+    variant: 'success' | 'error';
+  } | null>(null);
   const [filters, setFilters] = useState({
     q: '',
     source: '',
@@ -235,39 +239,35 @@ export default function LeadsPage() {
   return (
     <AppLayout>
       <div className="mx-auto flex w-full max-w-7xl flex-col gap-6">
-        <section className="rounded-[32px] border border-white/80 bg-white/90 p-6 shadow-[0_18px_50px_rgba(15,23,42,0.06)]">
-          <div className="flex flex-col gap-5 lg:flex-row lg:items-end lg:justify-between">
+        <section className="crm-shell-card p-6">
+          <div className="flex flex-col gap-6 lg:flex-row lg:items-end lg:justify-between">
             <div>
-              <p className="text-sm font-semibold uppercase tracking-[0.18em] text-blue-700">
-                Captação
-              </p>
-              <h1 className="mt-2 text-3xl font-bold text-slate-950 md:text-4xl">
-                Leads por cadastro manual, CSV e WhatsApp
-              </h1>
-              <p className="mt-3 max-w-3xl text-sm leading-7 text-slate-500 md:text-base">
-                Nova area de captacao separada de clientes ativos, para manter o CRM
-                seguro e incremental sem mexer no portal atual.
+              <p className="crm-eyebrow">Captacao</p>
+              <h1 className="crm-page-title">Leads por cadastro manual, CSV e WhatsApp</h1>
+              <p className="crm-page-copy">
+                Entrada comercial com cara de CRM: mais leitura de origem, volume e
+                qualidade da captacao, menos cara de modulo isolado.
               </p>
             </div>
 
             <div className="grid gap-3 sm:grid-cols-2 xl:grid-cols-5">
-              <article className="rounded-[24px] border border-slate-200 bg-slate-50 px-4 py-3">
+              <article className="crm-soft-panel px-4 py-3">
                 <p className="text-xs uppercase tracking-[0.18em] text-slate-400">Total</p>
                 <p className="mt-2 text-2xl font-bold text-slate-950">{summary.total}</p>
               </article>
-              <article className="rounded-[24px] border border-slate-200 bg-slate-50 px-4 py-3">
+              <article className="crm-soft-panel px-4 py-3">
                 <p className="text-xs uppercase tracking-[0.18em] text-slate-400">Manual</p>
                 <p className="mt-2 text-2xl font-bold text-blue-700">{summary.manual}</p>
               </article>
-              <article className="rounded-[24px] border border-slate-200 bg-slate-50 px-4 py-3">
+              <article className="crm-soft-panel px-4 py-3">
                 <p className="text-xs uppercase tracking-[0.18em] text-slate-400">CSV</p>
                 <p className="mt-2 text-2xl font-bold text-emerald-700">{summary.imported}</p>
               </article>
-              <article className="rounded-[24px] border border-slate-200 bg-slate-50 px-4 py-3">
+              <article className="crm-soft-panel px-4 py-3">
                 <p className="text-xs uppercase tracking-[0.18em] text-slate-400">WhatsApp</p>
                 <p className="mt-2 text-2xl font-bold text-green-700">{summary.whatsapp}</p>
               </article>
-              <article className="rounded-[24px] border border-slate-200 bg-slate-50 px-4 py-3">
+              <article className="crm-soft-panel px-4 py-3">
                 <p className="text-xs uppercase tracking-[0.18em] text-slate-400">Status new</p>
                 <p className="mt-2 text-2xl font-bold text-violet-700">{summary.fresh}</p>
               </article>
@@ -275,13 +275,13 @@ export default function LeadsPage() {
           </div>
         </section>
 
-        <section className="rounded-[32px] border border-slate-200 bg-white p-6 shadow-sm">
+        <section className="crm-shell-card p-6">
           <Tabs defaultValue="manual" className="gap-6">
             <div className="flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between">
               <div>
                 <h2 className="text-2xl font-bold text-slate-950">Entradas de lead</h2>
                 <p className="mt-2 text-sm text-slate-500">
-                  Fluxos pequenos e seguros para captar sem alterar o restante do CRM.
+                  Fluxos pequenos, prontos para o time comercial operar sem quebrar a base.
                 </p>
               </div>
               <TabsList variant="line" className="w-fit">
@@ -292,8 +292,8 @@ export default function LeadsPage() {
             </div>
 
             <TabsContent value="manual">
-              <div className="grid gap-6 xl:grid-cols-[1fr_.9fr]">
-                <article className="rounded-[28px] border border-slate-200 bg-slate-50 p-5">
+              <div className="grid gap-6 xl:grid-cols-[1fr_.88fr]">
+                <article className="crm-soft-panel p-5">
                   <div className="mb-5 flex items-center gap-3">
                     <div className="flex h-11 w-11 items-center justify-center rounded-2xl bg-blue-100 text-blue-700">
                       <UserPlus className="h-5 w-5" />
@@ -301,27 +301,38 @@ export default function LeadsPage() {
                     <div>
                       <h3 className="text-lg font-semibold text-slate-950">Cadastro manual</h3>
                       <p className="text-sm text-slate-500">
-                        Cria lead com deduplicacao por e-mail ou telefone e timeline inicial.
+                        Entrada rapida com contexto comercial e deduplicacao segura.
                       </p>
                     </div>
                   </div>
                   <LeadForm loading={manualLoading} onSubmit={handleManualCreate} />
                 </article>
 
-                <article className="rounded-[28px] border border-slate-200 bg-slate-50 p-5">
-                  <h3 className="text-lg font-semibold text-slate-950">Regras aplicadas</h3>
-                  <div className="mt-4 space-y-3 text-sm leading-6 text-slate-600">
+                <article className="crm-soft-panel p-5">
+                  <div className="mb-5 flex items-center gap-3">
+                    <div className="flex h-11 w-11 items-center justify-center rounded-2xl bg-violet-100 text-violet-700">
+                      <Sparkles className="h-5 w-5" />
+                    </div>
+                    <div>
+                      <h3 className="text-lg font-semibold text-slate-950">Regras da captacao</h3>
+                      <p className="text-sm text-slate-500">
+                        Parametros atuais do CRM para manter a base limpa.
+                      </p>
+                    </div>
+                  </div>
+
+                  <div className="space-y-3 text-sm leading-6 text-slate-600">
                     <div className="rounded-2xl border border-slate-200 bg-white px-4 py-3">
-                      `source` padrao: <strong>manual</strong>
+                      Origem padrao: <strong>manual</strong>
                     </div>
                     <div className="rounded-2xl border border-slate-200 bg-white px-4 py-3">
-                      `status` padrao: <strong>new</strong>
+                      Status padrao: <strong>new</strong>
                     </div>
                     <div className="rounded-2xl border border-slate-200 bg-white px-4 py-3">
-                      Duplicidade bloqueada por e-mail; sem e-mail, por telefone.
+                      Duplicidade por e-mail; sem e-mail, por telefone.
                     </div>
                     <div className="rounded-2xl border border-slate-200 bg-white px-4 py-3">
-                      Timeline inicial: <strong>Lead criado manualmente</strong>.
+                      Timeline inicial criada automaticamente no backend.
                     </div>
                   </div>
                 </article>
@@ -329,26 +340,22 @@ export default function LeadsPage() {
             </TabsContent>
 
             <TabsContent value="csv">
-              <LeadImportPanel
-                loading={importLoading}
-                jobs={jobs}
-                onImport={handleImport}
-              />
+              <LeadImportPanel loading={importLoading} jobs={jobs} onImport={handleImport} />
             </TabsContent>
 
             <TabsContent value="whatsapp">
-              <div className="grid gap-6 xl:grid-cols-[1fr_.9fr]">
-                <article className="rounded-[28px] border border-slate-200 bg-slate-50 p-5">
+              <div className="grid gap-6 xl:grid-cols-[1fr_.88fr]">
+                <article className="crm-soft-panel p-5">
                   <div className="mb-5 flex items-center gap-3">
                     <div className="flex h-11 w-11 items-center justify-center rounded-2xl bg-green-100 text-green-700">
                       <MessageCircleMore className="h-5 w-5" />
                     </div>
                     <div>
                       <h3 className="text-lg font-semibold text-slate-950">
-                        Simular entrada via WhatsApp
+                        Entrada via WhatsApp
                       </h3>
                       <p className="text-sm text-slate-500">
-                        Usa o endpoint de integracao real preparado para futura Cloud API.
+                        Teste o endpoint e valide o fluxo minimo de captacao por telefone.
                       </p>
                     </div>
                   </div>
@@ -367,7 +374,7 @@ export default function LeadsPage() {
                             integrationToken: event.target.value,
                           }))
                         }
-                        className="w-full rounded-2xl border border-slate-300 bg-white px-4 py-3 text-sm text-slate-900"
+                        className="crm-input"
                         placeholder="Mesmo token configurado no backend"
                       />
                     </div>
@@ -383,7 +390,7 @@ export default function LeadsPage() {
                           onChange={(event) =>
                             setWhatsForm((prev) => ({ ...prev, phone: event.target.value }))
                           }
-                          className="w-full rounded-2xl border border-slate-300 bg-white px-4 py-3 text-sm text-slate-900"
+                          className="crm-input"
                           placeholder="5511999999999"
                         />
                       </div>
@@ -397,7 +404,7 @@ export default function LeadsPage() {
                           onChange={(event) =>
                             setWhatsForm((prev) => ({ ...prev, name: event.target.value }))
                           }
-                          className="w-full rounded-2xl border border-slate-300 bg-white px-4 py-3 text-sm text-slate-900"
+                          className="crm-input"
                           placeholder="Contato via WhatsApp"
                         />
                       </div>
@@ -410,7 +417,7 @@ export default function LeadsPage() {
                         onChange={(event) =>
                           setWhatsForm((prev) => ({ ...prev, company: event.target.value }))
                         }
-                        className="w-full rounded-2xl border border-slate-300 bg-white px-4 py-3 text-sm text-slate-900"
+                        className="crm-input"
                         placeholder="Empresa"
                       />
                       <input
@@ -422,7 +429,7 @@ export default function LeadsPage() {
                             sourcePhone: event.target.value,
                           }))
                         }
-                        className="w-full rounded-2xl border border-slate-300 bg-white px-4 py-3 text-sm text-slate-900"
+                        className="crm-input"
                         placeholder="Numero de origem"
                       />
                     </div>
@@ -437,7 +444,7 @@ export default function LeadsPage() {
                             externalMessageId: event.target.value,
                           }))
                         }
-                        className="w-full rounded-2xl border border-slate-300 bg-white px-4 py-3 text-sm text-slate-900"
+                        className="crm-input"
                         placeholder="externalMessageId"
                       />
                       <input
@@ -449,7 +456,7 @@ export default function LeadsPage() {
                             externalContactId: event.target.value,
                           }))
                         }
-                        className="w-full rounded-2xl border border-slate-300 bg-white px-4 py-3 text-sm text-slate-900"
+                        className="crm-input"
                         placeholder="externalContactId"
                       />
                     </div>
@@ -460,7 +467,7 @@ export default function LeadsPage() {
                       onChange={(event) =>
                         setWhatsForm((prev) => ({ ...prev, notes: event.target.value }))
                       }
-                      className="w-full rounded-2xl border border-slate-300 bg-white px-4 py-3 text-sm text-slate-900"
+                      className="crm-textarea"
                       placeholder="Mensagem ou contexto recebido."
                     />
 
@@ -476,20 +483,20 @@ export default function LeadsPage() {
                   </form>
                 </article>
 
-                <article className="rounded-[28px] border border-slate-200 bg-slate-50 p-5">
+                <article className="crm-soft-panel p-5">
                   <h3 className="text-lg font-semibold text-slate-950">Escopo desta fase</h3>
                   <div className="mt-4 space-y-3 text-sm leading-6 text-slate-600">
                     <div className="rounded-2xl border border-slate-200 bg-white px-4 py-3">
-                      Endpoint com token simples para integracao futura oficial.
+                      Recebimento de lead via webhook, sem inbox e sem envio de mensagem.
                     </div>
                     <div className="rounded-2xl border border-slate-200 bg-white px-4 py-3">
-                      Duplicidade por telefone antes de criar novo lead.
+                      Deduplicacao por telefone antes de abrir um novo cadastro.
                     </div>
                     <div className="rounded-2xl border border-slate-200 bg-white px-4 py-3">
-                      Se ja existir lead, registra apenas nova interacao na timeline.
+                      Timeline registra criacao ou nova interacao do mesmo contato.
                     </div>
                     <div className="rounded-2xl border border-slate-200 bg-white px-4 py-3">
-                      Sem inbox, sem envio massivo e sem scraping.
+                      Estrutura pronta para encaixar Cloud API de forma oficial depois.
                     </div>
                   </div>
                 </article>
@@ -498,12 +505,13 @@ export default function LeadsPage() {
           </Tabs>
         </section>
 
-        <section className="rounded-[32px] border border-slate-200 bg-white p-6 shadow-sm">
+        <section className="crm-shell-card p-6">
           <div className="flex flex-col gap-4 lg:flex-row lg:items-end lg:justify-between">
             <div>
-              <h2 className="text-2xl font-bold text-slate-950">Base de leads</h2>
+              <p className="crm-eyebrow">Pipeline de entrada</p>
+              <h2 className="mt-2 text-2xl font-bold text-slate-950">Base de leads</h2>
               <p className="mt-2 text-sm text-slate-500">
-                Lista consolidada com origem e ultimo historico registrado.
+                Visao de lista para comercial operar origem, status e ultimo contexto.
               </p>
             </div>
 
@@ -512,7 +520,7 @@ export default function LeadsPage() {
                 type="text"
                 value={filters.q}
                 onChange={(event) => setFilters((prev) => ({ ...prev, q: event.target.value }))}
-                className="rounded-2xl border border-slate-300 bg-slate-50 px-4 py-3 text-sm text-slate-900"
+                className="crm-input"
                 placeholder="Buscar por nome, e-mail ou empresa"
               />
               <input
@@ -521,7 +529,7 @@ export default function LeadsPage() {
                 onChange={(event) =>
                   setFilters((prev) => ({ ...prev, source: event.target.value }))
                 }
-                className="rounded-2xl border border-slate-300 bg-slate-50 px-4 py-3 text-sm text-slate-900"
+                className="crm-input"
                 placeholder="source"
               />
               <input
@@ -530,7 +538,7 @@ export default function LeadsPage() {
                 onChange={(event) =>
                   setFilters((prev) => ({ ...prev, status: event.target.value }))
                 }
-                className="rounded-2xl border border-slate-300 bg-slate-50 px-4 py-3 text-sm text-slate-900"
+                className="crm-input"
                 placeholder="status"
               />
               <button
@@ -557,7 +565,7 @@ export default function LeadsPage() {
               {leads.map((lead) => (
                 <article
                   key={lead.id}
-                  className="grid gap-4 rounded-[24px] border border-slate-200 bg-slate-50 px-4 py-4 lg:grid-cols-[1.5fr_1fr_.8fr_1.1fr_auto]"
+                  className="grid gap-4 rounded-[26px] border border-slate-200/80 bg-[linear-gradient(180deg,#ffffff_0%,#f8fafc_100%)] px-4 py-4 shadow-sm lg:grid-cols-[1.6fr_1fr_.8fr_1.1fr_auto]"
                 >
                   <div>
                     <p className="text-base font-semibold text-slate-950">{lead.name}</p>

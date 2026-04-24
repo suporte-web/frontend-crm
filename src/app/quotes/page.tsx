@@ -2,14 +2,11 @@
 
 import Link from 'next/link';
 import { useEffect, useMemo, useState } from 'react';
+import { ArrowUpRight, Building2, FileStack, PlusCircle } from 'lucide-react';
 import { AppLayout } from '@/components/layout/app-layout';
 import { FeedbackToast } from '@/components/ui/feedback-toast';
 import { useAuth } from '@/context/auth-context';
-import {
-  createQuote,
-  getAllQuotes,
-  getMyQuotes,
-} from '@/services/quotes.service';
+import { createQuote, getAllQuotes, getMyQuotes } from '@/services/quotes.service';
 import type { CreateQuotePayload, Quote, QuoteStatus } from '@/types/quotes';
 
 type QuoteFormState = {
@@ -125,9 +122,7 @@ export default function QuotesPage() {
       const data = isClient ? await getMyQuotes(token) : await getAllQuotes(token);
       setQuotes(data);
     } catch (error) {
-      setPageError(
-        error instanceof Error ? error.message : 'Erro ao carregar cotacoes.',
-      );
+      setPageError(error instanceof Error ? error.message : 'Erro ao carregar cotacoes.');
     } finally {
       setLoading(false);
     }
@@ -139,14 +134,12 @@ export default function QuotesPage() {
 
   useEffect(() => {
     if (!successMessage) return;
-
     const timer = setTimeout(() => setSuccessMessage(''), 5000);
     return () => clearTimeout(timer);
   }, [successMessage]);
 
   useEffect(() => {
     if (!errorToastMessage) return;
-
     const timer = setTimeout(() => setErrorToastMessage(''), 6000);
     return () => clearTimeout(timer);
   }, [errorToastMessage]);
@@ -164,8 +157,7 @@ export default function QuotesPage() {
         .toLowerCase();
 
       const matchesSearch = haystack.includes(search.toLowerCase());
-      const matchesStatus =
-        statusFilter === 'TODOS' ? true : quote.status === statusFilter;
+      const matchesStatus = statusFilter === 'TODOS' || quote.status === statusFilter;
 
       return matchesSearch && matchesStatus;
     });
@@ -240,8 +232,7 @@ export default function QuotesPage() {
       setIsModalOpen(false);
       resetForm();
     } catch (error) {
-      const message =
-        error instanceof Error ? error.message : 'Erro ao enviar cotacao.';
+      const message = error instanceof Error ? error.message : 'Erro ao enviar cotacao.';
       setFormError(message);
       setErrorToastMessage(message);
     } finally {
@@ -251,227 +242,212 @@ export default function QuotesPage() {
 
   return (
     <AppLayout>
-      <div className="min-h-screen bg-zinc-50">
-        <div className="mx-auto flex w-full max-w-7xl flex-col gap-6 p-4 md:p-6">
-          <section className="rounded-3xl border border-zinc-200 bg-white p-6 shadow-sm">
-            <div className="flex flex-col gap-4 xl:flex-row xl:items-start xl:justify-between">
-              <div>
-                <p className="text-sm font-medium text-zinc-500">
-                  {isClient ? 'Solicitacoes do cliente' : 'Painel comercial'}
-                </p>
-                <h1 className="mt-1 text-3xl font-bold tracking-tight text-zinc-900">
-                  Cotacoes
-                </h1>
-                <p className="mt-2 max-w-2xl text-sm text-zinc-600">
-                  {isClient
-                    ? 'Solicite servicos com mais contexto operacional para agilizar a analise comercial.'
-                    : 'Acompanhe as solicitacoes recebidas, respostas comerciais e detalhes de cada oportunidade.'}
-                </p>
-              </div>
-
-              <div className="flex flex-wrap gap-3">
-                {!isClient ? (
-                  <>
-                    <Link
-                      href="/dashboard"
-                      className="inline-flex items-center justify-center rounded-2xl border border-zinc-300 bg-white px-4 py-2.5 text-sm font-semibold text-zinc-700 transition hover:bg-zinc-100"
-                    >
-                      Voltar ao dashboard
-                    </Link>
-                    <Link
-                      href="/clients"
-                      className="inline-flex items-center justify-center rounded-2xl border border-zinc-300 bg-white px-4 py-2.5 text-sm font-semibold text-zinc-700 transition hover:bg-zinc-100"
-                    >
-                      Clientes
-                    </Link>
-                  </>
-                ) : null}
-
-                <button
-                  type="button"
-                  onClick={() => {
-                    setIsModalOpen(true);
-                    setFormError('');
-                  }}
-                  className="inline-flex items-center justify-center rounded-2xl bg-zinc-900 px-4 py-2.5 text-sm font-semibold text-white transition hover:bg-zinc-800"
-                >
-                  Nova cotacao
-                </button>
-              </div>
-            </div>
-          </section>
-
-          <section className="grid grid-cols-1 gap-4 md:grid-cols-2 xl:grid-cols-4">
-            <div className="rounded-3xl border border-zinc-200 bg-white p-5 shadow-sm">
-              <p className="text-sm text-zinc-500">Total de cotacoes</p>
-              <h2 className="mt-2 text-3xl font-bold text-zinc-900">{stats.total}</h2>
-            </div>
-
-            <div className="rounded-3xl border border-zinc-200 bg-white p-5 shadow-sm">
-              <p className="text-sm text-zinc-500">Respondidas</p>
-              <h2 className="mt-2 text-3xl font-bold text-violet-600">
-                {stats.answered}
-              </h2>
-            </div>
-
-            <div className="rounded-3xl border border-zinc-200 bg-white p-5 shadow-sm">
-              <p className="text-sm text-zinc-500">Em andamento</p>
-              <h2 className="mt-2 text-3xl font-bold text-amber-600">
-                {stats.pending}
-              </h2>
-            </div>
-
-            <div className="rounded-3xl border border-zinc-200 bg-white p-5 shadow-sm">
-              <p className="text-sm text-zinc-500">Valor respondido</p>
-              <h2 className="mt-2 text-3xl font-bold text-zinc-900">
-                {formatCurrency(stats.totalValue)}
-              </h2>
-            </div>
-          </section>
-
-          <section className="rounded-3xl border border-zinc-200 bg-white p-4 shadow-sm md:p-5">
-            <div className="flex flex-col gap-4 lg:flex-row lg:items-end lg:justify-between">
-              <div className="w-full lg:max-w-md">
-                <label className="mb-2 block text-sm font-medium text-zinc-700">
-                  Buscar cotacao
-                </label>
-                <input
-                  type="text"
-                  placeholder="Buscar por cliente, origem, destino ou servico..."
-                  value={search}
-                  onChange={(e) => setSearch(e.target.value)}
-                  className="w-full rounded-2xl border border-zinc-300 bg-white px-4 py-3 text-sm text-zinc-900 outline-none transition focus:border-zinc-900"
-                />
-              </div>
-
-              <div className="w-full lg:max-w-xs">
-                <label className="mb-2 block text-sm font-medium text-zinc-700">
-                  Filtrar por status
-                </label>
-                <select
-                  value={statusFilter}
-                  onChange={(e) =>
-                    setStatusFilter(e.target.value as 'TODOS' | QuoteStatus)
-                  }
-                  className="w-full rounded-2xl border border-zinc-300 bg-white px-4 py-3 text-sm text-zinc-900 outline-none transition focus:border-zinc-900"
-                >
-                  <option value="TODOS">Todos</option>
-                  <option value="RECEIVED">Recebida</option>
-                  <option value="IN_ANALYSIS">Em analise</option>
-                  <option value="ANSWERED">Respondida</option>
-                  <option value="APPROVED">Aprovada</option>
-                  <option value="REJECTED">Rejeitada</option>
-                </select>
-              </div>
-            </div>
-          </section>
-
-          <section className="overflow-hidden rounded-3xl border border-zinc-200 bg-white shadow-sm">
-            <div className="border-b border-zinc-200 px-5 py-4">
-              <h3 className="text-lg font-semibold text-zinc-900">
-                Lista de cotacoes
-              </h3>
-              <p className="mt-1 text-sm text-zinc-500">
-                {filteredQuotes.length} registro(s) encontrado(s)
+      <div className="mx-auto flex w-full max-w-7xl flex-col gap-6">
+        <section className="crm-shell-card p-6">
+          <div className="flex flex-col gap-5 xl:flex-row xl:items-end xl:justify-between">
+            <div>
+              <p className="crm-eyebrow">{isClient ? 'Solicitacoes' : 'Pipeline comercial'}</p>
+              <h1 className="crm-page-title">Cotacoes</h1>
+              <p className="crm-page-copy">
+                {isClient
+                  ? 'Solicite servicos com mais contexto operacional e acompanhe o retorno comercial com mais clareza.'
+                  : 'Visual empresarial para leitura de volume, resposta e contexto operacional de cada pedido.'}
               </p>
             </div>
 
-            {loading ? (
-              <div className="p-10 text-center text-sm text-zinc-500">
-                Carregando cotacoes...
-              </div>
-            ) : pageError ? (
-              <div className="p-10 text-center text-sm text-rose-600">{pageError}</div>
-            ) : (
-              <div className="grid gap-4 p-4">
-                {filteredQuotes.map((quote) => (
-                  <div
-                    key={quote.id}
-                    className="rounded-2xl border border-zinc-200 p-5 shadow-sm"
+            <div className="flex flex-wrap gap-3">
+              {!isClient ? (
+                <>
+                  <Link
+                    href="/dashboard"
+                    className="inline-flex items-center justify-center rounded-2xl border border-slate-300 bg-white px-4 py-2.5 text-sm font-semibold text-slate-700 transition hover:bg-slate-100"
                   >
-                    <div className="flex flex-col gap-4 lg:flex-row lg:items-start lg:justify-between">
-                      <div>
-                        <div className="flex flex-wrap items-center gap-2">
-                          <span
-                            className={`inline-flex rounded-full border px-3 py-1 text-xs font-semibold ${getStatusClasses(
-                              quote.status,
-                            )}`}
-                          >
-                            {getStatusLabel(quote.status)}
-                          </span>
-                          <span className="text-xs uppercase tracking-[0.18em] text-zinc-400">
-                            {formatDate(quote.createdAt)}
-                          </span>
-                        </div>
+                    Dashboard
+                  </Link>
+                  <Link
+                    href="/clients"
+                    className="inline-flex items-center justify-center rounded-2xl border border-slate-300 bg-white px-4 py-2.5 text-sm font-semibold text-slate-700 transition hover:bg-slate-100"
+                  >
+                    Clientes
+                  </Link>
+                </>
+              ) : null}
 
-                        <h4 className="mt-3 text-xl font-semibold text-zinc-950">
-                          {quote.serviceType}
-                        </h4>
-                        <p className="mt-1 text-sm text-zinc-600">
-                          {quote.origin} {'->'} {quote.destination}
-                        </p>
-                        <p className="mt-3 text-sm text-zinc-500">
-                          {isClient ? 'Solicitacao enviada' : getClientName(quote)}
-                        </p>
-                      </div>
+              <button
+                type="button"
+                onClick={() => {
+                  setIsModalOpen(true);
+                  setFormError('');
+                }}
+                className="inline-flex items-center justify-center gap-2 rounded-2xl bg-slate-950 px-4 py-2.5 text-sm font-semibold text-white transition hover:bg-slate-800"
+              >
+                <PlusCircle className="h-4 w-4" />
+                Nova cotacao
+              </button>
+            </div>
+          </div>
+        </section>
 
-                      <div className="flex flex-wrap gap-2">
-                        <Link
-                          href={`/quotes/${quote.id}`}
-                          className="rounded-xl border border-zinc-300 px-3 py-2 text-sm font-semibold text-zinc-700 transition hover:bg-zinc-100"
+        <section className="grid grid-cols-1 gap-4 md:grid-cols-2 xl:grid-cols-4">
+          <article className="crm-kpi-card">
+            <p className="text-sm text-slate-500">Total de cotacoes</p>
+            <h2 className="mt-2 text-3xl font-bold text-slate-950">{stats.total}</h2>
+          </article>
+          <article className="crm-kpi-card">
+            <p className="text-sm text-slate-500">Respondidas</p>
+            <h2 className="mt-2 text-3xl font-bold text-violet-600">{stats.answered}</h2>
+          </article>
+          <article className="crm-kpi-card">
+            <p className="text-sm text-slate-500">Em andamento</p>
+            <h2 className="mt-2 text-3xl font-bold text-amber-600">{stats.pending}</h2>
+          </article>
+          <article className="crm-kpi-card">
+            <p className="text-sm text-slate-500">Valor respondido</p>
+            <h2 className="mt-2 text-3xl font-bold text-slate-950">
+              {formatCurrency(stats.totalValue)}
+            </h2>
+          </article>
+        </section>
+
+        <section className="crm-shell-card p-5">
+          <div className="grid gap-4 lg:grid-cols-[1fr_280px]">
+            <div>
+              <label className="mb-2 block text-sm font-semibold text-slate-700">
+                Buscar cotacao
+              </label>
+              <input
+                type="text"
+                placeholder="Buscar por cliente, origem, destino ou servico..."
+                value={search}
+                onChange={(e) => setSearch(e.target.value)}
+                className="crm-input"
+              />
+            </div>
+
+            <div>
+              <label className="mb-2 block text-sm font-semibold text-slate-700">
+                Filtrar por status
+              </label>
+              <select
+                value={statusFilter}
+                onChange={(e) => setStatusFilter(e.target.value as 'TODOS' | QuoteStatus)}
+                className="crm-input"
+              >
+                <option value="TODOS">Todos</option>
+                <option value="RECEIVED">Recebida</option>
+                <option value="IN_ANALYSIS">Em analise</option>
+                <option value="ANSWERED">Respondida</option>
+                <option value="APPROVED">Aprovada</option>
+                <option value="REJECTED">Rejeitada</option>
+              </select>
+            </div>
+          </div>
+        </section>
+
+        <section className="crm-shell-card overflow-hidden">
+          <div className="border-b border-slate-200 px-5 py-4">
+            <h3 className="text-lg font-semibold text-slate-900">Lista de cotacoes</h3>
+            <p className="mt-1 text-sm text-slate-500">
+              {filteredQuotes.length} registro(s) encontrado(s)
+            </p>
+          </div>
+
+          {loading ? (
+            <div className="p-10 text-center text-sm text-slate-500">Carregando cotacoes...</div>
+          ) : pageError ? (
+            <div className="p-10 text-center text-sm text-rose-600">{pageError}</div>
+          ) : (
+            <div className="grid gap-4 p-4">
+              {filteredQuotes.map((quote) => (
+                <article
+                  key={quote.id}
+                  className="rounded-[26px] border border-slate-200/80 bg-[linear-gradient(180deg,#ffffff_0%,#f8fafc_100%)] p-5 shadow-sm"
+                >
+                  <div className="flex flex-col gap-4 xl:flex-row xl:items-start xl:justify-between">
+                    <div>
+                      <div className="flex flex-wrap items-center gap-2">
+                        <span
+                          className={`inline-flex rounded-full border px-3 py-1 text-xs font-semibold ${getStatusClasses(
+                            quote.status,
+                          )}`}
                         >
-                          Ver detalhes
-                        </Link>
+                          {getStatusLabel(quote.status)}
+                        </span>
+                        <span className="text-xs uppercase tracking-[0.18em] text-slate-400">
+                          {formatDate(quote.createdAt)}
+                        </span>
+                      </div>
+
+                      <h4 className="mt-3 text-2xl font-bold text-slate-950">
+                        {quote.serviceType}
+                      </h4>
+                      <p className="mt-1 text-sm text-slate-600">
+                        {quote.origin} {'->'} {quote.destination}
+                      </p>
+                      <div className="mt-4 inline-flex items-center gap-2 rounded-full bg-slate-100 px-3 py-1 text-xs font-semibold text-slate-600">
+                        <Building2 className="h-3.5 w-3.5" />
+                        {isClient ? 'Solicitacao enviada' : getClientName(quote)}
                       </div>
                     </div>
 
-                    <div className="mt-4 grid gap-3 md:grid-cols-2 xl:grid-cols-4">
-                      <div className="rounded-2xl bg-zinc-50 p-4 text-sm">
-                        <p className="text-zinc-500">Tipo de solicitacao</p>
-                        <p className="mt-1 font-semibold text-zinc-900">
-                          {quote.requestType || '-'}
-                        </p>
-                      </div>
-                      <div className="rounded-2xl bg-zinc-50 p-4 text-sm">
-                        <p className="text-zinc-500">Peso</p>
-                        <p className="mt-1 font-semibold text-zinc-900">
-                          {quote.weight ? `${quote.weight} kg` : '-'}
-                        </p>
-                      </div>
-                      <div className="rounded-2xl bg-zinc-50 p-4 text-sm">
-                        <p className="text-zinc-500">Valor da mercadoria</p>
-                        <p className="mt-1 font-semibold text-zinc-900">
-                          {formatCurrency(quote.merchandiseValue)}
-                        </p>
-                      </div>
-                      <div className="rounded-2xl bg-zinc-50 p-4 text-sm">
-                        <p className="text-zinc-500">Prazo desejado</p>
-                        <p className="mt-1 font-semibold text-zinc-900">
-                          {formatDate(quote.desiredDeadline)}
-                        </p>
-                      </div>
+                    <div className="flex flex-wrap gap-2">
+                      <Link
+                        href={`/quotes/${quote.id}`}
+                        className="inline-flex items-center gap-2 rounded-2xl border border-slate-300 bg-white px-3 py-2 text-sm font-semibold text-slate-700 transition hover:bg-slate-100"
+                      >
+                        Ver detalhes
+                        <ArrowUpRight className="h-4 w-4" />
+                      </Link>
                     </div>
                   </div>
-                ))}
 
-                {filteredQuotes.length === 0 ? (
-                  <div className="rounded-2xl border border-dashed border-zinc-300 p-8 text-center text-sm text-zinc-500">
-                    Nenhuma cotacao encontrada com os filtros atuais.
+                  <div className="mt-5 grid gap-3 md:grid-cols-2 xl:grid-cols-4">
+                    <div className="crm-soft-panel p-4 text-sm">
+                      <p className="text-slate-500">Tipo de solicitacao</p>
+                      <p className="mt-1 font-semibold text-slate-900">
+                        {quote.requestType || '-'}
+                      </p>
+                    </div>
+                    <div className="crm-soft-panel p-4 text-sm">
+                      <p className="text-slate-500">Peso</p>
+                      <p className="mt-1 font-semibold text-slate-900">
+                        {quote.weight ? `${quote.weight} kg` : '-'}
+                      </p>
+                    </div>
+                    <div className="crm-soft-panel p-4 text-sm">
+                      <p className="text-slate-500">Valor da mercadoria</p>
+                      <p className="mt-1 font-semibold text-slate-900">
+                        {formatCurrency(quote.merchandiseValue)}
+                      </p>
+                    </div>
+                    <div className="crm-soft-panel p-4 text-sm">
+                      <p className="text-slate-500">Prazo desejado</p>
+                      <p className="mt-1 font-semibold text-slate-900">
+                        {formatDate(quote.desiredDeadline)}
+                      </p>
+                    </div>
                   </div>
-                ) : null}
-              </div>
-            )}
-          </section>
-        </div>
+                </article>
+              ))}
+
+              {filteredQuotes.length === 0 ? (
+                <div className="rounded-2xl border border-dashed border-slate-300 p-8 text-center text-sm text-slate-500">
+                  Nenhuma cotacao encontrada com os filtros atuais.
+                </div>
+              ) : null}
+            </div>
+          )}
+        </section>
 
         {isModalOpen ? (
-          <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 p-4">
-            <div className="w-full max-w-4xl rounded-3xl bg-white p-6 shadow-xl">
+          <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-950/35 p-4 backdrop-blur-[2px]">
+            <div className="w-full max-w-5xl rounded-[32px] border border-white/80 bg-[linear-gradient(180deg,#ffffff_0%,#f8fafc_100%)] p-6 shadow-[0_32px_90px_rgba(15,23,42,0.16)]">
               <div className="flex items-start justify-between gap-4">
                 <div>
-                  <h2 className="text-2xl font-bold text-zinc-900">Nova cotacao</h2>
-                  <p className="mt-1 text-sm text-zinc-500">
-                    Informe o maximo de detalhes do servico para acelerar a analise.
+                  <p className="crm-eyebrow">Nova solicitacao</p>
+                  <h2 className="mt-2 text-3xl font-bold text-slate-950">Nova cotacao</h2>
+                  <p className="mt-2 text-sm text-slate-500">
+                    Quanto mais contexto operacional entrar aqui, melhor fica a resposta comercial.
                   </p>
                 </div>
 
@@ -481,7 +457,7 @@ export default function QuotesPage() {
                     setIsModalOpen(false);
                     setFormError('');
                   }}
-                  className="rounded-xl border border-zinc-300 px-3 py-2 text-sm font-semibold text-zinc-700 hover:bg-zinc-100"
+                  className="rounded-2xl border border-slate-300 px-3 py-2 text-sm font-semibold text-slate-700 hover:bg-slate-100"
                 >
                   Fechar
                 </button>
@@ -495,35 +471,29 @@ export default function QuotesPage() {
                 ) : null}
 
                 <div>
-                  <label className="mb-2 block text-sm font-medium text-zinc-700">
-                    Origem
-                  </label>
+                  <label className="mb-2 block text-sm font-semibold text-slate-700">Origem</label>
                   <input
                     type="text"
                     value={form.origin}
-                    onChange={(e) =>
-                      setForm((prev) => ({ ...prev, origin: e.target.value }))
-                    }
-                    className="w-full rounded-2xl border border-zinc-300 px-4 py-3 text-sm outline-none focus:border-zinc-900"
+                    onChange={(e) => setForm((prev) => ({ ...prev, origin: e.target.value }))}
+                    className="crm-input"
                   />
                 </div>
 
                 <div>
-                  <label className="mb-2 block text-sm font-medium text-zinc-700">
-                    Destino
-                  </label>
+                  <label className="mb-2 block text-sm font-semibold text-slate-700">Destino</label>
                   <input
                     type="text"
                     value={form.destination}
                     onChange={(e) =>
                       setForm((prev) => ({ ...prev, destination: e.target.value }))
                     }
-                    className="w-full rounded-2xl border border-zinc-300 px-4 py-3 text-sm outline-none focus:border-zinc-900"
+                    className="crm-input"
                   />
                 </div>
 
                 <div>
-                  <label className="mb-2 block text-sm font-medium text-zinc-700">
+                  <label className="mb-2 block text-sm font-semibold text-slate-700">
                     Tipo de servico
                   </label>
                   <input
@@ -533,12 +503,12 @@ export default function QuotesPage() {
                       setForm((prev) => ({ ...prev, serviceType: e.target.value }))
                     }
                     placeholder="Ex: Transporte fracionado"
-                    className="w-full rounded-2xl border border-zinc-300 px-4 py-3 text-sm outline-none focus:border-zinc-900"
+                    className="crm-input"
                   />
                 </div>
 
                 <div>
-                  <label className="mb-2 block text-sm font-medium text-zinc-700">
+                  <label className="mb-2 block text-sm font-semibold text-slate-700">
                     Tipo de solicitacao
                   </label>
                   <select
@@ -546,7 +516,7 @@ export default function QuotesPage() {
                     onChange={(e) =>
                       setForm((prev) => ({ ...prev, requestType: e.target.value }))
                     }
-                    className="w-full rounded-2xl border border-zinc-300 px-4 py-3 text-sm outline-none focus:border-zinc-900"
+                    className="crm-input"
                   >
                     <option value="">Selecione</option>
                     <option value="Avulsa">Avulsa</option>
@@ -555,7 +525,7 @@ export default function QuotesPage() {
                 </div>
 
                 <div>
-                  <label className="mb-2 block text-sm font-medium text-zinc-700">
+                  <label className="mb-2 block text-sm font-semibold text-slate-700">
                     Endereco de coleta
                   </label>
                   <input
@@ -564,46 +534,40 @@ export default function QuotesPage() {
                     onChange={(e) =>
                       setForm((prev) => ({ ...prev, pickupAddress: e.target.value }))
                     }
-                    className="w-full rounded-2xl border border-zinc-300 px-4 py-3 text-sm outline-none focus:border-zinc-900"
+                    className="crm-input"
                   />
                 </div>
 
                 <div>
-                  <label className="mb-2 block text-sm font-medium text-zinc-700">
+                  <label className="mb-2 block text-sm font-semibold text-slate-700">
                     Endereco de entrega
                   </label>
                   <input
                     type="text"
                     value={form.deliveryAddress}
                     onChange={(e) =>
-                      setForm((prev) => ({
-                        ...prev,
-                        deliveryAddress: e.target.value,
-                      }))
+                      setForm((prev) => ({ ...prev, deliveryAddress: e.target.value }))
                     }
-                    className="w-full rounded-2xl border border-zinc-300 px-4 py-3 text-sm outline-none focus:border-zinc-900"
+                    className="crm-input"
                   />
                 </div>
 
                 <div className="md:col-span-2">
-                  <label className="mb-2 block text-sm font-medium text-zinc-700">
+                  <label className="mb-2 block text-sm font-semibold text-slate-700">
                     Descricao da carga / servico
                   </label>
                   <textarea
                     value={form.cargoDescription}
                     onChange={(e) =>
-                      setForm((prev) => ({
-                        ...prev,
-                        cargoDescription: e.target.value,
-                      }))
+                      setForm((prev) => ({ ...prev, cargoDescription: e.target.value }))
                     }
                     rows={3}
-                    className="w-full rounded-2xl border border-zinc-300 px-4 py-3 text-sm outline-none focus:border-zinc-900"
+                    className="crm-textarea"
                   />
                 </div>
 
                 <div>
-                  <label className="mb-2 block text-sm font-medium text-zinc-700">
+                  <label className="mb-2 block text-sm font-semibold text-slate-700">
                     Contato responsavel
                   </label>
                   <input
@@ -612,12 +576,12 @@ export default function QuotesPage() {
                     onChange={(e) =>
                       setForm((prev) => ({ ...prev, contactName: e.target.value }))
                     }
-                    className="w-full rounded-2xl border border-zinc-300 px-4 py-3 text-sm outline-none focus:border-zinc-900"
+                    className="crm-input"
                   />
                 </div>
 
                 <div>
-                  <label className="mb-2 block text-sm font-medium text-zinc-700">
+                  <label className="mb-2 block text-sm font-semibold text-slate-700">
                     Telefone do contato
                   </label>
                   <input
@@ -626,97 +590,83 @@ export default function QuotesPage() {
                     onChange={(e) =>
                       setForm((prev) => ({ ...prev, contactPhone: e.target.value }))
                     }
-                    className="w-full rounded-2xl border border-zinc-300 px-4 py-3 text-sm outline-none focus:border-zinc-900"
+                    className="crm-input"
                   />
                 </div>
 
                 <div>
-                  <label className="mb-2 block text-sm font-medium text-zinc-700">
+                  <label className="mb-2 block text-sm font-semibold text-slate-700">
                     Peso estimado (kg)
                   </label>
                   <input
                     type="text"
                     value={form.weight}
-                    onChange={(e) =>
-                      setForm((prev) => ({ ...prev, weight: e.target.value }))
-                    }
-                    className="w-full rounded-2xl border border-zinc-300 px-4 py-3 text-sm outline-none focus:border-zinc-900"
+                    onChange={(e) => setForm((prev) => ({ ...prev, weight: e.target.value }))}
+                    className="crm-input"
                   />
                 </div>
 
                 <div>
-                  <label className="mb-2 block text-sm font-medium text-zinc-700">
+                  <label className="mb-2 block text-sm font-semibold text-slate-700">
                     Volume (m3)
                   </label>
                   <input
                     type="text"
                     value={form.volume}
-                    onChange={(e) =>
-                      setForm((prev) => ({ ...prev, volume: e.target.value }))
-                    }
-                    className="w-full rounded-2xl border border-zinc-300 px-4 py-3 text-sm outline-none focus:border-zinc-900"
+                    onChange={(e) => setForm((prev) => ({ ...prev, volume: e.target.value }))}
+                    className="crm-input"
                   />
                 </div>
 
                 <div>
-                  <label className="mb-2 block text-sm font-medium text-zinc-700">
+                  <label className="mb-2 block text-sm font-semibold text-slate-700">
                     Quantidade
                   </label>
                   <input
                     type="number"
                     value={form.quantity}
-                    onChange={(e) =>
-                      setForm((prev) => ({ ...prev, quantity: e.target.value }))
-                    }
-                    className="w-full rounded-2xl border border-zinc-300 px-4 py-3 text-sm outline-none focus:border-zinc-900"
+                    onChange={(e) => setForm((prev) => ({ ...prev, quantity: e.target.value }))}
+                    className="crm-input"
                   />
                 </div>
 
                 <div>
-                  <label className="mb-2 block text-sm font-medium text-zinc-700">
+                  <label className="mb-2 block text-sm font-semibold text-slate-700">
                     Valor da mercadoria
                   </label>
                   <input
                     type="text"
                     value={form.merchandiseValue}
                     onChange={(e) =>
-                      setForm((prev) => ({
-                        ...prev,
-                        merchandiseValue: e.target.value,
-                      }))
+                      setForm((prev) => ({ ...prev, merchandiseValue: e.target.value }))
                     }
-                    className="w-full rounded-2xl border border-zinc-300 px-4 py-3 text-sm outline-none focus:border-zinc-900"
+                    className="crm-input"
                   />
                 </div>
 
                 <div>
-                  <label className="mb-2 block text-sm font-medium text-zinc-700">
+                  <label className="mb-2 block text-sm font-semibold text-slate-700">
                     Prazo desejado
                   </label>
                   <input
                     type="date"
                     value={form.desiredDeadline}
                     onChange={(e) =>
-                      setForm((prev) => ({
-                        ...prev,
-                        desiredDeadline: e.target.value,
-                      }))
+                      setForm((prev) => ({ ...prev, desiredDeadline: e.target.value }))
                     }
-                    className="w-full rounded-2xl border border-zinc-300 px-4 py-3 text-sm outline-none focus:border-zinc-900"
+                    className="crm-input"
                   />
                 </div>
 
                 <div className="md:col-span-2">
-                  <label className="mb-2 block text-sm font-medium text-zinc-700">
+                  <label className="mb-2 block text-sm font-semibold text-slate-700">
                     Observacoes adicionais
                   </label>
                   <textarea
                     value={form.notes}
-                    onChange={(e) =>
-                      setForm((prev) => ({ ...prev, notes: e.target.value }))
-                    }
+                    onChange={(e) => setForm((prev) => ({ ...prev, notes: e.target.value }))}
                     rows={4}
-                    className="w-full rounded-2xl border border-zinc-300 px-4 py-3 text-sm outline-none focus:border-zinc-900"
+                    className="crm-textarea"
                   />
                 </div>
               </div>
@@ -728,7 +678,7 @@ export default function QuotesPage() {
                     setIsModalOpen(false);
                     setFormError('');
                   }}
-                  className="rounded-2xl border border-zinc-300 px-4 py-3 text-sm font-semibold text-zinc-700 transition hover:bg-zinc-100"
+                  className="rounded-2xl border border-slate-300 px-4 py-3 text-sm font-semibold text-slate-700 transition hover:bg-slate-100"
                 >
                   Cancelar
                 </button>
@@ -737,8 +687,9 @@ export default function QuotesPage() {
                   type="button"
                   disabled={saving}
                   onClick={handleCreateQuote}
-                  className="rounded-2xl bg-zinc-900 px-4 py-3 text-sm font-semibold text-white transition hover:bg-zinc-800 disabled:opacity-60"
+                  className="inline-flex items-center justify-center gap-2 rounded-2xl bg-slate-950 px-4 py-3 text-sm font-semibold text-white transition hover:bg-slate-800 disabled:opacity-60"
                 >
+                  <FileStack className="h-4 w-4" />
                   {saving ? 'Enviando...' : 'Salvar cotacao'}
                 </button>
               </div>

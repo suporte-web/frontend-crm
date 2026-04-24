@@ -8,10 +8,9 @@ import {
   Building2,
   FileText,
   Flame,
+  Layers3,
   Megaphone,
   MonitorPlay,
-  PlayCircle,
-  Sparkles,
   ShieldCheck,
   Ticket,
   UserRound,
@@ -360,28 +359,50 @@ function InternalDashboard({
   return (
     <div className="mx-auto flex w-full max-w-7xl flex-col gap-6">
       <section className="grid gap-6 xl:grid-cols-[1.35fr_.65fr]">
-        <article className="relative overflow-hidden rounded-[32px] border border-white/80 bg-[linear-gradient(135deg,#0f172a_0%,#172554_55%,#2563eb_100%)] p-6 text-white shadow-[0_28px_80px_rgba(37,99,235,0.18)] lg:p-8">
+        <article className="relative overflow-hidden rounded-[34px] border border-slate-900/10 bg-[linear-gradient(135deg,#0f172a_0%,#162449_52%,#2563eb_100%)] p-6 text-white shadow-[0_28px_80px_rgba(15,23,42,0.2)] lg:p-8">
           <div className="absolute right-0 top-0 h-56 w-56 rounded-full bg-white/10 blur-3xl" />
           <div className="absolute bottom-0 left-16 h-40 w-40 rounded-full bg-cyan-300/15 blur-3xl" />
+          <div className="absolute inset-x-0 bottom-0 h-px bg-white/10" />
 
           <div className="relative">
             <span className="inline-flex items-center gap-2 rounded-full border border-white/15 bg-white/10 px-3 py-1 text-xs font-semibold uppercase tracking-[0.22em] text-sky-100">
-              <Megaphone className="h-3.5 w-3.5" />
-              Painel interno
+              <Layers3 className="h-3.5 w-3.5" />
+              CRM Workspace
             </span>
 
             <h1 className="mt-5 max-w-3xl text-4xl font-bold leading-tight md:text-5xl">
-              Operacao comercial e relacionamento centralizados no CRM.
+              Operacao, leads e clientes em uma visao clara de CRM.
             </h1>
 
             <p className="mt-4 max-w-2xl text-sm leading-7 text-slate-200 md:text-base">
-              Acompanhe o desempenho geral, navegue pelos modulos principais e
-              mantenha a operacao visivel para atendimento, vendas e marketing.
+              Painel desenhado para leitura rapida de performance, pipeline e
+              atividades do time, sem parecer uma landing page interna.
             </p>
+
+            <div className="mt-8 grid gap-3 sm:grid-cols-3">
+              <div className="rounded-[24px] border border-white/10 bg-white/8 p-4 backdrop-blur">
+                <p className="text-xs uppercase tracking-[0.18em] text-sky-100/80">
+                  Fluxo comercial
+                </p>
+                <p className="mt-2 text-xl font-bold text-white">Leads + clientes</p>
+              </div>
+              <div className="rounded-[24px] border border-white/10 bg-white/8 p-4 backdrop-blur">
+                <p className="text-xs uppercase tracking-[0.18em] text-sky-100/80">
+                  Atendimento
+                </p>
+                <p className="mt-2 text-xl font-bold text-white">Tickets e rastreio</p>
+              </div>
+              <div className="rounded-[24px] border border-white/10 bg-white/8 p-4 backdrop-blur">
+                <p className="text-xs uppercase tracking-[0.18em] text-sky-100/80">
+                  Conteudo
+                </p>
+                <p className="mt-2 text-xl font-bold text-white">Portal e marketing</p>
+              </div>
+            </div>
           </div>
         </article>
 
-        <article className="rounded-[32px] border border-white/80 bg-white/85 p-6 shadow-[0_18px_50px_rgba(15,23,42,0.06)] backdrop-blur xl:p-7">
+        <article className="crm-shell-card p-6 xl:p-7">
           <div className="flex items-center gap-3">
             <div className="flex h-12 w-12 items-center justify-center rounded-2xl bg-[linear-gradient(135deg,#0f172a_0%,#2563eb_100%)] text-white shadow-[0_12px_24px_rgba(37,99,235,0.18)]">
               <UserRound className="h-5 w-5" />
@@ -420,13 +441,10 @@ function InternalDashboard({
           const Icon = item.icon;
 
           return (
-            <article
-              key={item.title}
-              className="rounded-[28px] border border-white/80 bg-white/85 p-5 shadow-[0_16px_40px_rgba(15,23,42,0.05)] backdrop-blur"
-            >
+            <article key={item.title} className="crm-kpi-card">
               <div className="flex items-start justify-between gap-3">
                 <div>
-                  <p className="text-sm text-slate-500">{item.title}</p>
+                  <p className="text-sm font-medium text-slate-500">{item.title}</p>
                   <h3 className="mt-3 text-4xl font-bold text-slate-950">
                     {item.value}
                   </h3>
@@ -445,18 +463,17 @@ function InternalDashboard({
       </section>
 
       {crmSummary ? (
-        <section className="rounded-[32px] border border-white/80 bg-white/85 p-6 shadow-[0_18px_50px_rgba(15,23,42,0.06)] backdrop-blur">
+        <section className="crm-shell-card p-6">
           <div className="flex flex-col gap-2 md:flex-row md:items-end md:justify-between">
             <div>
-              <p className="text-sm font-semibold uppercase tracking-[0.18em] text-blue-700">
+              <p className="crm-eyebrow">
                 CRM comercial
               </p>
               <h2 className="mt-2 text-2xl font-bold text-slate-950">
-                Resumo rapido de leads e oportunidades
+                Resumo de pipeline e conversao
               </h2>
               <p className="mt-2 text-sm text-slate-500">
-                Bloco aditivo para acompanhar pipeline sem alterar os cards
-                existentes do dashboard.
+                Leitura compacta para acompanhar volume, estagio e valor em aberto.
               </p>
             </div>
 
@@ -470,35 +487,35 @@ function InternalDashboard({
           </div>
 
           <div className="mt-6 grid grid-cols-1 gap-4 md:grid-cols-2 xl:grid-cols-5">
-            <article className="rounded-[24px] border border-slate-200 bg-slate-50/70 p-4">
+            <article className="crm-soft-panel p-4">
               <p className="text-sm text-slate-500">Total de leads</p>
               <p className="mt-2 text-3xl font-bold text-slate-950">
                 {crmSummary.totalLeads}
               </p>
             </article>
 
-            <article className="rounded-[24px] border border-slate-200 bg-slate-50/70 p-4">
+            <article className="crm-soft-panel p-4">
               <p className="text-sm text-slate-500">Oportunidades abertas</p>
               <p className="mt-2 text-3xl font-bold text-slate-950">
                 {crmSummary.openOpportunities}
               </p>
             </article>
 
-            <article className="rounded-[24px] border border-slate-200 bg-slate-50/70 p-4">
+            <article className="crm-soft-panel p-4">
               <p className="text-sm text-slate-500">Oportunidades ganhas</p>
               <p className="mt-2 text-3xl font-bold text-emerald-600">
                 {crmSummary.wonOpportunities}
               </p>
             </article>
 
-            <article className="rounded-[24px] border border-slate-200 bg-slate-50/70 p-4">
+            <article className="crm-soft-panel p-4">
               <p className="text-sm text-slate-500">Taxa de conversao</p>
               <p className="mt-2 text-3xl font-bold text-blue-600">
                 {crmSummary.conversionRate}%
               </p>
             </article>
 
-            <article className="rounded-[24px] border border-slate-200 bg-slate-50/70 p-4">
+            <article className="crm-soft-panel p-4">
               <p className="text-sm text-slate-500">Valor em aberto</p>
               <p className="mt-2 text-3xl font-bold text-violet-600">
                 {new Intl.NumberFormat('pt-BR', {
@@ -510,7 +527,7 @@ function InternalDashboard({
           </div>
 
           <div className="mt-6 grid gap-4 lg:grid-cols-[1.2fr_.8fr]">
-            <div className="rounded-[24px] border border-slate-200 bg-slate-50/70 p-4">
+            <div className="crm-soft-panel p-4">
               <div className="flex items-center gap-2">
                 <div className="flex h-10 w-10 items-center justify-center rounded-2xl bg-blue-100 text-blue-700">
                   <BriefcaseBusiness className="h-4 w-4" />
@@ -550,21 +567,19 @@ function InternalDashboard({
               </div>
             </div>
 
-            <div className="rounded-[24px] border border-slate-200 bg-slate-50/70 p-4">
+            <div className="crm-soft-panel p-4">
               <p className="text-base font-semibold text-slate-950">
-                Proximos passos seguros
+                Leitura operacional
               </p>
               <div className="mt-4 space-y-3 text-sm leading-6 text-slate-500">
                 <div className="rounded-2xl border border-white bg-white px-4 py-3">
-                  Timeline e oportunidades ja aparecem no detalhe do cliente.
+                  Leads entram pela nova area dedicada sem misturar com clientes do portal.
                 </div>
                 <div className="rounded-2xl border border-white bg-white px-4 py-3">
-                  Mudanca de etapa e perda agora podem ser simuladas localmente no
-                  frontend.
+                  Cotacoes, rastreamento e tickets seguem no mesmo fluxo visual.
                 </div>
                 <div className="rounded-2xl border border-white bg-white px-4 py-3">
-                  Quando o backend existir, este bloco pode trocar o mock por API
-                  sem mudar a UI.
+                  Timeline, oportunidades e marketing continuam integrados ao shell atual.
                 </div>
               </div>
             </div>
@@ -572,14 +587,14 @@ function InternalDashboard({
         </section>
       ) : null}
 
-      <section className="rounded-[32px] border border-white/80 bg-white/85 p-6 shadow-[0_18px_50px_rgba(15,23,42,0.06)] backdrop-blur">
+      <section className="crm-shell-card p-6">
         <div className="flex items-center justify-between gap-4">
           <div>
-            <p className="text-sm font-semibold uppercase tracking-[0.18em] text-blue-700">
+            <p className="crm-eyebrow">
               Navegacao rapida
             </p>
             <h2 className="mt-2 text-2xl font-bold text-slate-950">
-              Acesso direto aos modulos principais
+              Modulos principais do CRM
             </h2>
           </div>
         </div>

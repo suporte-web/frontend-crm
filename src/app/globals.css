@@ -11,9 +11,9 @@ body {
   min-height: 100%;
   font-family: "Aptos", "Segoe UI", "Trebuchet MS", sans-serif;
   background:
-    radial-gradient(circle at top left, rgba(59, 130, 246, 0.12), transparent 24%),
-    radial-gradient(circle at 80% 10%, rgba(14, 165, 233, 0.08), transparent 20%),
-    linear-gradient(180deg, #f7f9fc 0%, #f3f6fb 45%, #eef2f8 100%);
+    radial-gradient(circle at 0% 0%, rgba(37, 99, 235, 0.14), transparent 22%),
+    radial-gradient(circle at 100% 0%, rgba(6, 182, 212, 0.12), transparent 18%),
+    linear-gradient(180deg, #edf3fb 0%, #eaf0f8 38%, #e6edf7 100%);
   color: #0f172a;
 }
 
@@ -72,37 +72,37 @@ body {
 }
 
 :root {
-  --background: oklch(0.985 0.004 255);
+  --background: oklch(0.973 0.006 255);
   --foreground: oklch(0.22 0.02 255);
-  --card: oklch(0.995 0.002 255);
+  --card: oklch(0.992 0.003 255);
   --card-foreground: oklch(0.22 0.02 255);
-  --popover: oklch(0.995 0.002 255);
+  --popover: oklch(0.992 0.003 255);
   --popover-foreground: oklch(0.22 0.02 255);
-  --primary: oklch(0.57 0.17 255);
+  --primary: oklch(0.54 0.18 257);
   --primary-foreground: oklch(0.99 0 0);
-  --secondary: oklch(0.965 0.006 255);
+  --secondary: oklch(0.952 0.008 255);
   --secondary-foreground: oklch(0.22 0.02 255);
-  --muted: oklch(0.965 0.006 255);
-  --muted-foreground: oklch(0.54 0.02 255);
-  --accent: oklch(0.955 0.012 245);
+  --muted: oklch(0.958 0.006 255);
+  --muted-foreground: oklch(0.5 0.02 255);
+  --accent: oklch(0.95 0.016 248);
   --accent-foreground: oklch(0.22 0.02 255);
   --destructive: oklch(0.62 0.22 24);
-  --border: oklch(0.91 0.008 255);
-  --input: oklch(0.91 0.008 255);
-  --ring: oklch(0.62 0.12 252);
-  --chart-1: oklch(0.65 0.16 255);
-  --chart-2: oklch(0.72 0.12 215);
-  --chart-3: oklch(0.78 0.11 180);
-  --chart-4: oklch(0.66 0.14 300);
-  --chart-5: oklch(0.56 0.11 235);
-  --radius: 1rem;
-  --sidebar: oklch(0.985 0.004 255);
-  --sidebar-foreground: oklch(0.22 0.02 255);
+  --border: oklch(0.9 0.008 255);
+  --input: oklch(0.9 0.008 255);
+  --ring: oklch(0.6 0.13 255);
+  --chart-1: oklch(0.62 0.17 257);
+  --chart-2: oklch(0.72 0.11 210);
+  --chart-3: oklch(0.76 0.1 175);
+  --chart-4: oklch(0.71 0.14 70);
+  --chart-5: oklch(0.58 0.12 295);
+  --radius: 1.1rem;
+  --sidebar: oklch(0.195 0.018 257);
+  --sidebar-foreground: oklch(0.965 0.004 255);
   --sidebar-primary: oklch(0.57 0.17 255);
   --sidebar-primary-foreground: oklch(0.99 0 0);
-  --sidebar-accent: oklch(0.955 0.012 245);
-  --sidebar-accent-foreground: oklch(0.22 0.02 255);
-  --sidebar-border: oklch(0.91 0.008 255);
+  --sidebar-accent: oklch(0.28 0.024 257);
+  --sidebar-accent-foreground: oklch(0.975 0.002 255);
+  --sidebar-border: oklch(0.28 0.02 257);
   --sidebar-ring: oklch(0.62 0.12 252);
 }
 
@@ -156,11 +156,11 @@ body {
     inset: 0;
     pointer-events: none;
     background-image:
-      linear-gradient(rgba(148, 163, 184, 0.12) 1px, transparent 1px),
-      linear-gradient(90deg, rgba(148, 163, 184, 0.12) 1px, transparent 1px);
-    background-size: 96px 96px;
+      linear-gradient(rgba(148, 163, 184, 0.09) 1px, transparent 1px),
+      linear-gradient(90deg, rgba(148, 163, 184, 0.09) 1px, transparent 1px);
+    background-size: 88px 88px;
     mask-image: linear-gradient(to bottom, black 0%, transparent 90%);
-    opacity: 0.25;
+    opacity: 0.2;
   }
   html {
     @apply font-sans;
@@ -171,5 +171,47 @@ body {
   h4 {
     font-family: var(--font-heading);
     letter-spacing: -0.03em;
+  }
+}
+
+@layer components {
+  .crm-shell-card {
+    @apply rounded-[28px] border border-white/80 bg-white/88 shadow-[0_18px_50px_rgba(15,23,42,0.06)] backdrop-blur-xl;
+  }
+
+  .crm-panel {
+    @apply rounded-[26px] border border-slate-200/80 bg-white/92 shadow-[0_14px_32px_rgba(15,23,42,0.05)];
+  }
+
+  .crm-soft-panel {
+    @apply rounded-[24px] border border-slate-200/80 bg-slate-50/90;
+  }
+
+  .crm-kpi-card {
+    @apply rounded-[26px] border border-white/80 bg-[linear-gradient(180deg,rgba(255,255,255,0.96)_0%,rgba(248,250,252,0.98)_100%)] p-5 shadow-[0_16px_38px_rgba(15,23,42,0.05)];
+  }
+
+  .crm-eyebrow {
+    @apply text-[11px] font-semibold uppercase tracking-[0.24em] text-blue-700;
+  }
+
+  .crm-page-title {
+    @apply mt-2 text-3xl font-bold tracking-tight text-slate-950 md:text-4xl;
+  }
+
+  .crm-page-copy {
+    @apply mt-3 max-w-3xl text-sm leading-7 text-slate-500 md:text-base;
+  }
+
+  .crm-input {
+    @apply w-full rounded-2xl border border-slate-300/90 bg-white px-4 py-3 text-sm text-slate-900 outline-none transition focus:border-blue-400 focus:bg-white;
+  }
+
+  .crm-textarea {
+    @apply w-full rounded-2xl border border-slate-300/90 bg-white px-4 py-3 text-sm text-slate-900 outline-none transition focus:border-blue-400 focus:bg-white;
+  }
+
+  .crm-filter-card {
+    @apply rounded-[24px] border border-slate-200/80 bg-white/92 p-4 shadow-sm;
   }
 }
