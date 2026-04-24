@@ -1,51 +1,93 @@
 'use client';
 
+import type { LucideIcon } from 'lucide-react';
+import {
+  Building2,
+  FileText,
+  History,
+  LayoutDashboard,
+  Megaphone,
+  PackageSearch,
+  Ticket,
+  UserPlus,
+  Users,
+} from 'lucide-react';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import { useAuth } from '@/context/auth-context';
+import {
+  Sidebar,
+  SidebarContent,
+  SidebarFooter,
+  SidebarHeader,
+  SidebarMenu,
+  SidebarMenuButton,
+  SidebarMenuItem,
+  SidebarRail,
+} from '@/components/ui/sidebar';
+
+type UserRole = 'ADMIN' | 'GESTAO' | 'COMERCIAL' | 'MARKETING' | 'CLIENTE';
 
 type MenuItem = {
   href: string;
   label: string;
-  icon: string;
-  roles: Array<'ADMIN' | 'GESTAO' | 'COMERCIAL' | 'MARKETING' | 'CLIENTE'>;
+  icon: LucideIcon;
+  roles: UserRole[];
 };
 
 const menuItems: MenuItem[] = [
   {
     href: '/dashboard',
     label: 'Dashboard',
-    icon: '▦',
-    roles: ['ADMIN', 'GESTAO', 'COMERCIAL', 'MARKETING'],
+    icon: LayoutDashboard,
+    roles: ['ADMIN', 'GESTAO', 'COMERCIAL', 'MARKETING', 'CLIENTE'],
   },
   {
     href: '/trackings',
     label: 'Rastreamento',
-    icon: '◌',
+    icon: PackageSearch,
     roles: ['ADMIN', 'GESTAO', 'COMERCIAL', 'MARKETING', 'CLIENTE'],
   },
   {
     href: '/quotes',
     label: 'Cotações',
-    icon: '◫',
+    icon: FileText,
     roles: ['ADMIN', 'GESTAO', 'COMERCIAL', 'CLIENTE'],
   },
   {
     href: '/clients',
     label: 'Clientes',
-    icon: '◎',
+    icon: Building2,
+    roles: ['ADMIN', 'GESTAO', 'COMERCIAL', 'MARKETING'],
+  },
+  {
+    href: '/leads',
+    label: 'Leads',
+    icon: UserPlus,
     roles: ['ADMIN', 'GESTAO', 'COMERCIAL', 'MARKETING'],
   },
   {
     href: '/tickets',
     label: 'Tickets',
-    icon: '◈',
+    icon: Ticket,
     roles: ['ADMIN', 'GESTAO', 'COMERCIAL', 'CLIENTE'],
   },
   {
     href: '/users',
     label: 'Usuários',
-    icon: '◍',
+    icon: Users,
+    roles: ['ADMIN', 'GESTAO'],
+  },
+  {
+    href: '/marketing',
+    label: 'Marketing',
+    icon: Megaphone,
+    roles: ['ADMIN', 'GESTAO', 'MARKETING'],
+  },
+  {
+    href: '/logs',
+    label: 'Logs',
+    icon: History,
     roles: ['ADMIN', 'GESTAO'],
   },
 ];
@@ -76,91 +118,100 @@ function getInitials(name?: string) {
   return `${parts[0][0] ?? ''}${parts[1][0] ?? ''}`.toUpperCase();
 }
 
-export function Sidebar() {
+export function AppSidebar() {
   const pathname = usePathname();
   const { user } = useAuth();
 
   const filteredMenu = menuItems.filter((item) =>
-    user?.role ? item.roles.includes(user.role) : false,
+    user?.role ? item.roles.includes(user.role as UserRole) : false,
   );
 
   return (
-    <aside className="flex min-h-screen w-[280px] flex-col border-r border-slate-800 bg-slate-950 text-white">
-      <div className="border-b border-slate-800 px-6 py-6">
-        <div className="flex items-center gap-3">
-          <div className="flex h-11 w-11 items-center justify-center rounded-2xl bg-blue-600 text-base font-bold text-white shadow-lg shadow-blue-950/30">
+    <Sidebar collapsible="icon" className="border-r border-slate-200/80 bg-transparent">
+      <SidebarHeader className="border-b border-slate-200/80 bg-white/72 px-3 py-4 backdrop-blur-xl">
+        <div className="flex items-center gap-3 group-data-[collapsible=icon]:justify-center">
+          <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-2xl bg-[linear-gradient(135deg,#0f172a_0%,#2563eb_100%)] text-sm font-bold text-white shadow-[0_12px_24px_rgba(37,99,235,0.24)]">
             {getInitials(user?.name)}
           </div>
 
-          <div>
-            <p className="text-xs font-semibold uppercase tracking-[0.18em] text-blue-300">
+          <div className="min-w-0 group-data-[collapsible=icon]:hidden">
+            <p className="text-[11px] font-semibold uppercase tracking-[0.24em] text-sky-600">
               CRM Portal
             </p>
-            <h2 className="mt-1 text-lg font-bold text-white">
-              Painel interno
+            <h2 className="truncate text-lg font-bold text-slate-950">
+              Pizzattolog
             </h2>
           </div>
         </div>
 
-        <div className="mt-5 rounded-2xl border border-slate-800 bg-slate-900/80 p-4">
-          <p className="text-sm font-semibold text-white">{user?.name ?? '-'}</p>
-          <p className="mt-1 text-sm text-slate-400">
-            {getRoleLabel(user?.role)}
+        <div className="mt-4 rounded-[24px] border border-slate-200 bg-slate-50/90 p-4 group-data-[collapsible=icon]:hidden">
+          <p className="truncate text-sm font-semibold text-slate-950">
+            {user?.name ?? '-'}
+          </p>
+          <p className="mt-1 text-sm text-slate-500">{getRoleLabel(user?.role)}</p>
+        </div>
+      </SidebarHeader>
+
+      <SidebarContent className="bg-white/72 px-2 py-4 backdrop-blur-xl">
+        <div className="px-2 pb-2 group-data-[collapsible=icon]:hidden">
+          <p className="text-[11px] font-semibold uppercase tracking-[0.22em] text-slate-400">
+            Navegação
           </p>
         </div>
-      </div>
 
-      <div className="flex-1 px-4 py-5">
-        <p className="px-3 text-xs font-semibold uppercase tracking-[0.18em] text-slate-500">
-          Navegação
-        </p>
-
-        <nav className="mt-4 grid gap-2">
+        <SidebarMenu>
           {filteredMenu.map((item) => {
-            const active = pathname === item.href;
+            const active =
+              pathname === item.href || pathname.startsWith(`${item.href}/`);
+
+            const Icon = item.icon;
 
             return (
-              <Link
-                key={item.href}
-                href={item.href}
-                className={`group flex items-center gap-3 rounded-2xl px-4 py-3 text-sm font-medium transition ${
-                  active
-                    ? 'bg-blue-600 text-white shadow-lg shadow-blue-950/30'
-                    : 'text-slate-300 hover:bg-slate-900 hover:text-white'
-                }`}
-              >
-                <span
-                  className={`flex h-9 w-9 items-center justify-center rounded-xl text-sm transition ${
-                    active
-                      ? 'bg-white/15 text-white'
-                      : 'bg-slate-800 text-slate-300 group-hover:bg-slate-700 group-hover:text-white'
-                  }`}
+              <SidebarMenuItem key={item.href}>
+                <SidebarMenuButton
+                  asChild
+                  isActive={active}
+                  tooltip={item.label}
+                  className="h-[52px] rounded-[20px] text-sm font-medium text-slate-500 transition-all duration-200 data-[active=true]:bg-slate-950 data-[active=true]:text-white data-[active=true]:shadow-[0_16px_30px_rgba(15,23,42,0.16)] hover:bg-slate-100 hover:text-slate-950 group-data-[collapsible=icon]:justify-center group-data-[collapsible=icon]:px-2"
                 >
-                  {item.icon}
-                </span>
+                  <Link href={item.href}>
+                    <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-2xl bg-slate-100 text-slate-500 transition group-data-[active=true]/menu-button:bg-white/12 group-data-[active=true]/menu-button:text-white group-hover/menu-button:bg-white group-hover/menu-button:text-slate-950">
+                      <Icon className="h-5 w-5" />
+                    </span>
 
-                <span>{item.label}</span>
-              </Link>
+                    <span className="truncate group-data-[collapsible=icon]:hidden">
+                      {item.label}
+                    </span>
+                  </Link>
+                </SidebarMenuButton>
+              </SidebarMenuItem>
             );
           })}
-        </nav>
-      </div>
+        </SidebarMenu>
+      </SidebarContent>
 
-      <div className="border-t border-slate-800 px-6 py-5">
-        <div className="rounded-2xl bg-slate-900 p-4">
-          <p className="text-xs uppercase tracking-[0.18em] text-slate-500">
+      <SidebarFooter className="border-t border-slate-200/80 bg-white/72 px-3 py-4 backdrop-blur-xl">
+        <div className="rounded-[24px] border border-slate-200 bg-[linear-gradient(180deg,#ffffff_0%,#f8fafc_100%)] p-4 group-data-[collapsible=icon]:hidden">
+          <p className="text-[11px] uppercase tracking-[0.22em] text-slate-400">
             Ambiente
           </p>
-          <div className="mt-3 flex items-center justify-between">
-            <span className="text-sm font-medium text-slate-300">
-              Desenvolvimento
-            </span>
-            <span className="rounded-full bg-emerald-500/15 px-3 py-1 text-xs font-semibold text-emerald-300">
+
+          <div className="mt-3 flex items-center justify-between gap-3">
+            <span className="text-sm font-medium text-slate-700">Desenvolvimento</span>
+            <span className="rounded-full bg-emerald-100 px-3 py-1 text-xs font-semibold text-emerald-700">
               Online
             </span>
           </div>
         </div>
-      </div>
-    </aside>
+
+        <div className="hidden items-center justify-center group-data-[collapsible=icon]:flex">
+          <div className="flex h-10 w-10 items-center justify-center rounded-2xl border border-slate-200 bg-white text-xs font-semibold text-sky-700">
+            ON
+          </div>
+        </div>
+      </SidebarFooter>
+
+      <SidebarRail />
+    </Sidebar>
   );
 }

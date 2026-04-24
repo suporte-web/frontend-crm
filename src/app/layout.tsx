@@ -2,8 +2,8 @@ import './globals.css';
 import { Providers } from './providers';
 
 export const metadata = {
-  title: 'CRM',
-  description: 'Sistema comercial',
+  title: 'CRM Portal',
+  description: 'Portal comercial multi-cliente',
 };
 
 export default function RootLayout({

@@ -1,8 +1,10 @@
 'use client';
 
-import { Sidebar } from './sidebar';
+import { SidebarInset, SidebarProvider } from '@/components/ui/sidebar';
+import { TooltipProvider } from '@/components/ui/tooltip';
 import { Header } from './header';
 import { ProtectedRoute } from './protected-route';
+import { AppSidebar } from './sidebar';
 
 export function AppLayout({
   children,
@@ -11,19 +13,22 @@ export function AppLayout({
 }) {
   return (
     <ProtectedRoute>
-      <div className="flex min-h-screen bg-slate-100 text-slate-900">
-        <Sidebar />
+      <TooltipProvider delayDuration={0}>
+        <SidebarProvider defaultOpen>
+          <AppSidebar />
 
-        <div className="flex min-w-0 flex-1 flex-col">
-          <Header />
+          <SidebarInset className="relative min-h-screen bg-transparent">
+            <div className="pointer-events-none absolute inset-x-0 top-0 h-64 bg-gradient-to-b from-emerald-100/60 via-sky-50/30 to-transparent" />
+            <Header />
 
-          <main className="flex-1 overflow-x-hidden">
-            <div className="mx-auto w-full max-w-[1600px] px-4 py-4 md:px-6 md:py-6">
-              {children}
-            </div>
-          </main>
-        </div>
-      </div>
+            <main className="relative flex-1 overflow-x-hidden overflow-y-auto">
+              <div className="mx-auto w-full max-w-[1600px] px-4 py-5 md:px-6 md:py-6 xl:px-8">
+                {children}
+              </div>
+            </main>
+          </SidebarInset>
+        </SidebarProvider>
+      </TooltipProvider>
     </ProtectedRoute>
   );
 }

@@ -51,3 +51,14 @@ export async function getAllQuotes(token: string) {
 
   return parseResponse<Quote[]>(response);
 }
+
+export async function getQuoteById(id: string, token: string) {
+  const response = await fetch(`${API_BASE_URL}/quotes/${id}`, {
+    method: 'GET',
+    headers: {
+      Authorization: `Bearer ${token}`,
+    },
+  });
+
+  return parseResponse<Quote>(response);
+}

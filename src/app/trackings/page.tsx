@@ -1,8 +1,28 @@
 'use client';
 
-import Link from 'next/link';
 import { useMemo, useState } from 'react';
 import { AppLayout } from '@/components/layout/app-layout';
+import { Badge } from '@/components/ui/badge';
+import { Button } from '@/components/ui/button';
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from '@/components/ui/card';
+import { Input } from '@/components/ui/input';
+import {
+  AlertCircle,
+  CheckCircle2,
+  CircleDashed,
+  Clock3,
+  MapPin,
+  Package,
+  PackageCheck,
+  Truck,
+  UserCheck,
+} from 'lucide-react';
 
 type TrackingQueryType =
   | 'nro_nf'
@@ -43,6 +63,15 @@ type TrackingApiResponse = {
       item?: TrackingApiItem | TrackingApiItem[];
     };
   };
+};
+
+type TrackingStage = {
+  title: string;
+  description: string;
+  icon: typeof Package;
+  reached: boolean;
+  current: boolean;
+  timestamp: string | null;
 };
 
 function formatCnpj(value: string) {
@@ -145,9 +174,211 @@ function getLatestItem(items: TrackingApiItem[]) {
   return items[items.length - 1];
 }
 
+function getTrackingText(item: TrackingApiItem) {
+  return `${item.ocorrencia || ''} ${item.tipo || ''} ${item.descricao || ''}`.toUpperCase();
+}
+
+function includesAny(text: string, values: string[]) {
+  return values.some((value) => text.includes(value));
+}
+
+function findLatestStageDate(items: TrackingApiItem[], keywords: string[]) {
+  for (let index = items.length - 1; index >= 0; index -= 1) {
+    const item = items[index];
+
+    if (includesAny(getTrackingText(item), keywords)) {
+      return item.data_hora_efetiva || item.data_hora || null;
+    }
+  }
+
+  return null;
+}
+
+function getTrackingStages(items: TrackingApiItem[]): TrackingStage[] {
+  const processingKeywords = [
+    'COLETA',
+    'POSTADO',
+    'EMBARQUE',
+    'EXPEDICAO',
+    'EXPEDI',
+    'SEPARA',
+    'PROCESS',
+  ];
+
+  const transitKeywords = [
+    'TRANSITO',
+    'TRANSPORTE',
+    'A CAMINHO',
+    'TRANSFERENCIA',
+    'ROTA',
+    'SAIU PARA ENTREGA',
+    'EM ENTREGA',
+  ];
+
+  const deliveredKeywords = [
+    'ENTREGUE',
+    'ENTREGA',
+    'RECEBIDO',
+    'RECEBEDOR',
+    'ASSINADO',
+    'COMPROVANTE',
+  ];
+
+  const hasItems = items.length > 0;
+  const hasProcessing = items.some((item) =>
+    includesAny(getTrackingText(item), processingKeywords),
+  );
+  const hasTransit = items.some((item) =>
+    includesAny(getTrackingText(item), transitKeywords),
+  );
+  const hasDelivered = items.some((item) =>
+    includesAny(getTrackingText(item), deliveredKeywords),
+  );
+
+  const currentStageIndex = hasDelivered
+    ? 3
+    : hasTransit
+      ? 2
+      : hasProcessing
+        ? 1
+        : hasItems
+          ? 0
+          : -1;
+
+  return [
+    {
+      title: 'Pedido localizado',
+      description: 'Consulta encontrada e encomenda identificada.',
+      icon: Package,
+      reached: hasItems,
+      current: currentStageIndex === 0,
+      timestamp: hasItems
+        ? items[0]?.data_hora_efetiva || items[0]?.data_hora || null
+        : null,
+    },
+    {
+      title: 'Em preparo',
+      description: 'Coleta, separação ou embarque em andamento.',
+      icon: PackageCheck,
+      reached: hasProcessing || hasTransit || hasDelivered,
+      current: currentStageIndex === 1,
+      timestamp: findLatestStageDate(items, processingKeywords),
+    },
+    {
+      title: 'A caminho',
+      description: 'Carga em trânsito ou rota de entrega.',
+      icon: Truck,
+      reached: hasTransit || hasDelivered,
+      current: currentStageIndex === 2,
+      timestamp: findLatestStageDate(items, transitKeywords),
+    },
+    {
+      title: 'Entregue',
+      description: 'Recebimento confirmado pelo destinatário.',
+      icon: CheckCircle2,
+      reached: hasDelivered,
+      current: currentStageIndex === 3,
+      timestamp: findLatestStageDate(items, deliveredKeywords),
+    },
+  ];
+}
+
 function getLocationLabel(item: TrackingApiItem) {
   const parts = [item.cidade, item.filial, item.dominio].filter(Boolean);
   return parts.join(' • ') || '-';
+}
+
+function getMovementVisual(item: TrackingApiItem) {
+  const text =
+    `${item.ocorrencia || ''} ${item.tipo || ''} ${item.descricao || ''}`.toUpperCase();
+
+  if (
+    text.includes('ENTREGUE') ||
+    text.includes('ENTREGA') ||
+    text.includes('RECEBIDO')
+  ) {
+    return {
+      icon: CheckCircle2,
+      iconWrapClass: 'bg-emerald-100 text-emerald-700 border-emerald-200',
+      badgeClass: 'bg-emerald-50 text-emerald-700 border-emerald-200',
+      label: 'Entregue',
+    };
+  }
+
+  if (
+    text.includes('RECEBEDOR') ||
+    text.includes('ASSINADO') ||
+    text.includes('COMPROVANTE')
+  ) {
+    return {
+      icon: UserCheck,
+      iconWrapClass: 'bg-teal-100 text-teal-700 border-teal-200',
+      badgeClass: 'bg-teal-50 text-teal-700 border-teal-200',
+      label: 'Recebimento',
+    };
+  }
+
+  if (
+    text.includes('TRANSITO') ||
+    text.includes('TRANSPORTE') ||
+    text.includes('A CAMINHO') ||
+    text.includes('TRANSFERENCIA')
+  ) {
+    return {
+      icon: Truck,
+      iconWrapClass: 'bg-blue-100 text-blue-700 border-blue-200',
+      badgeClass: 'bg-blue-50 text-blue-700 border-blue-200',
+      label: 'Em trânsito',
+    };
+  }
+
+  if (
+    text.includes('COLETA') ||
+    text.includes('POSTADO') ||
+    text.includes('EMBARQUE') ||
+    text.includes('EXPEDICAO')
+  ) {
+    return {
+      icon: PackageCheck,
+      iconWrapClass: 'bg-violet-100 text-violet-700 border-violet-200',
+      badgeClass: 'bg-violet-50 text-violet-700 border-violet-200',
+      label: 'Processado',
+    };
+  }
+
+  if (
+    text.includes('PENDENTE') ||
+    text.includes('AGUARDANDO') ||
+    text.includes('ATRASO')
+  ) {
+    return {
+      icon: Clock3,
+      iconWrapClass: 'bg-amber-100 text-amber-700 border-amber-200',
+      badgeClass: 'bg-amber-50 text-amber-700 border-amber-200',
+      label: 'Pendente',
+    };
+  }
+
+  if (
+    text.includes('ERRO') ||
+    text.includes('RECUSA') ||
+    text.includes('DEVOL') ||
+    text.includes('OCORRÊNCIA')
+  ) {
+    return {
+      icon: AlertCircle,
+      iconWrapClass: 'bg-red-100 text-red-700 border-red-200',
+      badgeClass: 'bg-red-50 text-red-700 border-red-200',
+      label: 'Atenção',
+    };
+  }
+
+  return {
+    icon: CircleDashed,
+    iconWrapClass: 'bg-zinc-100 text-zinc-700 border-zinc-200',
+    badgeClass: 'bg-zinc-50 text-zinc-700 border-zinc-200',
+    label: item.tipo || 'Movimentação',
+  };
 }
 
 export default function TrackingsPage() {
@@ -175,6 +406,7 @@ export default function TrackingsPage() {
   const items = useMemo(() => normalizeItems(responseData), [responseData]);
   const latestItem = useMemo(() => getLatestItem(items), [items]);
   const statusInfo = useMemo(() => getStatusInfo(items), [items]);
+  const trackingStages = useMemo(() => getTrackingStages(items), [items]);
 
   const formattedResponse = useMemo(() => {
     if (!responseData) return '';
@@ -185,7 +417,7 @@ export default function TrackingsPage() {
 
   function updateField<K extends keyof QueryTrackingPayload>(
     field: K,
-    value: QueryTrackingPayload[K]
+    value: QueryTrackingPayload[K],
   ) {
     setFormData((prev) => ({
       ...prev,
@@ -204,7 +436,7 @@ export default function TrackingsPage() {
 
     if (!formData.valor.trim()) {
       setErrorMessage(
-        `Informe ${getQueryTypeLabel(formData.tipoConsulta).toLowerCase()}.`
+        `Informe ${getQueryTypeLabel(formData.tipoConsulta).toLowerCase()}.`,
       );
       return;
     }
@@ -234,7 +466,7 @@ export default function TrackingsPage() {
         throw new Error(
           typeof data?.message === 'string'
             ? data.message
-            : 'Erro ao consultar rastreamento.'
+            : 'Erro ao consultar rastreamento.',
         );
       }
 
@@ -265,391 +497,495 @@ export default function TrackingsPage() {
 
   return (
     <AppLayout>
-      <div className="min-h-screen bg-zinc-50">
-        <div className="mx-auto flex w-full max-w-7xl flex-col gap-6 p-4 md:p-6">
-          <section className="rounded-3xl border border-zinc-200 bg-white p-6 shadow-sm">
-            <div className="flex flex-col gap-6 xl:flex-row xl:items-start xl:justify-between">
+      <div className="mx-auto flex w-full max-w-7xl flex-col gap-6">
+        <Card className="rounded-3xl border-zinc-200 shadow-sm">
+          <CardHeader className="border-b border-zinc-100 pb-6">
+            <div className="max-w-3xl">
+              <p className="text-sm font-medium text-zinc-500">Logística</p>
+              <CardTitle className="mt-1 text-3xl font-bold tracking-tight text-zinc-900">
+                Rastreamento de encomenda
+              </CardTitle>
+              <CardDescription className="mt-2 text-sm text-zinc-600">
+                Consulte a situação da entrega informando o CNPJ, o tipo de
+                consulta e o valor correspondente. A busca será feita pelo seu
+                backend, que por sua vez consulta a SSW.
+              </CardDescription>
+            </div>
+          </CardHeader>
+
+          <CardContent className="pt-6">
+            <div className="max-w-2xl">
+              <CardTitle className="text-lg text-zinc-900">
+                Dados para consulta
+              </CardTitle>
+              <CardDescription className="mt-1 text-sm text-zinc-500">
+                Preencha os campos conforme o contrato do endpoint público de
+                rastreamento.
+              </CardDescription>
+            </div>
+
+            <div className="mt-8 grid grid-cols-1 gap-4 md:grid-cols-2">
               <div>
-                <p className="text-sm font-medium text-zinc-500">Logística</p>
-                <h1 className="mt-1 text-3xl font-bold tracking-tight text-zinc-900">
-                  Rastreamento de encomenda
-                </h1>
-                <p className="mt-2 max-w-3xl text-sm text-zinc-600">
-                  Consulte a situação da entrega informando o CNPJ, o tipo de
-                  consulta e o valor correspondente. A busca será feita pelo seu
-                  backend, que por sua vez consulta a SSW.
-                </p>
+                <label className="mb-2 block text-sm font-medium text-zinc-700">
+                  CNPJ do destinatário
+                </label>
+                <Input
+                  type="text"
+                  value={formData.cnpj}
+                  onChange={(e) =>
+                    updateField('cnpj', formatCnpj(e.target.value))
+                  }
+                  placeholder="00.000.000/0000-00"
+                  className="h-12 rounded-2xl"
+                />
               </div>
 
-              <div className="flex flex-wrap gap-3">
-                <Link
-                  href="/dashboard"
-                  className="inline-flex items-center justify-center rounded-2xl border border-zinc-300 bg-white px-4 py-2.5 text-sm font-semibold text-zinc-700 transition hover:bg-zinc-100"
+              <div>
+                <label className="mb-2 block text-sm font-medium text-zinc-700">
+                  Tipo de consulta
+                </label>
+                <select
+                  value={formData.tipoConsulta}
+                  onChange={(e) =>
+                    updateField('tipoConsulta', e.target.value as TrackingQueryType)
+                  }
+                  className="flex h-12 w-full rounded-2xl border border-input bg-background px-4 py-3 text-sm ring-offset-background focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2"
                 >
-                  Voltar ao dashboard
-                </Link>
-
-                <Link
-                  href="/quotes"
-                  className="inline-flex items-center justify-center rounded-2xl border border-zinc-300 bg-white px-4 py-2.5 text-sm font-semibold text-zinc-700 transition hover:bg-zinc-100"
-                >
-                  Cotações
-                </Link>
-
-                <Link
-                  href="/clients"
-                  className="inline-flex items-center justify-center rounded-2xl border border-zinc-300 bg-white px-4 py-2.5 text-sm font-semibold text-zinc-700 transition hover:bg-zinc-100"
-                >
-                  Clientes
-                </Link>
-
-                <Link
-                  href="/tickets"
-                  className="inline-flex items-center justify-center rounded-2xl border border-zinc-300 bg-white px-4 py-2.5 text-sm font-semibold text-zinc-700 transition hover:bg-zinc-100"
-                >
-                  Tickets
-                </Link>
-              </div>
-            </div>
-          </section>
-
-          <section className="rounded-3xl border border-zinc-200 bg-white p-6 shadow-sm">
-            <div className="grid grid-cols-1 gap-6 lg:grid-cols-12">
-              <div className="lg:col-span-4">
-                <h2 className="text-lg font-semibold text-zinc-900">
-                  Dados para consulta
-                </h2>
-                <p className="mt-1 text-sm text-zinc-500">
-                  Preencha os campos conforme o contrato do endpoint público de
-                  rastreamento.
-                </p>
+                  <option value="nro_nf">{getQueryTypeLabel('nro_nf')}</option>
+                  <option value="pedido">{getQueryTypeLabel('pedido')}</option>
+                  <option value="chave_nfe">
+                    {getQueryTypeLabel('chave_nfe')}
+                  </option>
+                  <option value="nro_coleta">
+                    {getQueryTypeLabel('nro_coleta')}
+                  </option>
+                </select>
               </div>
 
-              <div className="lg:col-span-8">
-                <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
-                  <div>
-                    <label className="mb-2 block text-sm font-medium text-zinc-700">
-                      CNPJ do destinatário
-                    </label>
-                    <input
-                      type="text"
-                      value={formData.cnpj}
-                      onChange={(e) => updateField('cnpj', formatCnpj(e.target.value))}
-                      placeholder="00.000.000/0000-00"
-                      className="w-full rounded-2xl border border-zinc-300 bg-white px-4 py-3 text-sm text-zinc-900 outline-none transition focus:border-zinc-900"
-                    />
-                  </div>
+              <div>
+                <label className="mb-2 block text-sm font-medium text-zinc-700">
+                  {getQueryTypeLabel(formData.tipoConsulta)}
+                </label>
+                <Input
+                  type="text"
+                  value={formData.valor}
+                  onChange={(e) => updateField('valor', e.target.value)}
+                  placeholder={getValueFieldPlaceholder(formData.tipoConsulta)}
+                  className="h-12 rounded-2xl"
+                />
+              </div>
 
-                  <div>
-                    <label className="mb-2 block text-sm font-medium text-zinc-700">
-                      Tipo de consulta
-                    </label>
-                    <select
-                      value={formData.tipoConsulta}
-                      onChange={(e) =>
-                        updateField('tipoConsulta', e.target.value as TrackingQueryType)
-                      }
-                      className="w-full rounded-2xl border border-zinc-300 bg-white px-4 py-3 text-sm text-zinc-900 outline-none transition focus:border-zinc-900"
-                    >
-                      <option value="nro_nf">{getQueryTypeLabel('nro_nf')}</option>
-                      <option value="pedido">{getQueryTypeLabel('pedido')}</option>
-                      <option value="chave_nfe">{getQueryTypeLabel('chave_nfe')}</option>
-                      <option value="nro_coleta">{getQueryTypeLabel('nro_coleta')}</option>
-                    </select>
-                  </div>
+              <div>
+                <label className="mb-2 block text-sm font-medium text-zinc-700">
+                  Sigla da empresa
+                </label>
+                <Input
+                  type="text"
+                  value={formData.siglaEmp}
+                  onChange={(e) => updateField('siglaEmp', e.target.value)}
+                  placeholder="Ex: ABC"
+                  className="h-12 rounded-2xl"
+                />
+              </div>
 
-                  <div>
-                    <label className="mb-2 block text-sm font-medium text-zinc-700">
-                      {getQueryTypeLabel(formData.tipoConsulta)}
-                    </label>
-                    <input
-                      type="text"
-                      value={formData.valor}
-                      onChange={(e) => updateField('valor', e.target.value)}
-                      placeholder={getValueFieldPlaceholder(formData.tipoConsulta)}
-                      className="w-full rounded-2xl border border-zinc-300 bg-white px-4 py-3 text-sm text-zinc-900 outline-none transition focus:border-zinc-900"
-                    />
-                  </div>
-
-                  <div>
-                    <label className="mb-2 block text-sm font-medium text-zinc-700">
-                      Sigla da empresa
-                    </label>
-                    <input
-                      type="text"
-                      value={formData.siglaEmp}
-                      onChange={(e) => updateField('siglaEmp', e.target.value)}
-                      placeholder="Ex: ABC"
-                      className="w-full rounded-2xl border border-zinc-300 bg-white px-4 py-3 text-sm text-zinc-900 outline-none transition focus:border-zinc-900"
-                    />
-                  </div>
-
-                  <div className="md:col-span-2">
-                    <label className="mb-2 block text-sm font-medium text-zinc-700">
-                      Senha de rastreamento
-                    </label>
-                    <input
-                      type="text"
-                      value={formData.senha}
-                      onChange={(e) => updateField('senha', e.target.value)}
-                      placeholder="Preencha apenas se a consulta exigir senha"
-                      className="w-full rounded-2xl border border-zinc-300 bg-white px-4 py-3 text-sm text-zinc-900 outline-none transition focus:border-zinc-900"
-                    />
-                  </div>
-                </div>
-
-                {errorMessage && (
-                  <div className="mt-4 rounded-2xl border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700">
-                    {errorMessage}
-                  </div>
-                )}
-
-                <div className="mt-5 flex flex-col gap-3 sm:flex-row">
-                  <button
-                    type="button"
-                    onClick={handleSearchTracking}
-                    disabled={isLoading}
-                    className="inline-flex items-center justify-center rounded-2xl bg-zinc-900 px-5 py-3 text-sm font-semibold text-white transition hover:bg-zinc-800 disabled:cursor-not-allowed disabled:opacity-60"
-                  >
-                    {isLoading ? 'Consultando...' : 'Rastrear encomenda'}
-                  </button>
-
-                  <button
-                    type="button"
-                    onClick={handleClear}
-                    className="inline-flex items-center justify-center rounded-2xl border border-zinc-300 bg-white px-5 py-3 text-sm font-semibold text-zinc-700 transition hover:bg-zinc-100"
-                  >
-                    Limpar dados
-                  </button>
-                </div>
+              <div className="md:col-span-2">
+                <label className="mb-2 block text-sm font-medium text-zinc-700">
+                  Senha de rastreamento
+                </label>
+                <Input
+                  type="text"
+                  value={formData.senha}
+                  onChange={(e) => updateField('senha', e.target.value)}
+                  placeholder="Preencha apenas se a consulta exigir senha"
+                  className="h-12 rounded-2xl"
+                />
               </div>
             </div>
-          </section>
 
-          {!hasResponseData && !isLoading && !errorMessage && (
-            <section className="rounded-3xl border border-dashed border-zinc-300 bg-white p-10 text-center shadow-sm">
+            {errorMessage && (
+              <div className="mt-4 rounded-2xl border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700">
+                {errorMessage}
+              </div>
+            )}
+
+            <div className="mt-5 flex flex-col gap-3 sm:flex-row">
+              <Button
+                type="button"
+                onClick={handleSearchTracking}
+                disabled={isLoading}
+                className="h-12 rounded-2xl px-5"
+              >
+                {isLoading ? 'Consultando...' : 'Rastrear encomenda'}
+              </Button>
+
+              <Button
+                type="button"
+                onClick={handleClear}
+                variant="outline"
+                className="h-12 rounded-2xl px-5"
+              >
+                Limpar dados
+              </Button>
+            </div>
+          </CardContent>
+        </Card>
+
+        {!hasResponseData && !isLoading && !errorMessage && (
+          <Card className="rounded-3xl border-dashed border-zinc-300 shadow-sm">
+            <CardContent className="p-10 text-center">
               <h3 className="text-lg font-semibold text-zinc-900">
                 Nenhum rastreamento consultado
               </h3>
               <p className="mt-2 text-sm text-zinc-500">
-                Escolha o tipo de consulta e informe os dados para localizar a entrega.
+                Escolha o tipo de consulta e informe os dados para localizar a
+                entrega.
               </p>
-            </section>
-          )}
+            </CardContent>
+          </Card>
+        )}
 
-          {isLoading && (
-            <section className="rounded-3xl border border-blue-200 bg-blue-50 p-10 text-center shadow-sm">
+        {isLoading && (
+          <Card className="rounded-3xl border-blue-200 bg-blue-50 shadow-sm">
+            <CardContent className="p-10 text-center">
               <h3 className="text-lg font-semibold text-blue-800">
                 Consultando rastreamento
               </h3>
               <p className="mt-2 text-sm text-blue-700">
                 Aguarde enquanto buscamos as informações da encomenda.
               </p>
-            </section>
-          )}
+            </CardContent>
+          </Card>
+        )}
 
-          {hasResponseData && (
-            <>
-              <section className="grid grid-cols-1 gap-4 md:grid-cols-2 xl:grid-cols-4">
-                <div className="rounded-3xl border border-zinc-200 bg-white p-5 shadow-sm">
+        {hasResponseData && (
+          <>
+            <section className="grid grid-cols-1 gap-4 md:grid-cols-2 xl:grid-cols-4">
+              <Card className="rounded-3xl border-zinc-200 shadow-sm">
+                <CardContent className="p-5">
                   <p className="text-sm text-zinc-500">Consulta</p>
                   <h2 className="mt-2 text-2xl font-bold text-zinc-900">
                     {formData.valor || '-'}
                   </h2>
-                </div>
+                </CardContent>
+              </Card>
 
-                <div className="rounded-3xl border border-zinc-200 bg-white p-5 shadow-sm">
+              <Card className="rounded-3xl border-zinc-200 shadow-sm">
+                <CardContent className="p-5">
                   <p className="text-sm text-zinc-500">Status</p>
                   <div className="mt-3">
-                    <span
-                      className={`inline-flex rounded-full border px-3 py-1 text-sm font-semibold ${statusInfo.className}`}
+                    <Badge
+                      className={`rounded-full border px-3 py-1 text-sm font-semibold ${statusInfo.className}`}
                     >
                       {statusInfo.label}
-                    </span>
+                    </Badge>
                   </div>
-                </div>
+                </CardContent>
+              </Card>
 
-                <div className="rounded-3xl border border-zinc-200 bg-white p-5 shadow-sm">
+              <Card className="rounded-3xl border-zinc-200 shadow-sm">
+                <CardContent className="p-5">
                   <p className="text-sm text-zinc-500">Mensagem</p>
                   <h2 className="mt-2 text-base font-semibold text-zinc-900">
                     {trackingData?.tracking?.message || '-'}
                   </h2>
-                </div>
+                </CardContent>
+              </Card>
 
-                <div className="rounded-3xl border border-zinc-200 bg-white p-5 shadow-sm">
+              <Card className="rounded-3xl border-zinc-200 shadow-sm">
+                <CardContent className="p-5">
                   <p className="text-sm text-zinc-500">Última atualização</p>
                   <h2 className="mt-2 text-base font-semibold text-zinc-900">
-                    {formatDateTime(latestItem?.data_hora_efetiva || latestItem?.data_hora)}
+                    {formatDateTime(
+                      latestItem?.data_hora_efetiva || latestItem?.data_hora,
+                    )}
                   </h2>
-                </div>
-              </section>
+                </CardContent>
+              </Card>
+            </section>
 
-              <section className="grid grid-cols-1 gap-6 xl:grid-cols-3">
-                <div className="xl:col-span-1">
-                  <div className="rounded-3xl border border-zinc-200 bg-white p-6 shadow-sm">
-                    <h3 className="text-lg font-semibold text-zinc-900">
-                      Dados do embarque
-                    </h3>
+            <Card className="rounded-3xl border-zinc-200 shadow-sm">
+              <CardHeader>
+                <CardTitle className="text-lg text-zinc-900">
+                  Etapas da encomenda
+                </CardTitle>
+                <CardDescription className="text-sm text-zinc-500">
+                  A barra abaixo se adapta ao retorno atual do rastreamento.
+                </CardDescription>
+              </CardHeader>
 
-                    <div className="mt-6 space-y-4">
-                      <div>
-                        <p className="text-sm text-zinc-500">Remetente</p>
-                        <p className="mt-1 text-sm font-semibold text-zinc-900">
-                          {trackingData?.tracking?.header?.remetente || '-'}
-                        </p>
-                      </div>
+              <CardContent>
+                <div className="grid gap-4 md:grid-cols-4">
+                  {trackingStages.map((stage, index) => {
+                    const Icon = stage.icon;
+                    const stateClass = stage.reached
+                      ? stage.current
+                        ? 'border-blue-200 bg-blue-50 text-blue-700'
+                        : 'border-emerald-200 bg-emerald-50 text-emerald-700'
+                      : 'border-zinc-200 bg-zinc-50 text-zinc-400';
+                    const markerClass = stage.reached
+                      ? stage.current
+                        ? 'bg-blue-600 text-white shadow-lg shadow-blue-200/60'
+                        : 'bg-emerald-600 text-white'
+                      : 'bg-white text-zinc-400';
 
-                      <div>
-                        <p className="text-sm text-zinc-500">Destinatário</p>
-                        <p className="mt-1 text-sm font-semibold text-zinc-900">
-                          {trackingData?.tracking?.header?.destinatario || '-'}
-                        </p>
-                      </div>
-
-                      <div>
-                        <p className="text-sm text-zinc-500">Tipo de consulta</p>
-                        <p className="mt-1 text-sm font-semibold text-zinc-900">
-                          {getQueryTypeLabel(formData.tipoConsulta)}
-                        </p>
-                      </div>
-
-                      <div>
-                        <p className="text-sm text-zinc-500">CNPJ informado</p>
-                        <p className="mt-1 text-sm font-semibold text-zinc-900">
-                          {formData.cnpj || '-'}
-                        </p>
-                      </div>
-
-                      <div>
-                        <p className="text-sm text-zinc-500">Última unidade</p>
-                        <p className="mt-1 text-sm font-semibold text-zinc-900">
-                          {latestItem ? getLocationLabel(latestItem) : '-'}
-                        </p>
-                      </div>
-
-                      {latestItem?.nome_recebedor && (
-                        <div>
-                          <p className="text-sm text-zinc-500">Recebedor</p>
-                          <p className="mt-1 text-sm font-semibold text-zinc-900">
-                            {latestItem.nome_recebedor}
-                          </p>
-                        </div>
-                      )}
-                    </div>
-                  </div>
-                </div>
-
-                <div className="xl:col-span-2">
-                  <div className="rounded-3xl border border-zinc-200 bg-white p-6 shadow-sm">
-                    <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
-                      <div>
-                        <h3 className="text-lg font-semibold text-zinc-900">
-                          Histórico de movimentações
-                        </h3>
-                        <p className="text-sm text-zinc-500">
-                          Eventos retornados pela consulta de rastreamento.
-                        </p>
-                      </div>
-
-                      <button
-                        type="button"
-                        onClick={() => setShowRawJson((prev) => !prev)}
-                        className="inline-flex items-center justify-center rounded-2xl border border-zinc-300 bg-white px-4 py-2 text-sm font-semibold text-zinc-700 transition hover:bg-zinc-100"
-                      >
-                        {showRawJson ? 'Ocultar JSON' : 'Ver JSON bruto'}
-                      </button>
-                    </div>
-
-                    <div className="mt-6 overflow-hidden rounded-2xl border border-zinc-200">
-                      <div className="hidden grid-cols-12 gap-4 border-b border-zinc-200 bg-zinc-50 px-4 py-3 text-xs font-semibold uppercase tracking-wider text-zinc-500 md:grid">
-                        <div className="col-span-3">Data / Hora</div>
-                        <div className="col-span-3">Unidade</div>
-                        <div className="col-span-6">Situação</div>
-                      </div>
-
-                      <div className="divide-y divide-zinc-200">
-                        {items.length === 0 && (
-                          <div className="p-6 text-sm text-zinc-500">
-                            Nenhuma movimentação encontrada.
-                          </div>
+                    return (
+                      <div key={stage.title} className="relative">
+                        {index < trackingStages.length - 1 && (
+                          <div className="absolute left-[calc(50%+2rem)] right-[-1.25rem] top-6 hidden h-0.5 bg-zinc-200 md:block" />
                         )}
 
-                        {items.map((item, index) => (
-                          <div
-                            key={`${item.data_hora}-${index}`}
-                            className="grid grid-cols-1 gap-4 px-4 py-4 md:grid-cols-12"
-                          >
-                            <div className="md:col-span-3">
-                              <p className="text-xs font-semibold uppercase tracking-wider text-zinc-500 md:hidden">
-                                Data / Hora
-                              </p>
-                              <p className="text-sm font-semibold text-zinc-900">
-                                {formatDateTime(item.data_hora)}
-                              </p>
+                        <div
+                          className={`relative h-full rounded-3xl border p-5 transition ${stateClass}`}
+                        >
+                          <div className="flex items-start gap-4">
+                            <div
+                              className={`flex h-12 w-12 shrink-0 items-center justify-center rounded-2xl border border-current/10 ${markerClass}`}
+                            >
+                              <Icon className="h-5 w-5" />
                             </div>
 
-                            <div className="md:col-span-3">
-                              <p className="text-xs font-semibold uppercase tracking-wider text-zinc-500 md:hidden">
-                                Unidade
-                              </p>
-                              <p className="text-sm font-semibold text-zinc-900">
-                                {item.cidade || '-'}
-                              </p>
-                              <p className="mt-1 text-sm text-zinc-500">
-                                {[item.dominio, item.filial].filter(Boolean).join(' / ') || '-'}
-                              </p>
-                            </div>
-
-                            <div className="md:col-span-6">
-                              <p className="text-xs font-semibold uppercase tracking-wider text-zinc-500 md:hidden">
-                                Situação
-                              </p>
-
+                            <div className="min-w-0">
                               <div className="flex flex-wrap items-center gap-2">
-                                <span className="inline-flex rounded-full border border-zinc-200 bg-zinc-100 px-2.5 py-1 text-xs font-semibold text-zinc-700">
-                                  {item.tipo || 'Sem tipo'}
-                                </span>
+                                <p className="text-sm font-semibold">
+                                  {stage.title}
+                                </p>
+
+                                {stage.current && (
+                                  <Badge className="rounded-full bg-blue-600 px-2.5 py-1 text-[11px] font-semibold text-white">
+                                    Atual
+                                  </Badge>
+                                )}
                               </div>
 
-                              <p className="mt-2 text-sm font-semibold text-zinc-900">
-                                {item.ocorrencia || '-'}
+                              <p className="mt-2 text-sm leading-6 text-current/80">
+                                {stage.description}
                               </p>
 
-                              <p className="mt-1 text-sm text-zinc-600">
-                                {item.descricao || '-'}
+                              <p className="mt-3 text-xs font-medium uppercase tracking-wide text-current/70">
+                                {stage.timestamp
+                                  ? formatDateTime(stage.timestamp)
+                                  : stage.reached
+                                    ? 'Etapa confirmada'
+                                    : 'Aguardando etapa'}
                               </p>
-
-                              {item.nome_recebedor && (
-                                <p className="mt-2 text-sm text-zinc-500">
-                                  <span className="font-semibold text-zinc-700">Recebedor:</span>{' '}
-                                  {item.nome_recebedor}
-                                  {item.nro_doc_recebedor
-                                    ? ` • Documento: ${item.nro_doc_recebedor}`
-                                    : ''}
-                                </p>
-                              )}
                             </div>
                           </div>
-                        ))}
-                      </div>
-                    </div>
-
-                    {showRawJson && (
-                      <div className="mt-6 overflow-hidden rounded-2xl border border-zinc-200">
-                        <div className="border-b border-zinc-200 bg-zinc-50 px-4 py-3 text-sm font-medium text-zinc-700">
-                          JSON retornado
                         </div>
-                        <pre className="overflow-x-auto p-4 text-sm text-zinc-800">
-                          {formattedResponse}
-                        </pre>
                       </div>
-                    )}
-                  </div>
+                    );
+                  })}
                 </div>
-              </section>
-            </>
-          )}
-        </div>
+              </CardContent>
+            </Card>
+
+            <section className="grid grid-cols-1 gap-6 xl:grid-cols-3">
+              <Card className="rounded-3xl border-zinc-200 shadow-sm xl:col-span-1">
+                <CardHeader>
+                  <CardTitle className="text-lg text-zinc-900">
+                    Dados do embarque
+                  </CardTitle>
+                </CardHeader>
+
+                <CardContent className="space-y-4">
+                  <div>
+                    <p className="text-sm text-zinc-500">Remetente</p>
+                    <p className="mt-1 text-sm font-semibold text-zinc-900">
+                      {trackingData?.tracking?.header?.remetente || '-'}
+                    </p>
+                  </div>
+
+                  <div>
+                    <p className="text-sm text-zinc-500">Destinatário</p>
+                    <p className="mt-1 text-sm font-semibold text-zinc-900">
+                      {trackingData?.tracking?.header?.destinatario || '-'}
+                    </p>
+                  </div>
+
+                  <div>
+                    <p className="text-sm text-zinc-500">Tipo de consulta</p>
+                    <p className="mt-1 text-sm font-semibold text-zinc-900">
+                      {getQueryTypeLabel(formData.tipoConsulta)}
+                    </p>
+                  </div>
+
+                  <div>
+                    <p className="text-sm text-zinc-500">CNPJ informado</p>
+                    <p className="mt-1 text-sm font-semibold text-zinc-900">
+                      {formData.cnpj || '-'}
+                    </p>
+                  </div>
+
+                  <div>
+                    <p className="text-sm text-zinc-500">Última unidade</p>
+                    <p className="mt-1 text-sm font-semibold text-zinc-900">
+                      {latestItem ? getLocationLabel(latestItem) : '-'}
+                    </p>
+                  </div>
+
+                  {latestItem?.nome_recebedor && (
+                    <div>
+                      <p className="text-sm text-zinc-500">Recebedor</p>
+                      <p className="mt-1 text-sm font-semibold text-zinc-900">
+                        {latestItem.nome_recebedor}
+                      </p>
+                    </div>
+                  )}
+                </CardContent>
+              </Card>
+
+              <Card className="rounded-3xl border-zinc-200 shadow-sm xl:col-span-2">
+                <CardHeader className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
+                  <div>
+                    <CardTitle className="text-lg text-zinc-900">
+                      Histórico de movimentações
+                    </CardTitle>
+                    <CardDescription className="text-sm text-zinc-500">
+                      Eventos retornados pela consulta de rastreamento.
+                    </CardDescription>
+                  </div>
+
+                  <Button
+                    type="button"
+                    variant="outline"
+                    onClick={() => setShowRawJson((prev) => !prev)}
+                    className="rounded-2xl"
+                  >
+                    {showRawJson ? 'Ocultar JSON' : 'Ver JSON bruto'}
+                  </Button>
+                </CardHeader>
+
+                <CardContent>
+                  {items.length === 0 ? (
+                    <div className="rounded-2xl border border-zinc-200 bg-zinc-50 p-6 text-sm text-zinc-500">
+                      Nenhuma movimentação encontrada.
+                    </div>
+                  ) : (
+                    <div className="space-y-4">
+                      {items.map((item, index) => {
+                        const visual = getMovementVisual(item);
+                        const Icon = visual.icon;
+                        const isLast = index === items.length - 1;
+
+                        return (
+                          <div
+                            key={`${item.data_hora}-${index}`}
+                            className="relative rounded-3xl border border-zinc-200 bg-white p-5 shadow-sm transition hover:shadow-md"
+                          >
+                            <div className="flex gap-4">
+                              <div className="relative flex flex-col items-center">
+                                <div
+                                  className={`z-10 flex h-12 w-12 items-center justify-center rounded-2xl border ${visual.iconWrapClass}`}
+                                >
+                                  <Icon className="h-5 w-5" />
+                                </div>
+
+                                {!isLast && (
+                                  <div className="mt-2 h-full min-h-[40px] w-px bg-zinc-200" />
+                                )}
+                              </div>
+
+                              <div className="min-w-0 flex-1">
+                                <div className="flex flex-col gap-3 md:flex-row md:items-start md:justify-between">
+                                  <div>
+                                    <div className="flex flex-wrap items-center gap-2">
+                                      <Badge
+                                        className={`rounded-full border px-3 py-1 text-xs font-semibold ${visual.badgeClass}`}
+                                      >
+                                        {visual.label}
+                                      </Badge>
+
+                                      {item.tipo && (
+                                        <Badge
+                                          variant="outline"
+                                          className="rounded-full px-3 py-1 text-xs font-semibold text-zinc-700"
+                                        >
+                                          {item.tipo}
+                                        </Badge>
+                                      )}
+                                    </div>
+
+                                    <h4 className="mt-3 text-base font-semibold text-zinc-900">
+                                      {item.ocorrencia || 'Movimentação registrada'}
+                                    </h4>
+
+                                    <p className="mt-1 text-sm leading-6 text-zinc-600">
+                                      {item.descricao ||
+                                        'Sem descrição adicional para esta movimentação.'}
+                                    </p>
+                                  </div>
+
+                                  <div className="shrink-0 rounded-2xl bg-zinc-50 px-4 py-3 text-sm text-zinc-600">
+                                    <p className="font-semibold text-zinc-900">
+                                      {formatDateTime(
+                                        item.data_hora_efetiva || item.data_hora,
+                                      )}
+                                    </p>
+                                    <p className="mt-1 text-xs uppercase tracking-wide text-zinc-500">
+                                      Atualização do evento
+                                    </p>
+                                  </div>
+                                </div>
+
+                                <div className="mt-4 grid grid-cols-1 gap-3 md:grid-cols-2">
+                                  <div className="rounded-2xl border border-zinc-200 bg-zinc-50 px-4 py-3">
+                                    <div className="flex items-center gap-2 text-zinc-500">
+                                      <MapPin className="h-4 w-4" />
+                                      <span className="text-xs font-semibold uppercase tracking-wide">
+                                        Local
+                                      </span>
+                                    </div>
+
+                                    <p className="mt-2 text-sm font-semibold text-zinc-900">
+                                      {getLocationLabel(item)}
+                                    </p>
+                                  </div>
+
+                                  <div className="rounded-2xl border border-zinc-200 bg-zinc-50 px-4 py-3">
+                                    <div className="flex items-center gap-2 text-zinc-500">
+                                      <Clock3 className="h-4 w-4" />
+                                      <span className="text-xs font-semibold uppercase tracking-wide">
+                                        Data original
+                                      </span>
+                                    </div>
+
+                                    <p className="mt-2 text-sm font-semibold text-zinc-900">
+                                      {formatDateTime(item.data_hora)}
+                                    </p>
+                                  </div>
+                                </div>
+
+                                {item.nome_recebedor && (
+                                  <div className="mt-4 rounded-2xl border border-emerald-200 bg-emerald-50 px-4 py-3 text-sm text-emerald-800">
+                                    <span className="font-semibold">Recebedor:</span>{' '}
+                                    {item.nome_recebedor}
+                                    {item.nro_doc_recebedor
+                                      ? ` • Documento: ${item.nro_doc_recebedor}`
+                                      : ''}
+                                  </div>
+                                )}
+                              </div>
+                            </div>
+                          </div>
+                        );
+                      })}
+                    </div>
+                  )}
+
+                  {showRawJson && (
+                    <div className="mt-6 overflow-hidden rounded-2xl border border-zinc-200">
+                      <div className="border-b border-zinc-200 bg-zinc-50 px-4 py-3 text-sm font-medium text-zinc-700">
+                        JSON retornado
+                      </div>
+                      <pre className="overflow-x-auto p-4 text-sm text-zinc-800">
+                        {formattedResponse}
+                      </pre>
+                    </div>
+                  )}
+                </CardContent>
+              </Card>
+            </section>
+          </>
+        )}
       </div>
     </AppLayout>
   );

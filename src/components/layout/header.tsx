@@ -1,53 +1,63 @@
 'use client';
 
+import { Bell, Command, LogOut, Search } from 'lucide-react';
 import { usePathname, useRouter } from 'next/navigation';
 import { useAuth } from '@/context/auth-context';
+import { SidebarTrigger } from '@/components/ui/sidebar';
 
 function getPageTitle(pathname: string) {
-  const titles: Record<string, string> = {
-    '/dashboard': 'Dashboard',
-    '/trackings': 'Rastreamento',
-    '/quotes': 'Cotações',
-    '/clients': 'Clientes',
-    '/tickets': 'Tickets',
-    '/users': 'Usuários',
-  };
+  if (pathname.startsWith('/dashboard')) return 'Dashboard';
+  if (pathname.startsWith('/trackings')) return 'Rastreamento';
+  if (pathname.startsWith('/quotes')) return 'Cotações';
+  if (pathname.startsWith('/clients')) return 'Clientes';
+  if (pathname.startsWith('/tickets')) return 'Tickets';
+  if (pathname.startsWith('/users')) return 'Usuários';
 
-  return titles[pathname] ?? 'Portal CRM';
+  return 'Painel interno';
 }
 
 function getPageDescription(pathname: string) {
-  const descriptions: Record<string, string> = {
-    '/dashboard': 'Visão geral do sistema e módulos principais.',
-    '/trackings': 'Acompanhe consultas e andamento do rastreamento.',
-    '/quotes': 'Gerencie solicitações e respostas comerciais.',
-    '/clients': 'Organize sua base de clientes e empresas.',
-    '/tickets': 'Acompanhe chamados e histórico de atendimento.',
-    '/users': 'Controle acessos, perfis e permissões do sistema.',
-  };
+  if (pathname.startsWith('/dashboard')) {
+    return 'Visão rápida da operação e dos clientes.';
+  }
 
-  return descriptions[pathname] ?? 'Acompanhe o CRM de forma centralizada.';
-}
+  if (pathname.startsWith('/trackings')) {
+    return 'Consultas e entregas em um só fluxo.';
+  }
 
-function getRoleBadge(role?: string) {
-  const labels: Record<string, string> = {
-    ADMIN: 'Administrador',
-    GESTAO: 'Gestão',
-    COMERCIAL: 'Comercial',
-    MARKETING: 'Marketing',
-    CLIENTE: 'Cliente',
-  };
+  if (pathname.startsWith('/quotes')) {
+    return 'Propostas comerciais com status claro.';
+  }
 
-  return labels[role ?? ''] ?? role ?? '-';
+  if (pathname.startsWith('/clients')) {
+    return 'Base de clientes organizada por contexto.';
+  }
+
+  if (pathname.startsWith('/tickets')) {
+    return 'Atendimento e SLA com leitura direta.';
+  }
+
+  if (pathname.startsWith('/users')) {
+    return 'Perfis e permissões do portal.';
+  }
+
+  return 'Acompanhe as informações do portal.';
 }
 
 export function Header() {
-  const { user, signOut } = useAuth();
   const pathname = usePathname();
   const router = useRouter();
+  const { user, signOut } = useAuth();
 
-  const title = getPageTitle(pathname);
-  const description = getPageDescription(pathname);
+  const pageTitle = getPageTitle(pathname);
+  const pageDescription = getPageDescription(pathname);
+  const userInitials =
+    user?.name
+      ?.split(' ')
+      .filter(Boolean)
+      .slice(0, 2)
+      .map((part) => part[0]?.toUpperCase() ?? '')
+      .join('') || 'US';
 
   function handleSignOut() {
     signOut();
@@ -55,35 +65,64 @@ export function Header() {
   }
 
   return (
-    <header className="sticky top-0 z-30 border-b border-slate-200 bg-white/95 backdrop-blur">
-      <div className="flex min-h-[88px] items-center justify-between gap-4 px-5 md:px-8">
-        <div>
-          <p className="text-xs font-semibold uppercase tracking-[0.18em] text-blue-600">
-            Portal CRM
-          </p>
-          <h1 className="mt-1 text-2xl font-bold tracking-tight text-slate-900">
-            {title}
-          </h1>
-          <p className="mt-1 text-sm text-slate-500">{description}</p>
+    <header className="sticky top-0 z-30 px-4 pt-4 md:px-6 md:pt-5">
+      <div className="flex min-h-[76px] items-center justify-between gap-4 rounded-[26px] border border-white/70 bg-white/78 px-4 py-3 shadow-[0_20px_50px_rgba(15,23,42,0.06)] backdrop-blur-xl md:px-5">
+        <div className="flex min-w-0 items-center gap-3">
+          <SidebarTrigger className="h-11 w-11 rounded-2xl border border-slate-200 bg-white text-slate-700 shadow-sm hover:bg-slate-50" />
+
+          <div className="min-w-0">
+            <h1 className="truncate text-lg font-semibold text-slate-950 md:text-xl">
+              {pageTitle}
+            </h1>
+            <p className="truncate text-sm text-slate-500">{pageDescription}</p>
+          </div>
         </div>
 
-        <div className="flex items-center gap-3">
-          <div className="hidden rounded-2xl border border-slate-200 bg-slate-50 px-4 py-3 md:block">
-            <p className="text-sm font-semibold text-slate-800">
-              {user?.name ?? '-'}
-            </p>
-            <p className="mt-1 text-xs font-medium uppercase tracking-wide text-slate-500">
-              {getRoleBadge(user?.role)}
-            </p>
+        <div className="hidden items-center gap-3 lg:flex">
+          <div className="flex items-center gap-2 rounded-2xl border border-slate-200 bg-slate-50/80 px-3 py-2.5 text-sm text-slate-500">
+            <Search className="h-4 w-4" />
+            Buscar cliente, ticket ou cotação
+            <span className="rounded-lg border border-slate-200 bg-white px-2 py-0.5 text-xs text-slate-400">
+              <Command className="mr-1 inline h-3 w-3" />
+              K
+            </span>
           </div>
 
           <button
-            onClick={handleSignOut}
-            className="inline-flex items-center justify-center rounded-2xl bg-red-600 px-4 py-3 text-sm font-semibold text-white transition hover:bg-red-700"
+            type="button"
+            className="flex h-11 w-11 items-center justify-center rounded-2xl border border-slate-200 bg-white text-slate-600 transition hover:bg-slate-50"
           >
+            <Bell className="h-4 w-4" />
+          </button>
+
+          <div className="text-right">
+            <p className="text-sm font-semibold text-slate-950">
+              {user?.name ?? 'Usuário'}
+            </p>
+            <p className="text-xs text-slate-500">{user?.email ?? 'Sem e-mail'}</p>
+          </div>
+
+          <div className="flex h-11 w-11 items-center justify-center rounded-2xl bg-[linear-gradient(135deg,#0f172a_0%,#2563eb_100%)] text-sm font-semibold text-white shadow-[0_12px_24px_rgba(37,99,235,0.24)]">
+            {userInitials}
+          </div>
+
+          <button
+            type="button"
+            onClick={handleSignOut}
+            className="inline-flex items-center gap-2 rounded-2xl border border-slate-200 bg-white px-4 py-2.5 text-sm font-semibold text-slate-700 transition hover:bg-slate-50"
+          >
+            <LogOut className="h-4 w-4" />
             Sair
           </button>
         </div>
+
+        <button
+          type="button"
+          onClick={handleSignOut}
+          className="inline-flex h-11 w-11 items-center justify-center rounded-2xl border border-slate-200 bg-white text-slate-700 transition hover:bg-slate-50 lg:hidden"
+        >
+          <LogOut className="h-4 w-4" />
+        </button>
       </div>
     </header>
   );
