@@ -184,16 +184,16 @@ function ClientDashboard({
           <div>
             <span className="inline-flex items-center gap-2 rounded-full bg-blue-50 px-3 py-1 text-xs font-semibold uppercase tracking-[0.18em] text-blue-700">
               <Sparkles className="h-3.5 w-3.5" />
-              Portal do cliente
+              Canal do Cliente
             </span>
 
             <h1 className="mt-4 text-3xl font-bold tracking-tight text-slate-950 md:text-4xl">
-              Ola, {userName}. Veja novidades e acompanhe seus atendimentos.
+              Canal do Cliente
             </h1>
 
             <p className="mt-3 max-w-2xl text-sm leading-7 text-slate-500">
-              Conteudos publicados, campanhas em destaque, videos e acessos rapidos
-              para rastreamento e suporte.
+              Ola, {userName}. Veja novidades, campanhas, videos e acessos rapidos
+              para rastreamento, suporte e relacionamento.
             </p>
           </div>
 

@@ -15,6 +15,7 @@ import { useAuth } from "@/context/auth-context";
 import {
   getChatMessages,
   getChats,
+  markChatRead,
   sendChatMessage,
 } from "@/services/chatService";
 import type {
@@ -139,7 +140,21 @@ export default function ChatPage() {
     try {
       setLoadingMessages(true);
       setError(null);
-      setMessages(await getChatMessages(chatId, token));
+      const chatMessages = await getChatMessages(chatId, token);
+
+      setMessages(chatMessages);
+      await markChatRead(chatId, token).catch(() => undefined);
+      setChats((current) =>
+        current.map((chat) =>
+          chat.id === chatId
+            ? {
+                ...chat,
+                unreadCount: 0,
+                lastReadAt: new Date().toISOString(),
+              }
+            : chat,
+        ),
+      );
     } catch (err) {
       setError(
         err instanceof Error ? err.message : "Erro ao carregar mensagens.",
@@ -173,6 +188,8 @@ export default function ChatPage() {
                 ...chat,
                 updatedAt: message.createdAt,
                 messages: [message],
+                unreadCount: 0,
+                lastReadAt: message.createdAt,
               }
             : chat,
         ),
@@ -186,6 +203,17 @@ export default function ChatPage() {
 
   useEffect(() => {
     loadChats();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [token, authLoading]);
+
+  useEffect(() => {
+    if (!token || authLoading) return;
+
+    const interval = window.setInterval(() => {
+      loadChats().catch(() => undefined);
+    }, 30000);
+
+    return () => window.clearInterval(interval);
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [token, authLoading]);
 
@@ -244,6 +272,7 @@ export default function ChatPage() {
                   const Icon = getEntityIcon(chat);
                   const lastMessage = chat.messages?.[0];
                   const isSelected = chat.id === selectedChatId;
+                  const unreadCount = chat.unreadCount ?? 0;
 
                   return (
                     <button
@@ -267,8 +296,15 @@ export default function ChatPage() {
                       </span>
 
                       <span className="min-w-0 flex-1">
-                        <span className="block truncate text-sm font-semibold text-slate-950">
-                          {getChatTitle(chat)}
+                        <span className="flex items-center gap-2">
+                          <span className="block truncate text-sm font-semibold text-slate-950">
+                            {getChatTitle(chat)}
+                          </span>
+                          {unreadCount > 0 ? (
+                            <span className="inline-flex h-5 min-w-5 shrink-0 items-center justify-center rounded-full bg-rose-600 px-1.5 text-[11px] font-bold text-white">
+                              {unreadCount > 9 ? "9+" : unreadCount}
+                            </span>
+                          ) : null}
                         </span>
                         <span className="mt-0.5 block truncate text-xs text-slate-500">
                           {getChatSubtitle(chat)}

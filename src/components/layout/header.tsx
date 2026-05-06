@@ -13,8 +13,10 @@ import {
 } from '@/services/notifications.service';
 import type { CrmNotification } from '@/types/notifications';
 
-function getPageTitle(pathname: string) {
-  if (pathname.startsWith('/dashboard')) return 'Dashboard';
+function getPageTitle(pathname: string, role?: string) {
+  if (pathname.startsWith('/dashboard')) {
+    return role === 'CLIENTE' ? 'Canal do Cliente' : 'Dashboard';
+  }
   if (pathname.startsWith('/trackings')) return 'Rastreamento';
   if (pathname.startsWith('/quotes')) return 'Cotacoes';
   if (pathname.startsWith('/clients')) return 'Clientes';
@@ -26,8 +28,12 @@ function getPageTitle(pathname: string) {
   return 'Painel interno';
 }
 
-function getPageDescription(pathname: string) {
+function getPageDescription(pathname: string, role?: string) {
   if (pathname.startsWith('/dashboard')) {
+    if (role === 'CLIENTE') {
+      return 'Noticias, conteudos e atalhos de relacionamento.';
+    }
+
     return 'Visao consolidada da operacao, comercial e clientes.';
   }
 
@@ -85,8 +91,8 @@ export function Header() {
   const [notifications, setNotifications] = useState<CrmNotification[]>([]);
   const [unreadCount, setUnreadCount] = useState(0);
 
-  const pageTitle = getPageTitle(pathname);
-  const pageDescription = getPageDescription(pathname);
+  const pageTitle = getPageTitle(pathname, user?.role);
+  const pageDescription = getPageDescription(pathname, user?.role);
   const userInitials =
     user?.name
       ?.split(' ')

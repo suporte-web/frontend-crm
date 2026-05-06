@@ -104,6 +104,9 @@ export default function ClientsPage() {
     variant: 'success' | 'error';
   } | null>(null);
   const isManagement = user?.role === 'GESTAO' || user?.role === 'ADMIN';
+  const canManageClients = user?.role
+    ? ['ADMIN', 'GESTAO', 'COMERCIAL'].includes(user.role)
+    : false;
 
   async function loadClients() {
     if (!token) {
@@ -116,7 +119,7 @@ export default function ClientsPage() {
       setPageError('');
       const [data, requests] = await Promise.all([
         getCrmClientSummaries(token),
-        getClientDeletionRequests(token).catch(() => []),
+        canManageClients ? getClientDeletionRequests(token).catch(() => []) : Promise.resolve([]),
       ]);
       setClients(data);
       setDeletionRequests(requests);
@@ -129,7 +132,7 @@ export default function ClientsPage() {
 
   useEffect(() => {
     loadClients();
-  }, [token]);
+  }, [token, canManageClients]);
 
   const filteredClients = useMemo(() => {
     const query = search.trim().toLowerCase();
@@ -318,14 +321,16 @@ export default function ClientsPage() {
                 <Download className="h-4 w-4" />
                 Exportar lista
               </button>
-              <button
-                type="button"
-                onClick={() => setIsModalOpen(true)}
-                className="inline-flex items-center gap-2 rounded-2xl bg-slate-950 px-4 py-3 text-sm font-semibold text-white transition hover:bg-slate-800"
-              >
-                <PlusCircle className="h-4 w-4" />
-                Novo cliente
-              </button>
+              {canManageClients ? (
+                <button
+                  type="button"
+                  onClick={() => setIsModalOpen(true)}
+                  className="inline-flex items-center gap-2 rounded-2xl bg-slate-950 px-4 py-3 text-sm font-semibold text-white transition hover:bg-slate-800"
+                >
+                  <PlusCircle className="h-4 w-4" />
+                  Novo cliente
+                </button>
+              ) : null}
             </div>
           </div>
         </section>
@@ -514,15 +519,17 @@ export default function ClientsPage() {
                     >
                       Ver detalhes
                     </Link>
-                    <button
-                      type="button"
-                      disabled={!!pendingDeletion}
-                      onClick={() => setDeletionModalClient(client)}
-                      className="inline-flex items-center gap-2 rounded-2xl border border-rose-300 bg-rose-50 px-4 py-2 text-sm font-semibold text-rose-700 transition hover:bg-rose-100 disabled:opacity-50"
-                    >
-                      <Trash2 className="h-4 w-4" />
-                      Excluir
-                    </button>
+                    {canManageClients ? (
+                      <button
+                        type="button"
+                        disabled={!!pendingDeletion}
+                        onClick={() => setDeletionModalClient(client)}
+                        className="inline-flex items-center gap-2 rounded-2xl border border-rose-300 bg-rose-50 px-4 py-2 text-sm font-semibold text-rose-700 transition hover:bg-rose-100 disabled:opacity-50"
+                      >
+                        <Trash2 className="h-4 w-4" />
+                        Excluir
+                      </button>
+                    ) : null}
                   </div>
                 </div>
               )})}

@@ -79,6 +79,7 @@ export type ChatParticipant = {
   userId: string;
   canRead: boolean;
   canWrite: boolean;
+  lastReadAt?: string | null;
   createdAt: string;
   updatedAt: string;
   user?: {
@@ -104,6 +105,8 @@ export type Chat = {
 };
 
 export type ChatListItem = Chat & {
+  lastReadAt?: string | null;
+  unreadCount?: number;
   client?: {
     id: string;
     companyName?: string | null;

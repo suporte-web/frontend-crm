@@ -14,7 +14,12 @@ export type TicketStatus =
   | "AJUSTE_SOLICITADO"
   | "REPROVADO"
   | "FECHADO"
-  | "CANCELADO";
+  | "CANCELADO"
+  | "CONVERTIDO_EM_PROSPECT"
+  | "COTACAO_CRIADA"
+  | "FINALIZADO"
+  | "PERDIDO"
+  | "TRANSFERIDO";
 
 export type TicketType =
   | "COTACAO"
@@ -25,7 +30,14 @@ export type TicketType =
   | "AJUSTE_GESTAO"
   | "SUPORTE"
   | "DOCUMENTACAO"
-  | "OPERACIONAL";
+  | "OPERACIONAL"
+  | "FORNECEDOR"
+  | "AGREGADO"
+  | "FINANCEIRO"
+  | "FISCAL"
+  | "JURIDICO"
+  | "MARKETING"
+  | "FROTA";
 
 export type TicketHistoryEventType =
   | "CREATED"
@@ -124,7 +136,7 @@ export type Proposta = {
   arquivoMimeType?: string | null;
   arquivoTamanho?: number | null;
 
-  validadeDias?: number | null;
+  validadeDias?: string | null;
   validaAte?: string | null;
 
   versao: number;
@@ -202,7 +214,7 @@ export type CreatePropostaPayload = {
   condicoesPagamento?: string;
   condicoesComerciais?: string;
   observacoes?: string;
-  validadeDias?: number;
+  validadeDias?: string;
   validaAte?: string;
 };
 
@@ -230,7 +242,9 @@ export type TicketLead = {
 
 export type Ticket = {
   id: string;
+  protocolo?: string | null;
   clientId?: string | null;
+  prospectId?: string | null;
   quoteId?: string | null;
   leadId?: string | null;
   opportunityId?: string | null;
@@ -240,6 +254,14 @@ export type Ticket = {
   subject: string;
   description: string;
   status: TicketStatus;
+  origem?: "SITE" | "PORTAL" | "MANUAL" | null;
+  prioridade?: string | null;
+  nomeSolicitante?: string | null;
+  emailSolicitante?: string | null;
+  telefoneSolicitante?: string | null;
+  mensagem?: string | null;
+  formPayload?: Record<string, unknown> | null;
+  closedAt?: string | null;
   requiresActionRole?: string | null;
   lastInteractionAt?: string;
   createdAt: string;
@@ -254,6 +276,15 @@ export type Ticket = {
     } | null;
   } | null;
   quote?: Quote | null;
+  prospect?: {
+    id: string;
+    nomeRazaoSocial: string;
+    nomeContato?: string | null;
+    email?: string | null;
+    telefone?: string | null;
+    statusCadastral?: string | null;
+    portalAccessStatus?: string | null;
+  } | null;
   lead?: TicketLead | null;
   opportunity?: Opportunity | null;
   assignedTo?: {

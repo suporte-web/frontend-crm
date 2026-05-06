@@ -47,6 +47,20 @@ export async function getChatMessages(
   );
 }
 
+export async function markChatRead(
+  chatId: string,
+  token: string,
+): Promise<{ chatId: string; lastReadAt: string }> {
+  return apiFetch<{ chatId: string; lastReadAt: string }>(
+    `/chats/${chatId}/read`,
+    {
+      method: "PATCH",
+      body: JSON.stringify({}),
+    },
+    token,
+  );
+}
+
 export async function sendChatMessage(
   chatId: string,
   payload: SendChatMessagePayload,

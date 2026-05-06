@@ -69,9 +69,15 @@ function formatDate(date?: string | null) {
     return '-';
   }
 
+  const parsedDate = new Date(date);
+
+  if (Number.isNaN(parsedDate.getTime())) {
+    return date;
+  }
+
   return new Intl.DateTimeFormat('pt-BR', {
     dateStyle: 'short',
-  }).format(new Date(date));
+  }).format(parsedDate);
 }
 
 function getStatusLabel(status: QuoteStatus) {
@@ -99,7 +105,12 @@ function getStatusClasses(status: QuoteStatus) {
 }
 
 function getClientName(quote: Quote) {
-  return quote.client?.companyName || quote.client?.user?.name || 'Cliente';
+  return (
+    quote.client?.companyName ||
+    quote.client?.user?.name ||
+    quote.prospect?.nomeRazaoSocial ||
+    'Prospect'
+  );
 }
 
 export default function QuotesPage() {
@@ -688,11 +699,12 @@ export default function QuotesPage() {
                     Prazo desejado
                   </label>
                   <input
-                    type="date"
+                    type="text"
                     value={form.desiredDeadline}
                     onChange={(e) =>
                       setForm((prev) => ({ ...prev, desiredDeadline: e.target.value }))
                     }
+                    placeholder="Ex: 30 dias, 10 dias uteis, conforme negociacao"
                     className="crm-input"
                   />
                 </div>

@@ -6,6 +6,7 @@ import {
   FileText,
   Handshake,
   History,
+  Inbox,
   LayoutDashboard,
   Megaphone,
   MessageCircle,
@@ -74,6 +75,12 @@ const menuItems: MenuItem[] = [
     label: 'Leads',
     icon: UserPlus,
     roles: ['ADMIN', 'GESTAO', 'COMERCIAL', 'MARKETING'],
+  },
+  {
+    href: '/entradas',
+    label: 'Central de Entradas',
+    icon: Inbox,
+    roles: ['ADMIN', 'GESTAO', 'COMERCIAL'],
   },
   {
     href: '/tickets',
@@ -159,13 +166,17 @@ export function AppSidebar() {
             const active =
               pathname === item.href || pathname.startsWith(`${item.href}/`);
             const Icon = item.icon;
+            const label =
+              item.href === '/dashboard' && user?.role === 'CLIENTE'
+                ? 'Canal do Cliente'
+                : item.label;
 
             return (
               <SidebarMenuItem key={item.href}>
                 <SidebarMenuButton
                   asChild
                   isActive={active}
-                  tooltip={item.label}
+                  tooltip={label}
                   className="group/menu-button relative h-[50px] overflow-hidden rounded-[18px] px-2 text-sm font-medium text-slate-300 transition-all duration-200 hover:bg-white/[0.06] hover:text-white data-[active=true]:bg-white data-[active=true]:text-slate-950 data-[active=true]:shadow-[0_16px_34px_rgba(15,23,42,0.28)] group-data-[collapsible=icon]:justify-center group-data-[collapsible=icon]:px-2"
                 >
                   <Link href={item.href}>
@@ -178,7 +189,7 @@ export function AppSidebar() {
                     </span>
 
                     <span className="truncate group-data-[collapsible=icon]:hidden">
-                      {item.label}
+                      {label}
                     </span>
                   </Link>
                 </SidebarMenuButton>

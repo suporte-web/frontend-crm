@@ -73,10 +73,16 @@ function formatDate(date?: string | null) {
     return "-";
   }
 
+  const parsedDate = new Date(date);
+
+  if (Number.isNaN(parsedDate.getTime())) {
+    return date;
+  }
+
   return new Intl.DateTimeFormat("pt-BR", {
     dateStyle: "short",
     timeStyle: "short",
-  }).format(new Date(date));
+  }).format(parsedDate);
 }
 
 function formatDateInput(date?: string | null) {
@@ -84,7 +90,11 @@ function formatDateInput(date?: string | null) {
     return "";
   }
 
-  return new Date(date).toISOString().slice(0, 10);
+  const parsedDate = new Date(date);
+
+  return Number.isNaN(parsedDate.getTime())
+    ? date
+    : parsedDate.toISOString().slice(0, 10);
 }
 
 function getQuoteResponseValue(quote?: Quote | null) {
@@ -98,6 +108,15 @@ function getQuoteResponseValue(quote?: Quote | null) {
       (proposta) => proposta.valor !== null && proposta.valor !== undefined,
     )?.valor ??
     null
+  );
+}
+
+function getQuoteRequesterName(quote: Quote) {
+  return (
+    quote.client?.companyName ||
+    quote.client?.user?.name ||
+    quote.prospect?.nomeRazaoSocial ||
+    "Prospect"
   );
 }
 
@@ -178,6 +197,7 @@ export default function QuoteDetailsPage({
 
   const canRespond =
     !!user?.role && ["ADMIN", "GESTAO", "COMERCIAL"].includes(user.role);
+  const isProspectQuote = Boolean(quote?.prospectId && !quote.clientId);
   const canEdit = useMemo(() => {
     if (!quote || !user?.role) return false;
     if (["ADMIN", "GESTAO", "COMERCIAL"].includes(user.role)) return true;
@@ -311,11 +331,17 @@ export default function QuoteDetailsPage({
           </section>
         ) : quote ? (
           <>
-            <section className="grid gap-4 md:grid-cols-2 xl:grid-cols-5">
+            <section className="grid gap-4 md:grid-cols-2 xl:grid-cols-6">
               <div className="rounded-3xl border border-zinc-200 bg-white p-5 shadow-sm">
                 <p className="text-sm text-zinc-500">Codigo</p>
                 <h2 className="mt-2 text-2xl font-bold text-zinc-900">
                   {quote.code}
+                </h2>
+              </div>
+              <div className="rounded-3xl border border-zinc-200 bg-white p-5 shadow-sm">
+                <p className="text-sm text-zinc-500">Solicitante</p>
+                <h2 className="mt-2 text-xl font-bold text-zinc-900">
+                  {getQuoteRequesterName(quote)}
                 </h2>
               </div>
               <div className="rounded-3xl border border-zinc-200 bg-white p-5 shadow-sm">
@@ -405,7 +431,7 @@ export default function QuoteDetailsPage({
                       <p className="text-sm text-zinc-500">{label}</p>
                       {isEditing ? (
                         <input
-                          type={field === "desiredDeadline" ? "date" : "text"}
+                          type="text"
                           value={form[field as keyof QuoteFormState]}
                           onChange={(event) =>
                             setForm((current) => ({
@@ -517,7 +543,9 @@ export default function QuoteDetailsPage({
                     <>
                       <div className="rounded-2xl border border-slate-200 bg-white p-4">
                         <p className="text-sm font-semibold text-slate-900">
-                          Enviar proposta ao cliente
+                          {isProspectQuote
+                            ? "Registrar retorno comercial"
+                            : "Enviar proposta ao cliente"}
                         </p>
                         <div className="mt-4 space-y-3">
                           <input
@@ -542,7 +570,11 @@ export default function QuoteDetailsPage({
                               }))
                             }
                             className="crm-textarea"
-                            placeholder="Observacoes comerciais para o cliente"
+                            placeholder={
+                              isProspectQuote
+                                ? "Observacoes comerciais internas"
+                                : "Observacoes comerciais para o cliente"
+                            }
                           />
                           <button
                             type="button"
@@ -573,7 +605,9 @@ export default function QuoteDetailsPage({
                                 );
                                 setQuote(updated);
                                 setActionMessage(
-                                  "Proposta enviada e registrada na cotacao.",
+                                  isProspectQuote
+                                    ? "Retorno comercial registrado na cotacao do prospect."
+                                    : "Proposta enviada e registrada na cotacao.",
                                 );
                                 setResponseForm({
                                   price: "",
@@ -591,7 +625,11 @@ export default function QuoteDetailsPage({
                             }}
                             className="w-full rounded-2xl bg-slate-950 px-4 py-3 text-sm font-semibold text-white transition hover:bg-slate-800 disabled:opacity-60"
                           >
-                            {saving ? "Enviando..." : "Enviar proposta"}
+                            {saving
+                              ? "Salvando..."
+                              : isProspectQuote
+                                ? "Registrar resposta"
+                                : "Enviar proposta"}
                           </button>
                         </div>
                       </div>
@@ -648,6 +686,13 @@ export default function QuoteDetailsPage({
                             className="crm-input"
                             placeholder="Nota opcional para historico"
                           />
+                          {isProspectQuote ? (
+                            <p className="text-xs leading-5 text-slate-500">
+                              Ao aprovar uma cotacao de prospect, o cadastro vai
+                              para aguardando cadastro. Contrato e operacao so
+                              ficam liberados apos virar cliente ativo.
+                            </p>
+                          ) : null}
                         </div>
                       </div>
                     </>

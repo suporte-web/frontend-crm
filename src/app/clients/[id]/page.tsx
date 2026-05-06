@@ -103,6 +103,7 @@ export default function ClientDetailsPage({
   const canEditOpportunities = user?.role
     ? ['ADMIN', 'GESTAO', 'COMERCIAL'].includes(user.role)
     : false;
+  const canEditClient = canEditOpportunities;
 
   useEffect(() => {
     let active = true;
@@ -619,18 +620,24 @@ export default function ClientDetailsPage({
                   </h2>
                 </div>
 
-                <button
-                  type="button"
-                  onClick={() => {
-                    setIsEditingClient((current) => !current);
-                    setClientForm(clientToFormState(lead));
-                    setClientFormError('');
-                  }}
-                  className="inline-flex items-center justify-center gap-2 rounded-2xl border border-slate-300 bg-white px-4 py-2.5 text-sm font-semibold text-slate-700 transition hover:bg-slate-100"
-                >
-                  {isEditingClient ? <X className="h-4 w-4" /> : <Edit3 className="h-4 w-4" />}
-                  {isEditingClient ? 'Cancelar edicao' : 'Editar cadastro'}
-                </button>
+                {canEditClient ? (
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setIsEditingClient((current) => !current);
+                      setClientForm(clientToFormState(lead));
+                      setClientFormError('');
+                    }}
+                    className="inline-flex items-center justify-center gap-2 rounded-2xl border border-slate-300 bg-white px-4 py-2.5 text-sm font-semibold text-slate-700 transition hover:bg-slate-100"
+                  >
+                    {isEditingClient ? (
+                      <X className="h-4 w-4" />
+                    ) : (
+                      <Edit3 className="h-4 w-4" />
+                    )}
+                    {isEditingClient ? 'Cancelar edicao' : 'Editar cadastro'}
+                  </button>
+                ) : null}
               </div>
 
               {isEditingClient ? (

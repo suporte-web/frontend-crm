@@ -72,6 +72,11 @@ const internalStatusLabels: Record<TicketStatus, string> = {
   REPROVADO: "Reprovado",
   FECHADO: "Fechado",
   CANCELADO: "Cancelado",
+  CONVERTIDO_EM_PROSPECT: "Convertido em prospect",
+  COTACAO_CRIADA: "Cotacao criada",
+  FINALIZADO: "Finalizado",
+  PERDIDO: "Perdido",
+  TRANSFERIDO: "Transferido",
 };
 
 const clientStatusLabels: Record<TicketStatus, string> = {
@@ -88,6 +93,11 @@ const clientStatusLabels: Record<TicketStatus, string> = {
   REPROVADO: "Recusado",
   FECHADO: "Concluido",
   CANCELADO: "Cancelado",
+  CONVERTIDO_EM_PROSPECT: "Em analise",
+  COTACAO_CRIADA: "Cotacao criada",
+  FINALIZADO: "Concluido",
+  PERDIDO: "Encerrado",
+  TRANSFERIDO: "Transferido",
 };
 
 const ticketTypeLabels: Record<TicketType, string> = {
@@ -100,6 +110,13 @@ const ticketTypeLabels: Record<TicketType, string> = {
   SUPORTE: "Suporte",
   DOCUMENTACAO: "Documentacao",
   OPERACIONAL: "Operacional",
+  FORNECEDOR: "Fornecedor",
+  AGREGADO: "Agregado",
+  FINANCEIRO: "Financeiro",
+  FISCAL: "Fiscal",
+  JURIDICO: "Juridico",
+  MARKETING: "Marketing",
+  FROTA: "Frota",
 };
 
 const ticketTypes: Array<TicketType | "TODOS"> = [
@@ -167,10 +184,54 @@ function formatCurrency(value?: string | number | null) {
     return "Nao informado";
   }
 
-  return Number(value).toLocaleString("pt-BR", {
+  const amount = Number(value);
+
+  if (!Number.isFinite(amount)) {
+    return "Nao informado";
+  }
+
+  return amount.toLocaleString("pt-BR", {
     style: "currency",
     currency: "BRL",
   });
+}
+
+function parseCurrencyInput(value: string) {
+  const trimmed = value.trim();
+
+  if (!trimmed) {
+    return null;
+  }
+
+  const normalized = trimmed.includes(",")
+    ? trimmed.replace(/\./g, "").replace(",", ".")
+    : trimmed;
+  const amount = Number(normalized);
+
+  return Number.isFinite(amount) ? amount : null;
+}
+
+function hasPositiveProposalValue(value?: string | number | null) {
+  if (value === null || value === undefined || value === "") {
+    return false;
+  }
+
+  const amount =
+    typeof value === "number" ? value : parseCurrencyInput(String(value));
+
+  return amount !== null && amount > 0;
+}
+
+function formatProposalValidity(proposta: Proposta) {
+  if (proposta.validadeDias?.trim()) {
+    return proposta.validadeDias;
+  }
+
+  if (proposta.validaAte) {
+    return formatDate(proposta.validaAte);
+  }
+
+  return "Nao informada";
 }
 
 function formatFileSize(value?: number | null) {
@@ -226,12 +287,16 @@ function getStatusClass(status: TicketStatus) {
     return "bg-indigo-100 text-indigo-700";
   }
 
-  if (["AJUSTE_SOLICITADO", "REPROVADO", "CANCELADO"].includes(status)) {
+  if (["AJUSTE_SOLICITADO", "REPROVADO", "CANCELADO", "PERDIDO"].includes(status)) {
     return "bg-rose-100 text-rose-700";
   }
 
-  if (["EM_ANDAMENTO", "IN_PROGRESS"].includes(status)) {
+  if (["EM_ANDAMENTO", "IN_PROGRESS", "TRANSFERIDO"].includes(status)) {
     return "bg-amber-100 text-amber-700";
+  }
+
+  if (["FINALIZADO", "COTACAO_CRIADA", "CONVERTIDO_EM_PROSPECT"].includes(status)) {
+    return "bg-emerald-100 text-emerald-700";
   }
 
   return "bg-blue-100 text-blue-700";
@@ -271,7 +336,7 @@ function getActionBadge(ticket: Ticket, role?: string | null) {
 }
 
 function isClosedStatus(status: TicketStatus) {
-  return ["FECHADO", "CANCELADO", "CLOSED"].includes(status);
+  return ["FECHADO", "CANCELADO", "CLOSED", "FINALIZADO", "PERDIDO"].includes(status);
 }
 
 function canClientAct(status: TicketStatus) {
@@ -335,7 +400,7 @@ const emptyProposalFormState: ProposalFormState = {
   condicoesPagamento: "",
   condicoesComerciais: "",
   observacoes: "",
-  validadeDias: "7",
+  validadeDias: "30 dias",
 };
 
 function propostaToFormState(proposta?: Proposta | null): ProposalFormState {
@@ -359,7 +424,7 @@ function propostaToFormState(proposta?: Proposta | null): ProposalFormState {
     validadeDias:
       proposta.validadeDias !== null && proposta.validadeDias !== undefined
         ? String(proposta.validadeDias)
-        : "7",
+        : "30 dias",
   };
 }
 
@@ -426,6 +491,7 @@ export default function TicketsPage() {
   );
   const canSendCurrentProposalToManagement =
     isCommercial &&
+    hasPositiveProposalValue(selectedProposta?.valor) &&
     (selectedTicket?.status === "APROVADO_CLIENTE" ||
       (!!selectedProposta &&
         selectedProposta.status === "APROVADA_PELO_CLIENTE"));
@@ -710,31 +776,52 @@ export default function TicketsPage() {
   }
 
   function buildProposalPayload() {
+    const valor = parseCurrencyInput(proposalForm.valor);
+
     return {
       titulo: proposalForm.titulo.trim(),
       descricao: proposalForm.descricao.trim() || undefined,
       descricaoServico: proposalForm.descricaoServico.trim() || undefined,
       origem: proposalForm.origem.trim() || undefined,
       destino: proposalForm.destino.trim() || undefined,
-      valor: proposalForm.valor.trim()
-        ? Number(proposalForm.valor.replace(",", "."))
-        : undefined,
+      valor: valor ?? undefined,
       condicoesPagamento: proposalForm.condicoesPagamento.trim() || undefined,
       condicoesComerciais: proposalForm.condicoesComerciais.trim() || undefined,
       observacoes: proposalForm.observacoes.trim() || undefined,
-      validadeDias: proposalForm.validadeDias.trim()
-        ? Number(proposalForm.validadeDias)
-        : undefined,
+      validadeDias: proposalForm.validadeDias.trim() || undefined,
     };
+  }
+
+  function validateProposalForm() {
+    if (!proposalForm.titulo.trim()) {
+      return "Informe o titulo da proposta.";
+    }
+
+    if (!hasPositiveProposalValue(proposalForm.valor)) {
+      return "Informe um valor maior que zero para a proposta.";
+    }
+
+    return "";
   }
 
   async function handleProposalSubmit(event: React.FormEvent<HTMLFormElement>) {
     event.preventDefault();
 
-    if (!token || !selectedTicket || !proposalForm.titulo.trim()) {
+    if (!token || !selectedTicket) {
       setToast({
         title: "Dados incompletos",
-        message: "Informe pelo menos o titulo da proposta.",
+        message: "Selecione um ticket antes de salvar a proposta.",
+        variant: "error",
+      });
+      return;
+    }
+
+    const proposalValidationError = validateProposalForm();
+
+    if (proposalValidationError) {
+      setToast({
+        title: "Dados incompletos",
+        message: proposalValidationError,
         variant: "error",
       });
       return;
@@ -799,6 +886,17 @@ export default function TicketsPage() {
 
   async function handleSendProposalToClient() {
     if (!token || !selectedTicket || !selectedProposta) {
+      return;
+    }
+
+    const proposalValidationError = validateProposalForm();
+
+    if (proposalValidationError) {
+      setToast({
+        title: "Dados incompletos",
+        message: proposalValidationError,
+        variant: "error",
+      });
       return;
     }
 
@@ -1376,11 +1474,7 @@ export default function TicketsPage() {
                                   Validade
                                 </p>
                                 <p className="mt-1 break-words text-sm font-semibold text-slate-900">
-                                  {selectedProposta.validaAte
-                                    ? formatDate(selectedProposta.validaAte)
-                                    : selectedProposta.validadeDias
-                                      ? `${selectedProposta.validadeDias} dia(s)`
-                                      : "Nao informada"}
+                                  {formatProposalValidity(selectedProposta)}
                                 </p>
                               </div>
                             </div>
@@ -1438,25 +1532,44 @@ export default function TicketsPage() {
                               ) : null}
 
                               {selectedProposta.arquivoUrl ? (
-                                <a
-                                  href={getUploadUrl(
-                                    selectedProposta.arquivoUrl,
-                                  )}
-                                  target="_blank"
-                                  rel="noreferrer"
-                                  className="mt-4 flex items-center justify-between gap-3 rounded-2xl border border-blue-100 bg-blue-50 p-4 text-sm font-semibold text-blue-800 transition hover:bg-blue-100"
-                                >
-                                  <span className="inline-flex items-center gap-2">
-                                    <Paperclip className="h-4 w-4" />
-                                    {selectedProposta.arquivoNome ||
-                                      "Arquivo da proposta"}
-                                  </span>
-                                  <span className="text-xs font-medium text-blue-600">
-                                    {formatFileSize(
-                                      selectedProposta.arquivoTamanho,
-                                    )}
-                                  </span>
-                                </a>
+                                <div className="mt-4 rounded-2xl border border-blue-100 bg-blue-50 p-4 text-sm font-semibold text-blue-800">
+                                  <div className="flex flex-wrap items-center justify-between gap-3">
+                                    <span className="inline-flex items-center gap-2">
+                                      <Paperclip className="h-4 w-4" />
+                                      {selectedProposta.arquivoNome ||
+                                        "Arquivo da proposta"}
+                                    </span>
+                                    <span className="text-xs font-medium text-blue-600">
+                                      {formatFileSize(
+                                        selectedProposta.arquivoTamanho,
+                                      )}
+                                    </span>
+                                  </div>
+                                  <div className="mt-3 flex flex-wrap gap-2">
+                                    <a
+                                      href={getUploadUrl(
+                                        selectedProposta.arquivoUrl,
+                                      )}
+                                      target="_blank"
+                                      rel="noreferrer"
+                                      className="rounded-xl bg-white px-3 py-2 text-xs font-semibold text-blue-700 hover:bg-blue-100"
+                                    >
+                                      Visualizar
+                                    </a>
+                                    <a
+                                      href={getUploadUrl(
+                                        selectedProposta.arquivoUrl,
+                                      )}
+                                      download={
+                                        selectedProposta.arquivoNome ||
+                                        "proposta"
+                                      }
+                                      className="rounded-xl bg-white px-3 py-2 text-xs font-semibold text-blue-700 hover:bg-blue-100"
+                                    >
+                                      Baixar
+                                    </a>
+                                  </div>
+                                </div>
                               ) : null}
                             </div>
                           </div>
@@ -1614,7 +1727,7 @@ export default function TicketsPage() {
                               }))
                             }
                             className="crm-input"
-                            placeholder="Validade em dias"
+                            placeholder="Ex: 30 dias, 10 dias uteis"
                           />
                           <input
                             value={proposalForm.condicoesPagamento}
@@ -1674,7 +1787,7 @@ export default function TicketsPage() {
                             </span>
                             <input
                               type="file"
-                              accept=".pdf,.doc,.docx,.xls,.xlsx,.png,.jpg,.jpeg"
+                              accept=".pdf,application/pdf,.doc,.docx,.xls,.xlsx,.png,.jpg,.jpeg"
                               disabled={!canEditSelectedProposal || saving}
                               onChange={(event) =>
                                 setProposalFile(event.target.files?.[0] ?? null)
@@ -1686,15 +1799,29 @@ export default function TicketsPage() {
                             {proposalFile ? (
                               <span>{proposalFile.name}</span>
                             ) : selectedProposta?.arquivoUrl ? (
-                              <a
-                                href={getUploadUrl(selectedProposta.arquivoUrl)}
-                                target="_blank"
-                                rel="noreferrer"
-                                className="font-semibold text-blue-700"
-                              >
-                                {selectedProposta.arquivoNome ||
-                                  "Arquivo atual"}
-                              </a>
+                              <span className="inline-flex flex-wrap gap-2">
+                                <a
+                                  href={getUploadUrl(
+                                    selectedProposta.arquivoUrl,
+                                  )}
+                                  target="_blank"
+                                  rel="noreferrer"
+                                  className="font-semibold text-blue-700"
+                                >
+                                  Visualizar arquivo atual
+                                </a>
+                                <a
+                                  href={getUploadUrl(
+                                    selectedProposta.arquivoUrl,
+                                  )}
+                                  download={
+                                    selectedProposta.arquivoNome || "proposta"
+                                  }
+                                  className="font-semibold text-blue-700"
+                                >
+                                  Baixar
+                                </a>
+                              </span>
                             ) : (
                               <span>Nenhum arquivo anexado.</span>
                             )}
@@ -1975,7 +2102,11 @@ export default function TicketsPage() {
                         />
                         <button
                           type="button"
-                          disabled={saving || !preProposal.trim()}
+                          disabled={
+                            saving ||
+                            !preProposal.trim() ||
+                            !hasPositiveProposalValue(selectedProposta?.valor)
+                          }
                           onClick={() =>
                             token &&
                             executeTicketAction(
@@ -1993,6 +2124,12 @@ export default function TicketsPage() {
                           <FileText className="h-4 w-4" />
                           Enviar pre-proposta
                         </button>
+                        {!hasPositiveProposalValue(selectedProposta?.valor) ? (
+                          <p className="text-xs leading-5 text-slate-500">
+                            Informe e salve o valor da proposta formal antes de
+                            enviar.
+                          </p>
+                        ) : null}
 
                         <button
                           type="button"

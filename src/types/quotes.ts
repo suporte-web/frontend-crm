@@ -34,10 +34,21 @@ export interface QuoteClient {
   user?: QuoteClientUser | null;
 }
 
+export interface QuoteProspect {
+  id: string;
+  nomeRazaoSocial: string;
+  nomeContato?: string | null;
+  email?: string | null;
+  telefone?: string | null;
+  statusCadastral?: string | null;
+  portalAccessStatus?: string | null;
+}
+
 export interface Quote {
   id: string;
   code: string;
-  clientId: string;
+  clientId?: string | null;
+  prospectId?: string | null;
   origin: string;
   destination: string;
   serviceType: string;
@@ -61,6 +72,7 @@ export interface Quote {
   updatedAt: string;
   history?: QuoteHistoryEntry[];
   client?: QuoteClient | null;
+  prospect?: QuoteProspect | null;
   propostas?: QuotePropostaSummary[];
 }
 

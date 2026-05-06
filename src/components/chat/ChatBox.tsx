@@ -6,6 +6,7 @@ import { useAuth } from '@/context/auth-context';
 import {
   createChat,
   getChatMessages,
+  markChatRead,
   sendChatMessage,
 } from '@/services/chatService';
 
@@ -97,6 +98,7 @@ export function ChatBox({ entityType, entityId, title }: ChatBoxProps) {
       );
 
       setMessages(chatMessages);
+      await markChatRead(createdOrExistingChat.id, token).catch(() => undefined);
     } catch (err) {
       const message =
         err instanceof Error
