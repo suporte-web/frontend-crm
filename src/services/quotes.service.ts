@@ -1,4 +1,4 @@
-import type { CreateQuotePayload, Quote } from '@/types/quotes';
+import type { CreateQuotePayload, Quote, QuoteStatus } from '@/types/quotes';
 
 const API_BASE_URL = 'http://localhost:3001/api';
 
@@ -61,4 +61,72 @@ export async function getQuoteById(id: string, token: string) {
   });
 
   return parseResponse<Quote>(response);
+}
+
+export async function respondQuote(
+  id: string,
+  payload: {
+    price: number;
+    commercialNotes?: string;
+  },
+  token: string,
+) {
+  const response = await fetch(`${API_BASE_URL}/quotes/${id}/respond`, {
+    method: 'PATCH',
+    headers: {
+      'Content-Type': 'application/json',
+      Authorization: `Bearer ${token}`,
+    },
+    body: JSON.stringify(payload),
+  });
+
+  return parseResponse<Quote>(response);
+}
+
+export async function updateQuoteStatus(
+  id: string,
+  payload: {
+    status: QuoteStatus;
+    notes?: string;
+  },
+  token: string,
+) {
+  const response = await fetch(`${API_BASE_URL}/quotes/${id}/status`, {
+    method: 'PATCH',
+    headers: {
+      'Content-Type': 'application/json',
+      Authorization: `Bearer ${token}`,
+    },
+    body: JSON.stringify(payload),
+  });
+
+  return parseResponse<Quote>(response);
+}
+
+export async function updateQuote(
+  id: string,
+  payload: Partial<CreateQuotePayload>,
+  token: string,
+) {
+  const response = await fetch(`${API_BASE_URL}/quotes/${id}`, {
+    method: 'PATCH',
+    headers: {
+      'Content-Type': 'application/json',
+      Authorization: `Bearer ${token}`,
+    },
+    body: JSON.stringify(payload),
+  });
+
+  return parseResponse<Quote>(response);
+}
+
+export async function deleteQuote(id: string, token: string) {
+  const response = await fetch(`${API_BASE_URL}/quotes/${id}/delete`, {
+    method: 'POST',
+    headers: {
+      Authorization: `Bearer ${token}`,
+    },
+  });
+
+  return parseResponse<{ message: string }>(response);
 }

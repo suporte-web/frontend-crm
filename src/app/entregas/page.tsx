@@ -114,8 +114,9 @@ function getSlaBadgeClass(value: string) {
   return 'border-zinc-200 bg-zinc-50 text-zinc-600';
 }
 
-function exportRowsToCsv(rows: DeliveryRow[]) {
+function exportRowsToCsv(rows: DeliveryRow[], dataRef: string) {
   const headers = [
+    'Data referencia',
     'Nº CTRC',
     'Série',
     'Cliente destino',
@@ -134,6 +135,7 @@ function exportRowsToCsv(rows: DeliveryRow[]) {
   ];
 
   const content = rows.map((row) => [
+    formatDate(row.data_ref),
     row.nro_ctrc,
     row.ser_ctrc,
     row.nome_cli_dest,
@@ -164,7 +166,7 @@ function exportRowsToCsv(rows: DeliveryRow[]) {
   const link = document.createElement('a');
 
   link.href = url;
-  link.download = `monitoramento-entregas-${new Date().toISOString().slice(0, 10)}.csv`;
+  link.download = `monitoramento-entregas-${dataRef || new Date().toISOString().slice(0, 10)}.csv`;
   document.body.appendChild(link);
   link.click();
   document.body.removeChild(link);
@@ -372,7 +374,7 @@ export default function DeliveriesPage() {
       <AppLayout>
         <Card className="rounded-3xl border-red-200 bg-red-50 shadow-sm">
           <CardContent className="p-8 text-red-700">
-            Voce nao tem permissao para acessar o monitoramento de entregas.
+            Voce não tem permissão para acessar o monitoramento de entregas.
           </CardContent>
         </Card>
       </AppLayout>
@@ -382,630 +384,632 @@ export default function DeliveriesPage() {
   return (
     <AppLayout>
       <div className="mx-auto flex w-full max-w-[1680px] flex-col gap-6">
-        <Card className="rounded-3xl border-zinc-200 shadow-sm">
-          <CardHeader className="border-b border-zinc-100">
-            <div>
-              <p className="text-sm font-medium text-zinc-500">Operacao</p>
-              <CardTitle className="mt-1 text-3xl font-bold tracking-tight text-zinc-900">
-                Monitoramento de entregas -  Aero | E-commerce
-              </CardTitle>
-              <CardDescription className="mt-2 text-sm text-zinc-600">
-                Acompanhamento de entregas diário
-              </CardDescription>
-            </div>
-          </CardHeader>
+        <Card className="overflow-hidden rounded-[30px] border border-slate-200/70 bg-white shadow-[0_18px_45px_rgba(15,23,42,0.06)]">
+  <CardHeader className="border-b border-slate-200/70 px-6 py-6">
+    <div className="flex flex-col gap-4 lg:flex-row lg:items-start lg:justify-between">
+      <div className="flex gap-4">
+        <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-2xl border border-orange-200 bg-orange-50 text-orange-700">
+          <Truck className="h-5 w-5" />
+        </div>
 
-          <CardContent className="pt-6">
-            <div className="grid grid-cols-1 gap-4 md:grid-cols-2 xl:grid-cols-5">
-              <div>
-                <label className="mb-2 block text-sm font-medium text-zinc-700">
-                  Data de referencia
-                </label>
-                <Input
-                  type="date"
-                  value={filters.dataRef}
-                  onChange={(event) => updateFilter('dataRef', event.target.value)}
-                  className="h-12 rounded-2xl"
-                />
-              </div>
+        <div>
+          <p className="text-xs font-semibold uppercase tracking-[0.22em] text-orange-600">
+            Operacao
+          </p>
 
-              <div>
-                <label className="mb-2 block text-sm font-medium text-zinc-700">
-                  UF destino
-                </label>
-                <select
-                  value={filters.ufDest}
-                  onChange={(event) => updateFilter('ufDest', event.target.value)}
-                  className="flex h-12 w-full rounded-2xl border border-input bg-background px-4 py-3 text-sm"
-                >
-                  <option value="">Todas</option>
-                  {availableUfs.map((uf) => (
-                    <option key={uf} value={uf}>
-                      {uf}
-                    </option>
-                  ))}
-                </select>
-              </div>
+          <CardTitle className="mt-2 text-3xl font-bold tracking-tight text-slate-950">
+            Monitoramento de entregas
+          </CardTitle>
 
-              <div>
-                <label className="mb-2 block text-sm font-medium text-zinc-700">
-                  Nº CTRC
-                </label>
-                <Input
-                  value={filters.nroCtrc}
-                  onChange={(event) => updateFilter('nroCtrc', event.target.value)}
-                  placeholder="Digite parte do CTRC"
-                  className="h-12 rounded-2xl"
-                />
-              </div>
+          <CardDescription className="mt-2 max-w-2xl text-sm leading-6 text-slate-500">
+            Acompanhamento diario de entregas, prazos, SLA e status operacional
+            dos pedidos Aero | E-commerce.
+          </CardDescription>
+        </div>
+      </div>
 
-              <div>
-                <label className="mb-2 block text-sm font-medium text-zinc-700">
-                  Status entrega
-                </label>
-                <select
-                  value={filters.statusEntrega}
-                  onChange={(event) =>
-                    updateFilter('statusEntrega', event.target.value)
-                  }
-                  className="flex h-12 w-full rounded-2xl border border-input bg-background px-4 py-3 text-sm"
-                >
-                  {STATUS_OPTIONS.map((status) => (
-                    <option key={status} value={status}>
-                      {status}
-                    </option>
-                  ))}
-                </select>
-              </div>
+      <div className="rounded-2xl border border-slate-200 bg-slate-50 px-4 py-3">
+        <p className="text-xs font-semibold uppercase tracking-[0.18em] text-slate-400">
+          Data base
+        </p>
 
-              <div>
-                <label className="mb-2 block text-sm font-medium text-zinc-700">
-                  Classificacao operacional
-                </label>
-                <select
-                  value={filters.classificacaoRota}
-                  onChange={(event) =>
-                    updateFilter('classificacaoRota', event.target.value)
-                  }
-                  className="flex h-12 w-full rounded-2xl border border-input bg-background px-4 py-3 text-sm"
-                >
-                  {ROUTE_OPTIONS.map((route) => (
-                    <option key={route} value={route}>
-                      {route}
-                    </option>
-                  ))}
-                </select>
-              </div>
-            </div>
+        <p className="mt-1 text-sm font-semibold text-slate-900">
+          {formatDate(filters.dataRef)}
+        </p>
+      </div>
+    </div>
+  </CardHeader>
 
-            <div className="mt-6 flex flex-wrap items-center justify-end gap-3">
-              <Button
-                type="button"
-                variant="outline"
-                className="rounded-2xl"
-                onClick={() => exportRowsToCsv(sortedRows)}
-                disabled={rows.length === 0}
-              >
-                <Download className="mr-2 h-4 w-4" />
-                Extrair CSV
-              </Button>
-              <Button
-                type="button"
-                variant="outline"
-                className="rounded-2xl"
-                onClick={clearFilters}
-              >
-                Limpar filtros
-              </Button>
-              <Button
-                type="button"
-                variant="outline"
-                className="rounded-2xl"
-                onClick={refreshData}
-              >
-                <RefreshCcw className="mr-2 h-4 w-4" />
-                Atualizar
-              </Button>
-              <Button
-                type="button"
-                className="rounded-2xl"
-                onClick={applyFilters}
-              >
-                Aplicar filtros
-              </Button>
-            </div>
-          </CardContent>
-        </Card>
+  <CardContent className="px-6 py-6">
+    <div className="mb-5 flex items-center justify-between gap-4">
+      <div>
+        <h2 className="text-lg font-bold text-slate-950">
+          Filtros de consulta
+        </h2>
 
-        {errorMessage && (
-          <Card className="rounded-3xl border-red-200 bg-red-50 shadow-sm">
-            <CardContent className="p-6 text-sm text-red-700">
-              {errorMessage}
-            </CardContent>
-          </Card>
-        )}
+        <p className="mt-1 text-sm text-slate-500">
+          Ajuste os campos abaixo para refinar o monitoramento.
+        </p>
+      </div>
+    </div>
 
-        <section className="grid grid-cols-1 gap-4 md:grid-cols-2 xl:grid-cols-12">
-          <Card
-            className={`rounded-3xl border-zinc-200 shadow-sm transition hover:-translate-y-0.5 hover:shadow-md xl:col-span-2 ${getQuickCardClass(
-              'all',
-            )}`}
+    <div className="grid grid-cols-1 gap-4 md:grid-cols-2 xl:grid-cols-5">
+      <div>
+        <label className="mb-2 block text-sm font-semibold text-slate-700">
+          Data de referencia
+        </label>
+
+        <Input
+          type="date"
+          value={filters.dataRef}
+          onChange={(event) => updateFilter('dataRef', event.target.value)}
+          className="h-12 rounded-2xl border-slate-200 bg-slate-50/70 px-4 text-slate-900 shadow-none transition focus-visible:bg-white"
+        />
+      </div>
+
+      <div>
+        <label className="mb-2 block text-sm font-semibold text-slate-700">
+          UF destino
+        </label>
+
+        <select
+          value={filters.ufDest}
+          onChange={(event) => updateFilter('ufDest', event.target.value)}
+          className="flex h-12 w-full rounded-2xl border border-slate-200 bg-slate-50/70 px-4 py-3 text-sm text-slate-900 outline-none transition focus:bg-white focus:ring-2 focus:ring-orange-500/20"
+        >
+          <option value="">Todas</option>
+          {availableUfs.map((uf) => (
+            <option key={uf} value={uf}>
+              {uf}
+            </option>
+          ))}
+        </select>
+      </div>
+
+      <div>
+        <label className="mb-2 block text-sm font-semibold text-slate-700">
+          Nº CTRC
+        </label>
+
+        <Input
+          value={filters.nroCtrc}
+          onChange={(event) => updateFilter('nroCtrc', event.target.value)}
+          placeholder="Digite parte do CTRC"
+          className="h-12 rounded-2xl border-slate-200 bg-slate-50/70 px-4 text-slate-900 shadow-none transition focus-visible:bg-white"
+        />
+      </div>
+
+      <div>
+        <label className="mb-2 block text-sm font-semibold text-slate-700">
+          Status entrega
+        </label>
+
+        <select
+          value={filters.statusEntrega}
+          onChange={(event) =>
+            updateFilter('statusEntrega', event.target.value)
+          }
+          className="flex h-12 w-full rounded-2xl border border-slate-200 bg-slate-50/70 px-4 py-3 text-sm text-slate-900 outline-none transition focus:bg-white focus:ring-2 focus:ring-orange-500/20"
+        >
+          {STATUS_OPTIONS.map((status) => (
+            <option key={status} value={status}>
+              {status}
+            </option>
+          ))}
+        </select>
+      </div>
+
+      <div>
+        <label className="mb-2 block text-sm font-semibold text-slate-700">
+          Classificacao operacional
+        </label>
+
+        <select
+          value={filters.classificacaoRota}
+          onChange={(event) =>
+            updateFilter('classificacaoRota', event.target.value)
+          }
+          className="flex h-12 w-full rounded-2xl border border-slate-200 bg-slate-50/70 px-4 py-3 text-sm text-slate-900 outline-none transition focus:bg-white focus:ring-2 focus:ring-orange-500/20"
+        >
+          {ROUTE_OPTIONS.map((route) => (
+            <option key={route} value={route}>
+              {route}
+            </option>
+          ))}
+        </select>
+      </div>
+    </div>
+
+    <div className="mt-6 flex flex-wrap items-center justify-end gap-3 border-t border-slate-100 pt-5">
+      <Button
+        type="button"
+        variant="outline"
+        className="h-11 rounded-2xl border-slate-200 bg-white px-4 font-semibold text-slate-700 transition hover:bg-slate-50"
+        onClick={() => exportRowsToCsv(sortedRows, appliedFilters.dataRef)}
+        disabled={rows.length === 0}
+      >
+        <Download className="mr-2 h-4 w-4" />
+        Extrair CSV
+      </Button>
+
+      <Button
+        type="button"
+        variant="outline"
+        className="h-11 rounded-2xl border-slate-200 bg-white px-4 font-semibold text-slate-700 transition hover:bg-slate-50"
+        onClick={clearFilters}
+      >
+        Limpar filtros
+      </Button>
+
+      <Button
+        type="button"
+        variant="outline"
+        className="h-11 rounded-2xl border-slate-200 bg-white px-4 font-semibold text-slate-700 transition hover:bg-slate-50"
+        onClick={refreshData}
+      >
+        <RefreshCcw className="mr-2 h-4 w-4" />
+        Atualizar
+      </Button>
+
+      <Button
+        type="button"
+        className="h-11 rounded-2xl bg-orange-600 px-5 font-semibold text-white shadow-[0_12px_24px_rgba(234,88,12,0.22)] transition hover:bg-orange-700"
+        onClick={applyFilters}
+      >
+        Aplicar filtros
+      </Button>
+    </div>
+  </CardContent>
+</Card>
+   {errorMessage && (
+  <div className="flex items-start gap-3 rounded-[24px] border border-red-200 bg-red-50 px-5 py-4 text-sm text-red-700 shadow-[0_14px_34px_rgba(239,68,68,0.08)]">
+    <AlertCircle className="mt-0.5 h-5 w-5 shrink-0" />
+
+    <div>
+      <p className="font-semibold text-red-800">
+        Erro ao carregar entregas
+      </p>
+
+      <p className="mt-1 leading-6">
+        {errorMessage}
+      </p>
+    </div>
+  </div>
+)}
+
+<section className="grid grid-cols-1 gap-4 md:grid-cols-2 xl:grid-cols-12">
+  <button
+    type="button"
+    onClick={() => toggleQuickFilter('all')}
+    className={`group relative overflow-hidden rounded-[26px] border border-slate-200/70 bg-white p-5 text-left shadow-[0_18px_45px_rgba(15,23,42,0.06)] transition duration-300 hover:-translate-y-1 hover:shadow-[0_24px_55px_rgba(15,23,42,0.10)] xl:col-span-2 ${getQuickCardClass(
+      'all',
+    )}`}
+  >
+    <div className="absolute inset-x-0 top-0 h-1 bg-slate-300" />
+
+    <div className="flex items-start justify-between gap-4">
+      <div>
+        <p className="text-sm font-medium text-slate-500">
+          Total de pedidos
+        </p>
+
+        <p className="mt-3 text-3xl font-bold tracking-tight text-slate-950">
+          {summary.totalPedidos}
+        </p>
+
+        <p className="mt-2 text-xs font-medium text-slate-400">
+          Todos os registros
+        </p>
+      </div>
+
+      <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-2xl bg-slate-100 text-slate-700 ring-1 ring-slate-200">
+        <PackageSearch className="h-5 w-5" />
+      </div>
+    </div>
+  </button>
+
+  <button
+    type="button"
+    onClick={() => toggleQuickFilter('entregues')}
+    className={`group relative overflow-hidden rounded-[26px] border border-slate-200/70 bg-white p-5 text-left shadow-[0_18px_45px_rgba(15,23,42,0.06)] transition duration-300 hover:-translate-y-1 hover:shadow-[0_24px_55px_rgba(15,23,42,0.10)] xl:col-span-2 ${getQuickCardClass(
+      'entregues',
+    )}`}
+  >
+    <div className="absolute inset-x-0 top-0 h-1 bg-emerald-500" />
+
+    <div className="flex items-start justify-between gap-4">
+      <div>
+        <p className="text-sm font-medium text-slate-500">
+          Entregues
+        </p>
+
+        <p className="mt-3 text-3xl font-bold tracking-tight text-slate-950">
+          {summary.entregues}
+        </p>
+
+        <p className="mt-2 text-xs font-medium text-emerald-600">
+          Finalizadas
+        </p>
+      </div>
+
+      <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-2xl bg-emerald-50 text-emerald-700 ring-1 ring-emerald-100">
+        <CheckCircle2 className="h-5 w-5" />
+      </div>
+    </div>
+  </button>
+
+  <button
+    type="button"
+    onClick={() => toggleQuickFilter('pendentes')}
+    className={`group relative overflow-hidden rounded-[26px] border border-slate-200/70 bg-white p-5 text-left shadow-[0_18px_45px_rgba(15,23,42,0.06)] transition duration-300 hover:-translate-y-1 hover:shadow-[0_24px_55px_rgba(15,23,42,0.10)] xl:col-span-2 ${getQuickCardClass(
+      'pendentes',
+    )}`}
+  >
+    <div className="absolute inset-x-0 top-0 h-1 bg-amber-500" />
+
+    <div className="flex items-start justify-between gap-4">
+      <div>
+        <p className="text-sm font-medium text-slate-500">
+          Pendentes
+        </p>
+
+        <p className="mt-3 text-3xl font-bold tracking-tight text-slate-950">
+          {summary.pendentes}
+        </p>
+
+        <p className="mt-2 text-xs font-medium text-amber-600">
+          Aguardando baixa
+        </p>
+      </div>
+
+      <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-2xl bg-amber-50 text-amber-700 ring-1 ring-amber-100">
+        <Clock3 className="h-5 w-5" />
+      </div>
+    </div>
+  </button>
+
+  <button
+    type="button"
+    onClick={() => toggleQuickFilter('atraso')}
+    className={`group relative overflow-hidden rounded-[26px] border border-slate-200/70 bg-white p-5 text-left shadow-[0_18px_45px_rgba(15,23,42,0.06)] transition duration-300 hover:-translate-y-1 hover:shadow-[0_24px_55px_rgba(15,23,42,0.10)] xl:col-span-2 ${getQuickCardClass(
+      'atraso',
+    )}`}
+  >
+    <div className="absolute inset-x-0 top-0 h-1 bg-red-500" />
+
+    <div className="flex items-start justify-between gap-4">
+      <div>
+        <p className="text-sm font-medium text-slate-500">
+          Em atraso
+        </p>
+
+        <p className="mt-3 text-3xl font-bold tracking-tight text-slate-950">
+          {summary.emAtraso}
+        </p>
+
+        <p className="mt-2 text-xs font-medium text-red-600">
+          Fora do prazo
+        </p>
+      </div>
+
+      <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-2xl bg-red-50 text-red-700 ring-1 ring-red-100">
+        <AlertCircle className="h-5 w-5" />
+      </div>
+    </div>
+  </button>
+
+  <article
+    className={`relative overflow-hidden rounded-[26px] border border-slate-200/70 bg-white p-5 shadow-[0_18px_45px_rgba(15,23,42,0.06)] transition duration-300 hover:-translate-y-1 hover:shadow-[0_24px_55px_rgba(15,23,42,0.10)] xl:col-span-4 ${getQuickCardClass(
+      'all',
+    )}`}
+  >
+    <div className="absolute inset-x-0 top-0 h-1 bg-orange-500" />
+
+    <div className="flex flex-col gap-5 lg:flex-row lg:items-start lg:justify-between">
+      <div className="flex items-start gap-4">
+        <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-2xl bg-orange-50 text-orange-700 ring-1 ring-orange-100">
+          <Truck className="h-5 w-5" />
+        </div>
+
+        <div>
+          <p className="text-sm font-medium text-slate-500">
+            Porcentagem de entrega
+          </p>
+
+          <p className="mt-2 text-3xl font-bold tracking-tight text-slate-950">
+            {formatPercentage(summary.porcentagemEntrega)}
+          </p>
+
+          <p className="mt-2 text-sm text-slate-500">
+            {summary.entregues} concluida(s) • {pendingVolume} em aberto
+          </p>
+        </div>
+      </div>
+
+      <button
+        type="button"
+        className="rounded-2xl border border-slate-200 bg-slate-50 px-4 py-3 text-left text-sm font-semibold text-slate-600 transition hover:border-orange-200 hover:bg-orange-50 hover:text-orange-700"
+        onClick={() => toggleQuickFilter('abertas')}
+      >
+        Ver abertas
+      </button>
+    </div>
+
+        <div className="mt-5">
+      <div className="flex items-center justify-between text-xs font-semibold uppercase tracking-[0.18em] text-slate-400">
+        <span>Progresso operacional</span>
+        <span>{formatPercentage(summary.porcentagemEntrega)}</span>
+      </div>
+
+      <div className="mt-3 h-3 overflow-hidden rounded-full bg-slate-100">
+        <div
+          className="h-full rounded-full bg-orange-500 transition-all"
+          style={{ width: progressWidth }}
+        />
+      </div>
+
+      <div className="mt-3 flex items-center justify-between text-sm text-slate-500">
+        <span>Volume total: {summary.totalPedidos}</span>
+        <span>Entregues: {summary.entregues}</span>
+      </div>
+    </div>
+  </article>
+</section>
+
+<section className="overflow-hidden rounded-[30px] border border-slate-200/70 bg-white shadow-[0_18px_45px_rgba(15,23,42,0.06)]">
+  <div className="border-b border-slate-200/70 px-6 py-5">
+    <div className="flex flex-col gap-4 xl:flex-row xl:items-center xl:justify-between">
+      <div>
+        <p className="text-xs font-semibold uppercase tracking-[0.22em] text-orange-600">
+          Detalhamento
+        </p>
+
+        <h2 className="mt-2 text-2xl font-bold tracking-tight text-slate-950">
+          Lista detalhada dos CTRCs
+        </h2>
+
+        <p className="mt-2 text-sm leading-6 text-slate-500">
+          Total filtrado: {sortedRows.length} registros.
+        </p>
+      </div>
+
+      <div className="flex flex-wrap items-center gap-3">
+        <div className="rounded-2xl border border-orange-200 bg-orange-50 px-4 py-3 text-sm font-semibold text-orange-700">
+          {getQuickFilterLabel(activeQuickFilter)}
+        </div>
+
+        {activeQuickFilter !== 'all' ? (
+          <Button
+            type="button"
+            variant="outline"
+            className="h-11 rounded-2xl border-slate-200 bg-white px-4 font-semibold text-slate-700 transition hover:bg-slate-50"
+            onClick={() => toggleQuickFilter('all')}
           >
-            <CardContent className="flex items-center gap-4 p-5">
-              <div className="flex h-12 w-12 items-center justify-center rounded-2xl bg-zinc-100 text-zinc-700">
-                <PackageSearch className="h-5 w-5" />
-              </div>
-              <button
-                type="button"
-                className="text-left"
-                onClick={() => toggleQuickFilter('all')}
-              >
-                <p className="text-sm text-zinc-500">Total de pedidos</p>
-                <p className="mt-1 text-2xl font-bold text-zinc-900">
-                  {summary.totalPedidos}
-                </p>
-              </button>
-            </CardContent>
-          </Card>
+            Limpar filtro rápido
+          </Button>
+        ) : null}
 
-          <Card
-            className={`rounded-3xl border-zinc-200 shadow-sm transition hover:-translate-y-0.5 hover:shadow-md xl:col-span-2 ${getQuickCardClass(
-              'entregues',
-            )}`}
-          >
-            <CardContent className="flex items-center gap-4 p-5">
-              <div className="flex h-12 w-12 items-center justify-center rounded-2xl bg-emerald-100 text-emerald-700">
-                <CheckCircle2 className="h-5 w-5" />
-              </div>
-              <button
-                type="button"
-                className="text-left"
-                onClick={() => toggleQuickFilter('entregues')}
-              >
-                <p className="text-sm text-zinc-500">Entregues</p>
-                <p className="mt-1 text-2xl font-bold text-zinc-900">
-                  {summary.entregues}
-                </p>
-              </button>
-            </CardContent>
-          </Card>
+        <div className="rounded-2xl border border-slate-200 bg-slate-50 px-4 py-3 text-sm text-slate-600">
+          <div className="flex items-center gap-2">
+            <Route className="h-4 w-4 text-orange-600" />
 
-          <Card
-            className={`rounded-3xl border-zinc-200 shadow-sm transition hover:-translate-y-0.5 hover:shadow-md xl:col-span-2 ${getQuickCardClass(
-              'pendentes',
-            )}`}
-          >
-            <CardContent className="flex items-center gap-4 p-5">
-              <div className="flex h-12 w-12 items-center justify-center rounded-2xl bg-amber-100 text-amber-700">
-                <Clock3 className="h-5 w-5" />
-              </div>
-              <button
-                type="button"
-                className="text-left"
-                onClick={() => toggleQuickFilter('pendentes')}
-              >
-                <p className="text-sm text-zinc-500">Pendentes</p>
-                <p className="mt-1 text-2xl font-bold text-zinc-900">
-                  {summary.pendentes}
-                </p>
-              </button>
-            </CardContent>
-          </Card>
+            <span>
+              Ordenação atual: {sortField} (
+              {sortDirection === 'asc' ? 'crescente' : 'decrescente'})
+            </span>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
 
-          <Card
-            className={`rounded-3xl border-zinc-200 shadow-sm transition hover:-translate-y-0.5 hover:shadow-md xl:col-span-2 ${getQuickCardClass(
-              'atraso',
-            )}`}
-          >
-            <CardContent className="flex items-center gap-4 p-5">
-              <div className="flex h-12 w-12 items-center justify-center rounded-2xl bg-red-100 text-red-700">
-                <AlertCircle className="h-5 w-5" />
-              </div>
-              <button
-                type="button"
-                className="text-left"
-                onClick={() => toggleQuickFilter('atraso')}
-              >
-                <p className="text-sm text-zinc-500">Em atraso</p>
-                <p className="mt-1 text-2xl font-bold text-zinc-900">
-                  {summary.emAtraso}
-                </p>
-              </button>
-            </CardContent>
-          </Card>
+  <div className="p-0">
+    {loading ? (
+      <div className="p-8">
+        <div className="flex items-center gap-3 rounded-[24px] border border-slate-200 bg-slate-50 px-5 py-4 text-sm text-slate-600">
+          <RefreshCcw className="h-4 w-4 animate-spin text-orange-600" />
+          Carregando entregas...
+        </div>
+      </div>
+    ) : (
+      <>
+        <div className="overflow-x-auto">
+          <table className="min-w-full border-separate border-spacing-0">
+            <thead>
+              <tr className="bg-slate-50 text-left text-xs uppercase tracking-wide text-slate-500">
+                {[
+                  ['nro_ctrc', 'Nº CTRC'],
+                  ['ser_ctrc', 'Serie'],
+                  ['nome_cli_dest', 'Cliente destino'],
+                  ['cidade_origem', 'Origem'],
+                  ['cidade_dest', 'Destino'],
+                  ['uf_dest', 'UF'],
+                  ['data_prev_ent', 'Prev. entrega'],
+                  ['data_entrega', 'Data entrega'],
+                  ['hora_entrega', 'Hora entrega'],
+                  ['ult_ocor', 'Ult. ocorrencia'],
+                  ['ocorrencia', 'Descricao ocorrencia'],
+                  ['status_entrega', 'Status'],
+                  ['em_atraso', 'Em atraso'],
+                  ['sla_entrega', 'SLA'],
+                  ['classificacao_rota', 'Classificacao'],
+                ].map(([field, label]) => {
+                  const sortable = [
+                    'nro_ctrc',
+                    'nome_cli_dest',
+                    'cidade_origem',
+                    'cidade_dest',
+                    'uf_dest',
+                    'data_prev_ent',
+                    'data_entrega',
+                    'status_entrega',
+                    'sla_entrega',
+                    'classificacao_rota',
+                  ].includes(field);
 
-          <Card
-            className={`rounded-3xl border-zinc-200 shadow-sm transition hover:-translate-y-0.5 hover:shadow-md xl:col-span-4 ${getQuickCardClass(
-              'all',
-            )}`}
-          >
-            <CardContent className="p-5">
-              <div className="flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between">
-                <div className="flex items-center gap-4">
-                  <div className="flex h-12 w-12 items-center justify-center rounded-2xl bg-blue-100 text-blue-700">
-                    <Truck className="h-5 w-5" />
-                  </div>
+                  return (
+                    <th
+                      key={field}
+                      className="border-b border-slate-200 px-4 py-3 font-semibold"
+                    >
+                      {sortable ? (
+                        <button
+                          type="button"
+                          className="inline-flex items-center gap-2 text-left transition hover:text-orange-600"
+                          onClick={() => toggleSort(field as SortField)}
+                        >
+                          <span>{label}</span>
 
-                  <div>
-                    <p className="text-sm text-zinc-500">Porcentagem de entrega</p>
-                    <p className="mt-1 text-3xl font-bold text-zinc-900">
-                      {formatPercentage(summary.porcentagemEntrega)}
-                    </p>
-                  </div>
-                </div>
-
-                <button
-                  type="button"
-                  className="rounded-2xl border border-zinc-200 bg-zinc-50 px-4 py-3 text-left text-sm text-zinc-600 transition hover:border-blue-200 hover:text-zinc-900"
-                  onClick={() => toggleQuickFilter('abertas')}
-                >
-                  {summary.entregues} concluida(s) • {pendingVolume} em aberto
-                </button>
-              </div>
-
-              <div className="mt-5">
-                <div className="flex items-center justify-between text-xs font-semibold uppercase tracking-[0.18em] text-zinc-500">
-                  <span>Progresso operacional</span>
-                  <span>{formatPercentage(summary.porcentagemEntrega)}</span>
-                </div>
-
-                <div className="mt-3 h-3 overflow-hidden rounded-full bg-zinc-100">
-                  <div
-                    className="h-full rounded-full bg-[linear-gradient(90deg,#2563eb_0%,#38bdf8_100%)] transition-all"
-                    style={{ width: progressWidth }}
-                  />
-                </div>
-
-                <div className="mt-3 flex items-center justify-between text-sm text-zinc-500">
-                  <span>Volume total: {summary.totalPedidos}</span>
-                  <span>Entregues: {summary.entregues}</span>
-                </div>
-              </div>
-            </CardContent>
-          </Card>
-        </section>
-
-        <section className="grid grid-cols-1 items-stretch gap-4 xl:grid-cols-[1.55fr_0.85fr]">
-          <Card className="rounded-3xl border-zinc-200 shadow-sm">
-            <CardHeader className="border-b border-zinc-100 pb-4">
-              <div className="flex flex-col gap 3 lg:flex-row lg:items-end lg:justify-between">
-                <div className="max-w-2xl">
-                  <p className="text-xs font-semibold uppercase tracking-[0.24em] text-blue-600">
-                    Painel de SLA
-                  </p>
-                  <h3 className="mt-2 text-2xl font-bold text-zinc-900">
-                    Controle de prazo das entregas
-                  </h3>
-                </div>
-
-                <div className="rounded-2xl border border-zinc-200 bg-zinc-50 px-4 py-3 text-sm text-zinc-600">
-                  Performance atual: {formatPercentage(summary.porcentagemEntrega)}
-                </div>
-              </div>
-            </CardHeader>
-
-            <CardContent className="p-6">
-              <div className="grid gap-4 md:grid-cols-3">
-                <button
-                  type="button"
-                  onClick={() => toggleQuickFilter('slaDentro')}
-                  className={`rounded-3xl border border-emerald-200 bg-[linear-gradient(180deg,#f3fff7_0%,#ecfdf3_100%)] p-5 text-left transition hover:-translate-y-0.5 hover:shadow-md ${getQuickCardClass(
-                    'slaDentro',
-                  )}`}
-                >
-                  <p className="text-xs font-semibold uppercase tracking-[0.22em] text-emerald-700">
-                    Dentro do SLA
-                  </p>
-                  <p className="mt-3 text-4xl font-bold text-zinc-900">
-                    {summary.entregueDentroDoSla}
-                  </p>
-                  <p className="mt-2 text-sm text-zinc-600">
-                    Entregas finalizadas dentro do prazo prometido.
-                  </p>
-                </button>
-
-                <button
-                  type="button"
-                  onClick={() => toggleQuickFilter('slaFora')}
-                  className={`rounded-3xl border border-red-200 bg-[linear-gradient(180deg,#fff4f4_0%,#fef2f2_100%)] p-5 text-left transition hover:-translate-y-0.5 hover:shadow-md ${getQuickCardClass(
-                    'slaFora',
-                  )}`}
-                >
-                  <p className="text-xs font-semibold uppercase tracking-[0.22em] text-red-700">
-                    Fora do SLA
-                  </p>
-                  <p className="mt-3 text-4xl font-bold text-zinc-900">
-                    {summary.entregueForaDoSla}
-                  </p>
-                  <p className="mt-2 text-sm text-zinc-600">
-                    Entregas baixadas apos a data prevista.
-                  </p>
-                </button>
-
-                <button
-                  type="button"
-                  onClick={() => toggleQuickFilter('abertas')}
-                  className={`rounded-3xl border border-zinc-200 bg-[linear-gradient(180deg,#ffffff_0%,#f8fafc_100%)] p-5 text-left transition hover:-translate-y-0.5 hover:shadow-md ${getQuickCardClass(
-                    'abertas',
-                  )}`}
-                >
-                  <p className="text-xs font-semibold uppercase tracking-[0.22em] text-zinc-500">
-                    Pendencias ativas
-                  </p>
-                  <p className="mt-3 text-4xl font-bold text-zinc-900">
-                    {summary.pendentes + summary.emAtraso}
-                  </p>
-                  <p className="mt-2 text-sm text-zinc-600">
-                    Volume ainda aberto entre pendentes e atrasadas.
-                  </p>
-                </button>
-              </div>
-            </CardContent>
-          </Card>
-
-          <Card className="rounded-3xl border-zinc-200 shadow-sm">
-            <CardHeader className="pb-3">
-              <CardTitle className="text-lg text-zinc-900">
-                Resumo operacional
-              </CardTitle>
-              <CardDescription className="text-sm text-zinc-500">
-                Corte baseado na ultima ocorrencia e no prazo prometido.
-              </CardDescription>
-            </CardHeader>
-
-            <CardContent className="space-y-3">
-              <div className="rounded-2xl border border-emerald-200 bg-emerald-50 px-4 py-3">
-                <p className="text-xs font-semibold uppercase tracking-wide text-emerald-700">
-                  Dentro do SLA
-                </p>
-                <p className="mt-2 text-sm font-semibold text-zinc-900">
-                  {summary.entregueDentroDoSla} entrega(s) com baixa dentro do prazo.
-                </p>
-              </div>
-
-              <div className="rounded-2xl border border-red-200 bg-red-50 px-4 py-3">
-                <p className="text-xs font-semibold uppercase tracking-wide text-red-700">
-                  Fora do SLA
-                </p>
-                <p className="mt-2 text-sm font-semibold text-zinc-900">
-                  {summary.entregueForaDoSla} entrega(s) com baixa fora do prazo.
-                </p>
-              </div>
-
-              <div className="rounded-2xl border border-zinc-200 bg-zinc-50 px-4 py-3">
-                <p className="text-xs font-semibold uppercase tracking-wide text-zinc-500">
-                  Taxa de entrega
-                </p>
-                <p className="mt-2 text-sm font-semibold text-zinc-900">
-                  {formatPercentage(summary.porcentagemEntrega)} do volume filtrado.
-                </p>
-              </div>
-            </CardContent>
-          </Card>
-        </section>
-
-        <Card className="rounded-3xl border-zinc-200 shadow-sm">
-          <CardHeader className="flex flex-col gap-2 border-b border-zinc-100 sm:flex-row sm:items-center sm:justify-between">
-            <div>
-              <CardTitle className="text-lg text-zinc-900">
-                Lista detalhada dos CTRCs
-              </CardTitle>
-              <CardDescription className="text-sm text-zinc-500">
-                Total filtrado: {sortedRows.length} registros.
-              </CardDescription>
-            </div>
-
-            <div className="flex flex-wrap items-center gap-3">
-              <div className="rounded-2xl border border-blue-200 bg-blue-50 px-4 py-3 text-sm text-blue-700">
-                {getQuickFilterLabel(activeQuickFilter)}
-              </div>
-
-              {activeQuickFilter !== 'all' && (
-                <Button
-                  type="button"
-                  variant="outline"
-                  className="rounded-2xl"
-                  onClick={() => toggleQuickFilter('all')}
-                >
-                  Limpar filtro rapido
-                </Button>
-              )}
-
-              <div className="rounded-2xl border border-zinc-200 bg-zinc-50 px-4 py-3 text-sm text-zinc-600">
-                <div className="flex items-center gap-2">
-                  <Route className="h-4 w-4" />
-                  <span>
-                    Ordenacao atual: {sortField} ({sortDirection === 'asc' ? 'crescente' : 'decrescente'})
-                  </span>
-                </div>
-              </div>
-            </div>
-          </CardHeader>
-
-          <CardContent className="p-0">
-            {loading ? (
-              <div className="p-8 text-sm text-zinc-500">Carregando entregas...</div>
-            ) : (
-              <>
-                <div className="overflow-x-auto">
-                  <table className="min-w-full border-separate border-spacing-0">
-                    <thead>
-                      <tr className="bg-zinc-50 text-left text-xs uppercase tracking-wide text-zinc-500">
-                        {[
-                          ['nro_ctrc', 'Nº CTRC'],
-                          ['ser_ctrc', 'Serie'],
-                          ['nome_cli_dest', 'Cliente destino'],
-                          ['cidade_origem', 'Origem'],
-                          ['cidade_dest', 'Destino'],
-                          ['uf_dest', 'UF'],
-                          ['data_prev_ent', 'Prev. entrega'],
-                          ['data_entrega', 'Data entrega'],
-                          ['hora_entrega', 'Hora entrega'],
-                          ['ult_ocor', 'Ult. ocorrencia'],
-                          ['ocorrencia', 'Descricao ocorrencia'],
-                          ['status_entrega', 'Status'],
-                          ['em_atraso', 'Em atraso'],
-                          ['sla_entrega', 'SLA'],
-                          ['classificacao_rota', 'Classificacao'],
-                        ].map(([field, label]) => {
-                          const sortable = [
-                            'nro_ctrc',
-                            'nome_cli_dest',
-                            'cidade_origem',
-                            'cidade_dest',
-                            'uf_dest',
-                            'data_prev_ent',
-                            'data_entrega',
-                            'status_entrega',
-                            'sla_entrega',
-                            'classificacao_rota',
-                          ].includes(field);
-
-                          return (
-                            <th
-                              key={field}
-                              className="border-b border-zinc-200 px-4 py-3 font-semibold"
-                            >
-                              {sortable ? (
-                                <button
-                                  type="button"
-                                  className="inline-flex items-center gap-2 text-left"
-                                  onClick={() => toggleSort(field as SortField)}
-                                >
-                                  <span>{label}</span>
-                                  {sortField === field ? (
-                                    sortDirection === 'asc' ? (
-                                      <ArrowUpAZ className="h-3.5 w-3.5" />
-                                    ) : (
-                                      <ArrowDownAZ className="h-3.5 w-3.5" />
-                                    )
-                                  ) : null}
-                                </button>
-                              ) : (
-                                label
-                              )}
-                            </th>
-                          );
-                        })}
-                      </tr>
-                    </thead>
-
-                    <tbody>
-                      {paginatedRows.length === 0 ? (
-                        <tr>
-                          <td
-                            colSpan={15}
-                            className="px-4 py-10 text-center text-sm text-zinc-500"
-                          >
-                            Nenhuma entrega encontrada com os filtros atuais.
-                          </td>
-                        </tr>
+                          {sortField === field ? (
+                            sortDirection === 'asc' ? (
+                              <ArrowUpAZ className="h-3.5 w-3.5 text-orange-600" />
+                            ) : (
+                              <ArrowDownAZ className="h-3.5 w-3.5 text-orange-600" />
+                            )
+                          ) : null}
+                        </button>
                       ) : (
-                        paginatedRows.map((row) => (
-                          <tr key={`${row.seq_ctrc}-${row.nro_ctrc}`} className="align-top">
-                            <td className="border-b border-zinc-100 px-4 py-4 text-sm font-semibold text-zinc-900">
-                              {row.nro_ctrc}
-                            </td>
-                            <td className="border-b border-zinc-100 px-4 py-4 text-sm text-zinc-600">
-                              {row.ser_ctrc}
-                            </td>
-                            <td className="border-b border-zinc-100 px-4 py-4 text-sm text-zinc-600">
-                              {row.nome_cli_dest}
-                            </td>
-                            <td className="border-b border-zinc-100 px-4 py-4 text-sm text-zinc-600">
-                              {row.cidade_origem}
-                            </td>
-                            <td className="border-b border-zinc-100 px-4 py-4 text-sm text-zinc-600">
-                              {row.cidade_dest}
-                            </td>
-                            <td className="border-b border-zinc-100 px-4 py-4 text-sm text-zinc-600">
-                              {row.uf_dest}
-                            </td>
-                            <td className="border-b border-zinc-100 px-4 py-4 text-sm text-zinc-600">
-                              {formatDate(row.data_prev_ent)}
-                            </td>
-                            <td className="border-b border-zinc-100 px-4 py-4 text-sm text-zinc-600">
-                              {formatDate(row.data_entrega)}
-                            </td>
-                            <td className="border-b border-zinc-100 px-4 py-4 text-sm text-zinc-600">
-                              {row.hora_entrega || '-'}
-                            </td>
-                            <td className="border-b border-zinc-100 px-4 py-4 text-sm text-zinc-600">
-                              {row.ult_ocor || '-'}
-                            </td>
-                            <td className="border-b border-zinc-100 px-4 py-4 text-sm text-zinc-600">
-                              {row.ocorrencia}
-                            </td>
-                            <td className="border-b border-zinc-100 px-4 py-4 text-sm">
-                              <Badge
-                                className={`rounded-full border px-3 py-1 font-semibold ${getStatusBadgeClass(
-                                  row.status_entrega,
-                                )}`}
-                              >
-                                {row.status_entrega}
-                              </Badge>
-                            </td>
-                            <td className="border-b border-zinc-100 px-4 py-4 text-sm">
-                              <Badge
-                                className={`rounded-full border px-3 py-1 font-semibold ${getLateBadgeClass(
-                                  row.em_atraso,
-                                )}`}
-                              >
-                                {row.em_atraso}
-                              </Badge>
-                            </td>
-                            <td className="border-b border-zinc-100 px-4 py-4 text-sm">
-                              <Badge
-                                className={`rounded-full border px-3 py-1 font-semibold ${getSlaBadgeClass(
-                                  row.sla_entrega,
-                                )}`}
-                              >
-                                {row.sla_entrega}
-                              </Badge>
-                            </td>
-                            <td className="border-b border-zinc-100 px-4 py-4 text-sm text-zinc-600">
-                              {row.classificacao_rota}
-                            </td>
-                          </tr>
-                        ))
+                        label
                       )}
-                    </tbody>
-                  </table>
-                </div>
+                    </th>
+                  );
+                })}
+              </tr>
+            </thead>
 
-                <div className="flex flex-col gap-3 border-t border-zinc-100 px-4 py-4 sm:flex-row sm:items-center sm:justify-between">
-                  <p className="text-sm text-zinc-500">
-                    Pagina {page} de {totalPages}
-                  </p>
+            <tbody>
+              {paginatedRows.length === 0 ? (
+                <tr>
+                  <td
+                    colSpan={15}
+                    className="px-4 py-12 text-center text-sm text-slate-500"
+                  >
+                    Nenhuma entrega encontrada com os filtros atuais.
+                  </td>
+                </tr>
+              ) : (
+                paginatedRows.map((row) => (
+                  <tr
+                    key={`${row.seq_ctrc}-${row.nro_ctrc}`}
+                    className="align-top transition hover:bg-orange-50/30"
+                  >
+                    <td className="border-b border-slate-100 px-4 py-4 text-sm font-bold text-slate-950">
+                      {row.nro_ctrc}
+                    </td>
 
-                  <div className="flex gap-3">
-                    <Button
-                      type="button"
-                      variant="outline"
-                      className="rounded-2xl"
-                      disabled={page <= 1}
-                      onClick={() => setPage((current) => Math.max(1, current - 1))}
-                    >
-                      Anterior
-                    </Button>
+                    <td className="border-b border-slate-100 px-4 py-4 text-sm text-slate-600">
+                      {row.ser_ctrc}
+                    </td>
 
-                    <Button
-                      type="button"
-                      variant="outline"
-                      className="rounded-2xl"
-                      disabled={page >= totalPages}
-                      onClick={() =>
-                        setPage((current) => Math.min(totalPages, current + 1))
-                      }
-                    >
-                      Proxima
-                    </Button>
-                  </div>
-                </div>
-              </>
-            )}
-          </CardContent>
-        </Card>
+                    <td className="border-b border-slate-100 px-4 py-4 text-sm font-medium text-slate-700">
+                      {row.nome_cli_dest}
+                    </td>
+
+                    <td className="border-b border-slate-100 px-4 py-4 text-sm text-slate-600">
+                      {row.cidade_origem}
+                    </td>
+
+                    <td className="border-b border-slate-100 px-4 py-4 text-sm text-slate-600">
+                      {row.cidade_dest}
+                    </td>
+
+                    <td className="border-b border-slate-100 px-4 py-4 text-sm text-slate-600">
+                      {row.uf_dest}
+                    </td>
+
+                    <td className="border-b border-slate-100 px-4 py-4 text-sm text-slate-600">
+                      {formatDate(row.data_prev_ent)}
+                    </td>
+
+                    <td className="border-b border-slate-100 px-4 py-4 text-sm text-slate-600">
+                      {formatDate(row.data_entrega)}
+                    </td>
+
+                    <td className="border-b border-slate-100 px-4 py-4 text-sm text-slate-600">
+                      {row.hora_entrega || '-'}
+                    </td>
+
+                    <td className="border-b border-slate-100 px-4 py-4 text-sm text-slate-600">
+                      {row.ult_ocor || '-'}
+                    </td>
+
+                    <td className="max-w-[360px] border-b border-slate-100 px-4 py-4 text-sm leading-6 text-slate-600">
+                      {row.ocorrencia}
+                    </td>
+
+                    <td className="border-b border-slate-100 px-4 py-4 text-sm">
+                      <Badge
+                        className={`rounded-full border px-3 py-1 font-semibold ${getStatusBadgeClass(
+                          row.status_entrega,
+                        )}`}
+                      >
+                        {row.status_entrega}
+                      </Badge>
+                    </td>
+
+                    <td className="border-b border-slate-100 px-4 py-4 text-sm">
+                      <Badge
+                        className={`rounded-full border px-3 py-1 font-semibold ${getLateBadgeClass(
+                          row.em_atraso,
+                        )}`}
+                      >
+                        {row.em_atraso}
+                      </Badge>
+                    </td>
+
+                    <td className="border-b border-slate-100 px-4 py-4 text-sm">
+                      <Badge
+                        className={`rounded-full border px-3 py-1 font-semibold ${getSlaBadgeClass(
+                          row.sla_entrega,
+                        )}`}
+                      >
+                        {row.sla_entrega}
+                      </Badge>
+                    </td>
+
+                    <td className="border-b border-slate-100 px-4 py-4 text-sm text-slate-600">
+                      {row.classificacao_rota}
+                    </td>
+                  </tr>
+                ))
+              )}
+            </tbody>
+          </table>
+        </div>
+
+        <div className="flex flex-col gap-3 border-t border-slate-100 px-5 py-4 sm:flex-row sm:items-center sm:justify-between">
+          <p className="text-sm text-slate-500">
+            Página {page} de {totalPages}
+          </p>
+
+          <div className="flex gap-3">
+            <Button
+              type="button"
+              variant="outline"
+              className="h-11 rounded-2xl border-slate-200 bg-white px-4 font-semibold text-slate-700 transition hover:bg-slate-50"
+              disabled={page <= 1}
+              onClick={() => setPage((current) => Math.max(1, current - 1))}
+            >
+              Anterior
+            </Button>
+
+             <Button
+              type="button"
+              variant="outline"
+              className="h-11 rounded-2xl border-slate-200 bg-white px-4 font-semibold text-slate-700 transition hover:bg-slate-50"
+              disabled={page >= totalPages}
+              onClick={() =>
+                setPage((current) => Math.min(totalPages, current + 1))
+              }
+            >
+              Próxima
+            </Button>
+          </div>
+        </div>
+      </>
+    )}
+  </div>
+</section>
       </div>
     </AppLayout>
   );

@@ -1,9 +1,9 @@
 export type QuoteStatus =
-  | 'RECEIVED'
-  | 'IN_ANALYSIS'
-  | 'ANSWERED'
-  | 'APPROVED'
-  | 'REJECTED';
+  | "RECEIVED"
+  | "IN_ANALYSIS"
+  | "ANSWERED"
+  | "APPROVED"
+  | "REJECTED";
 
 export interface QuoteHistoryEntry {
   id: string;
@@ -18,6 +18,16 @@ export interface QuoteClientUser {
   email: string;
 }
 
+export interface QuotePropostaSummary {
+  id: string;
+  code: string;
+  titulo: string;
+  valor?: number | string | null;
+  status: string;
+  versao: number;
+  updatedAt?: string;
+}
+
 export interface QuoteClient {
   id: string;
   companyName?: string | null;
@@ -26,6 +36,7 @@ export interface QuoteClient {
 
 export interface Quote {
   id: string;
+  code: string;
   clientId: string;
   origin: string;
   destination: string;
@@ -36,19 +47,21 @@ export interface Quote {
   cargoDescription?: string | null;
   contactName?: string | null;
   contactPhone?: string | null;
+  contactEmail?: string | null;
   weight?: number | null;
   volume?: number | null;
   quantity?: number | null;
-  merchandiseValue?: number | null;
+  merchandiseValue?: number | string | null;
   desiredDeadline?: string | null;
   notes?: string | null;
-  price?: number | null;
+  price?: number | string | null;
   commercialNotes?: string | null;
   status: QuoteStatus;
   createdAt: string;
   updatedAt: string;
   history?: QuoteHistoryEntry[];
   client?: QuoteClient | null;
+  propostas?: QuotePropostaSummary[];
 }
 
 export interface CreateQuotePayload {
@@ -61,10 +74,11 @@ export interface CreateQuotePayload {
   cargoDescription?: string;
   contactName?: string;
   contactPhone?: string;
+  contactEmail?: string;
   weight?: number;
   volume?: number;
   quantity?: number;
-  merchandiseValue?: number;
+  merchandiseValue: number;
   desiredDeadline?: string;
   notes?: string;
 }

@@ -36,6 +36,14 @@ const eventStyles: Record<
     icon: Target,
     accent: 'bg-rose-100 text-rose-700',
   },
+  QUOTE_CREATED: {
+    icon: FileText,
+    accent: 'bg-blue-100 text-blue-700',
+  },
+  QUOTE_STATUS: {
+    icon: FileText,
+    accent: 'bg-indigo-100 text-indigo-700',
+  },
 };
 
 function formatDate(date: string) {

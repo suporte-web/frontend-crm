@@ -9,6 +9,7 @@ import {
   History,
   Lock,
   MessageSquare,
+  Paperclip,
   PlayCircle,
   PlusCircle,
   RotateCcw,
@@ -19,11 +20,14 @@ import {
   XCircle,
 } from "lucide-react";
 import { AppLayout } from "@/components/layout/app-layout";
+import { ChatBox } from "@/components/chat/ChatBox";
 import { FeedbackToast } from "@/components/ui/feedback-toast";
 import { useAuth } from "@/context/auth-context";
+import { API_BASE_URL } from "@/services/api";
 import { getCrmClientSummaries } from "@/services/crm.service";
 import {
   addInternalTicketNote,
+  createTicketProposta,
   createTicket,
   getAllTickets,
   getMyTickets,
@@ -31,13 +35,19 @@ import {
   getTicketPropostas,
   managementTicketDecision,
   approveTicketPropostaByClient,
+  approveTicketPropostaByManagement,
   rejectTicketPropostaByClient,
+  rejectTicketPropostaByManagement,
   replyTicket,
   requestTicketPropostaAdjustmentByClient,
+  requestTicketPropostaAdjustmentByManagement,
   sendPreProposal,
+  sendTicketPropostaToClient,
+  sendTicketPropostaToManagement,
   sendTicketToManagement,
   startTicket,
   updateTicketStatus,
+  updateTicketProposta,
 } from "@/services/tickets.service";
 import type { LeadSummary } from "@/types/crm";
 import type {
@@ -119,6 +129,12 @@ const propostaStatusLabels: Record<StatusProposta, string> = {
   EXPIRADA: "Expirada",
 };
 
+const propostaEditableStatuses: StatusProposta[] = [
+  "RASCUNHO",
+  "AJUSTE_SOLICITADO_PELO_CLIENTE",
+  "AJUSTE_SOLICITADO_PELA_GESTAO",
+];
+
 const filterStatuses: Array<TicketStatus | "TODOS"> = [
   "TODOS",
   "ABERTO",
@@ -133,7 +149,6 @@ const filterStatuses: Array<TicketStatus | "TODOS"> = [
   "REPROVADO",
   "FECHADO",
   "CANCELADO",
-  
 ];
 
 function formatDate(value?: string | null) {
@@ -145,6 +160,41 @@ function formatDate(value?: string | null) {
     dateStyle: "short",
     timeStyle: "short",
   }).format(new Date(value));
+}
+
+function formatCurrency(value?: string | number | null) {
+  if (value === null || value === undefined || value === "") {
+    return "Nao informado";
+  }
+
+  return Number(value).toLocaleString("pt-BR", {
+    style: "currency",
+    currency: "BRL",
+  });
+}
+
+function formatFileSize(value?: number | null) {
+  if (!value) {
+    return "";
+  }
+
+  if (value < 1024 * 1024) {
+    return `${Math.ceil(value / 1024)} KB`;
+  }
+
+  return `${(value / (1024 * 1024)).toFixed(1)} MB`;
+}
+
+function getUploadUrl(path?: string | null) {
+  if (!path) {
+    return "#";
+  }
+
+  if (path.startsWith("http")) {
+    return path;
+  }
+
+  return `${new URL(API_BASE_URL).origin}${path}`;
 }
 
 function getClientName(ticket: Ticket) {
@@ -229,6 +279,90 @@ function canClientAct(status: TicketStatus) {
   return statuses.includes(status);
 }
 
+function getPropostaStatusClass(status: StatusProposta) {
+  if (["APROVADA_PELO_CLIENTE", "APROVADA_PELA_GESTAO"].includes(status)) {
+    return "bg-emerald-100 text-emerald-700";
+  }
+
+  if (
+    ["RECUSADA_PELO_CLIENTE", "RECUSADA_PELA_GESTAO", "CANCELADA"].includes(
+      status,
+    )
+  ) {
+    return "bg-rose-100 text-rose-700";
+  }
+
+  if (
+    [
+      "AJUSTE_SOLICITADO_PELO_CLIENTE",
+      "AJUSTE_SOLICITADO_PELA_GESTAO",
+    ].includes(status)
+  ) {
+    return "bg-amber-100 text-amber-700";
+  }
+
+  if (status === "ENVIADA_PARA_GESTAO") {
+    return "bg-indigo-100 text-indigo-700";
+  }
+
+  if (status === "ENVIADA_AO_CLIENTE") {
+    return "bg-blue-100 text-blue-700";
+  }
+
+  return "bg-slate-100 text-slate-700";
+}
+
+type ProposalFormState = {
+  titulo: string;
+  descricao: string;
+  descricaoServico: string;
+  origem: string;
+  destino: string;
+  valor: string;
+  condicoesPagamento: string;
+  condicoesComerciais: string;
+  observacoes: string;
+  validadeDias: string;
+};
+
+const emptyProposalFormState: ProposalFormState = {
+  titulo: "",
+  descricao: "",
+  descricaoServico: "",
+  origem: "",
+  destino: "",
+  valor: "",
+  condicoesPagamento: "",
+  condicoesComerciais: "",
+  observacoes: "",
+  validadeDias: "7",
+};
+
+function propostaToFormState(proposta?: Proposta | null): ProposalFormState {
+  if (!proposta) {
+    return emptyProposalFormState;
+  }
+
+  return {
+    titulo: proposta.titulo ?? "",
+    descricao: proposta.descricao ?? "",
+    descricaoServico: proposta.descricaoServico ?? "",
+    origem: proposta.origem ?? "",
+    destino: proposta.destino ?? "",
+    valor:
+      proposta.valor !== null && proposta.valor !== undefined
+        ? String(proposta.valor)
+        : "",
+    condicoesPagamento: proposta.condicoesPagamento ?? "",
+    condicoesComerciais: proposta.condicoesComerciais ?? "",
+    observacoes: proposta.observacoes ?? "",
+    validadeDias:
+      proposta.validadeDias !== null && proposta.validadeDias !== undefined
+        ? String(proposta.validadeDias)
+        : "7",
+  };
+}
+
 export default function TicketsPage() {
   const { user, token } = useAuth();
   const [tickets, setTickets] = useState<Ticket[]>([]);
@@ -243,6 +377,11 @@ export default function TicketsPage() {
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [selectedTicket, setSelectedTicket] = useState<Ticket | null>(null);
   const [propostas, setPropostas] = useState<Proposta[]>([]);
+  const [selectedPropostaId, setSelectedPropostaId] = useState("");
+  const [proposalForm, setProposalForm] = useState<ProposalFormState>(
+    emptyProposalFormState,
+  );
+  const [proposalFile, setProposalFile] = useState<File | null>(null);
   const [reply, setReply] = useState("");
   const [internalNote, setInternalNote] = useState("");
   const [preProposal, setPreProposal] = useState("");
@@ -267,6 +406,17 @@ export default function TicketsPage() {
   const isInternal = user?.role
     ? ["ADMIN", "GESTAO", "COMERCIAL"].includes(user.role)
     : false;
+  const selectedProposta = useMemo(() => {
+    if (selectedPropostaId === "new") {
+      return null;
+    }
+
+    return (
+      propostas.find((proposta) => proposta.id === selectedPropostaId) ??
+      propostas[0] ??
+      null
+    );
+  }, [propostas, selectedPropostaId]);
   const activeClientProposta = useMemo(
     () =>
       propostas.find((proposta) => proposta.status === "ENVIADA_AO_CLIENTE") ??
@@ -274,6 +424,16 @@ export default function TicketsPage() {
       null,
     [propostas],
   );
+  const canSendCurrentProposalToManagement =
+    isCommercial &&
+    (selectedTicket?.status === "APROVADO_CLIENTE" ||
+      (!!selectedProposta &&
+        selectedProposta.status === "APROVADA_PELO_CLIENTE"));
+  const canEditSelectedProposal =
+    isCommercial &&
+    (selectedPropostaId === "new" ||
+      !selectedProposta ||
+      propostaEditableStatuses.includes(selectedProposta.status));
 
   async function loadTickets() {
     if (!token) {
@@ -326,6 +486,29 @@ export default function TicketsPage() {
     }
   }, [token]);
 
+  useEffect(() => {
+    if (selectedPropostaId === "new") {
+      setProposalFile(null);
+      return;
+    }
+
+    const proposta = propostas.find((item) => item.id === selectedPropostaId);
+    const fallback = proposta ?? propostas[0] ?? null;
+
+    if (!fallback) {
+      setSelectedPropostaId("");
+      setProposalForm(emptyProposalFormState);
+      return;
+    }
+
+    if (!proposta) {
+      setSelectedPropostaId(fallback.id);
+    }
+
+    setProposalForm(propostaToFormState(fallback));
+    setProposalFile(null);
+  }, [propostas, selectedPropostaId]);
+
   const filteredTickets = useMemo(() => {
     const query = search.trim().toLowerCase();
 
@@ -335,9 +518,11 @@ export default function TicketsPage() {
       }
 
       return [
+        ticket.id,
         ticket.subject,
         ticket.description,
         getClientName(ticket),
+        ticket.quote?.code,
         ticket.quote?.serviceType,
         ticket.quote?.origin,
         ticket.quote?.destination,
@@ -383,6 +568,7 @@ export default function TicketsPage() {
     ]);
     setSelectedTicket(fullTicket);
     setPropostas(ticketPropostas);
+    setProposalFile(null);
   }
 
   async function handleCreateTicket(event: React.FormEvent<HTMLFormElement>) {
@@ -509,6 +695,139 @@ export default function TicketsPage() {
     }
   }
 
+  async function reloadSelectedTicketData(ticketId: string) {
+    if (!token) {
+      return;
+    }
+
+    const [updatedTicket, updatedPropostas] = await Promise.all([
+      getTicket(ticketId, token),
+      getTicketPropostas(ticketId, token),
+    ]);
+
+    await refreshSelected(updatedTicket);
+    setPropostas(updatedPropostas);
+  }
+
+  function buildProposalPayload() {
+    return {
+      titulo: proposalForm.titulo.trim(),
+      descricao: proposalForm.descricao.trim() || undefined,
+      descricaoServico: proposalForm.descricaoServico.trim() || undefined,
+      origem: proposalForm.origem.trim() || undefined,
+      destino: proposalForm.destino.trim() || undefined,
+      valor: proposalForm.valor.trim()
+        ? Number(proposalForm.valor.replace(",", "."))
+        : undefined,
+      condicoesPagamento: proposalForm.condicoesPagamento.trim() || undefined,
+      condicoesComerciais: proposalForm.condicoesComerciais.trim() || undefined,
+      observacoes: proposalForm.observacoes.trim() || undefined,
+      validadeDias: proposalForm.validadeDias.trim()
+        ? Number(proposalForm.validadeDias)
+        : undefined,
+    };
+  }
+
+  async function handleProposalSubmit(event: React.FormEvent<HTMLFormElement>) {
+    event.preventDefault();
+
+    if (!token || !selectedTicket || !proposalForm.titulo.trim()) {
+      setToast({
+        title: "Dados incompletos",
+        message: "Informe pelo menos o titulo da proposta.",
+        variant: "error",
+      });
+      return;
+    }
+
+    if (!canEditSelectedProposal) {
+      setToast({
+        title: "Edicao bloqueada",
+        message:
+          "O valor so pode ser ajustado em rascunho ou quando cliente/Gestao solicitarem ajuste.",
+        variant: "error",
+      });
+      return;
+    }
+
+    const payload = buildProposalPayload();
+
+    try {
+      setSaving(true);
+
+      const proposta =
+        selectedPropostaId === "new" || !selectedProposta
+          ? await createTicketProposta(
+              selectedTicket.id,
+              payload,
+              token,
+              proposalFile,
+            )
+          : await updateTicketProposta(
+              selectedTicket.id,
+              selectedProposta.id,
+              payload,
+              token,
+              proposalFile,
+            );
+
+      await reloadSelectedTicketData(selectedTicket.id);
+      setSelectedPropostaId(proposta.id);
+      setProposalFile(null);
+      setToast({
+        title:
+          selectedPropostaId === "new" || !selectedProposta
+            ? "Proposta criada"
+            : "Proposta atualizada",
+        message:
+          selectedPropostaId === "new" || !selectedProposta
+            ? "A proposta foi registrada no ticket."
+            : "As alteracoes da proposta foram salvas.",
+        variant: "success",
+      });
+    } catch (error) {
+      setToast({
+        title: "Falha ao salvar proposta",
+        message:
+          error instanceof Error ? error.message : "Erro ao salvar proposta.",
+        variant: "error",
+      });
+    } finally {
+      setSaving(false);
+    }
+  }
+
+  async function handleSendProposalToClient() {
+    if (!token || !selectedTicket || !selectedProposta) {
+      return;
+    }
+
+    try {
+      setSaving(true);
+      const result = await sendTicketPropostaToClient(
+        selectedTicket.id,
+        selectedProposta.id,
+        token,
+        buildProposalPayload(),
+      );
+      await reloadSelectedTicketData(selectedTicket.id);
+      setToast({
+        title: "Proposta enviada",
+        message: result.mensagem || "A proposta foi enviada ao cliente.",
+        variant: "success",
+      });
+    } catch (error) {
+      setToast({
+        title: "Falha ao enviar proposta",
+        message:
+          error instanceof Error ? error.message : "Erro ao enviar proposta.",
+        variant: "error",
+      });
+    } finally {
+      setSaving(false);
+    }
+  }
+
   async function handleReply(event: React.FormEvent<HTMLFormElement>) {
     event.preventDefault();
 
@@ -601,7 +920,7 @@ export default function TicketsPage() {
               type="text"
               value={search}
               onChange={(event) => setSearch(event.target.value)}
-              placeholder="Buscar por assunto, cliente, cotacao, lead ou oportunidade"
+              placeholder="Buscar por assunto, ID, codigo da cotacao, cliente, lead ou oportunidade"
               className="crm-input"
             />
             <select
@@ -688,7 +1007,7 @@ export default function TicketsPage() {
                           href={`/quotes/${ticket.quote.id}`}
                           className="flex items-center gap-1 font-semibold text-blue-700"
                         >
-                          Cotacao vinculada
+                          {ticket.quote.code || "Cotacao vinculada"}
                           <ArrowUpRight className="h-3.5 w-3.5" />
                         </Link>
                       ) : ticket.lead ? (
@@ -855,6 +1174,8 @@ export default function TicketsPage() {
                   onClick={() => {
                     setSelectedTicket(null);
                     setPropostas([]);
+                    setSelectedPropostaId("");
+                    setProposalForm(emptyProposalFormState);
                   }}
                   className="rounded-2xl border border-slate-300 px-3 py-2 text-sm font-semibold text-slate-700 hover:bg-slate-100"
                 >
@@ -941,108 +1262,570 @@ export default function TicketsPage() {
                     </div>
                   </section>
 
-                  {propostas.length > 0 ? (
-                    <section className="rounded-2xl border border-slate-200 bg-slate-50 p-4">
-                      <h3 className="flex items-center gap-2 text-sm font-semibold text-slate-900">
-                        <FileText className="h-4 w-4 text-slate-500" />
-                        Propostas
-                      </h3>
-                      <div className="mt-3 space-y-3">
-                        {propostas.map((proposta) => (
-                          <div
-                            key={proposta.id}
-                            className="rounded-2xl border border-slate-200 bg-white p-4 text-sm"
+                  <section className="rounded-2xl border border-slate-200 bg-slate-50 p-4">
+                    <div className="flex flex-col gap-3 border-b border-slate-200 pb-4 md:flex-row md:items-start md:justify-between">
+                      <div>
+                        <h3 className="flex items-center gap-2 text-sm font-semibold text-slate-900">
+                          <FileText className="h-4 w-4 text-slate-500" />
+                          Pre-contrato / Proposta
+                        </h3>
+                        <p className="mt-1 text-sm text-slate-500">
+                          Comercial monta e envia a proposta. Cliente visualiza
+                          e responde. Gestao revisa valores e trecho quando a
+                          negociacao segue para aprovacao.
+                        </p>
+                      </div>
+
+                      <div className="flex flex-wrap items-center gap-2">
+                        {propostas.length > 0 ? (
+                          <select
+                            value={selectedPropostaId || propostas[0]?.id || ""}
+                            onChange={(event) =>
+                              setSelectedPropostaId(event.target.value)
+                            }
+                            className="crm-input min-w-[220px] bg-white"
                           >
+                            {propostas.map((proposta) => (
+                              <option key={proposta.id} value={proposta.id}>
+                                {proposta.code} | v{proposta.versao} |{" "}
+                                {proposta.titulo}
+                              </option>
+                            ))}
+                          </select>
+                        ) : null}
+
+                        {isCommercial ? (
+                          <button
+                            type="button"
+                            onClick={() => {
+                              setSelectedPropostaId("new");
+                              setProposalFile(null);
+                              setProposalForm({
+                                ...emptyProposalFormState,
+                                titulo: selectedTicket.quote
+                                  ? `Proposta ${selectedTicket.quote.serviceType}`
+                                  : "",
+                                origem: selectedTicket.quote?.origin ?? "",
+                                destino:
+                                  selectedTicket.quote?.destination ?? "",
+                                valor:
+                                  selectedTicket.quote?.price !== null &&
+                                  selectedTicket.quote?.price !== undefined
+                                    ? String(selectedTicket.quote.price)
+                                    : "",
+                              });
+                            }}
+                            className="rounded-2xl border border-slate-300 bg-white px-4 py-2 text-sm font-semibold text-slate-700 transition hover:bg-slate-100"
+                          >
+                            Nova proposta
+                          </button>
+                        ) : null}
+                      </div>
+                    </div>
+
+                    {selectedProposta ? (
+                      <div className="mt-4 grid gap-4 xl:grid-cols-[minmax(0,1.35fr)_minmax(280px,.65fr)]">
+                        <article className="overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-sm">
+                          <div className="border-b border-slate-100 bg-slate-950 px-5 py-4 text-white">
                             <div className="flex flex-wrap items-start justify-between gap-3">
                               <div>
-                                <p className="font-semibold text-slate-950">
-                                  v{proposta.versao} - {proposta.titulo}
+                                <p className="text-xs font-semibold uppercase tracking-[0.22em] text-slate-300">
+                                  {selectedProposta.code} · v
+                                  {selectedProposta.versao}
                                 </p>
-                                <p className="mt-1 text-slate-500">
-                                  {proposta.descricaoServico ||
-                                    proposta.descricao ||
-                                    "Sem descricao informada"}
-                                </p>
+                                <h4 className="mt-2 text-xl font-semibold">
+                                  {selectedProposta.titulo}
+                                </h4>
                               </div>
-                              <span className="rounded-full bg-blue-50 px-3 py-1 text-xs font-semibold text-blue-700">
-                                {propostaStatusLabels[proposta.status]}
+                              <span
+                                className={`rounded-full px-3 py-1 text-xs font-semibold ring-1 ring-white/40 ${getPropostaStatusClass(selectedProposta.status)}`}
+                              >
+                                {propostaStatusLabels[selectedProposta.status]}
                               </span>
                             </div>
-                            <dl className="mt-3 grid gap-2 text-xs text-slate-500 sm:grid-cols-3">
-                              <div>
-                                <dt className="font-semibold text-slate-700">
-                                  Valor
-                                </dt>
-                                <dd>
-                                  {proposta.valor
-                                    ? Number(proposta.valor).toLocaleString(
-                                        "pt-BR",
-                                        { style: "currency", currency: "BRL" },
-                                      )
-                                    : "Nao informado"}
-                                </dd>
-                              </div>
-                              <div>
-                                <dt className="font-semibold text-slate-700">
-                                  Validade
-                                </dt>
-                                <dd>
-                                  {proposta.validaAte
-                                    ? formatDate(proposta.validaAte)
-                                    : "Nao informada"}
-                                </dd>
-                              </div>
-                              <div>
-                                <dt className="font-semibold text-slate-700">
-                                  Envio
-                                </dt>
-                                <dd>
-                                  {proposta.enviadaEm
-                                    ? formatDate(proposta.enviadaEm)
-                                    : "Nao enviada"}
-                                </dd>
-                              </div>
-                            </dl>
                           </div>
-                        ))}
-                      </div>
-                    </section>
-                  ) : null}
 
-                  <section>
-                    <h3 className="flex items-center gap-2 text-sm font-semibold text-slate-900">
-                      <MessageSquare className="h-4 w-4 text-slate-500" />
-                      Conversa
-                    </h3>
-                    <div className="mt-3 space-y-3">
-                      {(selectedTicket.messages ?? []).map((message) => (
-                        <div
-                          key={message.id}
-                          className="rounded-2xl border border-slate-200 bg-white p-4"
-                        >
-                          <div className="flex flex-wrap items-center justify-between gap-2">
-                            <div className="inline-flex items-center gap-2 text-sm font-semibold text-slate-900">
-                              <MessageSquare className="h-4 w-4 text-slate-400" />
-                              {message.senderType === "CLIENTE" ||
-                              message.senderType === "CLIENT"
-                                ? "Cliente"
-                                : "Equipe interna"}
-                              {message.isInternal ? (
-                                <span className="inline-flex items-center gap-1 rounded-full bg-slate-100 px-2 py-0.5 text-xs text-slate-600">
-                                  <Lock className="h-3 w-3" />
-                                  Interna
-                                </span>
+                          <div>
+                            <div className="grid gap-4 border-b border-slate-100 bg-slate-50 p-5 sm:grid-cols-3">
+                              <div className="sm:col-span-3">
+                                <p className="text-xs font-semibold uppercase tracking-[0.18em] text-slate-500">
+                                  Valor negociado
+                                </p>
+                                <p className="mt-2 text-3xl font-bold tracking-tight text-slate-950">
+                                  {formatCurrency(selectedProposta.valor)}
+                                </p>
+                              </div>
+                              <div>
+                                <p className="text-xs font-semibold uppercase tracking-[0.14em] text-slate-500">
+                                  Origem
+                                </p>
+                                <p className="mt-1 break-words text-sm font-semibold text-slate-900">
+                                  {selectedProposta.origem || "Nao informada"}
+                                </p>
+                              </div>
+                              <div>
+                                <p className="text-xs font-semibold uppercase tracking-[0.14em] text-slate-500">
+                                  Destino
+                                </p>
+                                <p className="mt-1 break-words text-sm font-semibold text-slate-900">
+                                  {selectedProposta.destino || "Nao informado"}
+                                </p>
+                              </div>
+                              <div>
+                                <p className="text-xs font-semibold uppercase tracking-[0.14em] text-slate-500">
+                                  Validade
+                                </p>
+                                <p className="mt-1 break-words text-sm font-semibold text-slate-900">
+                                  {selectedProposta.validaAte
+                                    ? formatDate(selectedProposta.validaAte)
+                                    : selectedProposta.validadeDias
+                                      ? `${selectedProposta.validadeDias} dia(s)`
+                                      : "Nao informada"}
+                                </p>
+                              </div>
+                            </div>
+
+                            <div className="p-5">
+                              <div className="grid gap-4 2xl:grid-cols-2">
+                                <section className="rounded-2xl border border-slate-200 bg-white p-4 2xl:col-span-2">
+                                  <p className="text-xs font-semibold uppercase tracking-[0.16em] text-slate-500">
+                                    Servico
+                                  </p>
+                                  <p className="mt-2 whitespace-pre-wrap break-words text-sm leading-6 text-slate-700">
+                                    {selectedProposta.descricaoServico ||
+                                      selectedProposta.descricao ||
+                                      "Sem descricao detalhada informada."}
+                                  </p>
+                                </section>
+                                <section className="min-w-0 rounded-2xl border border-slate-200 bg-slate-50 p-4">
+                                  <p className="text-sm font-semibold text-slate-950">
+                                    Condicoes comerciais
+                                  </p>
+                                  <p className="mt-2 whitespace-pre-wrap break-words text-sm leading-6 text-slate-600">
+                                    {selectedProposta.condicoesComerciais ||
+                                      "Nao informadas"}
+                                  </p>
+                                </section>
+                                <section className="min-w-0 rounded-2xl border border-slate-200 bg-slate-50 p-4">
+                                  <p className="text-sm font-semibold text-slate-950">
+                                    Pagamento
+                                  </p>
+                                  <p className="mt-2 whitespace-pre-wrap break-words text-sm leading-6 text-slate-600">
+                                    {selectedProposta.condicoesPagamento ||
+                                      "Pagamento nao informado"}
+                                  </p>
+                                </section>
+                              </div>
+
+                              {selectedProposta.observacoes ||
+                              selectedProposta.motivoRecusaCliente ? (
+                                <div className="mt-4 rounded-2xl border border-slate-200 bg-white p-4 text-sm text-slate-600">
+                                  <p className="font-semibold text-slate-950">
+                                    Observacoes
+                                  </p>
+                                  {selectedProposta.observacoes ? (
+                                    <p className="mt-2 whitespace-pre-wrap leading-6">
+                                      {selectedProposta.observacoes}
+                                    </p>
+                                  ) : null}
+                                  {selectedProposta.motivoRecusaCliente ? (
+                                    <p className="mt-3 whitespace-pre-wrap rounded-xl bg-rose-50 px-3 py-2 leading-6 text-rose-700">
+                                      Recusa do cliente:{" "}
+                                      {selectedProposta.motivoRecusaCliente}
+                                    </p>
+                                  ) : null}
+                                </div>
+                              ) : null}
+
+                              {selectedProposta.arquivoUrl ? (
+                                <a
+                                  href={getUploadUrl(
+                                    selectedProposta.arquivoUrl,
+                                  )}
+                                  target="_blank"
+                                  rel="noreferrer"
+                                  className="mt-4 flex items-center justify-between gap-3 rounded-2xl border border-blue-100 bg-blue-50 p-4 text-sm font-semibold text-blue-800 transition hover:bg-blue-100"
+                                >
+                                  <span className="inline-flex items-center gap-2">
+                                    <Paperclip className="h-4 w-4" />
+                                    {selectedProposta.arquivoNome ||
+                                      "Arquivo da proposta"}
+                                  </span>
+                                  <span className="text-xs font-medium text-blue-600">
+                                    {formatFileSize(
+                                      selectedProposta.arquivoTamanho,
+                                    )}
+                                  </span>
+                                </a>
                               ) : null}
                             </div>
-                            <span className="text-xs text-slate-400">
-                              {formatDate(message.createdAt)}
-                            </span>
                           </div>
-                          <p className="mt-3 whitespace-pre-wrap text-sm leading-6 text-slate-600">
-                            {message.message}
+                        </article>
+
+                        <article className="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm">
+                          <p className="text-sm font-semibold text-slate-900">
+                            Linha de aprovacao
                           </p>
+                          <div className="mt-5 space-y-4 text-sm">
+                            {[
+                              ["Cliente", getClientName(selectedTicket)],
+                              [
+                                "Enviada ao cliente",
+                                selectedProposta.enviadaEm
+                                  ? formatDate(selectedProposta.enviadaEm)
+                                  : "Ainda nao enviada",
+                              ],
+                              [
+                                "Resposta do cliente",
+                                selectedProposta.aprovadaPeloClienteEm
+                                  ? formatDate(
+                                      selectedProposta.aprovadaPeloClienteEm,
+                                    )
+                                  : selectedProposta.recusadaPeloClienteEm
+                                    ? formatDate(
+                                        selectedProposta.recusadaPeloClienteEm,
+                                      )
+                                    : "Pendente",
+                              ],
+                              [
+                                "Gestao",
+                                selectedProposta.status ===
+                                "APROVADA_PELA_GESTAO"
+                                  ? "Aprovada"
+                                  : selectedProposta.status ===
+                                      "RECUSADA_PELA_GESTAO"
+                                    ? "Recusada"
+                                    : selectedTicket.status ===
+                                          "AGUARDANDO_GESTAO" ||
+                                        selectedProposta.status ===
+                                          "ENVIADA_PARA_GESTAO"
+                                      ? "Em analise"
+                                      : "Nao iniciada",
+                              ],
+                            ].map(([label, value]) => (
+                              <div
+                                key={label}
+                                className="rounded-2xl border border-slate-200 bg-slate-50 px-4 py-3"
+                              >
+                                <p className="text-xs font-semibold uppercase tracking-[0.14em] text-slate-500">
+                                  {label}
+                                </p>
+                                <p className="mt-1 font-semibold text-slate-950">
+                                  {value}
+                                </p>
+                              </div>
+                            ))}
+                          </div>
+                        </article>
+                      </div>
+                    ) : (
+                      <div className="mt-4 rounded-2xl border border-dashed border-slate-300 bg-white p-6 text-sm text-slate-500">
+                        Nenhuma proposta formal criada para este ticket ainda.
+                      </div>
+                    )}
+
+                    {isCommercial ? (
+                      <form
+                        onSubmit={handleProposalSubmit}
+                        className="mt-4 rounded-2xl border border-slate-200 bg-white p-4"
+                      >
+                        <div className="flex items-center justify-between gap-3">
+                          <div>
+                            <p className="text-sm font-semibold text-slate-900">
+                              {selectedPropostaId === "new" || !selectedProposta
+                                ? "Criar proposta"
+                                : `Editar ${selectedProposta.code}`}
+                            </p>
+                            <p className="mt-1 text-sm text-slate-500">
+                              Monte o pre-contrato com valores, trecho e
+                              condicoes antes de enviar ao cliente.
+                            </p>
+                          </div>
+                          {selectedProposta ? (
+                            <button
+                              type="button"
+                              disabled={
+                                saving ||
+                                ![
+                                  "RASCUNHO",
+                                  "AJUSTE_SOLICITADO_PELO_CLIENTE",
+                                  "AJUSTE_SOLICITADO_PELA_GESTAO",
+                                ].includes(selectedProposta.status)
+                              }
+                              onClick={handleSendProposalToClient}
+                              className="rounded-2xl bg-blue-700 px-4 py-2 text-sm font-semibold text-white transition hover:bg-blue-800 disabled:opacity-60"
+                            >
+                              Enviar ao cliente
+                            </button>
+                          ) : null}
                         </div>
-                      ))}
+
+                        <div className="mt-4 grid gap-3 md:grid-cols-2">
+                          <input
+                            value={proposalForm.titulo}
+                            onChange={(event) =>
+                              setProposalForm((current) => ({
+                                ...current,
+                                titulo: event.target.value,
+                              }))
+                            }
+                            className="crm-input"
+                            placeholder="Titulo da proposta"
+                          />
+                          <input
+                            value={proposalForm.valor}
+                            onChange={(event) =>
+                              setProposalForm((current) => ({
+                                ...current,
+                                valor: event.target.value,
+                              }))
+                            }
+                            className="crm-input"
+                            placeholder="Valor total em R$"
+                          />
+                          <input
+                            value={proposalForm.origem}
+                            onChange={(event) =>
+                              setProposalForm((current) => ({
+                                ...current,
+                                origem: event.target.value,
+                              }))
+                            }
+                            className="crm-input"
+                            placeholder="Origem"
+                          />
+                          <input
+                            value={proposalForm.destino}
+                            onChange={(event) =>
+                              setProposalForm((current) => ({
+                                ...current,
+                                destino: event.target.value,
+                              }))
+                            }
+                            className="crm-input"
+                            placeholder="Destino"
+                          />
+                          <input
+                            value={proposalForm.validadeDias}
+                            onChange={(event) =>
+                              setProposalForm((current) => ({
+                                ...current,
+                                validadeDias: event.target.value,
+                              }))
+                            }
+                            className="crm-input"
+                            placeholder="Validade em dias"
+                          />
+                          <input
+                            value={proposalForm.condicoesPagamento}
+                            onChange={(event) =>
+                              setProposalForm((current) => ({
+                                ...current,
+                                condicoesPagamento: event.target.value,
+                              }))
+                            }
+                            className="crm-input"
+                            placeholder="Condicoes de pagamento"
+                          />
+                        </div>
+
+                        <textarea
+                          value={proposalForm.descricaoServico}
+                          onChange={(event) =>
+                            setProposalForm((current) => ({
+                              ...current,
+                              descricaoServico: event.target.value,
+                            }))
+                          }
+                          className="crm-textarea mt-3"
+                          rows={3}
+                          placeholder="Descricao do servico"
+                        />
+                        <textarea
+                          value={proposalForm.condicoesComerciais}
+                          onChange={(event) =>
+                            setProposalForm((current) => ({
+                              ...current,
+                              condicoesComerciais: event.target.value,
+                            }))
+                          }
+                          className="crm-textarea mt-3"
+                          rows={3}
+                          placeholder="Condicoes comerciais"
+                        />
+                        <textarea
+                          value={proposalForm.observacoes}
+                          onChange={(event) =>
+                            setProposalForm((current) => ({
+                              ...current,
+                              observacoes: event.target.value,
+                            }))
+                          }
+                          className="crm-textarea mt-3"
+                          rows={3}
+                          placeholder="Observacoes do pre-contrato"
+                        />
+
+                        <div className="mt-3 rounded-2xl border border-slate-200 bg-slate-50 p-4">
+                          <label className="flex flex-col gap-2 text-sm font-semibold text-slate-700">
+                            <span className="inline-flex items-center gap-2">
+                              <Paperclip className="h-4 w-4 text-slate-500" />
+                              Arquivo da proposta
+                            </span>
+                            <input
+                              type="file"
+                              accept=".pdf,.doc,.docx,.xls,.xlsx,.png,.jpg,.jpeg"
+                              disabled={!canEditSelectedProposal || saving}
+                              onChange={(event) =>
+                                setProposalFile(event.target.files?.[0] ?? null)
+                              }
+                              className="block w-full text-sm text-slate-600 file:mr-4 file:rounded-xl file:border-0 file:bg-white file:px-4 file:py-2 file:text-sm file:font-semibold file:text-slate-700"
+                            />
+                          </label>
+                          <div className="mt-2 flex flex-wrap items-center gap-3 text-xs text-slate-500">
+                            {proposalFile ? (
+                              <span>{proposalFile.name}</span>
+                            ) : selectedProposta?.arquivoUrl ? (
+                              <a
+                                href={getUploadUrl(selectedProposta.arquivoUrl)}
+                                target="_blank"
+                                rel="noreferrer"
+                                className="font-semibold text-blue-700"
+                              >
+                                {selectedProposta.arquivoNome ||
+                                  "Arquivo atual"}
+                              </a>
+                            ) : (
+                              <span>Nenhum arquivo anexado.</span>
+                            )}
+                          </div>
+                        </div>
+
+                        {!canEditSelectedProposal ? (
+                          <div className="mt-3 rounded-2xl border border-amber-200 bg-amber-50 px-4 py-3 text-sm text-amber-800">
+                            Edicao bloqueada. Para alterar valor ou arquivo, o
+                            cliente precisa solicitar ajuste ou receber uma nova
+                            versao para aprovar.
+                          </div>
+                        ) : null}
+
+                        <div className="mt-4 flex flex-wrap justify-end gap-2">
+                          {selectedPropostaId === "new" ? (
+                            <button
+                              type="button"
+                              onClick={() => {
+                                setSelectedPropostaId(propostas[0]?.id ?? "");
+                                setProposalFile(null);
+                                setProposalForm(
+                                  propostaToFormState(propostas[0] ?? null),
+                                );
+                              }}
+                              className="rounded-2xl border border-slate-300 bg-white px-4 py-2 text-sm font-semibold text-slate-700 transition hover:bg-slate-100"
+                            >
+                              Cancelar
+                            </button>
+                          ) : null}
+                          <button
+                            type="submit"
+                            disabled={saving || !canEditSelectedProposal}
+                            className="rounded-2xl bg-slate-950 px-4 py-2 text-sm font-semibold text-white transition hover:bg-slate-800 disabled:opacity-60"
+                          >
+                            {saving
+                              ? "Salvando..."
+                              : selectedPropostaId === "new" ||
+                                  !selectedProposta
+                                ? "Criar proposta"
+                                : "Salvar proposta"}
+                          </button>
+                        </div>
+                      </form>
+                    ) : null}
+                  </section>
+
+                  <section className="rounded-2xl border border-slate-200 bg-white p-4">
+                    <div className="flex flex-wrap items-center justify-between gap-2">
+                      <h3 className="flex items-center gap-2 text-sm font-semibold text-slate-900">
+                        <MessageSquare className="h-4 w-4 text-slate-500" />
+                        Conversa
+                      </h3>
+                      <span className="rounded-full bg-slate-100 px-3 py-1 text-xs font-semibold text-slate-600">
+                        {selectedTicket.messages?.length ?? 0} mensagem(ns)
+                      </span>
+                    </div>
+                    <div className="mt-3 max-h-[520px] space-y-3 overflow-y-auto rounded-2xl bg-slate-50 p-3">
+                      {(selectedTicket.messages ?? []).length === 0 ? (
+                        <div className="rounded-2xl border border-dashed border-slate-300 bg-white p-6 text-center text-sm text-slate-500">
+                          Nenhuma mensagem registrada neste ticket.
+                        </div>
+                      ) : null}
+
+                      {(selectedTicket.messages ?? []).map((message) => {
+                        const isClientMessage =
+                          message.senderType === "CLIENTE" ||
+                          message.senderType === "CLIENT";
+
+                        return (
+                          <div
+                            key={message.id}
+                            className={`flex ${isClientMessage ? "justify-start" : "justify-end"}`}
+                          >
+                            <div
+                              className={`w-full max-w-3xl rounded-2xl border p-4 ${
+                                message.isInternal
+                                  ? "border-amber-200 bg-amber-50"
+                                  : isClientMessage
+                                    ? "border-slate-200 bg-white"
+                                    : "border-blue-200 bg-blue-50"
+                              }`}
+                            >
+                              <div className="flex flex-wrap items-center justify-between gap-2">
+                                <div className="inline-flex items-center gap-2 text-sm font-semibold text-slate-900">
+                                  <MessageSquare className="h-4 w-4 text-slate-400" />
+                                  {isClientMessage
+                                    ? "Cliente"
+                                    : "Comercial / interno"}
+                                  {message.createdBy?.name ? (
+                                    <span className="text-xs font-medium text-slate-500">
+                                      {message.createdBy.name}
+                                    </span>
+                                  ) : null}
+                                  {message.isInternal ? (
+                                    <span className="inline-flex items-center gap-1 rounded-full bg-white/80 px-2 py-0.5 text-xs text-amber-700">
+                                      <Lock className="h-3 w-3" />
+                                      Interna
+                                    </span>
+                                  ) : null}
+                                </div>
+                                <span className="text-xs text-slate-400">
+                                  {formatDate(message.createdAt)}
+                                </span>
+                              </div>
+                              <p className="mt-3 whitespace-pre-wrap text-sm leading-6 text-slate-700">
+                                {message.message}
+                              </p>
+                              {message.attachments?.length ? (
+                                <div className="mt-3 flex flex-wrap gap-2">
+                                  {message.attachments.map(
+                                    (attachment, index) =>
+                                      attachment.url ? (
+                                        <a
+                                          key={`${attachment.url}-${index}`}
+                                          href={getUploadUrl(attachment.url)}
+                                          target="_blank"
+                                          rel="noreferrer"
+                                          className="inline-flex items-center gap-2 rounded-xl border border-slate-200 bg-white px-3 py-2 text-xs font-semibold text-slate-700 hover:bg-slate-50"
+                                        >
+                                          <Paperclip className="h-3.5 w-3.5" />
+                                          {attachment.name || "Anexo"}
+                                        </a>
+                                      ) : null,
+                                  )}
+                                </div>
+                              ) : null}
+                            </div>
+                          </div>
+                        );
+                      })}
                     </div>
 
                     <form onSubmit={handleReply} className="mt-5 space-y-3">
@@ -1067,6 +1850,12 @@ export default function TicketsPage() {
                       </button>
                     </form>
                   </section>
+
+                  <ChatBox
+                    entityType="TICKET"
+                    entityId={selectedTicket.id}
+                    title={selectedTicket.subject}
+                  />
 
                   {isInternal ? (
                     <section className="rounded-2xl border border-slate-200 bg-slate-50 p-4">
@@ -1208,26 +1997,41 @@ export default function TicketsPage() {
                         <button
                           type="button"
                           disabled={
-                            saving ||
-                            selectedTicket.status !== "APROVADO_CLIENTE"
+                            saving || !canSendCurrentProposalToManagement
                           }
                           onClick={() =>
                             token &&
-                            executeTicketAction(
-                              () =>
-                                sendTicketToManagement(
-                                  selectedTicket.id,
-                                  {},
-                                  token,
-                                ),
-                              "Negociacao enviada para Gestao.",
-                            )
+                            (selectedProposta
+                              ? executePropostaAction(
+                                  () =>
+                                    sendTicketPropostaToManagement(
+                                      selectedTicket.id,
+                                      selectedProposta.id,
+                                      token,
+                                    ),
+                                  "Proposta enviada para Gestao.",
+                                )
+                              : executeTicketAction(
+                                  () =>
+                                    sendTicketToManagement(
+                                      selectedTicket.id,
+                                      {},
+                                      token,
+                                    ),
+                                  "Negociacao enviada para Gestao.",
+                                ))
                           }
                           className="flex w-full items-center justify-center gap-2 rounded-2xl bg-indigo-700 px-4 py-2.5 text-sm font-semibold text-white hover:bg-indigo-800 disabled:opacity-60"
                         >
                           <ShieldCheck className="h-4 w-4" />
                           Enviar para Gestao
                         </button>
+                        {selectedProposta ? (
+                          <p className="text-xs leading-5 text-slate-500">
+                            A proposta {selectedProposta.code} precisa estar
+                            aprovada pelo cliente para seguir para a Gestao.
+                          </p>
+                        ) : null}
                       </div>
                     ) : null}
 
@@ -1246,7 +2050,12 @@ export default function TicketsPage() {
                         />
                         <button
                           type="button"
-                          disabled={saving}
+                          disabled={
+                            saving ||
+                            (selectedProposta?.status ===
+                              "ENVIADA_PARA_GESTAO" &&
+                              !managementMessage.trim())
+                          }
                           onClick={() =>
                             token &&
                             executePropostaAction(
@@ -1323,22 +2132,37 @@ export default function TicketsPage() {
                         />
                         <button
                           type="button"
-                          disabled={saving}
+                          disabled={
+                            saving ||
+                            (selectedProposta?.status ===
+                              "ENVIADA_PARA_GESTAO" &&
+                              !managementMessage.trim())
+                          }
                           onClick={() =>
                             token &&
-                            executeTicketAction(
-                              () =>
-                                managementTicketDecision(
-                                  selectedTicket.id,
-                                  {
-                                    action: "APPROVE",
-                                    message:
-                                      managementMessage.trim() || undefined,
-                                  },
-                                  token,
-                                ),
-                              "Aprovacao da Gestao registrada.",
-                            )
+                            (selectedProposta?.status === "ENVIADA_PARA_GESTAO"
+                              ? executePropostaAction(
+                                  () =>
+                                    approveTicketPropostaByManagement(
+                                      selectedTicket.id,
+                                      selectedProposta.id,
+                                      token,
+                                    ),
+                                  "Aprovacao da Gestao registrada.",
+                                )
+                              : executeTicketAction(
+                                  () =>
+                                    managementTicketDecision(
+                                      selectedTicket.id,
+                                      {
+                                        action: "APPROVE",
+                                        message:
+                                          managementMessage.trim() || undefined,
+                                      },
+                                      token,
+                                    ),
+                                  "Aprovacao da Gestao registrada.",
+                                ))
                           }
                           className="flex w-full items-center justify-center gap-2 rounded-2xl bg-emerald-700 px-4 py-2.5 text-sm font-semibold text-white hover:bg-emerald-800 disabled:opacity-60"
                         >
@@ -1350,19 +2174,30 @@ export default function TicketsPage() {
                           disabled={saving}
                           onClick={() =>
                             token &&
-                            executeTicketAction(
-                              () =>
-                                managementTicketDecision(
-                                  selectedTicket.id,
-                                  {
-                                    action: "REQUEST_ADJUSTMENT",
-                                    message:
-                                      managementMessage.trim() || undefined,
-                                  },
-                                  token,
-                                ),
-                              "Ajuste solicitado ao Comercial.",
-                            )
+                            (selectedProposta?.status === "ENVIADA_PARA_GESTAO"
+                              ? executePropostaAction(
+                                  () =>
+                                    requestTicketPropostaAdjustmentByManagement(
+                                      selectedTicket.id,
+                                      selectedProposta.id,
+                                      managementMessage.trim(),
+                                      token,
+                                    ),
+                                  "Ajuste solicitado ao Comercial.",
+                                )
+                              : executeTicketAction(
+                                  () =>
+                                    managementTicketDecision(
+                                      selectedTicket.id,
+                                      {
+                                        action: "REQUEST_ADJUSTMENT",
+                                        message:
+                                          managementMessage.trim() || undefined,
+                                      },
+                                      token,
+                                    ),
+                                  "Ajuste solicitado ao Comercial.",
+                                ))
                           }
                           className="flex w-full items-center justify-center gap-2 rounded-2xl border border-amber-300 bg-amber-50 px-4 py-2.5 text-sm font-semibold text-amber-800 hover:bg-amber-100 disabled:opacity-60"
                         >
@@ -1374,25 +2209,42 @@ export default function TicketsPage() {
                           disabled={saving}
                           onClick={() =>
                             token &&
-                            executeTicketAction(
-                              () =>
-                                managementTicketDecision(
-                                  selectedTicket.id,
-                                  {
-                                    action: "REJECT",
-                                    message:
-                                      managementMessage.trim() || undefined,
-                                  },
-                                  token,
-                                ),
-                              "Reprovacao registrada.",
-                            )
+                            (selectedProposta?.status === "ENVIADA_PARA_GESTAO"
+                              ? executePropostaAction(
+                                  () =>
+                                    rejectTicketPropostaByManagement(
+                                      selectedTicket.id,
+                                      selectedProposta.id,
+                                      managementMessage.trim(),
+                                      token,
+                                    ),
+                                  "Reprovacao registrada.",
+                                )
+                              : executeTicketAction(
+                                  () =>
+                                    managementTicketDecision(
+                                      selectedTicket.id,
+                                      {
+                                        action: "REJECT",
+                                        message:
+                                          managementMessage.trim() || undefined,
+                                      },
+                                      token,
+                                    ),
+                                  "Reprovacao registrada.",
+                                ))
                           }
                           className="flex w-full items-center justify-center gap-2 rounded-2xl border border-rose-300 bg-rose-50 px-4 py-2.5 text-sm font-semibold text-rose-700 hover:bg-rose-100 disabled:opacity-60"
                         >
                           <XCircle className="h-4 w-4" />
                           Reprovar
                         </button>
+                        {selectedProposta?.status === "ENVIADA_PARA_GESTAO" ? (
+                          <p className="text-xs leading-5 text-slate-500">
+                            A decisao formal da Gestao sobre a proposta cai
+                            apenas para o Comercial neste fluxo.
+                          </p>
+                        ) : null}
                       </div>
                     ) : null}
                   </section>

@@ -1,7 +1,6 @@
 import type { Quote } from "./quotes";
 import type { Opportunity } from "./crm";
 
-
 export type TicketStatus =
   | "NOVO"
   | "ABERTO"
@@ -48,7 +47,12 @@ export type TicketMessage = {
   senderType: "CLIENTE" | "INTERNO" | "CLIENT" | "AGENT" | "AI";
   message: string;
   isInternal?: boolean;
-  attachments?: unknown;
+  attachments?: Array<{
+    name?: string | null;
+    url?: string | null;
+    mimeType?: string | null;
+    size?: number | null;
+  }> | null;
   createdById?: string | null;
   createdAt: string;
   updatedAt: string;
@@ -93,6 +97,7 @@ export type StatusProposta =
 
 export type Proposta = {
   id: string;
+  code: string;
   ticketId: string;
   quoteId?: string | null;
   opportunityId?: string | null;
@@ -114,6 +119,10 @@ export type Proposta = {
   condicoesPagamento?: string | null;
   condicoesComerciais?: string | null;
   observacoes?: string | null;
+  arquivoNome?: string | null;
+  arquivoUrl?: string | null;
+  arquivoMimeType?: string | null;
+  arquivoTamanho?: number | null;
 
   validadeDias?: number | null;
   validaAte?: string | null;
@@ -124,6 +133,7 @@ export type Proposta = {
 
   aprovadaPeloClienteEm?: string | null;
   recusadaPeloClienteEm?: string | null;
+  motivoRecusaCliente?: string | null;
   ajusteSolicitadoPeloClienteEm?: string | null;
 
   enviadaParaGestaoEm?: string | null;
@@ -149,11 +159,7 @@ export type Proposta = {
   } | null;
 };
 
-export type StatusLogEmail =
-  | "PENDENTE"
-  | "ENVIADO"
-  | "FALHOU"
-  | "IGNORADO";
+export type StatusLogEmail = "PENDENTE" | "ENVIADO" | "FALHOU" | "IGNORADO";
 
 export type LogEmail = {
   id: string;
@@ -209,6 +215,8 @@ export type ClientePropostaDecisionPayload = {
 export type GestaoPropostaDecisionPayload = {
   motivo?: string;
 };
+
+export type ManagementPropostaDecisionResponse = PropostaActionResponse;
 
 export type TicketLead = {
   id: string;

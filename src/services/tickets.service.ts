@@ -1,8 +1,10 @@
-import { apiFetch } from "@/services/api";
+import { API_BASE_URL, apiFetch } from "@/services/api";
 import type {
   ClientePropostaDecisionPayload,
   ClientPropostaDecisionResponse,
   CreatePropostaPayload,
+  GestaoPropostaDecisionPayload,
+  ManagementPropostaDecisionResponse,
   CreateTicketPayload,
   Proposta,
   PropostaActionResponse,
@@ -36,6 +38,49 @@ function buildTicketQuery(filters: TicketFilters = {}) {
   const query = params.toString();
 
   return query ? `?${query}` : "";
+}
+
+async function fetchPropostaWithOptionalFile<T>(
+  endpoint: string,
+  method: "POST" | "PATCH",
+  payload: CreatePropostaPayload | UpdatePropostaPayload,
+  token: string,
+  arquivo?: File | null,
+): Promise<T> {
+  const headers = new Headers();
+  headers.set("Authorization", `Bearer ${token}`);
+
+  let body: BodyInit;
+
+  if (arquivo) {
+    const formData = new FormData();
+
+    Object.entries(payload).forEach(([key, value]) => {
+      if (value !== undefined && value !== null && value !== "") {
+        formData.append(key, String(value));
+      }
+    });
+    formData.append("arquivo", arquivo);
+    body = formData;
+  } else {
+    headers.set("Content-Type", "application/json");
+    body = JSON.stringify(payload);
+  }
+
+  const response = await fetch(`${API_BASE_URL}${endpoint}`, {
+    method,
+    headers,
+    body,
+  });
+  const data = await response.json().catch(() => null);
+
+  if (!response.ok) {
+    throw new Error(
+      data?.message || data?.error || "Erro ao comunicar com a API.",
+    );
+  }
+
+  return data as T;
 }
 
 export function getAllTickets(token: string, filters: TicketFilters = {}) {
@@ -215,14 +260,14 @@ export function createTicketProposta(
   ticketId: string,
   payload: CreatePropostaPayload,
   token: string,
+  arquivo?: File | null,
 ) {
-  return apiFetch<Proposta>(
+  return fetchPropostaWithOptionalFile<Proposta>(
     `/tickets/${ticketId}/propostas`,
-    {
-      method: "POST",
-      body: JSON.stringify(payload),
-    },
+    "POST",
+    payload,
     token,
+    arquivo,
   );
 }
 
@@ -231,14 +276,14 @@ export function updateTicketProposta(
   propostaId: string,
   payload: UpdatePropostaPayload,
   token: string,
+  arquivo?: File | null,
 ) {
-  return apiFetch<Proposta>(
+  return fetchPropostaWithOptionalFile<Proposta>(
     `/tickets/${ticketId}/propostas/${propostaId}`,
-    {
-      method: "PATCH",
-      body: JSON.stringify(payload),
-    },
+    "PATCH",
+    payload,
     token,
+    arquivo,
   );
 }
 
@@ -246,9 +291,25 @@ export function sendTicketPropostaToClient(
   ticketId: string,
   propostaId: string,
   token: string,
+  payload: UpdatePropostaPayload = {},
 ) {
   return apiFetch<PropostaActionResponse>(
     `/tickets/${ticketId}/propostas/${propostaId}/enviar-cliente`,
+    {
+      method: "POST",
+      body: JSON.stringify(payload),
+    },
+    token,
+  );
+}
+
+export function sendTicketPropostaToManagement(
+  ticketId: string,
+  propostaId: string,
+  token: string,
+) {
+  return apiFetch<PropostaActionResponse>(
+    `/tickets/${ticketId}/propostas/${propostaId}/enviar-gestao`,
     {
       method: "POST",
       body: JSON.stringify({}),
@@ -304,6 +365,61 @@ export function rejectTicketPropostaByClient(
 
   return apiFetch<ClientPropostaDecisionResponse>(
     `/tickets/${ticketId}/propostas/${propostaId}/recusar-cliente`,
+    {
+      method: "POST",
+      body: JSON.stringify(payload),
+    },
+    token,
+  );
+}
+
+export function approveTicketPropostaByManagement(
+  ticketId: string,
+  propostaId: string,
+  token: string,
+) {
+  return apiFetch<ManagementPropostaDecisionResponse>(
+    `/tickets/${ticketId}/propostas/${propostaId}/aprovar-gestao`,
+    {
+      method: "POST",
+      body: JSON.stringify({}),
+    },
+    token,
+  );
+}
+
+export function requestTicketPropostaAdjustmentByManagement(
+  ticketId: string,
+  propostaId: string,
+  motivo: string,
+  token: string,
+) {
+  const payload: GestaoPropostaDecisionPayload = {
+    motivo,
+  };
+
+  return apiFetch<ManagementPropostaDecisionResponse>(
+    `/tickets/${ticketId}/propostas/${propostaId}/solicitar-ajuste-gestao`,
+    {
+      method: "POST",
+      body: JSON.stringify(payload),
+    },
+    token,
+  );
+}
+
+export function rejectTicketPropostaByManagement(
+  ticketId: string,
+  propostaId: string,
+  motivo: string,
+  token: string,
+) {
+  const payload: GestaoPropostaDecisionPayload = {
+    motivo,
+  };
+
+  return apiFetch<ManagementPropostaDecisionResponse>(
+    `/tickets/${ticketId}/propostas/${propostaId}/recusar-gestao`,
     {
       method: "POST",
       body: JSON.stringify(payload),

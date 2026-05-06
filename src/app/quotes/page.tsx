@@ -19,6 +19,7 @@ type QuoteFormState = {
   cargoDescription: string;
   contactName: string;
   contactPhone: string;
+  contactEmail: string;
   weight: string;
   volume: string;
   quantity: string;
@@ -37,6 +38,7 @@ const initialFormState: QuoteFormState = {
   cargoDescription: '',
   contactName: '',
   contactPhone: '',
+  contactEmail: '',
   weight: '',
   volume: '',
   quantity: '',
@@ -45,15 +47,21 @@ const initialFormState: QuoteFormState = {
   notes: '',
 };
 
-function formatCurrency(value?: number | null) {
-  if (value === null || value === undefined) {
+function formatCurrency(value?: number | string | null) {
+  if (value === null || value === undefined || value === '') {
+    return '-';
+  }
+
+  const amount = Number(value);
+
+  if (!Number.isFinite(amount)) {
     return '-';
   }
 
   return new Intl.NumberFormat('pt-BR', {
     style: 'currency',
     currency: 'BRL',
-  }).format(value);
+  }).format(amount);
 }
 
 function formatDate(date?: string | null) {
@@ -147,6 +155,7 @@ export default function QuotesPage() {
   const filteredQuotes = useMemo(() => {
     return quotes.filter((quote) => {
       const haystack = [
+        quote.code,
         quote.origin,
         quote.destination,
         quote.serviceType,
@@ -187,6 +196,12 @@ export default function QuotesPage() {
     if (!form.cargoDescription.trim()) return 'Descreva a carga ou servico.';
     if (!form.contactName.trim()) return 'Informe o nome do contato.';
     if (!form.contactPhone.trim()) return 'Informe o telefone do contato.';
+    if (!form.contactEmail.trim()) return 'Informe o e-mail do contato.';
+    if (!form.merchandiseValue.trim()) return 'Informe o valor da mercadoria.';
+    const merchandiseValue = Number(form.merchandiseValue.replace(',', '.'));
+    if (!Number.isFinite(merchandiseValue) || merchandiseValue <= 0) {
+      return 'Informe um valor de mercadoria valido.';
+    }
     return '';
   }
 
@@ -213,12 +228,11 @@ export default function QuotesPage() {
       cargoDescription: form.cargoDescription.trim(),
       contactName: form.contactName.trim(),
       contactPhone: form.contactPhone.trim(),
+      contactEmail: form.contactEmail.trim(),
       weight: form.weight ? Number(form.weight.replace(',', '.')) : undefined,
       volume: form.volume ? Number(form.volume.replace(',', '.')) : undefined,
       quantity: form.quantity ? Number(form.quantity) : undefined,
-      merchandiseValue: form.merchandiseValue
-        ? Number(form.merchandiseValue.replace(',', '.'))
-        : undefined,
+      merchandiseValue: Number(form.merchandiseValue.replace(',', '.')),
       desiredDeadline: form.desiredDeadline || undefined,
       notes: form.notes.trim() || undefined,
     };
@@ -273,17 +287,19 @@ export default function QuotesPage() {
                 </>
               ) : null}
 
-              <button
-                type="button"
-                onClick={() => {
-                  setIsModalOpen(true);
-                  setFormError('');
-                }}
-                className="inline-flex items-center justify-center gap-2 rounded-2xl bg-slate-950 px-4 py-2.5 text-sm font-semibold text-white transition hover:bg-slate-800"
-              >
-                <PlusCircle className="h-4 w-4" />
-                Nova cotacao
-              </button>
+              {isClient ? (
+                <button
+                  type="button"
+                  onClick={() => {
+                    setIsModalOpen(true);
+                    setFormError('');
+                  }}
+                  className="inline-flex items-center justify-center gap-2 rounded-2xl bg-slate-950 px-4 py-2.5 text-sm font-semibold text-white transition hover:bg-slate-800"
+                >
+                  <PlusCircle className="h-4 w-4" />
+                  Nova cotacao
+                </button>
+              ) : null}
             </div>
           </div>
         </section>
@@ -317,7 +333,7 @@ export default function QuotesPage() {
               </label>
               <input
                 type="text"
-                placeholder="Buscar por cliente, origem, destino ou servico..."
+                placeholder="Buscar por codigo, cliente, origem, destino ou servico..."
                 value={search}
                 onChange={(e) => setSearch(e.target.value)}
                 className="crm-input"
@@ -381,6 +397,9 @@ export default function QuotesPage() {
                       <h4 className="mt-3 text-2xl font-bold text-slate-950">
                         {quote.serviceType}
                       </h4>
+                      <p className="mt-1 text-xs font-semibold uppercase tracking-[0.18em] text-blue-700">
+                        {quote.code}
+                      </p>
                       <p className="mt-1 text-sm text-slate-600">
                         {quote.origin} {'->'} {quote.destination}
                       </p>
@@ -401,7 +420,7 @@ export default function QuotesPage() {
                     </div>
                   </div>
 
-                  <div className="mt-5 grid gap-3 md:grid-cols-2 xl:grid-cols-4">
+                  <div className="mt-5 grid gap-3 md:grid-cols-2 xl:grid-cols-5">
                     <div className="crm-soft-panel p-4 text-sm">
                       <p className="text-slate-500">Tipo de solicitacao</p>
                       <p className="mt-1 font-semibold text-slate-900">
@@ -418,6 +437,12 @@ export default function QuotesPage() {
                       <p className="text-slate-500">Valor da mercadoria</p>
                       <p className="mt-1 font-semibold text-slate-900">
                         {formatCurrency(quote.merchandiseValue)}
+                      </p>
+                    </div>
+                    <div className="crm-soft-panel p-4 text-sm">
+                      <p className="text-slate-500">Valor respondido</p>
+                      <p className="mt-1 font-semibold text-slate-900">
+                        {formatCurrency(quote.price)}
                       </p>
                     </div>
                     <div className="crm-soft-panel p-4 text-sm">
@@ -441,7 +466,7 @@ export default function QuotesPage() {
 
         {isModalOpen ? (
           <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-950/35 p-4 backdrop-blur-[2px]">
-            <div className="w-full max-w-5xl rounded-[32px] border border-white/80 bg-[linear-gradient(180deg,#ffffff_0%,#f8fafc_100%)] p-6 shadow-[0_32px_90px_rgba(15,23,42,0.16)]">
+            <div className="max-h-[calc(100vh-2rem)] w-full max-w-5xl overflow-y-auto rounded-[32px] border border-white/80 bg-[linear-gradient(180deg,#ffffff_0%,#f8fafc_100%)] p-6 shadow-[0_32px_90px_rgba(15,23,42,0.16)]">
               <div className="flex items-start justify-between gap-4">
                 <div>
                   <p className="crm-eyebrow">Nova solicitacao</p>
@@ -596,6 +621,20 @@ export default function QuotesPage() {
 
                 <div>
                   <label className="mb-2 block text-sm font-semibold text-slate-700">
+                    E-mail do contato
+                  </label>
+                  <input
+                    type="email"
+                    value={form.contactEmail}
+                    onChange={(e) =>
+                      setForm((prev) => ({ ...prev, contactEmail: e.target.value }))
+                    }
+                    className="crm-input"
+                  />
+                </div>
+
+                <div>
+                  <label className="mb-2 block text-sm font-semibold text-slate-700">
                     Peso estimado (kg)
                   </label>
                   <input
@@ -632,7 +671,7 @@ export default function QuotesPage() {
 
                 <div>
                   <label className="mb-2 block text-sm font-semibold text-slate-700">
-                    Valor da mercadoria
+                    Valor da mercadoria *
                   </label>
                   <input
                     type="text"

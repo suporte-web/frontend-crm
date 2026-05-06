@@ -121,16 +121,16 @@ export function LeadForm({ loading, onSubmit }: LeadFormProps) {
             onChange={(event) => setForm((prev) => ({ ...prev, status: event.target.value }))}
             className="w-full rounded-2xl border border-slate-300 bg-slate-50 px-4 py-3 text-sm text-slate-900 outline-none transition focus:border-blue-400 focus:bg-white"
           >
-            <option value="new">new</option>
-            <option value="qualified">qualified</option>
-            <option value="contacted">contacted</option>
-            <option value="archived">archived</option>
+            <option value="new">novo</option>
+            <option value="qualified">qualificada</option>
+            <option value="contacted">contatada</option>
+            <option value="archived">arquivada</option>
           </select>
         </div>
       </div>
 
       <div>
-        <label className="mb-2 block text-sm font-semibold text-slate-700">Observacoes</label>
+        <label className="mb-2 block text-sm font-semibold text-slate-700">Observacões</label>
         <textarea
           rows={4}
           value={form.notes}

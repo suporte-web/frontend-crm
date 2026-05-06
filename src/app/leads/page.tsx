@@ -71,12 +71,15 @@ export default function LeadsPage() {
     try {
       setLoading(true);
       setPageError('');
-      const [leadData, jobData] = await Promise.all([
-        getLeads(token, filters),
-        getLeadImportJobs(token),
-      ]);
+      const leadData = await getLeads(token, filters);
       setLeads(leadData);
-      setJobs(jobData);
+
+      try {
+        const jobData = await getLeadImportJobs(token);
+        setJobs(jobData);
+      } catch {
+        setJobs([]);
+      }
     } catch (error) {
       setPageError(error instanceof Error ? error.message : 'Erro ao carregar os leads.');
     } finally {
@@ -245,8 +248,7 @@ export default function LeadsPage() {
               <p className="crm-eyebrow">Captacao</p>
               <h1 className="crm-page-title">Leads por cadastro manual, CSV e WhatsApp</h1>
               <p className="crm-page-copy">
-                Entrada comercial com cara de CRM: mais leitura de origem, volume e
-                qualidade da captacao, menos cara de modulo isolado.
+                Validar e fazer um fluxo
               </p>
             </div>
 
@@ -268,7 +270,7 @@ export default function LeadsPage() {
                 <p className="mt-2 text-2xl font-bold text-green-700">{summary.whatsapp}</p>
               </article>
               <article className="crm-soft-panel px-4 py-3">
-                <p className="text-xs uppercase tracking-[0.18em] text-slate-400">Status new</p>
+                <p className="text-xs uppercase tracking-[0.18em] text-slate-400">Status novo</p>
                 <p className="mt-2 text-2xl font-bold text-violet-700">{summary.fresh}</p>
               </article>
             </div>
@@ -326,7 +328,7 @@ export default function LeadsPage() {
                       Origem padrao: <strong>manual</strong>
                     </div>
                     <div className="rounded-2xl border border-slate-200 bg-white px-4 py-3">
-                      Status padrao: <strong>new</strong>
+                      Status padrao: <strong>novo</strong>
                     </div>
                     <div className="rounded-2xl border border-slate-200 bg-white px-4 py-3">
                       Duplicidade por e-mail; sem e-mail, por telefone.

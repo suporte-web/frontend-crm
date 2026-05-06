@@ -20,6 +20,7 @@ import {
   MapPin,
   Package,
   PackageCheck,
+  PackageSearch,
   Truck,
   UserCheck,
 } from 'lucide-react';
@@ -660,6 +661,7 @@ export default function TrackingsPage() {
     tipoConsulta: 'nro_nf',
     valor: '',
   });
+
   const [isLoading, setIsLoading] = useState(false);
   const [errorMessage, setErrorMessage] = useState('');
   const [responseData, setResponseData] = useState<unknown>(null);
@@ -707,6 +709,9 @@ export default function TrackingsPage() {
   }, [responseData]);
 
   const hasResponseData = responseData !== null;
+
+  const selectedQueryLabel = getQueryTypeLabel(formData.tipoConsulta);
+  const selectedQueryPlaceholder = getValueFieldPlaceholder(formData.tipoConsulta);
 
   function updateField<K extends keyof QueryTrackingPayload>(
     field: K,
@@ -791,575 +796,698 @@ export default function TrackingsPage() {
   return (
     <AppLayout>
       <div className="mx-auto flex w-full max-w-7xl flex-col gap-6">
-        <Card className="rounded-3xl border-zinc-200 shadow-sm">
-          <CardHeader className="border-b border-zinc-100 pb-6">
-            <div className="max-w-3xl">
-              <p className="text-sm font-medium text-zinc-500">Logistica</p>
-              <CardTitle className="mt-1 text-3xl font-bold tracking-tight text-zinc-900">
+        <section className="relative overflow-hidden rounded-[34px] border border-white/80 bg-white/95 shadow-[0_24px_70px_rgba(15,23,42,0.08)] backdrop-blur">
+          <div className="pointer-events-none absolute -right-24 -top-24 h-72 w-72 rounded-full bg-blue-100 blur-3xl" />
+          <div className="pointer-events-none absolute -bottom-24 left-10 h-72 w-72 rounded-full bg-cyan-100 blur-3xl" />
+
+          <div className="relative grid gap-0 xl:grid-cols-[0.82fr_1.18fr]">
+            <div className="border-b border-slate-200/70 bg-[linear-gradient(135deg,#020617_0%,#0f172a_55%,#1d4ed8_100%)] p-6 text-white xl:border-b-0 xl:border-r xl:border-white/10 lg:p-8">
+              <div className="inline-flex items-center gap-2 rounded-full border border-white/15 bg-white/10 px-3 py-1 text-xs font-semibold uppercase tracking-[0.20em] text-sky-100">
+                <Package className="h-3.5 w-3.5" />
+                Logistica
+              </div>
+
+              <h1 className="mt-5 max-w-xl text-3xl font-bold tracking-tight md:text-4xl">
                 Rastreamento de encomenda
-              </CardTitle>
-              <CardDescription className="mt-2 text-sm text-zinc-600">
-                Consulte a situacao da entrega informando o CNPJ, o tipo de
-                consulta e o valor correspondente. A busca e feita pelo backend
-                e traduzida aqui como painel de monitoramento de prazo.
-              </CardDescription>
-            </div>
-          </CardHeader>
+              </h1>
 
-          <CardContent className="pt-6">
-            <div className="max-w-2xl">
-              <CardTitle className="text-lg text-zinc-900">
-                Dados para consulta
-              </CardTitle>
-              <CardDescription className="mt-1 text-sm text-zinc-500">
-                Preencha os campos conforme o contrato do endpoint publico de
-                rastreamento.
-              </CardDescription>
+              <p className="mt-4 max-w-xl text-sm leading-7 text-slate-200">
+                Consulte a situacao da entrega pelo CNPJ e pelo identificador informado
+                no contrato de rastreamento.
+              </p>
+
+              <div className="mt-8 grid gap-3 sm:grid-cols-3 xl:grid-cols-1 2xl:grid-cols-3">
+                <div className="rounded-[22px] border border-white/10 bg-white/10 p-4 backdrop-blur">
+                  <div className="flex h-10 w-10 items-center justify-center rounded-2xl bg-white/10 text-sky-100">
+                    <Package className="h-5 w-5" />
+                  </div>
+
+                  <p className="mt-3 text-sm font-semibold text-white">
+                    Dados da consulta
+                  </p>
+
+                  <p className="mt-1 text-xs leading-5 text-slate-300">
+                    CNPJ, tipo de busca e valor correspondente.
+                  </p>
+                </div>
+
+                <div className="rounded-[22px] border border-white/10 bg-white/10 p-4 backdrop-blur">
+                  <div className="flex h-10 w-10 items-center justify-center rounded-2xl bg-white/10 text-sky-100">
+                    <Truck className="h-5 w-5" />
+                  </div>
+
+                  <p className="mt-3 text-sm font-semibold text-white">
+                    Retorno operacional
+                  </p>
+
+                  <p className="mt-1 text-xs leading-5 text-slate-300">
+                    Eventos, localizacao e ocorrencia atual.
+                  </p>
+                </div>
+
+                <div className="rounded-[22px] border border-white/10 bg-white/10 p-4 backdrop-blur">
+                  <div className="flex h-10 w-10 items-center justify-center rounded-2xl bg-white/10 text-sky-100">
+                    <Clock3 className="h-5 w-5" />
+                  </div>
+
+                  <p className="mt-3 text-sm font-semibold text-white">
+                    Prazo da entrega
+                  </p>
+
+                  <p className="mt-1 text-xs leading-5 text-slate-300">
+                    Previsao, atraso ou baixa final registrada.
+                  </p>
+                </div>
+              </div>
             </div>
 
-            <div className="mt-8 grid grid-cols-1 gap-4 md:grid-cols-2">
-              <div>
-                <label className="mb-2 block text-sm font-medium text-zinc-700">
-                  CNPJ do destinatario
-                </label>
-                <Input
-                  type="text"
-                  value={formData.cnpj}
-                  onChange={(event) =>
-                    updateField('cnpj', formatCnpj(event.target.value))
-                  }
-                  placeholder="00.000.000/0000-00"
-                  className="h-12 rounded-2xl"
-                />
+            <div className="relative p-6 lg:p-8">
+              <div className="flex flex-col gap-4 md:flex-row md:items-start md:justify-between">
+                <div>
+                  <p className="text-xs font-semibold uppercase tracking-[0.20em] text-blue-600">
+                    Consulta
+                  </p>
+
+                  <h2 className="mt-2 text-2xl font-bold tracking-tight text-slate-950">
+                    Dados para rastreamento
+                  </h2>
+
+                  <p className="mt-2 max-w-2xl text-sm leading-6 text-slate-500">
+                    Informe os dados necessários para localizar a encomenda e acompanhar
+                    a movimentação retornada pela transportadora.
+                  </p>
+                </div>
+
+                <div className="rounded-2xl border border-slate-200 bg-slate-50 px-4 py-3">
+                  <p className="text-xs font-semibold uppercase tracking-[0.18em] text-slate-400">
+                    Tipo atual
+                  </p>
+
+                  <p className="mt-1 text-sm font-semibold text-slate-900">
+                    {selectedQueryLabel}
+                  </p>
+                </div>
               </div>
 
-              <div>
-                <label className="mb-2 block text-sm font-medium text-zinc-700">
-                  Tipo de consulta
-                </label>
-                <select
-                  value={formData.tipoConsulta}
-                  onChange={(event) =>
-                    updateField(
-                      'tipoConsulta',
-                      event.target.value as TrackingQueryType,
-                    )
-                  }
-                  className="flex h-12 w-full rounded-2xl border border-input bg-background px-4 py-3 text-sm ring-offset-background focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2"
+              <div className="mt-7 grid grid-cols-1 gap-4 md:grid-cols-2">
+                <div>
+                  <label className="mb-2 block text-sm font-semibold text-slate-700">
+                    CNPJ do destinatario
+                  </label>
+
+                  <Input
+                    type="text"
+                    value={formData.cnpj}
+                    onChange={(event) =>
+                      updateField('cnpj', formatCnpj(event.target.value))
+                    }
+                    placeholder="00.000.000/0000-00"
+                    className="h-12 rounded-2xl border-slate-200 bg-slate-50/70 px-4 text-slate-900 shadow-none transition focus-visible:bg-white"
+                  />
+                </div>
+
+                <div>
+                  <label className="mb-2 block text-sm font-semibold text-slate-700">
+                    Tipo de consulta
+                  </label>
+
+                  <select
+                    value={formData.tipoConsulta}
+                    onChange={(event) =>
+                      updateField(
+                        'tipoConsulta',
+                        event.target.value as TrackingQueryType,
+                      )
+                    }
+                    className="flex h-12 w-full rounded-2xl border border-slate-200 bg-slate-50/70 px-4 py-3 text-sm text-slate-900 outline-none transition focus:bg-white focus:ring-2 focus:ring-blue-500/20"
+                  >
+                    <option value="nro_nf">{getQueryTypeLabel('nro_nf')}</option>
+                    <option value="pedido">{getQueryTypeLabel('pedido')}</option>
+                    <option value="chave_nfe">{getQueryTypeLabel('chave_nfe')}</option>
+                    <option value="nro_coleta">{getQueryTypeLabel('nro_coleta')}</option>
+                  </select>
+                </div>
+
+                <div>
+                  <label className="mb-2 block text-sm font-semibold text-slate-700">
+                    {selectedQueryLabel}
+                  </label>
+
+                  <Input
+                    type="text"
+                    value={formData.valor}
+                    onChange={(event) => updateField('valor', event.target.value)}
+                    placeholder={selectedQueryPlaceholder}
+                    className="h-12 rounded-2xl border-slate-200 bg-slate-50/70 px-4 text-slate-900 shadow-none transition focus-visible:bg-white"
+                  />
+                </div>
+
+                <div>
+                  <label className="mb-2 block text-sm font-semibold text-slate-700">
+                    Sigla da empresa
+                  </label>
+
+                  <Input
+                    type="text"
+                    value={formData.siglaEmp}
+                    onChange={(event) => updateField('siglaEmp', event.target.value)}
+                    placeholder="Ex: ABC"
+                    className="h-12 rounded-2xl border-slate-200 bg-slate-50/70 px-4 text-slate-900 shadow-none transition focus-visible:bg-white"
+                  />
+                </div>
+
+                <div className="md:col-span-2">
+                  <label className="mb-2 block text-sm font-semibold text-slate-700">
+                    Senha de rastreamento
+                  </label>
+
+                  <Input
+                    type="text"
+                    value={formData.senha}
+                    onChange={(event) => updateField('senha', event.target.value)}
+                    placeholder="Preencha apenas se a consulta exigir senha"
+                    className="h-12 rounded-2xl border-slate-200 bg-slate-50/70 px-4 text-slate-900 shadow-none transition focus-visible:bg-white"
+                  />
+                </div>
+              </div>
+
+              {errorMessage ? (
+                <div className="mt-5 flex items-start gap-3 rounded-[22px] border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700">
+                  <AlertCircle className="mt-0.5 h-4 w-4 shrink-0" />
+
+                  <p>{errorMessage}</p>
+                </div>
+              ) : null}
+
+              <div className="mt-6 flex flex-col gap-3 sm:flex-row">
+                <Button
+                  type="button"
+                  onClick={handleSearchTracking}
+                  disabled={isLoading}
+                  className="h-12 rounded-2xl bg-blue-600 px-5 font-semibold text-white shadow-[0_14px_28px_rgba(37,99,235,0.22)] transition hover:bg-blue-700"
                 >
-                  <option value="nro_nf">{getQueryTypeLabel('nro_nf')}</option>
-                  <option value="pedido">{getQueryTypeLabel('pedido')}</option>
-                  <option value="chave_nfe">
-                    {getQueryTypeLabel('chave_nfe')}
-                  </option>
-                  <option value="nro_coleta">
-                    {getQueryTypeLabel('nro_coleta')}
-                  </option>
-                </select>
-              </div>
+                  {isLoading ? 'Consultando...' : 'Rastrear encomenda'}
+                </Button>
 
-              <div>
-                <label className="mb-2 block text-sm font-medium text-zinc-700">
-                  {getQueryTypeLabel(formData.tipoConsulta)}
-                </label>
-                <Input
-                  type="text"
-                  value={formData.valor}
-                  onChange={(event) => updateField('valor', event.target.value)}
-                  placeholder={getValueFieldPlaceholder(formData.tipoConsulta)}
-                  className="h-12 rounded-2xl"
-                />
-              </div>
-
-              <div>
-                <label className="mb-2 block text-sm font-medium text-zinc-700">
-                  Sigla da empresa
-                </label>
-                <Input
-                  type="text"
-                  value={formData.siglaEmp}
-                  onChange={(event) =>
-                    updateField('siglaEmp', event.target.value)
-                  }
-                  placeholder="Ex: ABC"
-                  className="h-12 rounded-2xl"
-                />
-              </div>
-
-              <div className="md:col-span-2">
-                <label className="mb-2 block text-sm font-medium text-zinc-700">
-                  Senha de rastreamento
-                </label>
-                <Input
-                  type="text"
-                  value={formData.senha}
-                  onChange={(event) => updateField('senha', event.target.value)}
-                  placeholder="Preencha apenas se a consulta exigir senha"
-                  className="h-12 rounded-2xl"
-                />
+                <Button
+                  type="button"
+                  onClick={handleClear}
+                  variant="outline"
+                  className="h-12 rounded-2xl border-slate-200 bg-white px-5 font-semibold text-slate-700 transition hover:bg-slate-50"
+                >
+                  Limpar dados
+                </Button>
               </div>
             </div>
-
-            {errorMessage && (
-              <div className="mt-4 rounded-2xl border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700">
-                {errorMessage}
-              </div>
-            )}
-
-            <div className="mt-5 flex flex-col gap-3 sm:flex-row">
-              <Button
-                type="button"
-                onClick={handleSearchTracking}
-                disabled={isLoading}
-                className="h-12 rounded-2xl px-5"
-              >
-                {isLoading ? 'Consultando...' : 'Rastrear encomenda'}
-              </Button>
-
-              <Button
-                type="button"
-                onClick={handleClear}
-                variant="outline"
-                className="h-12 rounded-2xl px-5"
-              >
-                Limpar dados
-              </Button>
-            </div>
-          </CardContent>
-        </Card>
+          </div>
+        </section>
 
         {!hasResponseData && !isLoading && !errorMessage && (
-          <Card className="rounded-3xl border-dashed border-zinc-300 shadow-sm">
-            <CardContent className="p-10 text-center">
-              <h3 className="text-lg font-semibold text-zinc-900">
-                Nenhum rastreamento consultado
-              </h3>
-              <p className="mt-2 text-sm text-zinc-500">
-                Escolha o tipo de consulta e informe os dados para localizar a
-                entrega.
-              </p>
-            </CardContent>
-          </Card>
+          <section className="rounded-[30px] border border-dashed border-slate-300 bg-white/70 p-10 text-center shadow-[0_18px_45px_rgba(15,23,42,0.04)]">
+            <div className="mx-auto flex h-14 w-14 items-center justify-center rounded-2xl bg-slate-100 text-slate-500">
+              <Package className="h-6 w-6" />
+            </div>
+
+            <h3 className="mt-4 text-lg font-semibold text-slate-950">
+              Nenhum rastreamento consultado
+            </h3>
+
+            <p className="mx-auto mt-2 max-w-md text-sm leading-6 text-slate-500">
+              Preencha os dados acima para localizar a entrega e visualizar o historico
+              de movimentacoes.
+            </p>
+          </section>
         )}
 
         {isLoading && (
-          <Card className="rounded-3xl border-blue-200 bg-blue-50 shadow-sm">
-            <CardContent className="p-10 text-center">
-              <h3 className="text-lg font-semibold text-blue-800">
-                Consultando rastreamento
-              </h3>
-              <p className="mt-2 text-sm text-blue-700">
-                Aguarde enquanto buscamos as informacoes da encomenda.
-              </p>
-            </CardContent>
-          </Card>
+          <section className="rounded-[30px] border border-blue-200 bg-blue-50/80 p-8 shadow-[0_18px_45px_rgba(37,99,235,0.08)]">
+            <div className="flex flex-col gap-5 md:flex-row md:items-center">
+              <div className="flex h-14 w-14 shrink-0 items-center justify-center rounded-2xl bg-blue-600 text-white shadow-[0_14px_28px_rgba(37,99,235,0.24)]">
+                <Truck className="h-6 w-6 animate-pulse" />
+              </div>
+
+              <div>
+                <h3 className="text-lg font-semibold text-blue-950">
+                  Consultando rastreamento
+                </h3>
+
+                <p className="mt-1 text-sm leading-6 text-blue-700">
+                  Aguarde enquanto buscamos as informacoes da encomenda e organizamos os
+                  eventos retornados.
+                </p>
+              </div>
+            </div>
+
+            <div className="mt-6 grid gap-3 md:grid-cols-3">
+              <div className="h-20 animate-pulse rounded-2xl bg-white/70" />
+              <div className="h-20 animate-pulse rounded-2xl bg-white/70" />
+              <div className="h-20 animate-pulse rounded-2xl bg-white/70" />
+            </div>
+          </section>
         )}
 
         {hasResponseData && (
           <>
             <section className="grid grid-cols-1 gap-4 md:grid-cols-2 xl:grid-cols-4">
-              <Card className="rounded-3xl border-zinc-200 shadow-sm">
-                <CardContent className="p-5">
-                  <p className="text-sm text-zinc-500">Consulta monitorada</p>
-                  <h2 className="mt-2 text-xl font-bold text-zinc-900">
-                    {formData.valor || '-'}
-                  </h2>
-                  <p className="mt-2 text-sm text-zinc-500">
-                    {transportDocument
-                      ? `Documento ${transportDocument}`
-                      : getQueryTypeLabel(formData.tipoConsulta)}
-                  </p>
-                </CardContent>
-              </Card>
+              <article className="group relative overflow-hidden rounded-[28px] border border-slate-200/70 bg-white/90 p-5 shadow-[0_18px_45px_rgba(15,23,42,0.06)] backdrop-blur transition duration-300 hover:-translate-y-1 hover:shadow-[0_24px_55px_rgba(15,23,42,0.10)]">
+                <div className="absolute inset-x-0 top-0 h-1 bg-gradient-to-r from-blue-600 to-cyan-400" />
 
-              <Card className="rounded-3xl border-zinc-200 shadow-sm">
-                <CardContent className="p-5">
-                  <p className="text-sm text-zinc-500">Ocorrencia atual</p>
-                  <div className="mt-3 flex flex-wrap items-center gap-2">
-                    {currentOccurrence.code && (
-                      <Badge
-                        variant="outline"
-                        className="rounded-full px-3 py-1 text-xs font-semibold text-zinc-700"
-                      >
-                        Codigo {currentOccurrence.code}
-                      </Badge>
-                    )}
-                    <Badge
-                      className={`rounded-full border px-3 py-1 text-sm font-semibold ${statusInfo.className}`}
-                    >
-                      {statusInfo.label}
-                    </Badge>
-                  </div>
-                  <h2 className="mt-3 text-base font-semibold text-zinc-900">
-                    {currentOccurrence.label}
-                  </h2>
-                </CardContent>
-              </Card>
+                <div className="flex items-start justify-between gap-4">
+                  <div className="min-w-0">
+                    <p className="text-sm font-medium text-slate-500">
+                      Consulta monitorada
+                    </p>
 
-              <Card className="rounded-3xl border-zinc-200 shadow-sm">
-                <CardContent className="p-5">
-                  <p className="text-sm text-zinc-500">{deliveryDisplay.title}</p>
-                  <h2 className="mt-2 text-base font-semibold text-zinc-900">
-                    {deliveryDisplay.value}
-                  </h2>
-                  <p className="mt-2 text-sm text-zinc-500">{deliveryDisplay.detail}</p>
-                </CardContent>
-              </Card>
+                    <h2 className="mt-3 truncate text-2xl font-bold tracking-tight text-slate-950">
+                      {formData.valor || '-'}
+                    </h2>
 
-              <Card className="rounded-3xl border-zinc-200 shadow-sm">
-                <CardContent className="p-5">
-                  <p className="text-sm text-zinc-500">
-                    Monitoramento de prazo
-                  </p>
-                  <div
-                    className={`mt-3 rounded-2xl border px-4 py-3 ${deadlineInfo.className}`}
-                  >
-                    <p className="text-sm font-semibold">{deadlineInfo.label}</p>
-                    <p className="mt-1 text-sm opacity-80">
-                      {deadlineInfo.detail}
+                    <p className="mt-2 line-clamp-2 text-sm leading-6 text-slate-500">
+                      {transportDocument
+                        ? `Documento ${transportDocument}`
+                        : selectedQueryLabel}
                     </p>
                   </div>
-                </CardContent>
-              </Card>
-            </section>
 
-            <Card className="overflow-hidden rounded-3xl border-zinc-200 shadow-sm">
-              <CardHeader className="border-b border-zinc-100">
-                <CardTitle className="text-lg text-zinc-900">
-                  Painel logistico do destino
-                </CardTitle>
-                <CardDescription className="text-sm text-zinc-500">
-                  Leitura rapida da rota, do prazo prometido e do ponto atual da
-                  carga.
-                </CardDescription>
-              </CardHeader>
+                  <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-2xl bg-blue-50 text-blue-700 ring-1 ring-blue-100">
+                    <PackageSearch className="h-5 w-5" />
+                  </div>
+                </div>
+              </article>
 
-              <CardContent className="p-0">
-                <div className="grid gap-0 lg:grid-cols-[1.4fr_0.8fr]">
-                  <div className="border-b border-zinc-100 p-6 lg:border-b-0 lg:border-r">
-                    <div className="grid gap-4 md:grid-cols-3">
-                      <div className="rounded-3xl border border-zinc-200 bg-zinc-50 p-5">
-                        <p className="text-xs font-semibold uppercase tracking-[0.24em] text-zinc-500">
-                          Origem
-                        </p>
-                        <p className="mt-3 text-sm font-semibold text-zinc-900">
-                          {trackingData?.tracking?.header?.remetente || '-'}
-                        </p>
-                        <p className="mt-2 text-sm text-zinc-500">
-                          Embarcador da consulta.
-                        </p>
-                      </div>
+              <article className="group relative overflow-hidden rounded-[28px] border border-slate-200/70 bg-white/90 p-5 shadow-[0_18px_45px_rgba(15,23,42,0.06)] backdrop-blur transition duration-300 hover:-translate-y-1 hover:shadow-[0_24px_55px_rgba(15,23,42,0.10)]">
+                <div className="absolute inset-x-0 top-0 h-1 bg-gradient-to-r from-violet-600 to-fuchsia-400" />
 
-                      <div className="rounded-3xl border border-blue-200 bg-blue-50 p-5">
-                        <p className="text-xs font-semibold uppercase tracking-[0.24em] text-blue-700">
-                          Posicao atual
-                        </p>
-                        <p className="mt-3 text-sm font-semibold text-zinc-900">
-                          {latestItem ? getLocationLabel(latestItem) : '-'}
-                        </p>
-                        <p className="mt-2 text-sm text-zinc-600">
-                          Ultima baixa em{' '}
-                          {formatDateTime(
-                            latestItem?.data_hora_efetiva || latestItem?.data_hora,
-                          )}
-                          .
-                        </p>
-                      </div>
+                <div className="flex items-start justify-between gap-4">
+                  <div className="min-w-0">
+                    <p className="text-sm font-medium text-slate-500">
+                      Ocorrencia atual
+                    </p>
 
-                      <div className="rounded-3xl border border-emerald-200 bg-emerald-50 p-5">
-                        <p className="text-xs font-semibold uppercase tracking-[0.24em] text-emerald-700">
-                          Destino
-                        </p>
-                        <p className="mt-3 text-sm font-semibold text-zinc-900">
-                          {trackingData?.tracking?.header?.destinatario || '-'}
-                        </p>
-                        <p className="mt-2 text-sm text-zinc-600">
-                          {destinationLabel !== '-'
-                            ? `Praca de entrega: ${destinationLabel}.`
-                            : 'Destino sem cidade detalhada no retorno.'}
-                        </p>
-                      </div>
+                    <div className="mt-3 flex flex-wrap items-center gap-2">
+                      {currentOccurrence.code ? (
+                        <Badge
+                          variant="outline"
+                          className="rounded-full border-slate-200 bg-slate-50 px-3 py-1 text-xs font-semibold text-slate-700"
+                        >
+                          Codigo {currentOccurrence.code}
+                        </Badge>
+                      ) : null}
+
+                      <Badge
+                        className={`rounded-full border px-3 py-1 text-xs font-semibold ${statusInfo.className}`}
+                      >
+                        {statusInfo.label}
+                      </Badge>
                     </div>
+
+                    <h2 className="mt-3 line-clamp-2 text-base font-semibold leading-6 text-slate-950">
+                      {currentOccurrence.label}
+                    </h2>
                   </div>
 
-                  <div className="p-6">
-                    <div className="rounded-3xl border border-zinc-200 bg-white p-5 shadow-sm">
-                      <p className="text-xs font-semibold uppercase tracking-[0.24em] text-zinc-500">
-                        Dashboard de prazo
-                      </p>
-                      <h3 className="mt-3 text-lg font-semibold text-zinc-900">
+                  <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-2xl bg-violet-50 text-violet-700 ring-1 ring-violet-100">
+                    <CircleDashed className="h-5 w-5" />
+                  </div>
+                </div>
+              </article>
+
+              <article className="group relative overflow-hidden rounded-[28px] border border-slate-200/70 bg-white/90 p-5 shadow-[0_18px_45px_rgba(15,23,42,0.06)] backdrop-blur transition duration-300 hover:-translate-y-1 hover:shadow-[0_24px_55px_rgba(15,23,42,0.10)]">
+                <div className="absolute inset-x-0 top-0 h-1 bg-gradient-to-r from-emerald-600 to-teal-400" />
+
+                <div className="flex items-start justify-between gap-4">
+                  <div className="min-w-0">
+                    <p className="text-sm font-medium text-slate-500">
+                      {deliveryDisplay.title}
+                    </p>
+
+                    <h2 className="mt-3 text-xl font-bold tracking-tight text-slate-950">
+                      {deliveryDisplay.value}
+                    </h2>
+
+                    <p className="mt-2 line-clamp-2 text-sm leading-6 text-slate-500">
+                      {deliveryDisplay.detail}
+                    </p>
+                  </div>
+
+                  <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-2xl bg-emerald-50 text-emerald-700 ring-1 ring-emerald-100">
+                    <Truck className="h-5 w-5" />
+                  </div>
+                </div>
+              </article>
+
+              <article className="group relative overflow-hidden rounded-[28px] border border-slate-200/70 bg-white/90 p-5 shadow-[0_18px_45px_rgba(15,23,42,0.06)] backdrop-blur transition duration-300 hover:-translate-y-1 hover:shadow-[0_24px_55px_rgba(15,23,42,0.10)]">
+                <div className="absolute inset-x-0 top-0 h-1 bg-gradient-to-r from-amber-500 to-orange-400" />
+
+                <div className="flex items-start justify-between gap-4">
+                  <div className="min-w-0">
+                    <p className="text-sm font-medium text-slate-500">
+                      Monitoramento de prazo
+                    </p>
+
+                    <div
+                      className={`mt-3 rounded-2xl border px-4 py-3 ${deadlineInfo.className}`}
+                    >
+                      <p className="text-sm font-semibold">
                         {deadlineInfo.label}
-                      </h3>
-                      <p className="mt-2 text-sm text-zinc-600">
+                      </p>
+
+                      <p className="mt-1 line-clamp-2 text-sm opacity-80">
                         {deadlineInfo.detail}
                       </p>
-
-                      <div className="mt-5 grid gap-3">
-                        <div className="rounded-2xl border border-zinc-200 bg-zinc-50 px-4 py-3">
-                          <p className="text-xs font-semibold uppercase tracking-wide text-zinc-500">
-                            {deliveryDisplay.title}
-                          </p>
-                          <p className="mt-2 text-sm font-semibold text-zinc-900">
-                            {deliveryDisplay.value}
-                          </p>
-                        </div>
-
-                        <div className="rounded-2xl border border-zinc-200 bg-zinc-50 px-4 py-3">
-                          <p className="text-xs font-semibold uppercase tracking-wide text-zinc-500">
-                            Ultima atualizacao
-                          </p>
-                          <p className="mt-2 text-sm font-semibold text-zinc-900">
-                            {formatDateTime(
-                              latestItem?.data_hora_efetiva || latestItem?.data_hora,
-                            )}
-                          </p>
-                        </div>
-                      </div>
                     </div>
                   </div>
+
+                  <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-2xl bg-amber-50 text-amber-700 ring-1 ring-amber-100">
+                    <Clock3 className="h-5 w-5" />
+                  </div>
                 </div>
-              </CardContent>
-            </Card>
+              </article>
+            </section>
 
-            <Card className="rounded-3xl border-zinc-200 shadow-sm">
-              <CardHeader>
-                <CardTitle className="text-lg text-zinc-900">
-                  Etapas da encomenda
-                </CardTitle>
-                <CardDescription className="text-sm text-zinc-500">
-                  A leitura abaixo usa as ocorrencias da API para mostrar a
-                  evolucao operacional da carga.
-                </CardDescription>
-              </CardHeader>
+            <section className="overflow-hidden rounded-[30px] border border-slate-200/70 bg-white/90 shadow-[0_18px_45px_rgba(15,23,42,0.06)] backdrop-blur">
+              <div className="border-b border-slate-200/70 px-6 py-5">
+                <div className="flex flex-col gap-3 md:flex-row md:items-end md:justify-between">
+                  <div>
+                    <p className="text-xs font-semibold uppercase tracking-[0.20em] text-blue-600">
+                      Acompanhamento
+                    </p>
 
-              <CardContent>
-                <div className="grid gap-4 md:grid-cols-4">
-                  {trackingStages.map((stage, index) => {
-                    const Icon = stage.icon;
-                    const stateClass = stage.reached
-                      ? stage.current
-                        ? 'border-blue-200 bg-blue-50 text-blue-700'
-                        : 'border-emerald-200 bg-emerald-50 text-emerald-700'
-                      : 'border-zinc-200 bg-zinc-50 text-zinc-400';
-                    const markerClass = stage.reached
-                      ? stage.current
-                        ? 'bg-blue-600 text-white shadow-lg shadow-blue-200/60'
-                        : 'bg-emerald-600 text-white'
-                      : 'bg-white text-zinc-400';
+                    <h2 className="mt-2 text-2xl font-bold tracking-tight text-slate-950">
+                      Etapas da encomenda
+                    </h2>
 
-                    return (
-                      <div key={stage.title} className="relative">
-                        {index < trackingStages.length - 1 && (
-                          <div className="absolute left-[calc(50%+2rem)] right-[-1.25rem] top-6 hidden h-0.5 bg-zinc-200 md:block" />
-                        )}
+                    <p className="mt-2 max-w-2xl text-sm leading-6 text-slate-500">
+                      A leitura abaixo usa as ocorrencias da API para mostrar a evolucao
+                      operacional da carga.
+                    </p>
+                  </div>
 
-                        <div
-                          className={`relative h-full rounded-3xl border p-5 transition ${stateClass}`}
-                        >
-                          <div className="flex items-start gap-4">
+                  <div className="w-fit rounded-full border border-slate-200 bg-slate-50 px-3 py-1 text-xs font-semibold text-slate-600">
+                    Fluxo da entrega
+                  </div>
+                </div>
+              </div>
+
+              <div className="p-6">
+                <div className="relative">
+                  <div className="absolute left-6 top-6 hidden h-[calc(100%-3rem)] w-px bg-slate-200 lg:block" />
+
+                  <div className="grid gap-4 lg:grid-cols-4">
+                    {trackingStages.map((stage, index) => {
+                      const Icon = stage.icon;
+
+                      const isReached = stage.reached;
+                      const isCurrent = stage.current;
+
+                      const cardClass = isReached
+                        ? isCurrent
+                          ? 'border-blue-200 bg-blue-50/80'
+                          : 'border-emerald-200 bg-emerald-50/80'
+                        : 'border-slate-200 bg-slate-50/80';
+
+                      const iconClass = isReached
+                        ? isCurrent
+                          ? 'bg-blue-600 text-white shadow-[0_14px_28px_rgba(37,99,235,0.22)]'
+                          : 'bg-emerald-600 text-white shadow-[0_14px_28px_rgba(5,150,105,0.18)]'
+                        : 'bg-white text-slate-400 ring-1 ring-slate-200';
+
+                      const titleClass = isReached
+                        ? isCurrent
+                          ? 'text-blue-950'
+                          : 'text-emerald-950'
+                        : 'text-slate-600';
+
+                      const textClass = isReached
+                        ? isCurrent
+                          ? 'text-blue-700'
+                          : 'text-emerald-700'
+                        : 'text-slate-500';
+
+                      const connectorClass = isReached ? 'bg-emerald-300' : 'bg-slate-200';
+
+                      return (
+                        <div key={stage.title} className="relative">
+                          {index < trackingStages.length - 1 ? (
                             <div
-                              className={`flex h-12 w-12 shrink-0 items-center justify-center rounded-2xl border border-current/10 ${markerClass}`}
-                            >
-                              <Icon className="h-5 w-5" />
-                            </div>
+                              className={`absolute left-[calc(50%+2rem)] right-[-1.25rem] top-6 hidden h-0.5 lg:block ${connectorClass}`}
+                            />
+                          ) : null}
 
-                            <div className="min-w-0">
-                              <div className="flex flex-wrap items-center gap-2">
-                                <p className="text-sm font-semibold">
-                                  {stage.title}
+                          <div
+                            className={`group relative h-full overflow-hidden rounded-[26px] border p-5 transition duration-300 hover:-translate-y-1 hover:shadow-[0_20px_45px_rgba(15,23,42,0.08)] ${cardClass}`}
+                          >
+                            {isCurrent ? (
+                              <div className="absolute inset-x-0 top-0 h-1 bg-gradient-to-r from-blue-600 to-cyan-400" />
+                            ) : null}
+
+                            <div className="flex items-start gap-4 lg:flex-col">
+                              <div
+                                className={`flex h-12 w-12 shrink-0 items-center justify-center rounded-2xl ${iconClass}`}
+                              >
+                                <Icon className="h-5 w-5" />
+                              </div>
+
+                              <div className="min-w-0">
+                                <div className="flex flex-wrap items-center gap-2">
+                                  <h3 className={`text-sm font-bold ${titleClass}`}>
+                                    {stage.title}
+                                  </h3>
+
+                                  {isCurrent ? (
+                                    <Badge className="rounded-full bg-blue-600 px-2.5 py-1 text-[11px] font-semibold text-white">
+                                      Atual
+                                    </Badge>
+                                  ) : null}
+
+                                  {!isCurrent && isReached ? (
+                                    <Badge className="rounded-full border border-emerald-200 bg-emerald-100 px-2.5 py-1 text-[11px] font-semibold text-emerald-700">
+                                      Concluida
+                                    </Badge>
+                                  ) : null}
+                                </div>
+
+                                <p className={`mt-2 text-sm leading-6 ${textClass}`}>
+                                  {stage.description}
                                 </p>
 
-                                {stage.current && (
-                                  <Badge className="rounded-full bg-blue-600 px-2.5 py-1 text-[11px] font-semibold text-white">
-                                    Atual
-                                  </Badge>
-                                )}
+                                <div className="mt-4 rounded-2xl bg-white/70 px-3 py-2 ring-1 ring-black/5">
+                                  <p className="text-[11px] font-semibold uppercase tracking-[0.16em] text-slate-400">
+                                    Registro
+                                  </p>
+
+                                  <p className="mt-1 text-xs font-semibold text-slate-700">
+                                    {stage.timestamp
+                                      ? formatDateTime(stage.timestamp)
+                                      : stage.reached
+                                        ? 'Etapa confirmada'
+                                        : 'Aguardando etapa'}
+                                  </p>
+                                </div>
                               </div>
-
-                              <p className="mt-2 text-sm leading-6 text-current/80">
-                                {stage.description}
-                              </p>
-
-                              <p className="mt-3 text-xs font-medium uppercase tracking-wide text-current/70">
-                                {stage.timestamp
-                                  ? formatDateTime(stage.timestamp)
-                                  : stage.reached
-                                    ? 'Etapa confirmada'
-                                    : 'Aguardando etapa'}
-                              </p>
                             </div>
                           </div>
                         </div>
-                      </div>
-                    );
-                  })}
+                      );
+                    })}
+                  </div>
                 </div>
-              </CardContent>
-            </Card>
+              </div>
+            </section>
 
-            <section className="grid grid-cols-1 gap-6">
-              <Card className="rounded-3xl border-zinc-200 shadow-sm">
-                <CardHeader className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
-                  <div>
-                    <CardTitle className="text-lg text-zinc-900">
-                      Historico de movimentacoes
-                    </CardTitle>
-                    <CardDescription className="text-sm text-zinc-500">
-                      Eventos retornados pela consulta de rastreamento, com
-                      destaque para a ocorrencia operacional.
-                    </CardDescription>
+<section className="overflow-hidden rounded-[30px] border border-slate-200/70 bg-white/90 shadow-[0_18px_45px_rgba(15,23,42,0.06)] backdrop-blur">
+  <div className="border-b border-slate-200/70 px-6 py-5">
+    <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
+      <div>
+        <p className="text-xs font-semibold uppercase tracking-[0.20em] text-blue-600">
+          Movimentações
+        </p>
+
+        <h2 className="mt-2 text-2xl font-bold tracking-tight text-slate-950">
+          Histórico de movimentações
+        </h2>
+
+        <p className="mt-2 max-w-2xl text-sm leading-6 text-slate-500">
+          Eventos retornados pela consulta de rastreamento, com destaque para
+          ocorrência, local e data do registro.
+        </p>
+      </div>
+
+      <Button
+        type="button"
+        variant="outline"
+        onClick={() => setShowRawJson((prev) => !prev)}
+        className="h-11 w-fit rounded-2xl border-slate-200 bg-white px-4 font-semibold text-slate-700 shadow-[0_8px_18px_rgba(15,23,42,0.04)] transition hover:bg-slate-50"
+      >
+        {showRawJson ? 'Ocultar JSON' : 'Ver JSON bruto'}
+      </Button>
+    </div>
+  </div>
+
+  <div className="p-6">
+    {items.length === 0 ? (
+      <div className="rounded-[24px] border border-dashed border-slate-300 bg-slate-50/70 p-8 text-center">
+        <div className="mx-auto flex h-12 w-12 items-center justify-center rounded-2xl bg-white text-slate-500 shadow-sm ring-1 ring-slate-200">
+          <CircleDashed className="h-5 w-5" />
+        </div>
+
+        <h3 className="mt-4 text-base font-semibold text-slate-950">
+          Nenhuma movimentação encontrada
+        </h3>
+
+        <p className="mx-auto mt-2 max-w-md text-sm leading-6 text-slate-500">
+          A consulta foi concluída, mas não retornou eventos de movimentação
+          para esta encomenda.
+        </p>
+      </div>
+    ) : (
+      <div className="relative">
+        <div className="absolute left-6 top-6 hidden h-[calc(100%-3rem)] w-px bg-slate-200 md:block" />
+
+        <div className="space-y-4">
+          {items.map((item, index) => {
+            const visual = getMovementVisual(item);
+            const occurrence = splitOccurrenceLabel(item.ocorrencia);
+            const Icon = visual.icon;
+            const isLast = index === items.length - 1;
+
+            return (
+              <article
+                key={`${item.data_hora}-${index}`}
+                className="group relative rounded-[28px] border border-slate-200/70 bg-white p-5 shadow-sm transition duration-300 hover:-translate-y-0.5 hover:shadow-[0_18px_45px_rgba(15,23,42,0.08)]"
+              >
+                <div className="flex gap-4">
+                  <div className="relative flex flex-col items-center">
+                    <div
+                      className={`z-10 flex h-12 w-12 shrink-0 items-center justify-center rounded-2xl border shadow-sm ${visual.iconWrapClass}`}
+                    >
+                      <Icon className="h-5 w-5" />
+                    </div>
+
+                    {!isLast ? (
+                      <div className="mt-2 h-full min-h-[48px] w-px bg-slate-200 md:hidden" />
+                    ) : null}
                   </div>
 
-                  <Button
-                    type="button"
-                    variant="outline"
-                    onClick={() => setShowRawJson((prev) => !prev)}
-                    className="rounded-2xl"
-                  >
-                    {showRawJson ? 'Ocultar JSON' : 'Ver JSON bruto'}
-                  </Button>
-                </CardHeader>
-
-                <CardContent>
-                  {items.length === 0 ? (
-                    <div className="rounded-2xl border border-zinc-200 bg-zinc-50 p-6 text-sm text-zinc-500">
-                      Nenhuma movimentacao encontrada.
-                    </div>
-                  ) : (
-                    <div className="space-y-4">
-                      {items.map((item, index) => {
-                        const visual = getMovementVisual(item);
-                        const occurrence = splitOccurrenceLabel(item.ocorrencia);
-                        const Icon = visual.icon;
-                        const isLast = index === items.length - 1;
-
-                        return (
-                          <div
-                            key={`${item.data_hora}-${index}`}
-                            className="relative rounded-3xl border border-zinc-200 bg-white p-5 shadow-sm transition hover:shadow-md"
+                  <div className="min-w-0 flex-1">
+                    <div className="flex flex-col gap-4 xl:flex-row xl:items-start xl:justify-between">
+                      <div className="min-w-0">
+                        <div className="flex flex-wrap items-center gap-2">
+                          <Badge
+                            className={`rounded-full border px-3 py-1 text-xs font-semibold ${visual.badgeClass}`}
                           >
-                            <div className="flex gap-4">
-                              <div className="relative flex flex-col items-center">
-                                <div
-                                  className={`z-10 flex h-12 w-12 items-center justify-center rounded-2xl border ${visual.iconWrapClass}`}
-                                >
-                                  <Icon className="h-5 w-5" />
-                                </div>
+                            {visual.label}
+                          </Badge>
 
-                                {!isLast && (
-                                  <div className="mt-2 h-full min-h-[40px] w-px bg-zinc-200" />
-                                )}
-                              </div>
+                          {item.tipo ? (
+                            <Badge
+                              variant="outline"
+                              className="rounded-full border-slate-200 bg-slate-50 px-3 py-1 text-xs font-semibold text-slate-700"
+                            >
+                              {item.tipo}
+                            </Badge>
+                          ) : null}
 
-                              <div className="min-w-0 flex-1">
-                                <div className="flex flex-col gap-3 md:flex-row md:items-start md:justify-between">
-                                  <div>
-                                    <div className="flex flex-wrap items-center gap-2">
-                                      <Badge
-                                        className={`rounded-full border px-3 py-1 text-xs font-semibold ${visual.badgeClass}`}
-                                      >
-                                        {visual.label}
-                                      </Badge>
+                          {occurrence.code ? (
+                            <Badge
+                              variant="outline"
+                              className="rounded-full border-slate-200 bg-slate-50 px-3 py-1 text-xs font-semibold text-slate-700"
+                            >
+                              Cod. {occurrence.code}
+                            </Badge>
+                          ) : null}
+                        </div>
 
-                                      {item.tipo && (
-                                        <Badge
-                                          variant="outline"
-                                          className="rounded-full px-3 py-1 text-xs font-semibold text-zinc-700"
-                                        >
-                                          {item.tipo}
-                                        </Badge>
-                                      )}
+                        <h4 className="mt-3 text-base font-bold leading-6 text-slate-950">
+                          {occurrence.label}
+                        </h4>
 
-                                      {occurrence.code && (
-                                        <Badge
-                                          variant="outline"
-                                          className="rounded-full px-3 py-1 text-xs font-semibold text-zinc-700"
-                                        >
-                                          Cod. {occurrence.code}
-                                        </Badge>
-                                      )}
-                                    </div>
-
-                                    <h4 className="mt-3 text-base font-semibold text-zinc-900">
-                                      {occurrence.label}
-                                    </h4>
-
-                                    <p className="mt-1 text-sm leading-6 text-zinc-600">
-                                      {item.descricao ||
-                                        'Sem descricao adicional para esta movimentacao.'}
-                                    </p>
-                                  </div>
-
-                                  <div className="shrink-0 rounded-2xl bg-zinc-50 px-4 py-3 text-sm text-zinc-600">
-                                    <p className="font-semibold text-zinc-900">
-                                      {formatDateTime(
-                                        item.data_hora_efetiva || item.data_hora,
-                                      )}
-                                    </p>
-                                    <p className="mt-1 text-xs uppercase tracking-wide text-zinc-500">
-                                      Atualizacao do evento
-                                    </p>
-                                  </div>
-                                </div>
-
-                                <div className="mt-4 grid grid-cols-1 gap-3 md:grid-cols-2">
-                                  <div className="rounded-2xl border border-zinc-200 bg-zinc-50 px-4 py-3">
-                                    <div className="flex items-center gap-2 text-zinc-500">
-                                      <MapPin className="h-4 w-4" />
-                                      <span className="text-xs font-semibold uppercase tracking-wide">
-                                        Local
-                                      </span>
-                                    </div>
-
-                                    <p className="mt-2 text-sm font-semibold text-zinc-900">
-                                      {getLocationLabel(item)}
-                                    </p>
-                                  </div>
-
-                                  <div className="rounded-2xl border border-zinc-200 bg-zinc-50 px-4 py-3">
-                                    <div className="flex items-center gap-2 text-zinc-500">
-                                      <Clock3 className="h-4 w-4" />
-                                      <span className="text-xs font-semibold uppercase tracking-wide">
-                                        Data original
-                                      </span>
-                                    </div>
-
-                                    <p className="mt-2 text-sm font-semibold text-zinc-900">
-                                      {formatDateTime(item.data_hora)}
-                                    </p>
-                                  </div>
-                                </div>
-
-                                {item.nome_recebedor && (
-                                  <div className="mt-4 rounded-2xl border border-emerald-200 bg-emerald-50 px-4 py-3 text-sm text-emerald-800">
-                                    <span className="font-semibold">Recebedor:</span>{' '}
-                                    {item.nome_recebedor}
-                                    {item.nro_doc_recebedor
-                                      ? ` • Documento: ${item.nro_doc_recebedor}`
-                                      : ''}
-                                  </div>
-                                )}
-                              </div>
-                            </div>
-                          </div>
-                        );
-                      })}
-                    </div>
-                  )}
-
-                  {showRawJson && (
-                    <div className="mt-6 overflow-hidden rounded-2xl border border-zinc-200">
-                      <div className="border-b border-zinc-200 bg-zinc-50 px-4 py-3 text-sm font-medium text-zinc-700">
-                        JSON retornado
+                        <p className="mt-1 max-w-3xl text-sm leading-6 text-slate-600">
+                          {item.descricao ||
+                            'Sem descrição adicional para esta movimentação.'}
+                        </p>
                       </div>
-                      <pre className="overflow-x-auto p-4 text-sm text-zinc-800">
-                        {formattedResponse}
-                      </pre>
+
+                      <div className="shrink-0 rounded-[22px] border border-slate-200 bg-slate-50/80 px-4 py-3 text-sm text-slate-600">
+                        <p className="font-semibold text-slate-950">
+                          {formatDateTime(
+                            item.data_hora_efetiva || item.data_hora,
+                          )}
+                        </p>
+
+                        <p className="mt-1 text-[11px] font-semibold uppercase tracking-[0.16em] text-slate-400">
+                          Atualização
+                        </p>
+                      </div>
                     </div>
-                  )}
-                </CardContent>
-              </Card>
-            </section>
+
+                    <div className="mt-4 grid grid-cols-1 gap-3 md:grid-cols-2">
+                      <div className="rounded-[22px] border border-slate-200 bg-slate-50/70 px-4 py-3">
+                        <div className="flex items-center gap-2 text-slate-500">
+                          <MapPin className="h-4 w-4" />
+
+                          <span className="text-xs font-semibold uppercase tracking-[0.16em]">
+                            Local
+                          </span>
+                        </div>
+
+                        <p className="mt-2 text-sm font-semibold text-slate-950">
+                          {getLocationLabel(item)}
+                        </p>
+                      </div>
+
+                      <div className="rounded-[22px] border border-slate-200 bg-slate-50/70 px-4 py-3">
+                        <div className="flex items-center gap-2 text-slate-500">
+                          <Clock3 className="h-4 w-4" />
+
+                          <span className="text-xs font-semibold uppercase tracking-[0.16em]">
+                            Data original
+                          </span>
+                        </div>
+
+                        <p className="mt-2 text-sm font-semibold text-slate-950">
+                          {formatDateTime(item.data_hora)}
+                        </p>
+                      </div>
+                    </div>
+
+                    {item.nome_recebedor ? (
+                      <div className="mt-4 rounded-[22px] border border-emerald-200 bg-emerald-50 px-4 py-3 text-sm text-emerald-800">
+                        <span className="font-semibold">Recebedor:</span>{' '}
+                        {item.nome_recebedor}
+                        {item.nro_doc_recebedor
+                          ? ` • Documento: ${item.nro_doc_recebedor}`
+                          : ''}
+                      </div>
+                    ) : null}
+                  </div>
+                </div>
+              </article>
+            );
+          })}
+        </div>
+      </div>
+    )}
+
+    {showRawJson ? (
+      <div className="mt-6 overflow-hidden rounded-[24px] border border-slate-200 bg-slate-950">
+        <div className="flex items-center justify-between border-b border-white/10 bg-white/5 px-4 py-3">
+          <p className="text-sm font-semibold text-white">
+            JSON retornado
+          </p>
+
+          <span className="rounded-full bg-white/10 px-2.5 py-1 text-[11px] font-semibold text-slate-300">
+            Debug
+          </span>
+        </div>
+
+        <pre className="max-h-[420px] overflow-auto p-4 text-sm leading-6 text-slate-100">
+          {formattedResponse}
+        </pre>
+      </div>
+    ) : null}
+  </div>
+</section>
           </>
         )}
       </div>

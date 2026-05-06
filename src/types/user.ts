@@ -12,6 +12,7 @@ export interface ClientProfile {
   companyName?: string | null;
   segment?: string | null;
   status?: string | null;
+  internalOwnerId?: string | null;
   createdAt?: string;
   updatedAt?: string;
 }
@@ -36,6 +37,9 @@ export interface CreateUserPayload {
   document?: string;
   phone?: string;
   companyName?: string;
+  segment?: string;
+  status?: string;
+  internalOwnerId?: string;
 }
 
 export interface UpdateUserPayload {
@@ -46,4 +50,7 @@ export interface UpdateUserPayload {
   document?: string;
   phone?: string;
   companyName?: string;
+  segment?: string;
+  status?: string;
+  internalOwnerId?: string;
 }

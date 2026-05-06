@@ -4,9 +4,11 @@ import type { LucideIcon } from 'lucide-react';
 import {
   Building2,
   FileText,
+  Handshake,
   History,
   LayoutDashboard,
   Megaphone,
+  MessageCircle,
   PackageSearch,
   Ticket,
   Truck,
@@ -80,6 +82,18 @@ const menuItems: MenuItem[] = [
     roles: ['ADMIN', 'GESTAO', 'COMERCIAL', 'CLIENTE'],
   },
   {
+    href: '/chat',
+    label: 'Chat',
+    icon: MessageCircle,
+    roles: ['ADMIN', 'GESTAO', 'COMERCIAL', 'MARKETING', 'CLIENTE'],
+  },
+  {
+    href: '/suppliers',
+    label: 'Fornecedores',
+    icon: Handshake,
+    roles: ['ADMIN', 'GESTAO', 'COMERCIAL'],
+  },
+  {
     href: '/users',
     label: 'Usuarios',
     icon: Users,
@@ -99,32 +113,6 @@ const menuItems: MenuItem[] = [
   },
 ];
 
-function getRoleLabel(role?: string) {
-  if (!role) return '-';
-
-  const labels: Record<string, string> = {
-    ADMIN: 'Administrador',
-    GESTAO: 'Gestao',
-    COMERCIAL: 'Comercial',
-    MARKETING: 'Marketing',
-    CLIENTE: 'Cliente',
-  };
-
-  return labels[role] ?? role;
-}
-
-function getInitials(name?: string) {
-  if (!name) return 'CP';
-
-  const parts = name.trim().split(' ').filter(Boolean);
-
-  if (parts.length === 1) {
-    return parts[0].slice(0, 2).toUpperCase();
-  }
-
-  return `${parts[0][0] ?? ''}${parts[1][0] ?? ''}`.toUpperCase();
-}
-
 export function AppSidebar() {
   const pathname = usePathname();
   const { user } = useAuth();
@@ -136,38 +124,40 @@ export function AppSidebar() {
   return (
     <Sidebar
       collapsible="icon"
-      className="border-r border-slate-900/5 bg-[linear-gradient(180deg,#0f172a_0%,#111c33_42%,#16213a_100%)] text-slate-100"
+      className="border-r border-slate-950/10 bg-[linear-gradient(180deg,#070d18_0%,#0d1728_46%,#111c33_100%)] text-slate-100"
     >
-      <SidebarHeader className="border-b border-white/8 bg-transparent px-3 py-4">
-        <div className="flex items-center gap-3 group-data-[collapsible=icon]:justify-center">
-          <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-2xl bg-[linear-gradient(135deg,#2563eb_0%,#38bdf8_100%)] text-sm font-bold text-white shadow-[0_16px_30px_rgba(37,99,235,0.28)]">
-            {getInitials(user?.name)}
+      <SidebarHeader className="relative overflow-hidden border-b border-white/8 bg-transparent px-3 py-4">
+        <div className="pointer-events-none absolute -right-10 -top-10 h-28 w-28 rounded-full bg-blue-500/20 blur-3xl" />
+
+        <div className="relative flex items-center gap-3 rounded-[22px] px-1 py-1 group-data-[collapsible=icon]:justify-center">
+          <div className="relative flex h-11 w-11 shrink-0 items-center justify-center rounded-2xl bg-[linear-gradient(135deg,#2563eb_0%,#38bdf8_100%)] text-sm font-black text-white shadow-[0_16px_30px_rgba(37,99,235,0.30)]">
+            <span className="absolute inset-0 rounded-2xl bg-white/10" />
+            <span className="relative">P</span>
           </div>
 
           <div className="min-w-0 group-data-[collapsible=icon]:hidden">
-            <p className="text-[11px] font-semibold uppercase tracking-[0.24em] text-sky-300/90">
+            <p className="text-[10px] font-semibold uppercase tracking-[0.26em] text-sky-300/90">
               CRM Portal
             </p>
-            <h2 className="truncate text-lg font-bold text-white">Pizzattolog</h2>
-          </div>
-        </div>
 
-        <div className="mt-4 rounded-[24px] border border-white/10 bg-white/6 p-4 group-data-[collapsible=icon]:hidden">
-          <p className="truncate text-sm font-semibold text-white">{user?.name ?? '-'}</p>
-          <p className="mt-1 text-sm text-slate-300">{getRoleLabel(user?.role)}</p>
+            <h2 className="truncate text-lg font-bold leading-tight text-white">
+              Pizzattolog
+            </h2>
+          </div>
         </div>
       </SidebarHeader>
 
-      <SidebarContent className="bg-transparent px-2 py-4">
-        <div className="px-2 pb-2 group-data-[collapsible=icon]:hidden">
-          <p className="text-[11px] font-semibold uppercase tracking-[0.22em] text-slate-400">
+      <SidebarContent className="bg-transparent px-2.5 py-4">
+        <div className="px-2 pb-3 group-data-[collapsible=icon]:hidden">
+          <p className="text-[10px] font-semibold uppercase tracking-[0.24em] text-slate-500">
             Navegacao
           </p>
         </div>
 
-        <SidebarMenu>
+        <SidebarMenu className="space-y-1">
           {filteredMenu.map((item) => {
-            const active = pathname === item.href || pathname.startsWith(`${item.href}/`);
+            const active =
+              pathname === item.href || pathname.startsWith(`${item.href}/`);
             const Icon = item.icon;
 
             return (
@@ -176,11 +166,15 @@ export function AppSidebar() {
                   asChild
                   isActive={active}
                   tooltip={item.label}
-                  className="h-[54px] rounded-[20px] text-sm font-medium text-slate-300 transition-all duration-200 data-[active=true]:bg-white data-[active=true]:text-slate-950 data-[active=true]:shadow-[0_14px_28px_rgba(15,23,42,0.22)] hover:bg-white/8 hover:text-white group-data-[collapsible=icon]:justify-center group-data-[collapsible=icon]:px-2"
+                  className="group/menu-button relative h-[50px] overflow-hidden rounded-[18px] px-2 text-sm font-medium text-slate-300 transition-all duration-200 hover:bg-white/[0.06] hover:text-white data-[active=true]:bg-white data-[active=true]:text-slate-950 data-[active=true]:shadow-[0_16px_34px_rgba(15,23,42,0.28)] group-data-[collapsible=icon]:justify-center group-data-[collapsible=icon]:px-2"
                 >
                   <Link href={item.href}>
-                    <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-2xl bg-white/8 text-slate-300 transition group-data-[active=true]/menu-button:bg-slate-100 group-data-[active=true]/menu-button:text-slate-950 group-hover/menu-button:bg-white/14 group-hover/menu-button:text-white">
-                      <Icon className="h-5 w-5" />
+                    {active ? (
+                      <span className="absolute left-0 top-1/2 h-7 w-1 -translate-y-1/2 rounded-r-full bg-blue-500 group-data-[collapsible=icon]:hidden" />
+                    ) : null}
+
+                    <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-2xl bg-white/[0.07] text-slate-300 ring-1 ring-white/[0.04] transition group-hover/menu-button:bg-white/[0.10] group-hover/menu-button:text-white group-data-[active=true]/menu-button:bg-slate-100 group-data-[active=true]/menu-button:text-blue-700 group-data-[active=true]/menu-button:ring-slate-200">
+                      <Icon className="h-4.5 w-4.5" />
                     </span>
 
                     <span className="truncate group-data-[collapsible=icon]:hidden">
@@ -195,20 +189,30 @@ export function AppSidebar() {
       </SidebarContent>
 
       <SidebarFooter className="border-t border-white/8 bg-transparent px-3 py-4">
-        <div className="rounded-[24px] border border-white/10 bg-white/6 p-4 group-data-[collapsible=icon]:hidden">
-          <p className="text-[11px] uppercase tracking-[0.22em] text-slate-400">Ambiente</p>
+        <div className="group-data-[collapsible=icon]:hidden">
+          <div className="rounded-[20px] bg-white/[0.035] px-3.5 py-3 ring-1 ring-white/8">
+            <div className="flex items-center justify-between gap-3">
+              <div className="min-w-0">
+                <p className="text-[10px] font-semibold uppercase tracking-[0.22em] text-slate-500">
+                  Ambiente
+                </p>
 
-          <div className="mt-3 flex items-center justify-between gap-3">
-            <span className="text-sm font-medium text-slate-200">CRM Workspace</span>
-            <span className="rounded-full bg-emerald-400/15 px-3 py-1 text-xs font-semibold text-emerald-300">
-              Online
-            </span>
+                <p className="mt-1 truncate text-sm font-semibold text-slate-200">
+                  CRM Workspace
+                </p>
+              </div>
+
+              <span className="inline-flex shrink-0 items-center gap-1.5 rounded-full bg-emerald-400/10 px-2.5 py-1 text-[11px] font-semibold text-emerald-300 ring-1 ring-emerald-400/15">
+                <span className="h-1.5 w-1.5 rounded-full bg-emerald-300 shadow-[0_0_10px_rgba(110,231,183,0.75)]" />
+                Online
+              </span>
+            </div>
           </div>
         </div>
 
         <div className="hidden items-center justify-center group-data-[collapsible=icon]:flex">
-          <div className="flex h-10 w-10 items-center justify-center rounded-2xl border border-white/10 bg-white/6 text-xs font-semibold text-sky-200">
-            ON
+          <div className="flex h-10 w-10 items-center justify-center rounded-2xl bg-emerald-400/10 text-emerald-300 ring-1 ring-emerald-400/15">
+            <span className="h-2 w-2 rounded-full bg-emerald-300 shadow-[0_0_10px_rgba(110,231,183,0.85)]" />
           </div>
         </div>
       </SidebarFooter>

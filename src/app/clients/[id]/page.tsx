@@ -2,19 +2,27 @@
 
 import Link from 'next/link';
 import { useEffect, useMemo, useState } from 'react';
-import { ArrowLeft, Building2, Mail, Phone, UserRound } from 'lucide-react';
+import { ArrowLeft, Building2, Edit3, Mail, Phone, Save, UserRound, X } from 'lucide-react';
 import { AppLayout } from '@/components/layout/app-layout';
 import { OpportunityList } from '@/components/crm/opportunity-list';
 import { TimelineSection } from '@/components/crm/timeline-section';
 import { Button } from '@/components/ui/button';
+import { FeedbackToast } from '@/components/ui/feedback-toast';
+import { useAuth } from '@/context/auth-context';
 import {
+  createOpportunity,
   formatLeadStatus,
   formatOpportunityStage,
   getCrmLeadById,
   getOpportunityStatusFromStage,
+  updateClient,
+  updateOpportunity,
+  updateOpportunityStage,
 } from '@/services/crm.service';
 import type {
   LeadDetail,
+  LeadStatus,
+  Opportunity,
   OpportunityStage,
   TimelineEvent,
 } from '@/types/crm';
@@ -43,24 +51,74 @@ function formatCurrency(value?: number | null) {
   }).format(value ?? 0);
 }
 
+function clientToFormState(lead: LeadDetail) {
+  return {
+    name: lead.name ?? '',
+    email: lead.email ?? '',
+    companyName: lead.company ?? '',
+    phone: lead.phone ?? '',
+    document: lead.document ?? '',
+    segment: lead.segment === '-' ? '' : lead.segment,
+    status: lead.status,
+    notes: lead.notes ?? '',
+  };
+}
+
 export default function ClientDetailsPage({
   params,
 }: {
   params: Promise<{ id: string }>;
 }) {
+  const { token, user } = useAuth();
   const [lead, setLead] = useState<LeadDetail | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
+  const [clientId, setClientId] = useState('');
+  const [isEditingClient, setIsEditingClient] = useState(false);
+  const [savingClient, setSavingClient] = useState(false);
+  const [clientFormError, setClientFormError] = useState('');
+  const [clientForm, setClientForm] = useState({
+    name: '',
+    email: '',
+    companyName: '',
+    phone: '',
+    document: '',
+    segment: '',
+    status: 'PENDENTE' as LeadStatus,
+    notes: '',
+  });
+  const [preContractForm, setPreContractForm] = useState({
+    title: '',
+    value: '',
+    expectedCloseDate: '',
+    notes: '',
+  });
+  const [savingPreContract, setSavingPreContract] = useState(false);
+  const [toast, setToast] = useState<{
+    title: string;
+    message: string;
+    variant: 'success' | 'error';
+  } | null>(null);
+
+  const canEditOpportunities = user?.role
+    ? ['ADMIN', 'GESTAO', 'COMERCIAL'].includes(user.role)
+    : false;
 
   useEffect(() => {
     let active = true;
 
     async function loadLead() {
+      if (!token) {
+        setLoading(false);
+        return;
+      }
+
       try {
         setLoading(true);
         setError('');
         const { id } = await params;
-        const nextLead = await getCrmLeadById(id);
+        setClientId(id);
+        const nextLead = await getCrmLeadById(id, token);
 
         if (!active) {
           return;
@@ -73,6 +131,7 @@ export default function ClientDetailsPage({
         }
 
         setLead(nextLead);
+        setClientForm(clientToFormState(nextLead));
       } catch (loadError) {
         if (!active) {
           return;
@@ -95,7 +154,19 @@ export default function ClientDetailsPage({
     return () => {
       active = false;
     };
-  }, [params]);
+  }, [params, token]);
+
+  async function reloadClient() {
+    if (!token || !clientId) {
+      return;
+    }
+
+    const nextLead = await getCrmLeadById(clientId, token);
+    setLead(nextLead);
+    if (nextLead) {
+      setClientForm(clientToFormState(nextLead));
+    }
+  }
 
   const openValue = useMemo(
     () =>
@@ -105,7 +176,87 @@ export default function ClientDetailsPage({
     [lead],
   );
 
-  function handleStageChange(opportunityId: string, stage: OpportunityStage) {
+  async function handleUpdateClient(event: React.FormEvent<HTMLFormElement>) {
+    event.preventDefault();
+
+    if (!token || !lead) {
+      return;
+    }
+
+    if (!clientForm.name.trim() || !clientForm.email.trim()) {
+      setClientFormError('Informe nome e e-mail do cliente.');
+      setToast({
+        title: 'Campos obrigatorios',
+        message: 'Informe nome e e-mail do cliente.',
+        variant: 'error',
+      });
+      return;
+    }
+
+    try {
+      setSavingClient(true);
+      setClientFormError('');
+      await updateClient(
+        lead.id,
+        {
+          name: clientForm.name.trim(),
+          email: clientForm.email.trim(),
+          companyName: clientForm.companyName.trim() || clientForm.name.trim(),
+          phone: clientForm.phone.trim() || undefined,
+          document: clientForm.document.trim() || undefined,
+          segment: clientForm.segment.trim() || undefined,
+          status: clientForm.status,
+          notes: clientForm.notes.trim() || undefined,
+        },
+        token,
+      );
+      await reloadClient();
+      setIsEditingClient(false);
+      setToast({
+        title: 'Cliente atualizado',
+        message: 'Cadastro salvo com sucesso.',
+        variant: 'success',
+      });
+    } catch (saveError) {
+      const message =
+        saveError instanceof Error
+          ? saveError.message
+          : 'Erro ao atualizar cliente.';
+      setClientFormError(message);
+      setToast({
+        title: 'Falha ao atualizar cliente',
+        message,
+        variant: 'error',
+      });
+    } finally {
+      setSavingClient(false);
+    }
+  }
+
+  async function handleStageChange(opportunityId: string, stage: OpportunityStage) {
+    if (!token) {
+      return;
+    }
+
+    try {
+      await updateOpportunityStage(opportunityId, stage, token);
+      setToast({
+        title: 'Oportunidade atualizada',
+        message: `Etapa alterada para ${formatOpportunityStage(stage)}.`,
+        variant: 'success',
+      });
+    } catch (stageError) {
+      setToast({
+        title: 'Falha ao atualizar oportunidade',
+        message:
+          stageError instanceof Error
+            ? stageError.message
+            : 'Erro ao alterar etapa.',
+        variant: 'error',
+      });
+      return;
+    }
+
     setLead((current) => {
       if (!current) {
         return current;
@@ -153,8 +304,31 @@ export default function ClientDetailsPage({
     });
   }
 
-  function handleMarkLost(opportunityId: string, reason: string) {
+  async function handleMarkLost(opportunityId: string, reason: string) {
+    if (!token) {
+      return;
+    }
+
     const trimmedReason = reason.trim() || 'Motivo nao informado.';
+
+    try {
+      await updateOpportunityStage(opportunityId, 'PERDIDO', token, trimmedReason);
+      setToast({
+        title: 'Oportunidade atualizada',
+        message: 'Perda registrada com sucesso.',
+        variant: 'success',
+      });
+    } catch (lostError) {
+      setToast({
+        title: 'Falha ao registrar perda',
+        message:
+          lostError instanceof Error
+            ? lostError.message
+            : 'Erro ao marcar oportunidade como perdida.',
+        variant: 'error',
+      });
+      return;
+    }
 
     setLead((current) => {
       if (!current) {
@@ -197,6 +371,101 @@ export default function ClientDetailsPage({
         ),
       };
     });
+  }
+
+  async function handleEditOpportunity(
+    opportunityId: string,
+    payload: Partial<
+      Pick<
+        Opportunity,
+        | 'title'
+        | 'value'
+        | 'expectedCloseDate'
+        | 'preContract'
+        | 'preContractNotes'
+      >
+    >,
+  ) {
+    if (!token) {
+      return;
+    }
+
+    if (payload.title !== undefined && !payload.title.trim()) {
+      setToast({
+        title: 'Titulo obrigatorio',
+        message: 'Informe o titulo da oportunidade.',
+        variant: 'error',
+      });
+      return;
+    }
+
+    try {
+      await updateOpportunity(opportunityId, payload, token);
+      await reloadClient();
+      setToast({
+        title: 'Oportunidade atualizada',
+        message: 'Dados comerciais salvos com sucesso.',
+        variant: 'success',
+      });
+    } catch (editError) {
+      setToast({
+        title: 'Falha ao editar oportunidade',
+        message:
+          editError instanceof Error
+            ? editError.message
+            : 'Erro ao editar oportunidade.',
+        variant: 'error',
+      });
+    }
+  }
+
+  async function handleCreatePreContract(event: React.FormEvent<HTMLFormElement>) {
+    event.preventDefault();
+
+    if (!token || !lead) {
+      return;
+    }
+
+    try {
+      setSavingPreContract(true);
+      await createOpportunity(
+        {
+          clientId: lead.id,
+          title: preContractForm.title.trim() || 'Pre-contrato comercial',
+          value: preContractForm.value
+            ? Number(preContractForm.value.replace(',', '.'))
+            : undefined,
+          expectedCloseDate: preContractForm.expectedCloseDate || undefined,
+          preContract: true,
+          preContractNotes: preContractForm.notes.trim() || undefined,
+          stage: 'PROPOSTA',
+        },
+        token,
+      );
+      setPreContractForm({
+        title: '',
+        value: '',
+        expectedCloseDate: '',
+        notes: '',
+      });
+      await reloadClient();
+      setToast({
+        title: 'Pre-contrato incluido',
+        message: 'Oportunidade comercial registrada com sucesso.',
+        variant: 'success',
+      });
+    } catch (preContractError) {
+      setToast({
+        title: 'Falha ao incluir pre-contrato',
+        message:
+          preContractError instanceof Error
+            ? preContractError.message
+            : 'Erro ao incluir pre-contrato.',
+        variant: 'error',
+      });
+    } finally {
+      setSavingPreContract(false);
+    }
   }
 
   return (
@@ -339,11 +608,221 @@ export default function ClientDetailsPage({
 
         {lead ? (
           <>
+            <section className="rounded-[28px] border border-slate-200 bg-white p-5 shadow-sm md:p-6">
+              <div className="flex flex-col gap-3 md:flex-row md:items-start md:justify-between">
+                <div>
+                  <p className="text-sm font-semibold uppercase tracking-[0.18em] text-blue-700">
+                    Cadastro
+                  </p>
+                  <h2 className="mt-2 text-2xl font-bold text-slate-950">
+                    Dados do cliente
+                  </h2>
+                </div>
+
+                <button
+                  type="button"
+                  onClick={() => {
+                    setIsEditingClient((current) => !current);
+                    setClientForm(clientToFormState(lead));
+                    setClientFormError('');
+                  }}
+                  className="inline-flex items-center justify-center gap-2 rounded-2xl border border-slate-300 bg-white px-4 py-2.5 text-sm font-semibold text-slate-700 transition hover:bg-slate-100"
+                >
+                  {isEditingClient ? <X className="h-4 w-4" /> : <Edit3 className="h-4 w-4" />}
+                  {isEditingClient ? 'Cancelar edicao' : 'Editar cadastro'}
+                </button>
+              </div>
+
+              {isEditingClient ? (
+                <form onSubmit={handleUpdateClient} className="mt-5 grid gap-4 md:grid-cols-2">
+                  {clientFormError ? (
+                    <div className="rounded-2xl border border-rose-200 bg-rose-50 px-4 py-3 text-sm text-rose-700 md:col-span-2">
+                      {clientFormError}
+                    </div>
+                  ) : null}
+
+                  <input
+                    value={clientForm.name}
+                    onChange={(event) =>
+                      setClientForm((current) => ({ ...current, name: event.target.value }))
+                    }
+                    className="crm-input"
+                    placeholder="Nome do usuario"
+                  />
+                  <input
+                    type="email"
+                    value={clientForm.email}
+                    onChange={(event) =>
+                      setClientForm((current) => ({ ...current, email: event.target.value }))
+                    }
+                    className="crm-input"
+                    placeholder="E-mail"
+                  />
+                  <input
+                    value={clientForm.companyName}
+                    onChange={(event) =>
+                      setClientForm((current) => ({ ...current, companyName: event.target.value }))
+                    }
+                    className="crm-input"
+                    placeholder="Empresa"
+                  />
+                  <input
+                    value={clientForm.phone}
+                    onChange={(event) =>
+                      setClientForm((current) => ({ ...current, phone: event.target.value }))
+                    }
+                    className="crm-input"
+                    placeholder="Telefone"
+                  />
+                  <input
+                    value={clientForm.document}
+                    onChange={(event) =>
+                      setClientForm((current) => ({ ...current, document: event.target.value }))
+                    }
+                    className="crm-input"
+                    placeholder="Documento"
+                  />
+                  <input
+                    value={clientForm.segment}
+                    onChange={(event) =>
+                      setClientForm((current) => ({ ...current, segment: event.target.value }))
+                    }
+                    className="crm-input"
+                    placeholder="Segmento"
+                  />
+                  <select
+                    value={clientForm.status}
+                    onChange={(event) =>
+                      setClientForm((current) => ({
+                        ...current,
+                        status: event.target.value as LeadStatus,
+                      }))
+                    }
+                    className="crm-input"
+                  >
+                    <option value="PENDENTE">Pendente</option>
+                    <option value="ATIVO">Ativo</option>
+                    <option value="INATIVO">Inativo</option>
+                  </select>
+                  <textarea
+                    value={clientForm.notes}
+                    onChange={(event) =>
+                      setClientForm((current) => ({ ...current, notes: event.target.value }))
+                    }
+                    className="crm-textarea md:col-span-2"
+                    rows={3}
+                    placeholder="Observacoes cadastrais"
+                  />
+                  <div className="flex justify-end md:col-span-2">
+                    <button
+                      type="submit"
+                      disabled={savingClient}
+                      className="inline-flex items-center justify-center gap-2 rounded-2xl bg-slate-950 px-4 py-3 text-sm font-semibold text-white transition hover:bg-slate-800 disabled:opacity-60"
+                    >
+                      <Save className="h-4 w-4" />
+                      {savingClient ? 'Salvando...' : 'Salvar cadastro'}
+                    </button>
+                  </div>
+                </form>
+              ) : (
+                <div className="mt-5 grid gap-3 md:grid-cols-2 xl:grid-cols-4">
+                  {[
+                    ['Nome', lead.name],
+                    ['E-mail', lead.email],
+                    ['Empresa', lead.company],
+                    ['Telefone', lead.phone ?? '-'],
+                    ['Documento', lead.document ?? '-'],
+                    ['Segmento', lead.segment],
+                    ['Status', formatLeadStatus(lead.status)],
+                    ['Observacoes', lead.notes ?? '-'],
+                  ].map(([label, value]) => (
+                    <div key={label} className="rounded-2xl bg-slate-50 p-4 text-sm">
+                      <p className="text-xs font-semibold uppercase tracking-[0.18em] text-slate-400">
+                        {label}
+                      </p>
+                      <p className="mt-2 font-semibold text-slate-900">
+                        {value}
+                      </p>
+                    </div>
+                  ))}
+                </div>
+              )}
+            </section>
+
             <OpportunityList
               opportunities={lead.opportunities}
               onStageChange={handleStageChange}
               onMarkLost={handleMarkLost}
+              canEdit={canEditOpportunities}
+              onEdit={handleEditOpportunity}
             />
+            <section className="rounded-[28px] border border-slate-200 bg-white p-5 shadow-sm md:p-6">
+              <div>
+                <p className="text-sm font-semibold uppercase tracking-[0.18em] text-blue-700">
+                  Pre-contrato
+                </p>
+                <h2 className="mt-2 text-2xl font-bold text-slate-950">
+                  Registrar proposta como pre-contrato
+                </h2>
+              </div>
+
+              <form onSubmit={handleCreatePreContract} className="mt-5 grid gap-4 lg:grid-cols-4">
+                <input
+                  type="text"
+                  value={preContractForm.title}
+                  onChange={(event) =>
+                    setPreContractForm((current) => ({
+                      ...current,
+                      title: event.target.value,
+                    }))
+                  }
+                  className="crm-input"
+                  placeholder="Titulo do pre-contrato"
+                />
+                <input
+                  type="text"
+                  value={preContractForm.value}
+                  onChange={(event) =>
+                    setPreContractForm((current) => ({
+                      ...current,
+                      value: event.target.value,
+                    }))
+                  }
+                  className="crm-input"
+                  placeholder="Valor estimado"
+                />
+                <input
+                  type="date"
+                  value={preContractForm.expectedCloseDate}
+                  onChange={(event) =>
+                    setPreContractForm((current) => ({
+                      ...current,
+                      expectedCloseDate: event.target.value,
+                    }))
+                  }
+                  className="crm-input"
+                />
+                <button
+                  type="submit"
+                  disabled={savingPreContract}
+                  className="rounded-2xl bg-slate-950 px-4 py-3 text-sm font-semibold text-white transition hover:bg-slate-800 disabled:opacity-60"
+                >
+                  {savingPreContract ? 'Salvando...' : 'Incluir pre-contrato'}
+                </button>
+                <textarea
+                  value={preContractForm.notes}
+                  onChange={(event) =>
+                    setPreContractForm((current) => ({
+                      ...current,
+                      notes: event.target.value,
+                    }))
+                  }
+                  rows={3}
+                  className="crm-textarea lg:col-span-4"
+                  placeholder="Condicoes, observacoes ou combinados comerciais"
+                />
+              </form>
+            </section>
             <TimelineSection events={lead.timeline} />
           </>
         ) : loading ? null : (
@@ -357,6 +836,13 @@ export default function ClientDetailsPage({
           </section>
         )}
       </div>
+      <FeedbackToast
+        open={!!toast}
+        title={toast?.title ?? ''}
+        message={toast?.message ?? ''}
+        variant={toast?.variant ?? 'success'}
+        onClose={() => setToast(null)}
+      />
     </AppLayout>
   );
 }

@@ -20,8 +20,8 @@ export default function LoginPage() {
     setError('');
 
     try {
-      await signIn(email, password);
-      router.push('/dashboard');
+      const loginData = await signIn(email, password);
+      router.push(loginData.user.mustChangePassword ? '/change-password' : '/dashboard');
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Erro ao fazer login');
     } finally {

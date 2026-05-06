@@ -20,6 +20,7 @@ type AuthUser = {
   name: string;
   email: string;
   role: UserRole;
+  mustChangePassword?: boolean;
   clientProfile?: unknown | null;
 };
 
@@ -32,7 +33,8 @@ type AuthContextType = {
   user: AuthUser | null;
   token: string | null;
   loading: boolean;
-  signIn: (email: string, password: string) => Promise<void>;
+  signIn: (email: string, password: string) => Promise<LoginResponse>;
+  changePassword: (currentPassword: string, newPassword: string) => Promise<void>;
   signOut: () => void;
 };
 
@@ -81,6 +83,36 @@ export function AuthProvider({
 
     localStorage.setItem(TOKEN_KEY, loginData.access_token);
     localStorage.setItem(USER_KEY, JSON.stringify(loginData.user));
+
+    return loginData;
+  }
+
+  async function changePassword(currentPassword: string, newPassword: string) {
+    if (!token) {
+      throw new Error('Sessao expirada. Faca login novamente.');
+    }
+
+    const response = await fetch(`${API_BASE_URL}/auth/change-password`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        Authorization: `Bearer ${token}`,
+      },
+      body: JSON.stringify({ currentPassword, newPassword }),
+    });
+
+    const data = (await response.json()) as
+      | { user: AuthUser; message?: string }
+      | { message?: string };
+
+    if (!response.ok) {
+      throw new Error((data as { message?: string }).message || 'Erro ao alterar senha');
+    }
+
+    const updatedUser = (data as { user: AuthUser }).user;
+
+    setUser(updatedUser);
+    localStorage.setItem(USER_KEY, JSON.stringify(updatedUser));
   }
 
   function signOut() {
@@ -96,6 +128,7 @@ export function AuthProvider({
       token,
       loading,
       signIn,
+      changePassword,
       signOut,
     }),
     [user, token, loading],
