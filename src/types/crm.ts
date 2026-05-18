@@ -29,6 +29,7 @@ export interface TimelineEvent {
   description: string;
   createdAt: string;
   createdBy?: string | null;
+  createdByRole?: string | null;
   metadata?: Record<string, string | number | boolean | null> | null;
 }
 

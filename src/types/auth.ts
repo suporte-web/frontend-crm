@@ -5,6 +5,16 @@ export type UserRole =
   | 'MARKETING'
   | 'CLIENTE';
 
+export interface RoleScreenPermission {
+  id: string;
+  role: UserRole;
+  screenKey: string;
+  screenLabel?: string | null;
+  isEnabled: boolean;
+  createdAt?: string;
+  updatedAt?: string;
+}
+
 export interface AuthUser {
   id: string;
   name: string;
@@ -12,6 +22,7 @@ export interface AuthUser {
   role: UserRole;
   mustChangePassword?: boolean;
   clientProfile?: unknown | null;
+  screenPermissions?: RoleScreenPermission[];
 }
 
 export interface LoginResponse {

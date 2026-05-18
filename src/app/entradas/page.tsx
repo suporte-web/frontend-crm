@@ -19,7 +19,7 @@ const statusOptions: Array<{ value: EntradaStatus | "TODOS"; label: string }> = 
   { value: "NOVO", label: "Novo" },
   { value: "EM_ANDAMENTO", label: "Em atendimento" },
   { value: "CONVERTIDO_EM_PROSPECT", label: "Convertido em prospect" },
-  { value: "COTACAO_CRIADA", label: "Cotacao criada" },
+  { value: "COTACAO_CRIADA", label: "Cotação criada" },
   { value: "FINALIZADO", label: "Finalizado" },
   { value: "PERDIDO", label: "Perdido" },
   { value: "TRANSFERIDO", label: "Transferido" },
@@ -27,7 +27,7 @@ const statusOptions: Array<{ value: EntradaStatus | "TODOS"; label: string }> = 
 
 const tipoOptions: Array<{ value: EntradaTipo | "TODOS"; label: string }> = [
   { value: "TODOS", label: "Todos" },
-  { value: "COTACAO", label: "Cotacao" },
+  { value: "COTACAO", label: "Cotação" },
   { value: "FORNECEDOR", label: "Fornecedor" },
   { value: "AGREGADO", label: "Agregado" },
   { value: "FINANCEIRO", label: "Financeiro" },
@@ -119,7 +119,7 @@ export default function EntradasPage() {
       );
       setToast({
         title: "Entrada assumida",
-        message: "O ticket foi atribuido ao seu usuario.",
+        message: "O ticket foi atribuído ao seu usuário.",
         variant: "success",
       });
     } catch (error) {
@@ -145,7 +145,7 @@ export default function EntradasPage() {
             </h1>
             <p className="mt-1 max-w-2xl text-sm text-slate-600">
               Tickets criados pelo formulario publico antes de virarem prospect
-              e cotacao.
+              e cotação.
             </p>
           </div>
 
@@ -250,8 +250,8 @@ export default function EntradasPage() {
                   <th className="px-4 py-3">Contato</th>
                   <th className="px-4 py-3">Tipo</th>
                   <th className="px-4 py-3">Status</th>
-                  <th className="px-4 py-3">Responsavel</th>
-                  <th className="px-4 py-3 text-right">Acoes</th>
+                  <th className="px-4 py-3">Responsável</th>
+                  <th className="px-4 py-3 text-right">Ações</th>
                 </tr>
               </thead>
               <tbody className="divide-y divide-slate-100">
@@ -294,7 +294,7 @@ export default function EntradasPage() {
                         </span>
                       </td>
                       <td className="px-4 py-3 text-slate-600">
-                        {entrada.assignedTo?.name ?? "Sem responsavel"}
+                        {entrada.assignedTo?.name ?? "Sem responsável"}
                       </td>
                       <td className="px-4 py-3">
                         <div className="flex justify-end gap-2">

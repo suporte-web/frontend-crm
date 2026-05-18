@@ -17,6 +17,21 @@ export interface ClientProfile {
   updatedAt?: string;
 }
 
+export interface RoleScreenPermission {
+  id: string;
+  role: UserRole;
+  screenKey: string;
+  screenLabel?: string | null;
+  isEnabled: boolean;
+  createdAt?: string;
+  updatedAt?: string;
+}
+
+export interface RoleScreenPermissionsGroup {
+  role: UserRole;
+  screens: RoleScreenPermission[];
+}
+
 export interface User {
   id: string;
   name: string;
@@ -26,6 +41,7 @@ export interface User {
   createdAt: string;
   updatedAt: string;
   clientProfile?: ClientProfile | null;
+  screenPermissions?: RoleScreenPermission[];
 }
 
 export interface CreateUserPayload {
@@ -53,4 +69,12 @@ export interface UpdateUserPayload {
   segment?: string;
   status?: string;
   internalOwnerId?: string;
+}
+
+export interface UpdateRoleScreenPermissionsPayload {
+  screens: Array<{
+    screenKey: string;
+    screenLabel?: string;
+    isEnabled: boolean;
+  }>;
 }

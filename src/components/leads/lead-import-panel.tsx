@@ -153,7 +153,7 @@ export function LeadImportPanel({
 
         {jobs.length === 0 ? (
           <div className="rounded-[24px] border border-slate-200 bg-slate-50 p-4 text-sm text-slate-500">
-            Nenhuma importacao registrada ainda.
+            Nenhuma importação registrada ainda.
           </div>
         ) : (
           jobs.map((job) => (

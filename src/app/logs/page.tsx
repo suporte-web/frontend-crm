@@ -102,7 +102,7 @@ export default function LogsPage() {
             <div>
               <h1 className="text-xl font-semibold">Acesso restrito</h1>
               <p className="mt-2 text-sm leading-6">
-                Esta tela esta disponivel apenas para ADMIN e GESTAO.
+                Esta tela está disponível apenas para ADMIN e GESTÃO.
               </p>
             </div>
           </div>
@@ -120,7 +120,7 @@ export default function LogsPage() {
               <p className="crm-eyebrow">Auditoria</p>
               <h1 className="crm-page-title">Logs operacionais</h1>
               <p className="crm-page-copy">
-                Acoes de usuarios, autenticacao, clientes, cotacoes e tickets com filtro por data de referencia.
+                Ações de usuários, autenticação, clientes, cotações e tickets com filtro por data de referência.
               </p>
             </div>
             <button
@@ -203,7 +203,7 @@ export default function LogsPage() {
             </div>
             <div>
               <label className="mb-2 block text-sm font-semibold text-slate-700">
-                Usuario
+                Usuário
               </label>
               <select
                 value={filters.userId}

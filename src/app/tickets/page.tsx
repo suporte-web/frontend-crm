@@ -64,16 +64,16 @@ const internalStatusLabels: Record<TicketStatus, string> = {
   EM_ANDAMENTO: "Em andamento",
   AGUARDANDO_CLIENTE: "Aguardando cliente",
   AGUARDANDO_COMERCIAL: "Aguardando comercial",
-  AGUARDANDO_GESTAO: "Aguardando Gestao",
+  AGUARDANDO_GESTAO: "Aguardando Gestão",
   RESPONDIDO: "Respondido",
   APROVADO_CLIENTE: "Aprovado pelo cliente",
-  APROVADO_GESTAO: "Aprovado pela Gestao",
+  APROVADO_GESTAO: "Aprovado pela Gestão",
   AJUSTE_SOLICITADO: "Ajuste solicitado",
   REPROVADO: "Reprovado",
   FECHADO: "Fechado",
   CANCELADO: "Cancelado",
   CONVERTIDO_EM_PROSPECT: "Convertido em prospect",
-  COTACAO_CRIADA: "Cotacao criada",
+  COTACAO_CRIADA: "Cotação criada",
   FINALIZADO: "Finalizado",
   PERDIDO: "Perdido",
   TRANSFERIDO: "Transferido",
@@ -85,7 +85,7 @@ const clientStatusLabels: Record<TicketStatus, string> = {
   EM_ANDAMENTO: "Em analise",
   AGUARDANDO_CLIENTE: "Aguardando sua resposta",
   AGUARDANDO_COMERCIAL: "Em analise",
-  AGUARDANDO_GESTAO: "Em validacao interna",
+  AGUARDANDO_GESTAO: "Em validação interna",
   RESPONDIDO: "Respondido",
   APROVADO_CLIENTE: "Aprovado",
   APROVADO_GESTAO: "Aprovado",
@@ -94,19 +94,19 @@ const clientStatusLabels: Record<TicketStatus, string> = {
   FECHADO: "Concluido",
   CANCELADO: "Cancelado",
   CONVERTIDO_EM_PROSPECT: "Em analise",
-  COTACAO_CRIADA: "Cotacao criada",
+  COTACAO_CRIADA: "Cotação criada",
   FINALIZADO: "Concluido",
   PERDIDO: "Encerrado",
   TRANSFERIDO: "Transferido",
 };
 
 const ticketTypeLabels: Record<TicketType, string> = {
-  COTACAO: "Cotacao",
+  COTACAO: "Cotação",
   LEAD: "Lead",
-  PRE_NEGOCIACAO: "Pre-negociacao",
-  APROVACAO_GESTAO: "Aprovacao Gestao",
+  PRE_NEGOCIACAO: "Pré-negociação",
+  APROVACAO_GESTAO: "Aprovação Gestão",
   AJUSTE_CLIENTE: "Ajuste Cliente",
-  AJUSTE_GESTAO: "Ajuste Gestao",
+  AJUSTE_GESTAO: "Ajuste Gestão",
   SUPORTE: "Suporte",
   DOCUMENTACAO: "Documentacao",
   OPERACIONAL: "Operacional",
@@ -138,10 +138,10 @@ const propostaStatusLabels: Record<StatusProposta, string> = {
   APROVADA_PELO_CLIENTE: "Aprovada pelo cliente",
   RECUSADA_PELO_CLIENTE: "Recusada pelo cliente",
   AJUSTE_SOLICITADO_PELO_CLIENTE: "Ajuste solicitado pelo cliente",
-  ENVIADA_PARA_GESTAO: "Enviada para Gestao",
-  APROVADA_PELA_GESTAO: "Aprovada pela Gestao",
-  RECUSADA_PELA_GESTAO: "Recusada pela Gestao",
-  AJUSTE_SOLICITADO_PELA_GESTAO: "Ajuste solicitado pela Gestao",
+  ENVIADA_PARA_GESTAO: "Enviada para Gestão",
+  APROVADA_PELA_GESTAO: "Aprovada pela Gestão",
+  RECUSADA_PELA_GESTAO: "Recusada pela Gestão",
+  AJUSTE_SOLICITADO_PELA_GESTAO: "Ajuste solicitado pela Gestão",
   CANCELADA: "Cancelada",
   EXPIRADA: "Expirada",
 };
@@ -181,13 +181,13 @@ function formatDate(value?: string | null) {
 
 function formatCurrency(value?: string | number | null) {
   if (value === null || value === undefined || value === "") {
-    return "Nao informado";
+    return "Não informado";
   }
 
   const amount = Number(value);
 
   if (!Number.isFinite(amount)) {
-    return "Nao informado";
+    return "Não informado";
   }
 
   return amount.toLocaleString("pt-BR", {
@@ -231,7 +231,7 @@ function formatProposalValidity(proposta: Proposta) {
     return formatDate(proposta.validaAte);
   }
 
-  return "Nao informada";
+  return "Não informada";
 }
 
 function formatFileSize(value?: number | null) {
@@ -306,14 +306,14 @@ function getActionBadge(ticket: Ticket, role?: string | null) {
   if (role === "CLIENTE") {
     if (["AGUARDANDO_CLIENTE", "RESPONDIDO"].includes(ticket.status))
       return "Aguardando sua resposta";
-    if (ticket.type === "PRE_NEGOCIACAO") return "Proposta disponivel";
+    if (ticket.type === "PRE_NEGOCIACAO") return "Proposta disponível";
     if (ticket.status === "APROVADO_GESTAO") return "Aprovado";
     return null;
   }
 
   if (role === "GESTAO" || role === "ADMIN") {
-    if (ticket.status === "AGUARDANDO_GESTAO") return "Aguardando aprovacao";
-    if (ticket.type === "APROVACAO_GESTAO") return "Reenviado para aprovacao";
+    if (ticket.status === "AGUARDANDO_GESTAO") return "Aguardando aprovação";
+    if (ticket.type === "APROVACAO_GESTAO") return "Reenviado para aprovação";
   }
 
   if (role === "COMERCIAL" || role === "ADMIN") {
@@ -322,7 +322,7 @@ function getActionBadge(ticket: Ticket, role?: string | null) {
       ticket.type === "COTACAO" &&
       ["ABERTO", "AGUARDANDO_COMERCIAL"].includes(ticket.status)
     )
-      return "Nova cotacao";
+      return "Nova cotação";
     if (ticket.type === "LEAD") return "Novo lead";
     if (
       ticket.type === "AJUSTE_GESTAO" ||
@@ -642,8 +642,8 @@ export default function TicketsPage() {
 
     if (!form.subject.trim() || !form.description.trim()) {
       setToast({
-        title: "Campos obrigatorios",
-        message: "Informe assunto e descricao.",
+        title: "Campos obrigatórios",
+        message: "Informe assunto e descrição.",
         variant: "error",
       });
       return;
@@ -651,7 +651,7 @@ export default function TicketsPage() {
 
     if (isInternal && !form.clientId) {
       setToast({
-        title: "Cliente obrigatorio",
+        title: "Cliente obrigatório",
         message: "Selecione o cliente do ticket.",
         variant: "error",
       });
@@ -794,7 +794,7 @@ export default function TicketsPage() {
 
   function validateProposalForm() {
     if (!proposalForm.titulo.trim()) {
-      return "Informe o titulo da proposta.";
+      return "Informe o título da proposta.";
     }
 
     if (!hasPositiveProposalValue(proposalForm.valor)) {
@@ -829,9 +829,9 @@ export default function TicketsPage() {
 
     if (!canEditSelectedProposal) {
       setToast({
-        title: "Edicao bloqueada",
+        title: "Edição bloqueada",
         message:
-          "O valor so pode ser ajustado em rascunho ou quando cliente/Gestao solicitarem ajuste.",
+          "O valor só pode ser ajustado em rascunho ou quando cliente/Gestão solicitarem ajuste.",
         variant: "error",
       });
       return;
@@ -869,7 +869,7 @@ export default function TicketsPage() {
         message:
           selectedPropostaId === "new" || !selectedProposta
             ? "A proposta foi registrada no ticket."
-            : "As alteracoes da proposta foram salvas.",
+            : "As alterações da proposta foram salvas.",
         variant: "success",
       });
     } catch (error) {
@@ -949,7 +949,7 @@ export default function TicketsPage() {
     await executeTicketAction(
       () =>
         addInternalTicketNote(selectedTicket.id, internalNote.trim(), token),
-      "Observacao interna registrada.",
+      "Observação interna registrada.",
     );
   }
 
@@ -973,7 +973,7 @@ export default function TicketsPage() {
               <p className="crm-eyebrow">Central de atendimento</p>
               <h1 className="crm-page-title">Tickets do CRM</h1>
               <p className="crm-page-copy">
-                Comunicacao entre Cliente, Comercial e Gestao com historico e
+                Comunicação entre Cliente, Comercial e Gestão com histórico e
                 notificacoes.
               </p>
             </div>
@@ -1018,7 +1018,7 @@ export default function TicketsPage() {
               type="text"
               value={search}
               onChange={(event) => setSearch(event.target.value)}
-              placeholder="Buscar por assunto, ID, codigo da cotacao, cliente, lead ou oportunidade"
+              placeholder="Buscar por assunto, ID, código da cotação, cliente, lead ou oportunidade"
               className="crm-input"
             />
             <select
@@ -1105,7 +1105,7 @@ export default function TicketsPage() {
                           href={`/quotes/${ticket.quote.id}`}
                           className="flex items-center gap-1 font-semibold text-blue-700"
                         >
-                          {ticket.quote.code || "Cotacao vinculada"}
+                          {ticket.quote.code || "Cotação vinculada"}
                           <ArrowUpRight className="h-3.5 w-3.5" />
                         </Link>
                       ) : ticket.lead ? (
@@ -1227,7 +1227,7 @@ export default function TicketsPage() {
                   }
                   className="crm-textarea"
                   rows={5}
-                  placeholder="Descricao do atendimento"
+                  placeholder="Descrição do atendimento"
                 />
                 <div className="flex justify-end">
                   <button
@@ -1305,7 +1305,7 @@ export default function TicketsPage() {
 
                       <div className="rounded-2xl bg-white p-4 text-sm text-slate-600">
                         <p className="font-semibold text-slate-950">
-                          Responsavel
+                          Responsável
                         </p>
                         <p className="mt-1">
                           {selectedTicket.assignedTo?.name ??
@@ -1316,7 +1316,7 @@ export default function TicketsPage() {
                       {selectedTicket.quote ? (
                         <div className="rounded-2xl bg-white p-4 text-sm text-slate-600">
                           <p className="font-semibold text-slate-950">
-                            Cotacao
+                            Cotação
                           </p>
                           <p className="mt-1">
                             {selectedTicket.quote.origin} para{" "}
@@ -1326,7 +1326,7 @@ export default function TicketsPage() {
                             href={`/quotes/${selectedTicket.quote.id}`}
                             className="mt-2 inline-flex items-center gap-1 font-semibold text-blue-700"
                           >
-                            Abrir cotacao
+                            Abrir cotação
                             <ArrowUpRight className="h-3.5 w-3.5" />
                           </Link>
                         </div>
@@ -1365,12 +1365,12 @@ export default function TicketsPage() {
                       <div>
                         <h3 className="flex items-center gap-2 text-sm font-semibold text-slate-900">
                           <FileText className="h-4 w-4 text-slate-500" />
-                          Pre-contrato / Proposta
+                          Pré-contrato / Proposta
                         </h3>
                         <p className="mt-1 text-sm text-slate-500">
                           Comercial monta e envia a proposta. Cliente visualiza
-                          e responde. Gestao revisa valores e trecho quando a
-                          negociacao segue para aprovacao.
+                          e responde. Gestão revisa valores e trecho quando a
+                          negociação segue para aprovação.
                         </p>
                       </div>
 
@@ -1458,7 +1458,7 @@ export default function TicketsPage() {
                                   Origem
                                 </p>
                                 <p className="mt-1 break-words text-sm font-semibold text-slate-900">
-                                  {selectedProposta.origem || "Nao informada"}
+                                  {selectedProposta.origem || "Não informada"}
                                 </p>
                               </div>
                               <div>
@@ -1466,7 +1466,7 @@ export default function TicketsPage() {
                                   Destino
                                 </p>
                                 <p className="mt-1 break-words text-sm font-semibold text-slate-900">
-                                  {selectedProposta.destino || "Nao informado"}
+                                  {selectedProposta.destino || "Não informado"}
                                 </p>
                               </div>
                               <div>
@@ -1483,21 +1483,21 @@ export default function TicketsPage() {
                               <div className="grid gap-4 2xl:grid-cols-2">
                                 <section className="rounded-2xl border border-slate-200 bg-white p-4 2xl:col-span-2">
                                   <p className="text-xs font-semibold uppercase tracking-[0.16em] text-slate-500">
-                                    Servico
+                                    Serviço
                                   </p>
                                   <p className="mt-2 whitespace-pre-wrap break-words text-sm leading-6 text-slate-700">
                                     {selectedProposta.descricaoServico ||
                                       selectedProposta.descricao ||
-                                      "Sem descricao detalhada informada."}
+                                      "Sem descrição detalhada informada."}
                                   </p>
                                 </section>
                                 <section className="min-w-0 rounded-2xl border border-slate-200 bg-slate-50 p-4">
                                   <p className="text-sm font-semibold text-slate-950">
-                                    Condicoes comerciais
+                                    Condições comerciais
                                   </p>
                                   <p className="mt-2 whitespace-pre-wrap break-words text-sm leading-6 text-slate-600">
                                     {selectedProposta.condicoesComerciais ||
-                                      "Nao informadas"}
+                                      "Não informadas"}
                                   </p>
                                 </section>
                                 <section className="min-w-0 rounded-2xl border border-slate-200 bg-slate-50 p-4">
@@ -1506,7 +1506,7 @@ export default function TicketsPage() {
                                   </p>
                                   <p className="mt-2 whitespace-pre-wrap break-words text-sm leading-6 text-slate-600">
                                     {selectedProposta.condicoesPagamento ||
-                                      "Pagamento nao informado"}
+                                      "Pagamento não informado"}
                                   </p>
                                 </section>
                               </div>
@@ -1515,7 +1515,7 @@ export default function TicketsPage() {
                               selectedProposta.motivoRecusaCliente ? (
                                 <div className="mt-4 rounded-2xl border border-slate-200 bg-white p-4 text-sm text-slate-600">
                                   <p className="font-semibold text-slate-950">
-                                    Observacoes
+                                    Observações
                                   </p>
                                   {selectedProposta.observacoes ? (
                                     <p className="mt-2 whitespace-pre-wrap leading-6">
@@ -1577,7 +1577,7 @@ export default function TicketsPage() {
 
                         <article className="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm">
                           <p className="text-sm font-semibold text-slate-900">
-                            Linha de aprovacao
+                            Linha de aprovação
                           </p>
                           <div className="mt-5 space-y-4 text-sm">
                             {[
@@ -1586,7 +1586,7 @@ export default function TicketsPage() {
                                 "Enviada ao cliente",
                                 selectedProposta.enviadaEm
                                   ? formatDate(selectedProposta.enviadaEm)
-                                  : "Ainda nao enviada",
+                                  : "Ainda não enviada",
                               ],
                               [
                                 "Resposta do cliente",
@@ -1601,7 +1601,7 @@ export default function TicketsPage() {
                                     : "Pendente",
                               ],
                               [
-                                "Gestao",
+                                "Gestão",
                                 selectedProposta.status ===
                                 "APROVADA_PELA_GESTAO"
                                   ? "Aprovada"
@@ -1613,7 +1613,7 @@ export default function TicketsPage() {
                                         selectedProposta.status ===
                                           "ENVIADA_PARA_GESTAO"
                                       ? "Em analise"
-                                      : "Nao iniciada",
+                                      : "Não iniciada",
                               ],
                             ].map(([label, value]) => (
                               <div
@@ -1650,8 +1650,8 @@ export default function TicketsPage() {
                                 : `Editar ${selectedProposta.code}`}
                             </p>
                             <p className="mt-1 text-sm text-slate-500">
-                              Monte o pre-contrato com valores, trecho e
-                              condicoes antes de enviar ao cliente.
+                              Monte o pré-contrato com valores, trecho e
+                              condições antes de enviar ao cliente.
                             </p>
                           </div>
                           {selectedProposta ? (
@@ -1683,7 +1683,7 @@ export default function TicketsPage() {
                               }))
                             }
                             className="crm-input"
-                            placeholder="Titulo da proposta"
+                            placeholder="Título da proposta"
                           />
                           <input
                             value={proposalForm.valor}
@@ -1727,7 +1727,7 @@ export default function TicketsPage() {
                               }))
                             }
                             className="crm-input"
-                            placeholder="Ex: 30 dias, 10 dias uteis"
+                            placeholder="Ex: 30 dias, 10 dias úteis"
                           />
                           <input
                             value={proposalForm.condicoesPagamento}
@@ -1738,7 +1738,7 @@ export default function TicketsPage() {
                               }))
                             }
                             className="crm-input"
-                            placeholder="Condicoes de pagamento"
+                            placeholder="Condições de pagamento"
                           />
                         </div>
 
@@ -1752,7 +1752,7 @@ export default function TicketsPage() {
                           }
                           className="crm-textarea mt-3"
                           rows={3}
-                          placeholder="Descricao do servico"
+                          placeholder="Descrição do serviço"
                         />
                         <textarea
                           value={proposalForm.condicoesComerciais}
@@ -1764,7 +1764,7 @@ export default function TicketsPage() {
                           }
                           className="crm-textarea mt-3"
                           rows={3}
-                          placeholder="Condicoes comerciais"
+                          placeholder="Condições comerciais"
                         />
                         <textarea
                           value={proposalForm.observacoes}
@@ -1776,7 +1776,7 @@ export default function TicketsPage() {
                           }
                           className="crm-textarea mt-3"
                           rows={3}
-                          placeholder="Observacoes do pre-contrato"
+                          placeholder="Observações do pré-contrato"
                         />
 
                         <div className="mt-3 rounded-2xl border border-slate-200 bg-slate-50 p-4">
@@ -1830,7 +1830,7 @@ export default function TicketsPage() {
 
                         {!canEditSelectedProposal ? (
                           <div className="mt-3 rounded-2xl border border-amber-200 bg-amber-50 px-4 py-3 text-sm text-amber-800">
-                            Edicao bloqueada. Para alterar valor ou arquivo, o
+                            Edição bloqueada. Para alterar valor ou arquivo, o
                             cliente precisa solicitar ajuste ou receber uma nova
                             versao para aprovar.
                           </div>
@@ -1988,7 +1988,7 @@ export default function TicketsPage() {
                     <section className="rounded-2xl border border-slate-200 bg-slate-50 p-4">
                       <h3 className="flex items-center gap-2 text-sm font-semibold text-slate-900">
                         <Lock className="h-4 w-4 text-slate-500" />
-                        Observacao interna
+                        Observação interna
                       </h3>
                       <form
                         onSubmit={handleInternalNote}
@@ -2001,14 +2001,14 @@ export default function TicketsPage() {
                           }
                           className="crm-textarea bg-white"
                           rows={3}
-                          placeholder="Visivel apenas para Comercial e Gestao"
+                          placeholder="Visivel apenas para Comercial e Gestão"
                         />
                         <button
                           type="submit"
                           disabled={saving || !internalNote.trim()}
                           className="rounded-2xl border border-slate-300 bg-white px-4 py-2.5 text-sm font-semibold text-slate-700 hover:bg-slate-100 disabled:opacity-60"
                         >
-                          Registrar observacao
+                          Registrar observação
                         </button>
                       </form>
                     </section>
@@ -2017,7 +2017,7 @@ export default function TicketsPage() {
                   <section>
                     <h3 className="flex items-center gap-2 text-sm font-semibold text-slate-900">
                       <History className="h-4 w-4 text-slate-500" />
-                      Historico
+                      Histórico
                     </h3>
                     <div className="mt-3 space-y-2">
                       {(selectedTicket.history ?? []).map((event) => (
@@ -2045,7 +2045,7 @@ export default function TicketsPage() {
                 <aside className="space-y-4">
                   <section className="rounded-2xl border border-slate-200 bg-slate-50 p-4">
                     <h3 className="text-sm font-semibold text-slate-900">
-                      Acoes
+                      Ações
                     </h3>
 
                     {isInternal ? (
@@ -2098,7 +2098,7 @@ export default function TicketsPage() {
                           }
                           className="crm-textarea bg-white"
                           rows={4}
-                          placeholder="Pre-proposta ou pre-contrato"
+                          placeholder="Pré-proposta ou pré-contrato"
                         />
                         <button
                           type="button"
@@ -2116,13 +2116,13 @@ export default function TicketsPage() {
                                   { message: preProposal.trim() },
                                   token,
                                 ),
-                              "Pre-proposta enviada ao cliente.",
+                              "Pré-proposta enviada ao cliente.",
                             )
                           }
                           className="flex w-full items-center justify-center gap-2 rounded-2xl bg-blue-700 px-4 py-2.5 text-sm font-semibold text-white hover:bg-blue-800 disabled:opacity-60"
                         >
                           <FileText className="h-4 w-4" />
-                          Enviar pre-proposta
+                          Enviar pré-proposta
                         </button>
                         {!hasPositiveProposalValue(selectedProposta?.valor) ? (
                           <p className="text-xs leading-5 text-slate-500">
@@ -2146,7 +2146,7 @@ export default function TicketsPage() {
                                       selectedProposta.id,
                                       token,
                                     ),
-                                  "Proposta enviada para Gestao.",
+                                  "Proposta enviada para Gestão.",
                                 )
                               : executeTicketAction(
                                   () =>
@@ -2155,18 +2155,18 @@ export default function TicketsPage() {
                                       {},
                                       token,
                                     ),
-                                  "Negociacao enviada para Gestao.",
+                                  "Negociacao enviada para Gestão.",
                                 ))
                           }
                           className="flex w-full items-center justify-center gap-2 rounded-2xl bg-indigo-700 px-4 py-2.5 text-sm font-semibold text-white hover:bg-indigo-800 disabled:opacity-60"
                         >
                           <ShieldCheck className="h-4 w-4" />
-                          Enviar para Gestao
+                          Enviar para Gestão
                         </button>
                         {selectedProposta ? (
                           <p className="text-xs leading-5 text-slate-500">
                             A proposta {selectedProposta.code} precisa estar
-                            aprovada pelo cliente para seguir para a Gestao.
+                            aprovada pelo cliente para seguir para a Gestão.
                           </p>
                         ) : null}
                       </div>
@@ -2223,7 +2223,7 @@ export default function TicketsPage() {
                                   proposalDecisionReason.trim(),
                                   token,
                                 ),
-                              "Solicitacao de ajuste enviada com sucesso.",
+                              "Solicitação de ajuste enviada com sucesso.",
                             )
                           }
                           className="flex items-center justify-center gap-2 rounded-2xl border border-amber-300 bg-amber-50 px-4 py-2.5 text-sm font-semibold text-amber-800 hover:bg-amber-100 disabled:opacity-60"
@@ -2265,7 +2265,7 @@ export default function TicketsPage() {
                           }
                           className="crm-textarea bg-white"
                           rows={3}
-                          placeholder="Observacao da Gestao"
+                          placeholder="Observação da Gestão"
                         />
                         <button
                           type="button"
@@ -2285,7 +2285,7 @@ export default function TicketsPage() {
                                       selectedProposta.id,
                                       token,
                                     ),
-                                  "Aprovacao da Gestao registrada.",
+                                  "Aprovação da Gestão registrada.",
                                 )
                               : executeTicketAction(
                                   () =>
@@ -2298,7 +2298,7 @@ export default function TicketsPage() {
                                       },
                                       token,
                                     ),
-                                  "Aprovacao da Gestao registrada.",
+                                  "Aprovação da Gestão registrada.",
                                 ))
                           }
                           className="flex w-full items-center justify-center gap-2 rounded-2xl bg-emerald-700 px-4 py-2.5 text-sm font-semibold text-white hover:bg-emerald-800 disabled:opacity-60"
@@ -2378,7 +2378,7 @@ export default function TicketsPage() {
                         </button>
                         {selectedProposta?.status === "ENVIADA_PARA_GESTAO" ? (
                           <p className="text-xs leading-5 text-slate-500">
-                            A decisao formal da Gestao sobre a proposta cai
+                            A decisão formal da Gestão sobre a proposta cai
                             apenas para o Comercial neste fluxo.
                           </p>
                         ) : null}
@@ -2393,7 +2393,7 @@ export default function TicketsPage() {
                     </h3>
                     <dl className="mt-3 space-y-3 text-sm">
                       <div>
-                        <dt className="text-slate-500">Ultima atualizacao</dt>
+                        <dt className="text-slate-500">Última atualização</dt>
                         <dd className="font-semibold text-slate-900">
                           {formatDate(
                             selectedTicket.lastInteractionAt ??
@@ -2402,7 +2402,7 @@ export default function TicketsPage() {
                         </dd>
                       </div>
                       <div>
-                        <dt className="text-slate-500">Acao pendente</dt>
+                        <dt className="text-slate-500">Ação pendente</dt>
                         <dd className="font-semibold text-slate-900">
                           {selectedTicket.requiresActionRole ?? "Nenhuma"}
                         </dd>

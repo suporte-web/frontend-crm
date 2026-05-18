@@ -1,40 +1,18 @@
 'use client';
 
-import {
-  createContext,
-  useContext,
-  useEffect,
-  useMemo,
-  useState,
-} from 'react';
-
-type UserRole =
-  | 'ADMIN'
-  | 'GESTAO'
-  | 'COMERCIAL'
-  | 'MARKETING'
-  | 'CLIENTE';
-
-type AuthUser = {
-  id: string;
-  name: string;
-  email: string;
-  role: UserRole;
-  mustChangePassword?: boolean;
-  clientProfile?: unknown | null;
-};
-
-type LoginResponse = {
-  access_token: string;
-  user: AuthUser;
-};
+import { createContext, useContext, useEffect, useMemo, useState } from 'react';
+import type { AuthUser, LoginResponse } from '@/types/auth';
 
 type AuthContextType = {
   user: AuthUser | null;
   token: string | null;
   loading: boolean;
   signIn: (email: string, password: string) => Promise<LoginResponse>;
-  changePassword: (currentPassword: string, newPassword: string) => Promise<void>;
+  changePassword: (
+    currentPassword: string,
+    newPassword: string,
+  ) => Promise<void>;
+  refreshUser: () => Promise<AuthUser | null>;
   signOut: () => void;
 };
 
@@ -44,11 +22,7 @@ const TOKEN_KEY = 'crm_token';
 const USER_KEY = 'crm_user';
 const API_BASE_URL = 'http://localhost:3001/api';
 
-export function AuthProvider({
-  children,
-}: {
-  children: React.ReactNode;
-}) {
+export function AuthProvider({ children }: { children: React.ReactNode }) {
   const [user, setUser] = useState<AuthUser | null>(null);
   const [token, setToken] = useState<string | null>(null);
   const [loading, setLoading] = useState(true);
@@ -63,6 +37,37 @@ export function AuthProvider({
     setLoading(false);
   }, []);
 
+  async function refreshUser() {
+    const activeToken = token || localStorage.getItem(TOKEN_KEY);
+
+    if (!activeToken) {
+      return null;
+    }
+
+    const response = await fetch(`${API_BASE_URL}/auth/me`, {
+      method: 'GET',
+      headers: {
+        'Content-Type': 'application/json',
+        Authorization: `Bearer ${activeToken}`,
+      },
+    });
+
+    const data = (await response.json()) as AuthUser | { message?: string };
+
+    if (!response.ok) {
+      throw new Error(
+        (data as { message?: string }).message || 'Erro ao atualizar usuário',
+      );
+    }
+
+    const updatedUser = data as AuthUser;
+
+    setUser(updatedUser);
+    localStorage.setItem(USER_KEY, JSON.stringify(updatedUser));
+
+    return updatedUser;
+  }
+
   async function signIn(email: string, password: string) {
     const response = await fetch(`${API_BASE_URL}/auth/login`, {
       method: 'POST',
@@ -70,10 +75,14 @@ export function AuthProvider({
       body: JSON.stringify({ email, password }),
     });
 
-    const data = (await response.json()) as LoginResponse | { message?: string };
+    const data = (await response.json()) as
+      | LoginResponse
+      | { message?: string };
 
     if (!response.ok) {
-      throw new Error((data as { message?: string }).message || 'Erro ao fazer login');
+      throw new Error(
+        (data as { message?: string }).message || 'Erro ao fazer login',
+      );
     }
 
     const loginData = data as LoginResponse;
@@ -106,7 +115,9 @@ export function AuthProvider({
       | { message?: string };
 
     if (!response.ok) {
-      throw new Error((data as { message?: string }).message || 'Erro ao alterar senha');
+      throw new Error(
+        (data as { message?: string }).message || 'Erro ao alterar senha',
+      );
     }
 
     const updatedUser = (data as { user: AuthUser }).user;
@@ -129,6 +140,7 @@ export function AuthProvider({
       loading,
       signIn,
       changePassword,
+      refreshUser,
       signOut,
     }),
     [user, token, loading],

@@ -12,7 +12,7 @@ function formatDate(date: string) {
 export function getLeadSourceLabel(source?: string | null) {
   const labels: Record<string, string> = {
     manual: 'Manual',
-    import_csv: 'Importacao CSV',
+    import_csv: 'Importação CSV',
     whatsapp: 'WhatsApp',
   };
 

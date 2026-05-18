@@ -18,8 +18,6 @@ export function AppLayout({
           <AppSidebar />
 
           <SidebarInset className="relative min-h-screen bg-transparent">
-            <div className="pointer-events-none absolute inset-x-0 top-0 h-72 bg-[radial-gradient(circle_at_top,rgba(59,130,246,0.18),transparent_55%)]" />
-            <div className="pointer-events-none absolute inset-y-0 left-0 w-48 bg-[linear-gradient(180deg,rgba(15,23,42,0.03)_0%,transparent_100%)]" />
             <Header />
 
             <main className="relative flex-1 overflow-x-hidden overflow-y-auto">

@@ -3,81 +3,37 @@
 import { useEffect } from 'react';
 import { usePathname, useRouter } from 'next/navigation';
 import { useAuth } from '@/context/auth-context';
+import { appScreens, isScreenEnabledForRole } from '@/config/screens';
+import type { RoleScreenPermission, UserRole } from '@/types/auth';
 
-type UserRole = 'ADMIN' | 'GESTAO' | 'COMERCIAL' | 'MARKETING' | 'CLIENTE';
-
-const routeRoles: Array<{ prefix: string; roles: UserRole[] }> = [
-  {
-    prefix: '/dashboard',
-    roles: ['ADMIN', 'GESTAO', 'COMERCIAL', 'MARKETING', 'CLIENTE'],
-  },
-  {
-    prefix: '/entregas',
-    roles: ['ADMIN', 'GESTAO', 'COMERCIAL', 'MARKETING'],
-  },
-  {
-    prefix: '/trackings',
-    roles: ['ADMIN', 'GESTAO', 'COMERCIAL', 'MARKETING', 'CLIENTE'],
-  },
-  {
-    prefix: '/quotes',
-    roles: ['ADMIN', 'GESTAO', 'COMERCIAL', 'CLIENTE'],
-  },
-  {
-    prefix: '/clients',
-    roles: ['ADMIN', 'GESTAO', 'COMERCIAL', 'MARKETING'],
-  },
-  {
-    prefix: '/leads',
-    roles: ['ADMIN', 'GESTAO', 'COMERCIAL', 'MARKETING'],
-  },
-  {
-    prefix: '/entradas',
-    roles: ['ADMIN', 'GESTAO', 'COMERCIAL'],
-  },
-  {
-    prefix: '/tickets',
-    roles: ['ADMIN', 'GESTAO', 'COMERCIAL', 'CLIENTE'],
-  },
-  {
-    prefix: '/chat',
-    roles: ['ADMIN', 'GESTAO', 'COMERCIAL', 'MARKETING', 'CLIENTE'],
-  },
-  {
-    prefix: '/suppliers',
-    roles: ['ADMIN', 'GESTAO', 'COMERCIAL'],
-  },
-  {
-    prefix: '/users',
-    roles: ['ADMIN', 'GESTAO'],
-  },
-  {
-    prefix: '/marketing',
-    roles: ['ADMIN', 'GESTAO', 'MARKETING'],
-  },
-  {
-    prefix: '/logs',
-    roles: ['ADMIN', 'GESTAO'],
-  },
-];
-
-function canAccessRoute(pathname: string, role?: UserRole) {
+function canAccessRoute(
+  pathname: string,
+  role?: UserRole,
+  permissions?: RoleScreenPermission[],
+) {
   if (!role || pathname === '/change-password') {
     return true;
   }
 
-  const route = routeRoles.find(
-    (item) => pathname === item.prefix || pathname.startsWith(`${item.prefix}/`),
+  const route = appScreens.find(
+    (item) => pathname === item.href || pathname.startsWith(`${item.href}/`),
   );
 
-  return route ? route.roles.includes(role) : true;
+  return route ? isScreenEnabledForRole(route, role, permissions) : true;
 }
 
-export function ProtectedRoute({
-  children,
-}: {
-  children: React.ReactNode;
-}) {
+function getDefaultRoute(
+  role?: UserRole,
+  permissions?: RoleScreenPermission[],
+) {
+  return (
+    appScreens.find((screen) =>
+      isScreenEnabledForRole(screen, role, permissions),
+    )?.href ?? '/change-password'
+  );
+}
+
+export function ProtectedRoute({ children }: { children: React.ReactNode }) {
   const router = useRouter();
   const pathname = usePathname();
   const { token, user, loading } = useAuth();
@@ -88,15 +44,32 @@ export function ProtectedRoute({
       return;
     }
 
-    if (!loading && token && user?.mustChangePassword && pathname !== '/change-password') {
+    if (
+      !loading &&
+      token &&
+      user?.mustChangePassword &&
+      pathname !== '/change-password'
+    ) {
       router.replace('/change-password');
       return;
     }
 
-    if (!loading && token && !canAccessRoute(pathname, user?.role)) {
-      router.replace('/dashboard');
+    if (
+      !loading &&
+      token &&
+      !canAccessRoute(pathname, user?.role, user?.screenPermissions)
+    ) {
+      router.replace(getDefaultRoute(user?.role, user?.screenPermissions));
     }
-  }, [loading, pathname, token, user?.mustChangePassword, user?.role, router]);
+  }, [
+    loading,
+    pathname,
+    token,
+    user?.mustChangePassword,
+    user?.role,
+    user?.screenPermissions,
+    router,
+  ]);
 
   if (loading) {
     return <p style={{ padding: 24 }}>Carregando...</p>;
@@ -110,7 +83,7 @@ export function ProtectedRoute({
     return null;
   }
 
-  if (!canAccessRoute(pathname, user?.role)) {
+  if (!canAccessRoute(pathname, user?.role, user?.screenPermissions)) {
     return null;
   }
 

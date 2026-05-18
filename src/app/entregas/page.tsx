@@ -68,6 +68,60 @@ type QuickFilter =
   | 'slaFora'
   | 'abertas';
 
+const DELIVERY_TABLE_COLUMNS: Array<{
+  field:
+    | SortField
+    | 'ser_ctrc'
+    | 'hora_entrega'
+    | 'ult_ocor'
+    | 'ocorrencia'
+    | 'em_atraso';
+  label: string;
+  sortable?: boolean;
+  className?: string;
+}> = [
+  { field: 'nro_ctrc', label: 'Nº CTRC', sortable: true, className: 'min-w-[105px]' },
+  { field: 'ser_ctrc', label: 'Serie', className: 'min-w-[86px]' },
+  {
+    field: 'nome_cli_dest',
+    label: 'Cliente destino',
+    sortable: true,
+    className: 'min-w-[220px]',
+  },
+  { field: 'cidade_origem', label: 'Origem', sortable: true, className: 'min-w-[130px]' },
+  { field: 'cidade_dest', label: 'Destino', sortable: true, className: 'min-w-[130px]' },
+  { field: 'uf_dest', label: 'UF', sortable: true, className: 'min-w-[72px]' },
+  {
+    field: 'data_prev_ent',
+    label: 'Prev. entrega',
+    sortable: true,
+    className: 'min-w-[132px]',
+  },
+  {
+    field: 'data_entrega',
+    label: 'Data entrega',
+    sortable: true,
+    className: 'min-w-[132px]',
+  },
+  { field: 'hora_entrega', label: 'Hora entrega', className: 'min-w-[128px]' },
+  { field: 'ult_ocor', label: 'Ult. ocorrencia', className: 'min-w-[126px]' },
+  { field: 'ocorrencia', label: 'Descrição ocorrencia', className: 'min-w-[280px]' },
+  {
+    field: 'status_entrega',
+    label: 'Status',
+    sortable: true,
+    className: 'min-w-[140px]',
+  },
+  { field: 'em_atraso', label: 'Em atraso', className: 'min-w-[116px]' },
+  { field: 'sla_entrega', label: 'SLA', sortable: true, className: 'min-w-[150px]' },
+  {
+    field: 'classificacao_rota',
+    label: 'Classificacao',
+    sortable: true,
+    className: 'min-w-[150px]',
+  },
+];
+
 function formatDate(value?: string | null) {
   if (!value) return '-';
 
@@ -116,7 +170,7 @@ function getSlaBadgeClass(value: string) {
 
 function exportRowsToCsv(rows: DeliveryRow[], dataRef: string) {
   const headers = [
-    'Data referencia',
+    'Data referência',
     'Nº CTRC',
     'Série',
     'Cliente destino',
@@ -237,7 +291,7 @@ export default function DeliveriesPage() {
         setErrorMessage(
           error instanceof Error
             ? error.message
-            : 'Nao foi possivel carregar o monitoramento de entregas.',
+            : 'Não foi possível carregar o monitoramento de entregas.',
         );
       } finally {
         if (isMounted) {
@@ -394,7 +448,7 @@ export default function DeliveriesPage() {
 
         <div>
           <p className="text-xs font-semibold uppercase tracking-[0.22em] text-orange-600">
-            Operacao
+            Operação
           </p>
 
           <CardTitle className="mt-2 text-3xl font-bold tracking-tight text-slate-950">
@@ -436,7 +490,7 @@ export default function DeliveriesPage() {
     <div className="grid grid-cols-1 gap-4 md:grid-cols-2 xl:grid-cols-5">
       <div>
         <label className="mb-2 block text-sm font-semibold text-slate-700">
-          Data de referencia
+          Data de referência
         </label>
 
         <Input
@@ -721,7 +775,7 @@ export default function DeliveriesPage() {
           </p>
 
           <p className="mt-2 text-sm text-slate-500">
-            {summary.entregues} concluida(s) • {pendingVolume} em aberto
+            {summary.entregues} concluída(s) • {pendingVolume} em aberto
           </p>
         </div>
       </div>
@@ -756,25 +810,27 @@ export default function DeliveriesPage() {
   </article>
 </section>
 
-<section className="overflow-hidden rounded-[30px] border border-slate-200/70 bg-white shadow-[0_18px_45px_rgba(15,23,42,0.06)]">
-  <div className="border-b border-slate-200/70 px-6 py-5">
-    <div className="flex flex-col gap-4 xl:flex-row xl:items-center xl:justify-between">
+<section className="overflow-hidden rounded-[30px] border border-slate-200/70 bg-white shadow-[0_24px_70px_rgba(52,52,52,0.08)]">
+  <div className="relative overflow-hidden border-b border-slate-200/70 bg-[linear-gradient(135deg,#ffffff_0%,#fff7df_48%,#fff1f2_100%)] px-6 py-6">
+    <div className="absolute -right-10 -top-16 h-40 w-40 rounded-full bg-[#fab519]/25 blur-3xl" />
+    <div className="absolute -bottom-20 left-1/3 h-40 w-40 rounded-full bg-[#ec3139]/10 blur-3xl" />
+    <div className="relative flex flex-col gap-5 xl:flex-row xl:items-center xl:justify-between">
       <div>
-        <p className="text-xs font-semibold uppercase tracking-[0.22em] text-orange-600">
+        <p className="text-xs font-bold uppercase tracking-[0.22em] text-[#ec3139]">
           Detalhamento
         </p>
 
-        <h2 className="mt-2 text-2xl font-bold tracking-tight text-slate-950">
+        <h2 className="mt-2 text-2xl font-black tracking-tight text-[#343434] md:text-3xl">
           Lista detalhada dos CTRCs
         </h2>
 
-        <p className="mt-2 text-sm leading-6 text-slate-500">
+        <p className="mt-2 inline-flex rounded-full border border-slate-200 bg-white/75 px-3 py-1 text-sm font-semibold leading-6 text-slate-600">
           Total filtrado: {sortedRows.length} registros.
         </p>
       </div>
 
       <div className="flex flex-wrap items-center gap-3">
-        <div className="rounded-2xl border border-orange-200 bg-orange-50 px-4 py-3 text-sm font-semibold text-orange-700">
+        <div className="rounded-2xl border border-[#fab519]/50 bg-[#fab519]/15 px-4 py-3 text-sm font-bold text-[#343434]">
           {getQuickFilterLabel(activeQuickFilter)}
         </div>
 
@@ -782,16 +838,16 @@ export default function DeliveriesPage() {
           <Button
             type="button"
             variant="outline"
-            className="h-11 rounded-2xl border-slate-200 bg-white px-4 font-semibold text-slate-700 transition hover:bg-slate-50"
+            className="h-11 rounded-2xl border-slate-200 bg-white px-4 font-semibold text-slate-700 transition hover:border-[#fab519]/60 hover:bg-[#fab519]/10"
             onClick={() => toggleQuickFilter('all')}
           >
             Limpar filtro rápido
           </Button>
         ) : null}
 
-        <div className="rounded-2xl border border-slate-200 bg-slate-50 px-4 py-3 text-sm text-slate-600">
+        <div className="rounded-2xl border border-slate-200 bg-white/85 px-4 py-3 text-sm text-slate-600 shadow-sm">
           <div className="flex items-center gap-2">
-            <Route className="h-4 w-4 text-orange-600" />
+            <Route className="h-4 w-4 text-[#ec3139]" />
 
             <span>
               Ordenação atual: {sortField} (
@@ -803,20 +859,21 @@ export default function DeliveriesPage() {
     </div>
   </div>
 
-  <div className="p-0">
+  <div className="bg-slate-50/70 p-4">
     {loading ? (
-      <div className="p-8">
-        <div className="flex items-center gap-3 rounded-[24px] border border-slate-200 bg-slate-50 px-5 py-4 text-sm text-slate-600">
-          <RefreshCcw className="h-4 w-4 animate-spin text-orange-600" />
+      <div className="rounded-[26px] border border-slate-200 bg-white p-6">
+        <div className="flex items-center gap-3 rounded-[22px] border border-[#fab519]/40 bg-[#fab519]/10 px-5 py-4 text-sm font-semibold text-[#343434]">
+          <RefreshCcw className="h-4 w-4 animate-spin text-[#ec3139]" />
           Carregando entregas...
         </div>
       </div>
     ) : (
       <>
-        <div className="overflow-x-auto">
-          <table className="min-w-full border-separate border-spacing-0">
-            <thead>
-              <tr className="bg-slate-50 text-left text-xs uppercase tracking-wide text-slate-500">
+        <div className="overflow-hidden rounded-[26px] border border-slate-200 bg-white shadow-sm">
+          <div className="max-h-[680px] overflow-auto">
+          <table className="min-w-[1740px] border-separate border-spacing-0">
+            <thead className="sticky top-0 z-10">
+              <tr className="bg-[#343434] text-left text-[11px] uppercase tracking-[0.14em] text-white/72 shadow-sm">
                 {[
                   ['nro_ctrc', 'Nº CTRC'],
                   ['ser_ctrc', 'Serie'],
@@ -828,7 +885,7 @@ export default function DeliveriesPage() {
                   ['data_entrega', 'Data entrega'],
                   ['hora_entrega', 'Hora entrega'],
                   ['ult_ocor', 'Ult. ocorrencia'],
-                  ['ocorrencia', 'Descricao ocorrencia'],
+                  ['ocorrencia', 'Descrição ocorrencia'],
                   ['status_entrega', 'Status'],
                   ['em_atraso', 'Em atraso'],
                   ['sla_entrega', 'SLA'],
@@ -850,21 +907,21 @@ export default function DeliveriesPage() {
                   return (
                     <th
                       key={field}
-                      className="border-b border-slate-200 px-4 py-3 font-semibold"
+                      className="border-b border-white/10 px-4 py-4 font-bold"
                     >
                       {sortable ? (
                         <button
                           type="button"
-                          className="inline-flex items-center gap-2 text-left transition hover:text-orange-600"
+                          className="inline-flex items-center gap-2 text-left transition hover:text-[#fab519]"
                           onClick={() => toggleSort(field as SortField)}
                         >
                           <span>{label}</span>
 
                           {sortField === field ? (
                             sortDirection === 'asc' ? (
-                              <ArrowUpAZ className="h-3.5 w-3.5 text-orange-600" />
+                              <ArrowUpAZ className="h-3.5 w-3.5 text-[#fab519]" />
                             ) : (
-                              <ArrowDownAZ className="h-3.5 w-3.5 text-orange-600" />
+                              <ArrowDownAZ className="h-3.5 w-3.5 text-[#fab519]" />
                             )
                           ) : null}
                         </button>
@@ -881,28 +938,34 @@ export default function DeliveriesPage() {
               {paginatedRows.length === 0 ? (
                 <tr>
                   <td
-                    colSpan={15}
+                    colSpan={DELIVERY_TABLE_COLUMNS.length}
                     className="px-4 py-12 text-center text-sm text-slate-500"
                   >
                     Nenhuma entrega encontrada com os filtros atuais.
                   </td>
                 </tr>
               ) : (
-                paginatedRows.map((row) => (
+                paginatedRows.map((row, index) => (
                   <tr
                     key={`${row.seq_ctrc}-${row.nro_ctrc}`}
-                    className="align-top transition hover:bg-orange-50/30"
+                    className={`align-top transition hover:bg-[#fab519]/10 ${
+                      index % 2 === 0 ? 'bg-white' : 'bg-slate-50/55'
+                    }`}
                   >
-                    <td className="border-b border-slate-100 px-4 py-4 text-sm font-bold text-slate-950">
-                      {row.nro_ctrc}
+                    <td className="border-b border-slate-100 px-4 py-4">
+                      <div className="inline-flex rounded-2xl bg-[#343434] px-3 py-2 text-sm font-black text-white shadow-[0_10px_22px_rgba(52,52,52,0.12)]">
+                        {row.nro_ctrc}
+                      </div>
                     </td>
 
-                    <td className="border-b border-slate-100 px-4 py-4 text-sm text-slate-600">
+                    <td className="border-b border-slate-100 px-4 py-4 text-sm font-semibold text-slate-600">
                       {row.ser_ctrc}
                     </td>
 
-                    <td className="border-b border-slate-100 px-4 py-4 text-sm font-medium text-slate-700">
-                      {row.nome_cli_dest}
+                    <td className="border-b border-slate-100 px-4 py-4 text-sm">
+                      <p className="max-w-[220px] font-bold leading-6 text-[#343434]">
+                        {row.nome_cli_dest}
+                      </p>
                     </td>
 
                     <td className="border-b border-slate-100 px-4 py-4 text-sm text-slate-600">
@@ -913,8 +976,10 @@ export default function DeliveriesPage() {
                       {row.cidade_dest}
                     </td>
 
-                    <td className="border-b border-slate-100 px-4 py-4 text-sm text-slate-600">
-                      {row.uf_dest}
+                    <td className="border-b border-slate-100 px-4 py-4 text-sm">
+                      <span className="rounded-full border border-slate-200 bg-white px-2.5 py-1 text-xs font-bold text-slate-600">
+                        {row.uf_dest}
+                      </span>
                     </td>
 
                     <td className="border-b border-slate-100 px-4 py-4 text-sm text-slate-600">
@@ -929,17 +994,21 @@ export default function DeliveriesPage() {
                       {row.hora_entrega || '-'}
                     </td>
 
-                    <td className="border-b border-slate-100 px-4 py-4 text-sm text-slate-600">
-                      {row.ult_ocor || '-'}
+                    <td className="border-b border-slate-100 px-4 py-4 text-sm">
+                      <span className="rounded-full bg-slate-100 px-3 py-1 text-xs font-bold text-slate-600">
+                        {row.ult_ocor || '-'}
+                      </span>
                     </td>
 
-                    <td className="max-w-[360px] border-b border-slate-100 px-4 py-4 text-sm leading-6 text-slate-600">
-                      {row.ocorrencia}
+                    <td className="max-w-[360px] border-b border-slate-100 px-4 py-4 text-sm">
+                      <p className="max-w-[300px] leading-6 text-slate-600">
+                        {row.ocorrencia || '-'}
+                      </p>
                     </td>
 
                     <td className="border-b border-slate-100 px-4 py-4 text-sm">
                       <Badge
-                        className={`rounded-full border px-3 py-1 font-semibold ${getStatusBadgeClass(
+                        className={`rounded-full border px-3 py-1.5 text-xs font-bold ${getStatusBadgeClass(
                           row.status_entrega,
                         )}`}
                       >
@@ -949,7 +1018,7 @@ export default function DeliveriesPage() {
 
                     <td className="border-b border-slate-100 px-4 py-4 text-sm">
                       <Badge
-                        className={`rounded-full border px-3 py-1 font-semibold ${getLateBadgeClass(
+                        className={`rounded-full border px-3 py-1.5 text-xs font-bold ${getLateBadgeClass(
                           row.em_atraso,
                         )}`}
                       >
@@ -959,7 +1028,7 @@ export default function DeliveriesPage() {
 
                     <td className="border-b border-slate-100 px-4 py-4 text-sm">
                       <Badge
-                        className={`rounded-full border px-3 py-1 font-semibold ${getSlaBadgeClass(
+                        className={`rounded-full border px-3 py-1.5 text-xs font-bold ${getSlaBadgeClass(
                           row.sla_entrega,
                         )}`}
                       >
@@ -967,8 +1036,10 @@ export default function DeliveriesPage() {
                       </Badge>
                     </td>
 
-                    <td className="border-b border-slate-100 px-4 py-4 text-sm text-slate-600">
-                      {row.classificacao_rota}
+                    <td className="border-b border-slate-100 px-4 py-4 text-sm">
+                      <span className="rounded-full border border-slate-200 bg-white px-3 py-1.5 text-xs font-bold text-slate-600">
+                        {row.classificacao_rota || '-'}
+                      </span>
                     </td>
                   </tr>
                 ))
@@ -976,9 +1047,10 @@ export default function DeliveriesPage() {
             </tbody>
           </table>
         </div>
+        </div>
 
-        <div className="flex flex-col gap-3 border-t border-slate-100 px-5 py-4 sm:flex-row sm:items-center sm:justify-between">
-          <p className="text-sm text-slate-500">
+        <div className="mt-4 flex flex-col gap-3 rounded-[24px] border border-slate-200 bg-white px-5 py-4 sm:flex-row sm:items-center sm:justify-between">
+          <p className="text-sm font-medium text-slate-500">
             Página {page} de {totalPages}
           </p>
 
@@ -986,17 +1058,17 @@ export default function DeliveriesPage() {
             <Button
               type="button"
               variant="outline"
-              className="h-11 rounded-2xl border-slate-200 bg-white px-4 font-semibold text-slate-700 transition hover:bg-slate-50"
+              className="h-11 rounded-2xl border-slate-200 bg-white px-4 font-semibold text-slate-700 transition hover:border-[#fab519]/60 hover:bg-[#fab519]/10"
               disabled={page <= 1}
               onClick={() => setPage((current) => Math.max(1, current - 1))}
             >
               Anterior
             </Button>
 
-             <Button
+            <Button
               type="button"
               variant="outline"
-              className="h-11 rounded-2xl border-slate-200 bg-white px-4 font-semibold text-slate-700 transition hover:bg-slate-50"
+              className="h-11 rounded-2xl border-slate-200 bg-[#343434] px-4 font-semibold text-white transition hover:bg-[#eb2c38] disabled:bg-slate-200 disabled:text-slate-400"
               disabled={page >= totalPages}
               onClick={() =>
                 setPage((current) => Math.min(totalPages, current + 1))

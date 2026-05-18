@@ -102,6 +102,54 @@ export type CreateLeadPayload = {
   notes?: string;
 };
 
+export type ConvertLeadToClientPayload = {
+  document: string;
+  password: string;
+  name?: string;
+  email?: string;
+  phone?: string;
+  companyName?: string;
+  segment?: string;
+  status?: string;
+  internalOwnerId?: string;
+};
+
+export type ConvertLeadToClientResponse = {
+  lead: Lead;
+  user: {
+    id: string;
+    name: string;
+    email: string;
+    role: string;
+    isActive: boolean;
+    mustChangePassword: boolean;
+    createdAt: string;
+    updatedAt: string;
+    clientProfile?: {
+      id: string;
+      document?: string | null;
+      phone?: string | null;
+      companyName?: string | null;
+      segment?: string | null;
+      status?: string | null;
+      internalOwnerId?: string | null;
+      createdAt?: string;
+      updatedAt?: string;
+    } | null;
+  };
+  client?: {
+    id: string;
+    document?: string | null;
+    phone?: string | null;
+    companyName?: string | null;
+    segment?: string | null;
+    status?: string | null;
+    internalOwnerId?: string | null;
+    createdAt?: string;
+    updatedAt?: string;
+  } | null;
+};
+
 export type ImportLeadsCsvPayload = {
   file: File;
   defaultSource?: string;

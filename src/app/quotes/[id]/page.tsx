@@ -231,7 +231,7 @@ export default function QuoteDetailsPage({
           setError(
             loadError instanceof Error
               ? loadError.message
-              : "Erro ao carregar a cotacao.",
+              : "Erro ao carregar a cotação.",
           );
         }
       } finally {
@@ -255,13 +255,13 @@ export default function QuoteDetailsPage({
           <div className="flex flex-wrap items-center justify-between gap-3">
             <div>
               <p className="text-sm font-medium text-zinc-500">
-                Detalhe da cotacao
+                Detalhe da cotação
               </p>
               <h1 className="mt-1 text-3xl font-bold tracking-tight text-zinc-900">
                 {quote?.code ?? "Carregando..."}
               </h1>
               <p className="mt-2 text-sm text-zinc-500">
-                Todos os detalhes, historico, valores e retorno comercial em uma
+                Todos os detalhes, histórico, valores e retorno comercial em uma
                 unica tela.
               </p>
             </div>
@@ -278,14 +278,14 @@ export default function QuoteDetailsPage({
                     }}
                     className="inline-flex items-center justify-center rounded-2xl border border-zinc-300 bg-white px-4 py-2.5 text-sm font-semibold text-zinc-700 transition hover:bg-zinc-100"
                   >
-                    {isEditing ? "Cancelar edicao" : "Editar cotacao"}
+                    {isEditing ? "Cancelar edição" : "Editar cotação"}
                   </button>
                   <button
                     type="button"
                     onClick={async () => {
                       if (!token || !quote) return;
                       const confirmed = window.confirm(
-                        `Deseja excluir a cotacao ${quote.code}?`,
+                        `Deseja excluir a cotação ${quote.code}?`,
                       );
                       if (!confirmed) return;
 
@@ -298,7 +298,7 @@ export default function QuoteDetailsPage({
                         setActionMessage(
                           deleteError instanceof Error
                             ? deleteError.message
-                            : "Erro ao excluir cotacao.",
+                            : "Erro ao excluir cotação.",
                         );
                       } finally {
                         setSaving(false);
@@ -315,7 +315,7 @@ export default function QuoteDetailsPage({
                 href="/quotes"
                 className="inline-flex items-center justify-center rounded-2xl border border-zinc-300 bg-white px-4 py-2.5 text-sm font-semibold text-zinc-700 transition hover:bg-zinc-100"
               >
-                Voltar para cotacoes
+                Voltar para cotações
               </Link>
             </div>
           </div>
@@ -323,7 +323,7 @@ export default function QuoteDetailsPage({
 
         {loading ? (
           <section className="rounded-3xl border border-zinc-200 bg-white p-10 text-center text-sm text-zinc-500 shadow-sm">
-            Carregando cotacao...
+            Carregando cotação...
           </section>
         ) : error ? (
           <section className="rounded-3xl border border-rose-200 bg-rose-50 p-10 text-center text-sm text-rose-700 shadow-sm">
@@ -333,7 +333,7 @@ export default function QuoteDetailsPage({
           <>
             <section className="grid gap-4 md:grid-cols-2 xl:grid-cols-6">
               <div className="rounded-3xl border border-zinc-200 bg-white p-5 shadow-sm">
-                <p className="text-sm text-zinc-500">Codigo</p>
+                <p className="text-sm text-zinc-500">Código</p>
                 <h2 className="mt-2 text-2xl font-bold text-zinc-900">
                   {quote.code}
                 </h2>
@@ -374,7 +374,7 @@ export default function QuoteDetailsPage({
               <article className="rounded-3xl border border-zinc-200 bg-white p-6 shadow-sm">
                 <div className="flex items-center justify-between gap-3">
                   <h2 className="text-xl font-semibold text-zinc-900">
-                    Dados da solicitacao
+                    Dados da solicitação
                   </h2>
 
                   {isEditing ? (
@@ -394,12 +394,12 @@ export default function QuoteDetailsPage({
                           setQuote(updated);
                           setForm(quoteToFormState(updated));
                           setIsEditing(false);
-                          setActionMessage("Cotacao atualizada com sucesso.");
+                          setActionMessage("Cotação atualizada com sucesso.");
                         } catch (saveError) {
                           setActionMessage(
                             saveError instanceof Error
                               ? saveError.message
-                              : "Erro ao atualizar cotacao.",
+                              : "Erro ao atualizar cotação.",
                           );
                         } finally {
                           setSaving(false);
@@ -407,7 +407,7 @@ export default function QuoteDetailsPage({
                       }}
                       className="rounded-2xl bg-zinc-900 px-4 py-2.5 text-sm font-semibold text-white transition hover:bg-zinc-800 disabled:opacity-60"
                     >
-                      {saving ? "Salvando..." : "Salvar alteracoes"}
+                      {saving ? "Salvando..." : "Salvar alterações"}
                     </button>
                   ) : null}
                 </div>
@@ -416,7 +416,7 @@ export default function QuoteDetailsPage({
                   {[
                     ["Origem", "origin"],
                     ["Destino", "destination"],
-                    ["Servico", "serviceType"],
+                    ["Serviço", "serviceType"],
                     ["Tipo", "requestType"],
                     ["Contato", "contactName"],
                     ["Telefone", "contactPhone"],
@@ -462,8 +462,8 @@ export default function QuoteDetailsPage({
                   {[
                     ["Endereco de coleta", "pickupAddress"],
                     ["Endereco de entrega", "deliveryAddress"],
-                    ["Descricao da carga / servico", "cargoDescription"],
-                    ["Observacoes", "notes"],
+                    ["Descrição da carga / serviço", "cargoDescription"],
+                    ["Observações", "notes"],
                   ].map(([label, field]) => (
                     <div
                       key={field}
@@ -500,7 +500,7 @@ export default function QuoteDetailsPage({
 
               <article className="rounded-3xl border border-zinc-200 bg-white p-6 shadow-sm">
                 <h2 className="text-xl font-semibold text-zinc-900">
-                  Historico e retorno
+                  Histórico e retorno
                 </h2>
 
                 <div className="mt-6 space-y-3">
@@ -519,13 +519,13 @@ export default function QuoteDetailsPage({
                           </span>
                         </div>
                         <p className="mt-3 text-sm leading-6 text-zinc-700">
-                          {entry.notes || "Sem observacoes registradas."}
+                          {entry.notes || "Sem observações registradas."}
                         </p>
                       </div>
                     ))
                   ) : (
                     <div className="rounded-2xl border border-zinc-200 bg-zinc-50 p-4 text-sm text-zinc-500">
-                      Nenhum historico registrado.
+                      Nenhum histórico registrado.
                     </div>
                   )}
 
@@ -535,7 +535,7 @@ export default function QuoteDetailsPage({
                     </p>
                     <p className="mt-3 text-sm leading-6 text-blue-800">
                       {quote.commercialNotes ||
-                        "Ainda nao ha retorno comercial registrado."}
+                        "Ainda não ha retorno comercial registrado."}
                     </p>
                   </div>
 
@@ -572,8 +572,8 @@ export default function QuoteDetailsPage({
                             className="crm-textarea"
                             placeholder={
                               isProspectQuote
-                                ? "Observacoes comerciais internas"
-                                : "Observacoes comerciais para o cliente"
+                                ? "Observações comerciais internas"
+                                : "Observações comerciais para o cliente"
                             }
                           />
                           <button
@@ -606,8 +606,8 @@ export default function QuoteDetailsPage({
                                 setQuote(updated);
                                 setActionMessage(
                                   isProspectQuote
-                                    ? "Retorno comercial registrado na cotacao do prospect."
-                                    : "Proposta enviada e registrada na cotacao.",
+                                    ? "Retorno comercial registrado na cotação do prospect."
+                                    : "Proposta enviada e registrada na cotação.",
                                 );
                                 setResponseForm({
                                   price: "",
@@ -617,7 +617,7 @@ export default function QuoteDetailsPage({
                                 setActionMessage(
                                   saveError instanceof Error
                                     ? saveError.message
-                                    : "Erro ao responder cotacao.",
+                                    : "Erro ao responder cotação.",
                                 );
                               } finally {
                                 setSaving(false);
@@ -684,13 +684,13 @@ export default function QuoteDetailsPage({
                               setStatusNotes(event.target.value)
                             }
                             className="crm-input"
-                            placeholder="Nota opcional para historico"
+                            placeholder="Nota opcional para histórico"
                           />
                           {isProspectQuote ? (
                             <p className="text-xs leading-5 text-slate-500">
-                              Ao aprovar uma cotacao de prospect, o cadastro vai
-                              para aguardando cadastro. Contrato e operacao so
-                              ficam liberados apos virar cliente ativo.
+                              Ao aprovar uma cotação de prospect, o cadastro vai
+                              para aguardando cadastro. Contrato e operação só
+                              ficam liberados após virar cliente ativo.
                             </p>
                           ) : null}
                         </div>

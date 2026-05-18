@@ -2,6 +2,7 @@
 
 import { useEffect, useMemo, useState } from 'react';
 import {
+  ArrowRight,
   Film,
   ImagePlus,
   LayoutTemplate,
@@ -73,7 +74,7 @@ function getTypeLabel(type: ContentType) {
   const labels: Record<ContentType, string> = {
     NOTICIA: 'Noticia',
     INFORMACAO: 'Campanha',
-    VLOG: 'Video',
+    VLOG: 'Vídeo',
   };
 
   return labels[type];
@@ -81,9 +82,9 @@ function getTypeLabel(type: ContentType) {
 
 function getTypeClass(type: ContentType) {
   const classes: Record<ContentType, string> = {
-    NOTICIA: 'bg-sky-100 text-sky-700',
-    INFORMACAO: 'bg-amber-100 text-amber-700',
-    VLOG: 'bg-violet-100 text-violet-700',
+    NOTICIA: 'bg-[#fab519] text-[#343434]',
+    INFORMACAO: 'bg-[#fab519] text-[#343434]',
+    VLOG: 'bg-[#fab519] text-[#343434]',
   };
 
   return classes[type];
@@ -91,9 +92,9 @@ function getTypeClass(type: ContentType) {
 
 function getTypeHelper(type: ContentType) {
   const helpers: Record<ContentType, string> = {
-    NOTICIA: 'Feed visual com imagem e titulo forte.',
+    NOTICIA: 'Feed visual com imagem e título forte.',
     INFORMACAO: 'Campanha com CTA e chamada comercial.',
-    VLOG: 'Conteudo em video para empresa e cliente.',
+    VLOG: 'Conteúdo em vídeo para empresa e cliente.',
   };
 
   return helpers[type];
@@ -106,9 +107,9 @@ function getTemplate(type: ContentType): Pick<
   if (type === 'INFORMACAO') {
     return {
       title: 'Campanha da semana',
-      summary: 'Destaque uma acao comercial com linguagem direta e CTA claro.',
+      summary: 'Destaque uma ação comercial com linguagem direta e CTA claro.',
       body:
-        'Apresente a campanha, beneficios, periodo de vigencia e o passo seguinte para o cliente acionar o time.',
+        'Apresente a campanha, benefícios, período de vigência e o passo seguinte para o cliente acionar o time.',
       campaignName: 'Campanha comercial',
       ctaLabel: 'Saiba mais',
     };
@@ -116,11 +117,11 @@ function getTemplate(type: ContentType): Pick<
 
   if (type === 'VLOG') {
     return {
-      title: 'Novo video da operacao',
-      summary: 'Compartilhe bastidores, atualizacoes e comunicados em formato visual.',
+      title: 'Novo vídeo da operação',
+      summary: 'Compartilhe bastidores, atualizações e comunicados em formato visual.',
       body:
-        'Use este espaco para contextualizar o video, reforcar a mensagem e orientar o cliente sobre o que assistir.',
-      campaignName: 'Conteudo em video',
+        'Use este espaco para contextualizar o vídeo, reforcar a mensagem e orientar o cliente sobre o que assistir.',
+      campaignName: 'Conteúdo em vídeo',
       ctaLabel: 'Assistir agora',
     };
   }
@@ -129,8 +130,8 @@ function getTemplate(type: ContentType): Pick<
     title: 'Nova noticia do portal',
     summary: 'Comunique uma novidade importante para clientes e equipes internas.',
     body:
-      'Escreva um texto curto, escaneavel e com informacoes centrais para leitura rapida.',
-    campaignName: 'Atualizacao do portal',
+      'Escreva um texto curto, escaneavel e com informações centrais para leitura rápida.',
+    campaignName: 'Atualização do portal',
     ctaLabel: 'Ver detalhe',
   };
 }
@@ -159,7 +160,7 @@ export default function MarketingPage() {
       setContents(data);
     } catch (error) {
       setPageError(
-        error instanceof Error ? error.message : 'Erro ao carregar conteudos.',
+        error instanceof Error ? error.message : 'Erro ao carregar conteúdos.',
       );
     } finally {
       setLoading(false);
@@ -191,13 +192,13 @@ export default function MarketingPage() {
 
   const contentPreview = {
     ...form,
-    title: form.title || 'Titulo do conteudo',
-    summary: form.summary || 'Resumo rapido para chamar a atencao no feed.',
+    title: form.title || 'Título do conteúdo',
+    summary: form.summary || 'Resumo rápido para chamar a atenção no feed.',
     body:
       form.body ||
-      'Texto principal do post. Aqui entram a historia, a campanha, o comunicado ou o roteiro da publicacao.',
+      'Texto principal do post. Aqui entram a historia, a campanha, o comunicado ou o roteiro da publicação.',
     campaignName: form.campaignName || 'Campanha ativa',
-    ctaLabel: form.ctaLabel || 'Abrir conteudo',
+    ctaLabel: form.ctaLabel || 'Abrir conteúdo',
   };
 
   function resetForm() {
@@ -225,14 +226,14 @@ export default function MarketingPage() {
   }
 
   function validateForm() {
-    if (!form.title.trim()) return 'Informe o titulo.';
+    if (!form.title.trim()) return 'Informe o título.';
     if (!form.summary.trim()) return 'Informe o resumo.';
-    if (!form.body.trim()) return 'Informe o conteudo.';
+    if (!form.body.trim()) return 'Informe o conteúdo.';
     if (form.ctaUrl && !form.ctaLabel.trim()) {
       return 'Informe o texto do CTA quando houver link.';
     }
     if (form.type === 'VLOG' && !form.videoUrl.trim()) {
-      return 'Para video, informe a URL do video.';
+      return 'Para vídeo, informe a URL do vídeo.';
     }
     return '';
   }
@@ -269,17 +270,17 @@ export default function MarketingPage() {
         setContents((prev) =>
           prev.map((item) => (item.id === updated.id ? updated : item)),
         );
-        setSuccessMessage('Conteudo atualizado com sucesso.');
+        setSuccessMessage('Conteúdo atualizado com sucesso.');
       } else {
         const created = await createPortalContent(payload);
         setContents((prev) => [created, ...prev]);
-        setSuccessMessage('Conteudo criado com sucesso.');
+        setSuccessMessage('Conteúdo criado com sucesso.');
       }
 
       resetForm();
     } catch (error) {
       setFormError(
-        error instanceof Error ? error.message : 'Erro ao salvar conteudo.',
+        error instanceof Error ? error.message : 'Erro ao salvar conteúdo.',
       );
     } finally {
       setSaving(false);
@@ -292,14 +293,14 @@ export default function MarketingPage() {
     try {
       await deletePortalContent(deleteTarget.id);
       setContents((prev) => prev.filter((item) => item.id !== deleteTarget.id));
-      setSuccessMessage('Conteudo removido com sucesso.');
+      setSuccessMessage('Conteúdo removido com sucesso.');
       if (editingId === deleteTarget.id) {
         resetForm();
       }
       setDeleteTarget(null);
     } catch (error) {
       setPageError(
-        error instanceof Error ? error.message : 'Erro ao remover conteudo.',
+        error instanceof Error ? error.message : 'Erro ao remover conteúdo.',
       );
     }
   }
@@ -346,7 +347,7 @@ export default function MarketingPage() {
       setSuccessMessage(
         mediaType === 'image'
           ? 'Imagem importada com sucesso.'
-          : 'Video importado com sucesso.',
+          : 'Vídeo importado com sucesso.',
       );
     } catch (error) {
       setFormError(
@@ -365,7 +366,7 @@ export default function MarketingPage() {
     return (
       <AppLayout>
         <div className="rounded-[28px] border border-amber-200 bg-amber-50 p-6 text-amber-900">
-          Esta area e restrita a marketing, gestao e administracao.
+          Esta área e restrita a marketing, gestão e administração.
         </div>
       </AppLayout>
     );
@@ -384,12 +385,12 @@ export default function MarketingPage() {
                 Content Studio
               </span>
               <h1 className="mt-5 max-w-3xl text-4xl font-bold leading-tight md:text-5xl">
-                Publique noticias, campanhas e videos com cara de feed social.
+                Publique noticias, campanhas e vídeos com cara de feed social.
               </h1>
               <p className="mt-4 max-w-2xl text-sm leading-7 text-slate-200 md:text-base">
                 Esta tela agora funciona como um mini estudio de marketing para o
-                portal do cliente: midia, CTA, destaque, campanhas e preview da
-                publicacao antes de liberar.
+                portal do cliente: mídia, CTA, destaque, campanhas e preview da
+                publicação antes de liberar.
               </p>
             </div>
 
@@ -414,7 +415,7 @@ export default function MarketingPage() {
               </div>
               <div className="rounded-[24px] border border-white/10 bg-white/10 p-4 backdrop-blur">
                 <p className="text-xs uppercase tracking-[0.18em] text-sky-100/80">
-                  Videos
+                  Vídeos
                 </p>
                 <p className="mt-2 text-3xl font-bold">{summary.videos}</p>
               </div>
@@ -430,10 +431,10 @@ export default function MarketingPage() {
                   Editor
                 </p>
                 <h2 className="mt-2 text-2xl font-bold text-slate-950">
-                  {editingId ? 'Editar campanha' : 'Criar conteudo'}
+                  {editingId ? 'Editar campanha' : 'Criar conteúdo'}
                 </h2>
                 <p className="mt-2 text-sm text-slate-500">
-                  Monte o post com foto, video, CTA e campanha sem sair da tela.
+                  Monte o post com foto, vídeo, CTA e campanha sem sair da tela.
                 </p>
               </div>
 
@@ -443,7 +444,7 @@ export default function MarketingPage() {
                 className="inline-flex items-center justify-center gap-2 rounded-2xl border border-slate-300 bg-white px-4 py-3 text-sm font-semibold text-slate-700 transition hover:bg-slate-100"
               >
                 <Plus className="h-4 w-4" />
-                Novo conteudo
+                Novo conteúdo
               </button>
             </div>
 
@@ -480,7 +481,7 @@ export default function MarketingPage() {
               <div className="grid gap-4 md:grid-cols-2">
                 <div>
                   <label className="mb-2 block text-sm font-semibold text-slate-700">
-                    Titulo
+                    Título
                   </label>
                   <input
                     type="text"
@@ -529,7 +530,7 @@ export default function MarketingPage() {
 
               <div>
                 <label className="mb-2 block text-sm font-semibold text-slate-700">
-                  Conteudo
+                  Conteúdo
                 </label>
                 <textarea
                   value={form.body}
@@ -538,7 +539,7 @@ export default function MarketingPage() {
                   }
                   rows={8}
                   className="w-full rounded-2xl border border-slate-300 bg-slate-50 px-4 py-3 text-sm text-slate-900 outline-none transition focus:border-blue-400 focus:bg-white"
-                  placeholder="Texto principal do conteudo para o portal do cliente."
+                  placeholder="Texto principal do conteúdo para o portal do cliente."
                 />
               </div>
 
@@ -559,7 +560,7 @@ export default function MarketingPage() {
                   >
                     <option value="NOTICIA">Noticia</option>
                     <option value="INFORMACAO">Campanha</option>
-                    <option value="VLOG">Video</option>
+                    <option value="VLOG">Vídeo</option>
                   </select>
                 </div>
 
@@ -615,17 +616,17 @@ export default function MarketingPage() {
 
                 <div className="rounded-[24px] border border-dashed border-slate-300 bg-slate-50 p-4">
                   <label className="block text-sm font-semibold text-slate-700">
-                    Importar video do computador
+                    Importar vídeo do computador
                   </label>
                   <p className="mt-2 text-sm leading-6 text-slate-500">
-                    Opcional: envie um video para o conteudo do portal.
+                    Opcional: envie um vídeo para o conteúdo do portal.
                   </p>
                   <label className="mt-4 inline-flex cursor-pointer items-center gap-2 rounded-2xl bg-white px-4 py-3 text-sm font-semibold text-slate-700 ring-1 ring-slate-300 transition hover:bg-slate-100">
                     <Film className="h-4 w-4" />
-                    {uploadingVideo ? 'Enviando video...' : 'Selecionar video'}
+                    {uploadingVideo ? 'Enviando vídeo...' : 'Selecionar vídeo'}
                     <input
                       type="file"
-                      accept="video/*"
+                      accept="vídeo/*"
                       className="hidden"
                       onChange={(event) =>
                         handleMediaUpload(
@@ -637,7 +638,7 @@ export default function MarketingPage() {
                   </label>
                   {form.videoUrl ? (
                     <p className="mt-3 text-xs text-emerald-600">
-                      Video pronto para uso no feed.
+                      Vídeo pronto para uso no feed.
                     </p>
                   ) : null}
                 </div>
@@ -664,7 +665,7 @@ export default function MarketingPage() {
 
                 <div>
                   <label className="mb-2 block text-sm font-semibold text-slate-700">
-                    URL do video
+                    URL do vídeo
                   </label>
                   <input
                     type="url"
@@ -673,7 +674,7 @@ export default function MarketingPage() {
                       setForm((prev) => ({ ...prev, videoUrl: event.target.value }))
                     }
                     className="w-full rounded-2xl border border-slate-300 bg-slate-50 px-4 py-3 text-sm text-slate-900 outline-none transition focus:border-blue-400 focus:bg-white"
-                    placeholder="Cole a URL do video ou use o upload acima"
+                    placeholder="Cole a URL do vídeo ou use o upload acima"
                   />
                 </div>
               </div>
@@ -724,7 +725,7 @@ export default function MarketingPage() {
                 </label>
 
                 <div className="rounded-2xl border border-slate-200 bg-slate-50 px-4 py-3 text-sm text-slate-500">
-                  Midia por URL: o projeto atual ja publica imagem e video por link
+                  Mídia por URL: o projeto atual já publica imagem e vídeo por link
                   sem precisar trocar storage ou backend de upload.
                 </div>
               </div>
@@ -751,8 +752,8 @@ export default function MarketingPage() {
                   {saving
                     ? 'Salvando...'
                     : editingId
-                      ? 'Salvar alteracoes'
-                      : 'Publicar conteudo'}
+                      ? 'Salvar alterações'
+                      : 'Publicar conteúdo'}
                 </button>
               </div>
             </form>
@@ -767,108 +768,86 @@ export default function MarketingPage() {
                 Como o cliente vai ver
               </h2>
               <p className="mt-2 text-sm text-slate-500">
-                Preview visual do feed com imagem, video, campanha e CTA.
+                Preview visual do feed com imagem, vídeo, campanha e CTA.
               </p>
             </div>
 
-            <div className="mt-6 rounded-[32px] border border-slate-200 bg-[linear-gradient(180deg,#f8fafc_0%,#eef4ff_100%)] p-4">
-              <div className="mx-auto max-w-md overflow-hidden rounded-[30px] border border-slate-200 bg-white shadow-[0_20px_50px_rgba(15,23,42,0.08)]">
-                <div className="flex items-center justify-between border-b border-slate-200 px-5 py-4">
-                  <div className="flex items-center gap-3">
-                    <div className="flex h-11 w-11 items-center justify-center rounded-full bg-[linear-gradient(135deg,#2563eb_0%,#7c3aed_100%)] text-sm font-bold text-white">
-                      CP
-                    </div>
-                    <div>
-                      <p className="text-sm font-semibold text-slate-950">
-                        CRM Portal
-                      </p>
-                      <p className="text-xs text-slate-400">
-                        {contentPreview.campaignName}
-                      </p>
-                    </div>
-                  </div>
-                  {contentPreview.highlight ? (
-                    <span className="rounded-full bg-amber-100 px-3 py-1 text-xs font-semibold text-amber-700">
-                      Destaque
-                    </span>
-                  ) : null}
+            <div className="mt-6 rounded-[32px] border border-slate-200 bg-white p-4">
+              <div className="mx-auto max-w-md">
+                <div className="mb-5 text-center">
+                  <h3 className="inline bg-[linear-gradient(180deg,transparent_58%,#fab519_58%)] px-2 text-2xl font-black text-[#343434]">
+                    Novidades do Portal
+                  </h3>
+                  <p className="mx-auto mt-3 max-w-sm text-sm leading-6 text-[#343434]/75">
+                    Formato final exibido para o cliente quando o conteúdo for publicado.
+                  </p>
                 </div>
 
-                <div className="bg-slate-100">
+                <article className="group relative min-h-[380px] overflow-hidden rounded-[22px] bg-[#343434] shadow-[0_20px_45px_rgba(52,52,52,0.18)]">
                   {contentPreview.coverImageUrl ? (
                     <div
-                      className="h-80 bg-cover bg-center"
+                      className="absolute inset-0 bg-cover bg-center transition duration-700 group-hover:scale-105"
                       style={{ backgroundImage: `url(${contentPreview.coverImageUrl})` }}
                     />
                   ) : (
-                    <div className="flex h-80 items-center justify-center bg-[linear-gradient(135deg,#dbeafe_0%,#e0e7ff_50%,#fce7f3_100%)] text-slate-500">
+                    <div className="absolute inset-0 flex items-center justify-center bg-[linear-gradient(135deg,#343434_0%,#ec3139_52%,#fab519_100%)] text-white/80">
                       <div className="text-center">
                         <ImagePlus className="mx-auto h-10 w-10" />
-                        <p className="mt-3 text-sm">Preview de foto/capa</p>
+                        <p className="mt-3 text-sm font-semibold">Preview de foto/capa</p>
                       </div>
                     </div>
                   )}
-                </div>
 
-                <div className="px-5 py-4">
-                  <div className="flex items-center gap-2">
-                    <span
-                      className={`rounded-full px-3 py-1 text-xs font-semibold ${getTypeClass(
-                        contentPreview.type,
-                      )}`}
-                    >
-                      {getTypeLabel(contentPreview.type)}
-                    </span>
-                    <span className="text-xs font-medium text-slate-400">
-                      {contentPreview.isPublished ? 'Publicado' : 'Rascunho'}
-                    </span>
-                  </div>
+                  <div className="absolute inset-0 bg-[linear-gradient(180deg,rgba(52,52,52,0.20)_0%,rgba(52,52,52,0.50)_45%,rgba(0,0,0,0.78)_100%)]" />
 
-                  <h3 className="mt-4 text-2xl font-bold leading-tight text-slate-950">
-                    {contentPreview.title}
-                  </h3>
-                  <p className="mt-3 text-sm leading-6 text-slate-500">
-                    {contentPreview.summary}
-                  </p>
-
-                  <div className="mt-4 rounded-[24px] border border-slate-200 bg-slate-50 p-4 text-sm leading-7 text-slate-700">
-                    {contentPreview.body}
-                  </div>
-
-                  <div className="mt-4 flex flex-wrap gap-3">
-                    {contentPreview.videoUrl ? (
-                      <a
-                        href={contentPreview.videoUrl}
-                        target="_blank"
-                        rel="noreferrer"
-                        className="inline-flex items-center gap-2 rounded-2xl border border-violet-200 bg-violet-50 px-4 py-3 text-sm font-semibold text-violet-700"
+                  <div className="relative flex min-h-[380px] flex-col justify-end p-6 text-white">
+                    <div className="mb-5 flex items-center justify-between gap-3">
+                      <span
+                        className={`inline-flex rounded-full px-4 py-2 text-sm font-extrabold shadow-[0_10px_24px_rgba(0,0,0,0.18)] ${getTypeClass(
+                          contentPreview.type,
+                        )}`}
                       >
-                        <Film className="h-4 w-4" />
-                        Abrir video
-                      </a>
-                    ) : null}
+                        {getTypeLabel(contentPreview.type)}
+                      </span>
 
-                    {contentPreview.ctaUrl ? (
-                      <a
-                        href={contentPreview.ctaUrl}
-                        target="_blank"
-                        rel="noreferrer"
-                        className="inline-flex items-center gap-2 rounded-2xl bg-blue-600 px-4 py-3 text-sm font-semibold text-white"
-                      >
-                        <Rocket className="h-4 w-4" />
-                        {contentPreview.ctaLabel}
-                      </a>
-                    ) : (
-                      <button
-                        type="button"
-                        className="inline-flex items-center gap-2 rounded-2xl bg-slate-900 px-4 py-3 text-sm font-semibold text-white"
-                      >
-                        <Sparkles className="h-4 w-4" />
-                        {contentPreview.ctaLabel}
-                      </button>
-                    )}
+                      <span className="rounded-full bg-white/18 px-3 py-1 text-xs font-bold text-white backdrop-blur">
+                        {contentPreview.isPublished ? 'Publicado' : 'Rascunho'}
+                      </span>
+                    </div>
+
+                    <h3 className="max-w-[18rem] text-2xl font-black leading-tight drop-shadow md:text-[1.65rem]">
+                      {contentPreview.title}
+                    </h3>
+                    <p className="mt-3 line-clamp-2 max-w-[18rem] text-sm font-semibold leading-6 text-white/88">
+                      {contentPreview.summary}
+                    </p>
+
+                    <div className="mt-6 flex items-center justify-between gap-4">
+                      {contentPreview.ctaUrl || contentPreview.videoUrl ? (
+                        <a
+                          href={contentPreview.ctaUrl || contentPreview.videoUrl}
+                          target="_blank"
+                          rel="noreferrer"
+                          className="inline-flex items-center gap-2 text-base font-extrabold text-white transition hover:text-[#fab519]"
+                        >
+                          Saiba mais
+                          <ArrowRight className="h-5 w-5 -rotate-45" />
+                        </a>
+                      ) : (
+                        <span className="inline-flex items-center gap-2 text-base font-extrabold text-white">
+                          Saiba mais
+                          <ArrowRight className="h-5 w-5 -rotate-45" />
+                        </span>
+                      )}
+
+                      {contentPreview.highlight ? (
+                        <span className="rounded-full bg-white/18 px-3 py-1 text-xs font-bold text-white backdrop-blur">
+                          Destaque
+                        </span>
+                      ) : null}
+                    </div>
                   </div>
-                </div>
+                </article>
               </div>
             </div>
           </article>
@@ -882,7 +861,7 @@ export default function MarketingPage() {
                   Biblioteca
                 </p>
                 <h2 className="mt-2 text-2xl font-bold text-slate-950">
-                  Conteudos do marketing
+                  Conteúdos do marketing
                 </h2>
               </div>
               <TabsList variant="line" className="w-fit">
@@ -894,13 +873,13 @@ export default function MarketingPage() {
             <TabsContent value="library">
               {loading ? (
                 <div className="p-10 text-center text-sm text-slate-500">
-                  Carregando conteudos...
+                  Carregando conteúdos...
                 </div>
               ) : pageError ? (
                 <div className="p-10 text-center text-sm text-rose-600">{pageError}</div>
               ) : contents.length === 0 ? (
                 <div className="p-10 text-center text-sm text-slate-500">
-                  Nenhum conteudo cadastrado.
+                  Nenhum conteúdo cadastrado.
                 </div>
               ) : (
                 <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-3">
@@ -969,7 +948,7 @@ export default function MarketingPage() {
                               className="inline-flex items-center gap-2 rounded-2xl border border-violet-200 bg-violet-50 px-3 py-2 text-xs font-semibold text-violet-700 transition hover:bg-violet-100"
                             >
                               <Film className="h-4 w-4" />
-                              Video
+                              Vídeo
                             </a>
                           ) : null}
                           {item.ctaUrl && item.ctaLabel ? (
@@ -1048,7 +1027,7 @@ export default function MarketingPage() {
 
       <ConfirmDialog
         open={!!deleteTarget}
-        title="Excluir conteudo"
+        title="Excluir conteúdo"
         description={`Deseja remover "${deleteTarget?.title ?? ''}"?`}
         confirmLabel="Excluir"
         cancelLabel="Cancelar"

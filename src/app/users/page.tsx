@@ -4,15 +4,20 @@ import { useEffect, useMemo, useState } from 'react';
 import {
   createUser,
   deleteUser,
+  getScreenPermissions,
   getUsers,
+  updateRoleScreenPermissions,
   updateUser,
 } from '../../services/users.service';
 import type {
   CreateUserPayload,
+  RoleScreenPermissionsGroup,
   UpdateUserPayload,
   User,
   UserRole,
 } from '../../types/user';
+import { appScreens } from '@/config/screens';
+import { useAuth } from '@/context/auth-context';
 
 const roles: UserRole[] = [
   'ADMIN',
@@ -47,13 +52,20 @@ const initialFormState: FormState = {
 };
 
 export default function UsersPage() {
+  const { user: currentUser, refreshUser } = useAuth();
   const [users, setUsers] = useState<User[]>([]);
+  const [screenPermissions, setScreenPermissions] = useState<
+    RoleScreenPermissionsGroup[]
+  >([]);
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
+  const [savingPermissions, setSavingPermissions] = useState(false);
 
   const [search, setSearch] = useState('');
   const [roleFilter, setRoleFilter] = useState<'TODOS' | UserRole>('TODOS');
   const [statusFilter, setStatusFilter] = useState<StatusFilter>('TODOS');
+  const [selectedPermissionRole, setSelectedPermissionRole] =
+    useState<UserRole>('ADMIN');
 
   const [pageError, setPageError] = useState('');
   const [formError, setFormError] = useState('');
@@ -69,8 +81,12 @@ export default function UsersPage() {
     try {
       setLoading(true);
       setPageError('');
-      const data = await getUsers();
-      setUsers(data);
+      const [usersData, permissionsData] = await Promise.all([
+        getUsers(),
+        getScreenPermissions(),
+      ]);
+      setUsers(usersData);
+      setScreenPermissions(permissionsData);
     } catch (error) {
       const message =
         error instanceof Error ? error.message : 'Erro ao carregar usuários';
@@ -160,6 +176,81 @@ export default function UsersPage() {
     return { total, active, inactive, clients };
   }, [users]);
 
+  const selectedRolePermissions = useMemo(() => {
+    const group = screenPermissions.find(
+      (item) => item.role === selectedPermissionRole,
+    );
+
+    return new Map(
+      (group?.screens ?? []).map((permission) => [
+        permission.screenKey,
+        permission,
+      ]),
+    );
+  }, [screenPermissions, selectedPermissionRole]);
+
+  function isScreenChecked(screen: (typeof appScreens)[number]) {
+    const permission = selectedRolePermissions.get(screen.key);
+
+    return permission
+      ? permission.isEnabled
+      : screen.roles.includes(selectedPermissionRole);
+  }
+
+  async function handleToggleScreenPermission(screenKey: string) {
+    const screen = appScreens.find((item) => item.key === screenKey);
+
+    if (!screen) return;
+
+    const nextPermissions = appScreens.map((item) => {
+      const existingPermission = selectedRolePermissions.get(item.key);
+      const currentValue = existingPermission
+        ? existingPermission.isEnabled
+        : item.roles.includes(selectedPermissionRole);
+
+      return {
+        screenKey: item.key,
+        screenLabel: item.label,
+        isEnabled: item.key === screenKey ? !currentValue : currentValue,
+      };
+    });
+
+    try {
+      setSavingPermissions(true);
+      setErrorToastMessage('');
+
+      const updated = await updateRoleScreenPermissions(
+        selectedPermissionRole,
+        {
+          screens: nextPermissions,
+        },
+      );
+
+      setScreenPermissions((prev) => {
+        const withoutCurrentRole = prev.filter(
+          (item) => item.role !== selectedPermissionRole,
+        );
+
+        return [...withoutCurrentRole, updated];
+      });
+
+      if (currentUser?.role === selectedPermissionRole) {
+        await refreshUser();
+      }
+
+      setSuccessMessage('Permissões de telas atualizadas com sucesso.');
+    } catch (error) {
+      const message =
+        error instanceof Error
+          ? error.message
+          : 'Erro ao atualizar permissões de telas';
+
+      setErrorToastMessage(message);
+    } finally {
+      setSavingPermissions(false);
+    }
+  }
+
   function handleFieldChange<K extends keyof FormState>(
     field: K,
     value: FormState[K],
@@ -239,9 +330,13 @@ export default function UsersPage() {
           role: form.role,
           isActive: form.isActive,
           document:
-            form.role === 'CLIENTE' ? form.document.trim() || undefined : undefined,
+            form.role === 'CLIENTE'
+              ? form.document.trim() || undefined
+              : undefined,
           phone:
-            form.role === 'CLIENTE' ? form.phone.trim() || undefined : undefined,
+            form.role === 'CLIENTE'
+              ? form.phone.trim() || undefined
+              : undefined,
           companyName:
             form.role === 'CLIENTE'
               ? form.companyName.trim() || undefined
@@ -263,9 +358,13 @@ export default function UsersPage() {
           role: form.role,
           isActive: form.isActive,
           document:
-            form.role === 'CLIENTE' ? form.document.trim() || undefined : undefined,
+            form.role === 'CLIENTE'
+              ? form.document.trim() || undefined
+              : undefined,
           phone:
-            form.role === 'CLIENTE' ? form.phone.trim() || undefined : undefined,
+            form.role === 'CLIENTE'
+              ? form.phone.trim() || undefined
+              : undefined,
           companyName:
             form.role === 'CLIENTE'
               ? form.companyName.trim() || undefined
@@ -500,6 +599,74 @@ export default function UsersPage() {
           </section>
 
           <section className="rounded-[24px] border border-slate-200 bg-white p-5 shadow-sm md:p-6">
+            <div className="flex flex-col gap-4 border-b border-slate-200 pb-5 lg:flex-row lg:items-end lg:justify-between">
+              <div>
+                <h2 className="text-lg font-semibold text-slate-900">
+                  Telas por perfil
+                </h2>
+                <p className="mt-1 text-sm text-slate-500">
+                  Marque as telas liberadas para cada perfil do portal.
+                </p>
+              </div>
+
+              <div className="flex flex-wrap gap-2">
+                {roles.map((role) => (
+                  <button
+                    key={role}
+                    type="button"
+                    onClick={() => setSelectedPermissionRole(role)}
+                    className={`rounded-2xl border px-4 py-2 text-sm font-semibold transition ${
+                      selectedPermissionRole === role
+                        ? 'border-blue-600 bg-blue-600 text-white'
+                        : 'border-slate-300 bg-white text-slate-700 hover:bg-slate-50'
+                    }`}
+                  >
+                    {getRoleLabel(role)}
+                  </button>
+                ))}
+              </div>
+            </div>
+
+            <div className="mt-5 grid gap-3 sm:grid-cols-2 xl:grid-cols-3">
+              {appScreens.map((screen) => {
+                const checked = isScreenChecked(screen);
+                const allowedByBaseRole = screen.roles.includes(
+                  selectedPermissionRole,
+                );
+
+                return (
+                  <label
+                    key={screen.key}
+                    className={`flex min-h-[72px] cursor-pointer items-center justify-between gap-4 rounded-2xl border px-4 py-3 transition ${
+                      checked
+                        ? 'border-blue-200 bg-blue-50'
+                        : 'border-slate-200 bg-slate-50'
+                    } ${savingPermissions ? 'pointer-events-none opacity-70' : ''}`}
+                  >
+                    <span>
+                      <span className="block text-sm font-semibold text-slate-900">
+                        {screen.label}
+                      </span>
+                      <span className="mt-1 block text-xs text-slate-500">
+                        {allowedByBaseRole
+                          ? 'Disponivel para o perfil'
+                          : 'Fora do perfil padrao'}
+                      </span>
+                    </span>
+
+                    <input
+                      type="checkbox"
+                      checked={checked}
+                      onChange={() => handleToggleScreenPermission(screen.key)}
+                      className="h-5 w-5 rounded border-slate-300 text-blue-600 focus:ring-blue-500"
+                    />
+                  </label>
+                );
+              })}
+            </div>
+          </section>
+
+          <section className="rounded-[24px] border border-slate-200 bg-white p-5 shadow-sm md:p-6">
             <div className="grid grid-cols-1 gap-4 lg:grid-cols-[1.4fr_.8fr_.8fr]">
               <div>
                 <label className="mb-2 block text-sm font-semibold text-slate-700">
@@ -563,7 +730,8 @@ export default function UsersPage() {
                     Usuários cadastrados
                   </h2>
                   <p className="text-sm text-slate-500">
-                    Visualize, edite e acompanhe o status dos usuários do sistema.
+                    Visualize, edite e acompanhe o status dos usuários do
+                    sistema.
                   </p>
                 </div>
 
@@ -601,7 +769,9 @@ export default function UsersPage() {
                         <p className="text-base font-semibold text-slate-900">
                           {user.name}
                         </p>
-                        <p className="mt-1 text-sm text-slate-500">{user.email}</p>
+                        <p className="mt-1 text-sm text-slate-500">
+                          {user.email}
+                        </p>
                       </div>
                     </div>
 
@@ -616,12 +786,16 @@ export default function UsersPage() {
                     </div>
 
                     <div className="text-sm text-slate-600">
-                      <p className="font-medium text-slate-700 md:hidden">Empresa</p>
+                      <p className="font-medium text-slate-700 md:hidden">
+                        Empresa
+                      </p>
                       <p>{user.clientProfile?.companyName || '-'}</p>
                     </div>
 
                     <div>
-                      <p className="font-medium text-slate-700 md:hidden">Status</p>
+                      <p className="font-medium text-slate-700 md:hidden">
+                        Status
+                      </p>
                       <span
                         className={`inline-flex rounded-full px-3 py-1 text-xs font-semibold ${
                           user.isActive
@@ -634,7 +808,9 @@ export default function UsersPage() {
                     </div>
 
                     <div className="text-sm text-slate-600">
-                      <p className="font-medium text-slate-700 md:hidden">Criado em</p>
+                      <p className="font-medium text-slate-700 md:hidden">
+                        Criado em
+                      </p>
                       <p>{formatDate(user.createdAt)}</p>
                     </div>
 
@@ -737,7 +913,10 @@ export default function UsersPage() {
                     <select
                       value={form.role}
                       onChange={(event) =>
-                        handleFieldChange('role', event.target.value as UserRole)
+                        handleFieldChange(
+                          'role',
+                          event.target.value as UserRole,
+                        )
                       }
                       className="w-full rounded-2xl border border-slate-300 bg-slate-50 px-4 py-3 text-sm text-slate-900 outline-none transition focus:border-blue-400 focus:bg-white"
                     >
@@ -756,7 +935,10 @@ export default function UsersPage() {
                     <select
                       value={form.isActive ? 'true' : 'false'}
                       onChange={(event) =>
-                        handleFieldChange('isActive', event.target.value === 'true')
+                        handleFieldChange(
+                          'isActive',
+                          event.target.value === 'true',
+                        )
                       }
                       className="w-full rounded-2xl border border-slate-300 bg-slate-50 px-4 py-3 text-sm text-slate-900 outline-none transition focus:border-blue-400 focus:bg-white"
                     >
@@ -773,7 +955,8 @@ export default function UsersPage() {
                         Dados do cliente
                       </h3>
                       <p className="text-sm text-slate-500">
-                        Esses campos são exibidos quando o perfil é do tipo cliente.
+                        Esses campos são exibidos quando o perfil é do tipo
+                        cliente.
                       </p>
                     </div>
 

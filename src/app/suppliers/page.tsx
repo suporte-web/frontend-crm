@@ -114,7 +114,7 @@ export default function SuppliersPage() {
     return (
       <AppLayout>
         <div className="rounded-[28px] border border-amber-200 bg-amber-50 p-6 text-amber-900">
-          Area restrita aos perfis internos do CRM.
+          área restrita aos perfis internos do CRM.
         </div>
       </AppLayout>
     );
@@ -177,7 +177,7 @@ export default function SuppliersPage() {
                 }
                 className="crm-textarea"
                 rows={4}
-                placeholder="Observacoes internas"
+                placeholder="Observações internas"
               />
               <button
                 type="submit"

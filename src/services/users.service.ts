@@ -1,7 +1,10 @@
 import type {
   CreateUserPayload,
+  RoleScreenPermissionsGroup,
   UpdateUserPayload,
+  UpdateRoleScreenPermissionsPayload,
   User,
+  UserRole,
 } from '../types/user';
 
 const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001/api';
@@ -79,4 +82,29 @@ export async function deleteUser(id: string): Promise<{ message: string }> {
   });
 
   return handleResponse<{ message: string }>(response);
+}
+
+export async function getScreenPermissions(): Promise<
+  RoleScreenPermissionsGroup[]
+> {
+  const response = await fetch(`${API_URL}/screen-permissions`, {
+    method: 'GET',
+    headers: getAuthHeaders(),
+    cache: 'no-store',
+  });
+
+  return handleResponse<RoleScreenPermissionsGroup[]>(response);
+}
+
+export async function updateRoleScreenPermissions(
+  role: UserRole,
+  payload: UpdateRoleScreenPermissionsPayload,
+): Promise<RoleScreenPermissionsGroup> {
+  const response = await fetch(`${API_URL}/screen-permissions/${role}`, {
+    method: 'PUT',
+    headers: getAuthHeaders(),
+    body: JSON.stringify(payload),
+  });
+
+  return handleResponse<RoleScreenPermissionsGroup>(response);
 }

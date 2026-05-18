@@ -25,7 +25,7 @@ export default function ChangePasswordPage() {
     }
 
     if (newPassword !== confirmPassword) {
-      setError('A confirmacao da senha nao confere.');
+      setError('A confirmação da senha não confere.');
       return;
     }
 

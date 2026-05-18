@@ -150,14 +150,14 @@ export default function LeadsPage() {
       setJobs((prev) => [job, ...prev.filter((item) => item.id !== job.id)]);
       await loadData();
       setToast({
-        title: 'Importacao concluida',
+        title: 'Importação concluída',
         message: `${job.successCount} lead(s) importado(s), ${job.ignoredCount} ignorado(s).`,
         variant: 'success',
       });
       return true;
     } catch (error) {
       setToast({
-        title: 'Falha na importacao',
+        title: 'Falha na importação',
         message: error instanceof Error ? error.message : 'Erro ao importar arquivo.',
         variant: 'error',
       });
@@ -172,7 +172,7 @@ export default function LeadsPage() {
 
     if (!whatsForm.integrationToken.trim()) {
       setToast({
-        title: 'Token obrigatorio',
+        title: 'Token obrigatório',
         message: 'Informe o token de integracao do endpoint de WhatsApp.',
         variant: 'error',
       });
@@ -204,7 +204,7 @@ export default function LeadsPage() {
       );
       await loadData();
       setToast({
-        title: response.created ? 'Lead criado via WhatsApp' : 'Interacao registrada',
+        title: response.created ? 'Lead criado via WhatsApp' : 'Interação registrada',
         message: response.message,
         variant: 'success',
       });
@@ -233,7 +233,7 @@ export default function LeadsPage() {
     return (
       <AppLayout>
         <div className="rounded-[28px] border border-amber-200 bg-amber-50 p-6 text-amber-900">
-          Esta area e restrita aos perfis internos do CRM.
+          Esta área e restrita aos perfis internos do CRM.
         </div>
       </AppLayout>
     );
@@ -245,7 +245,7 @@ export default function LeadsPage() {
         <section className="crm-shell-card p-6">
           <div className="flex flex-col gap-6 lg:flex-row lg:items-end lg:justify-between">
             <div>
-              <p className="crm-eyebrow">Captacao</p>
+              <p className="crm-eyebrow">Captação</p>
               <h1 className="crm-page-title">Leads por cadastro manual, CSV e WhatsApp</h1>
               <p className="crm-page-copy">
                 Validar e fazer um fluxo
@@ -303,7 +303,7 @@ export default function LeadsPage() {
                     <div>
                       <h3 className="text-lg font-semibold text-slate-950">Cadastro manual</h3>
                       <p className="text-sm text-slate-500">
-                        Entrada rapida com contexto comercial e deduplicacao segura.
+                        Entrada rápida com contexto comercial e deduplicação segura.
                       </p>
                     </div>
                   </div>
@@ -316,7 +316,7 @@ export default function LeadsPage() {
                       <Sparkles className="h-5 w-5" />
                     </div>
                     <div>
-                      <h3 className="text-lg font-semibold text-slate-950">Regras da captacao</h3>
+                      <h3 className="text-lg font-semibold text-slate-950">Regras da captação</h3>
                       <p className="text-sm text-slate-500">
                         Parametros atuais do CRM para manter a base limpa.
                       </p>
@@ -357,7 +357,7 @@ export default function LeadsPage() {
                         Entrada via WhatsApp
                       </h3>
                       <p className="text-sm text-slate-500">
-                        Teste o endpoint e valide o fluxo minimo de captacao por telefone.
+                        Teste o endpoint e valide o fluxo mínimo de captação por telefone.
                       </p>
                     </div>
                   </div>
@@ -432,7 +432,7 @@ export default function LeadsPage() {
                           }))
                         }
                         className="crm-input"
-                        placeholder="Numero de origem"
+                        placeholder="Número de origem"
                       />
                     </div>
 
@@ -492,10 +492,10 @@ export default function LeadsPage() {
                       Recebimento de lead via webhook, sem inbox e sem envio de mensagem.
                     </div>
                     <div className="rounded-2xl border border-slate-200 bg-white px-4 py-3">
-                      Deduplicacao por telefone antes de abrir um novo cadastro.
+                      Deduplicação por telefone antes de abrir um novo cadastro.
                     </div>
                     <div className="rounded-2xl border border-slate-200 bg-white px-4 py-3">
-                      Timeline registra criacao ou nova interacao do mesmo contato.
+                      Timeline registra criação ou nova interação do mesmo contato.
                     </div>
                     <div className="rounded-2xl border border-slate-200 bg-white px-4 py-3">
                       Estrutura pronta para encaixar Cloud API de forma oficial depois.
@@ -513,7 +513,7 @@ export default function LeadsPage() {
               <p className="crm-eyebrow">Pipeline de entrada</p>
               <h2 className="mt-2 text-2xl font-bold text-slate-950">Base de leads</h2>
               <p className="mt-2 text-sm text-slate-500">
-                Visao de lista para comercial operar origem, status e ultimo contexto.
+                Visão de lista para comercial operar origem, status e ultimo contexto.
               </p>
             </div>
 

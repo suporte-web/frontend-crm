@@ -102,10 +102,10 @@ function formatCnpj(value: string) {
 
 function getQueryTypeLabel(type: TrackingQueryType) {
   const map: Record<TrackingQueryType, string> = {
-    nro_nf: 'Numero da nota fiscal',
-    pedido: 'Numero do pedido',
+    nro_nf: 'Número da nota fiscal',
+    pedido: 'Número do pedido',
     chave_nfe: 'Chave da NFe',
-    nro_coleta: 'Numero da coleta',
+    nro_coleta: 'Número da coleta',
   };
 
   return map[type];
@@ -283,7 +283,7 @@ function getDestinationLabel(
 function getStatusInfo(items: TrackingApiItem[]) {
   if (!items.length) {
     return {
-      label: 'Sem movimentacoes',
+      label: 'Sem movimentações',
       className: 'bg-zinc-100 text-zinc-700 border-zinc-200',
     };
   }
@@ -294,7 +294,7 @@ function getStatusInfo(items: TrackingApiItem[]) {
   if (combinedText.includes('ENTREGUE') || combinedText.includes('ENTREGA')) {
     return {
       label: 'Entregue',
-      className: 'bg-emerald-100 text-emerald-800 border-emerald-200',
+      className: 'bg-[#fab519]/15 text-[#343434] border-[#fab519]/40',
     };
   }
 
@@ -305,13 +305,13 @@ function getStatusInfo(items: TrackingApiItem[]) {
   ) {
     return {
       label: 'Em transito',
-      className: 'bg-blue-100 text-blue-800 border-blue-200',
+      className: 'bg-[#ec3139]/10 text-[#ec3139] border-[#ec3139]/25',
     };
   }
 
   return {
     label: latest.ocorrencia || latest.tipo || 'Em processamento',
-    className: 'bg-yellow-100 text-yellow-800 border-yellow-200',
+    className: 'bg-[#fab519]/15 text-[#343434] border-[#fab519]/40',
   };
 }
 
@@ -331,7 +331,7 @@ function splitOccurrenceLabel(ocorrencia?: string) {
   if (!match) {
     return {
       code: null,
-      label: value || 'Movimentacao registrada',
+      label: value || 'Movimentação registrada',
     };
   }
 
@@ -464,8 +464,8 @@ function getMovementVisual(item: TrackingApiItem) {
   ) {
     return {
       icon: CheckCircle2,
-      iconWrapClass: 'bg-emerald-100 text-emerald-700 border-emerald-200',
-      badgeClass: 'bg-emerald-50 text-emerald-700 border-emerald-200',
+      iconWrapClass: 'bg-[#fab519]/15 text-[#343434] border-[#fab519]/40',
+      badgeClass: 'bg-[#fab519]/10 text-[#343434] border-[#fab519]/40',
       label: 'Entregue',
     };
   }
@@ -477,8 +477,8 @@ function getMovementVisual(item: TrackingApiItem) {
   ) {
     return {
       icon: UserCheck,
-      iconWrapClass: 'bg-teal-100 text-teal-700 border-teal-200',
-      badgeClass: 'bg-teal-50 text-teal-700 border-teal-200',
+      iconWrapClass: 'bg-[#fab519]/15 text-[#343434] border-[#fab519]/40',
+      badgeClass: 'bg-[#fab519]/10 text-[#343434] border-[#fab519]/40',
       label: 'Recebimento',
     };
   }
@@ -491,8 +491,8 @@ function getMovementVisual(item: TrackingApiItem) {
   ) {
     return {
       icon: Truck,
-      iconWrapClass: 'bg-blue-100 text-blue-700 border-blue-200',
-      badgeClass: 'bg-blue-50 text-blue-700 border-blue-200',
+      iconWrapClass: 'bg-[#ec3139]/10 text-[#ec3139] border-[#ec3139]/25',
+      badgeClass: 'bg-[#ec3139]/10 text-[#ec3139] border-[#ec3139]/25',
       label: 'Em transito',
     };
   }
@@ -507,8 +507,8 @@ function getMovementVisual(item: TrackingApiItem) {
   ) {
     return {
       icon: PackageCheck,
-      iconWrapClass: 'bg-violet-100 text-violet-700 border-violet-200',
-      badgeClass: 'bg-violet-50 text-violet-700 border-violet-200',
+      iconWrapClass: 'bg-[#343434]/10 text-[#343434] border-[#343434]/20',
+      badgeClass: 'bg-[#343434]/10 text-[#343434] border-[#343434]/20',
       label: 'Processado',
     };
   }
@@ -520,8 +520,8 @@ function getMovementVisual(item: TrackingApiItem) {
   ) {
     return {
       icon: Clock3,
-      iconWrapClass: 'bg-amber-100 text-amber-700 border-amber-200',
-      badgeClass: 'bg-amber-50 text-amber-700 border-amber-200',
+      iconWrapClass: 'bg-[#fab519]/15 text-[#343434] border-[#fab519]/40',
+      badgeClass: 'bg-[#fab519]/10 text-[#343434] border-[#fab519]/40',
       label: 'Pendente',
     };
   }
@@ -534,9 +534,9 @@ function getMovementVisual(item: TrackingApiItem) {
   ) {
     return {
       icon: AlertCircle,
-      iconWrapClass: 'bg-red-100 text-red-700 border-red-200',
-      badgeClass: 'bg-red-50 text-red-700 border-red-200',
-      label: 'Atencao',
+      iconWrapClass: 'bg-[#ec3139]/10 text-[#ec3139] border-[#ec3139]/25',
+      badgeClass: 'bg-[#ec3139]/10 text-[#ec3139] border-[#ec3139]/25',
+      label: 'Atenção',
     };
   }
 
@@ -544,7 +544,7 @@ function getMovementVisual(item: TrackingApiItem) {
     icon: CircleDashed,
     iconWrapClass: 'bg-zinc-100 text-zinc-700 border-zinc-200',
     badgeClass: 'bg-zinc-50 text-zinc-700 border-zinc-200',
-    label: item.tipo || 'Movimentacao',
+    label: item.tipo || 'Movimentação',
   };
 }
 
@@ -570,21 +570,21 @@ function getDeadlineInfo(
       return {
         label: 'Entregue com atraso',
         detail: `Conclusao registrada em ${formatDateTime(latestDeliveredAt)}.`,
-        className: 'border-amber-200 bg-amber-50 text-amber-800',
+        className: 'border-[#fab519]/40 bg-[#fab519]/12 text-[#343434]',
       };
     }
 
     return {
       label: 'Entregue no prazo',
       detail: `Baixa confirmada em ${formatDateTime(latestDeliveredAt)}.`,
-      className: 'border-emerald-200 bg-emerald-50 text-emerald-800',
+      className: 'border-[#fab519]/40 bg-[#fab519]/12 text-[#343434]',
     };
   }
 
   if (!estimatedDate) {
     return {
-      label: 'Previsao pendente',
-      detail: 'A consulta nao retornou data prevista de entrega.',
+      label: 'Previsão pendente',
+      detail: 'A consulta não retornou data prevista de entrega.',
       className: 'border-zinc-200 bg-zinc-50 text-zinc-700',
     };
   }
@@ -597,7 +597,7 @@ function getDeadlineInfo(
     return {
       label: 'Prazo em atraso',
       detail: `Previsao encerrada em ${formatDate(estimatedDelivery)}.`,
-      className: 'border-red-200 bg-red-50 text-red-800',
+      className: 'border-[#ec3139]/25 bg-[#ec3139]/10 text-[#ec3139]',
     };
   }
 
@@ -605,14 +605,14 @@ function getDeadlineInfo(
     return {
       label: 'Entrega prevista hoje',
       detail: `Janela prevista ate ${formatDateTime(estimatedDelivery)}.`,
-      className: 'border-blue-200 bg-blue-50 text-blue-800',
+      className: 'border-[#ec3139]/25 bg-[#ec3139]/10 text-[#ec3139]',
     };
   }
 
   return {
     label: 'Dentro do prazo',
     detail: `Entrega prevista para ${formatDate(estimatedDelivery)}.`,
-    className: 'border-emerald-200 bg-emerald-50 text-emerald-800',
+    className: 'border-[#fab519]/40 bg-[#fab519]/12 text-[#343434]',
   };
 }
 
@@ -634,17 +634,17 @@ function getDeliveryDisplay(
 
   if (latestDeliveredAt) {
     return {
-      title: 'Entrega concluida',
+      title: 'Entrega concluída',
       value: formatDateTime(latestDeliveredAt),
       detail:
         destinationLabel !== '-'
           ? `Baixa final registrada para ${destinationLabel}.`
-          : 'Baixa final registrada no historico da carga.',
+          : 'Baixa final registrada no histórico da carga.',
     };
   }
 
   return {
-    title: 'Previsao de entrega',
+    title: 'Previsão de entrega',
     value: formatDateTime(estimatedDelivery),
     detail:
       destinationLabel !== '-'
@@ -773,7 +773,7 @@ export default function TrackingsPage() {
       if (error instanceof Error) {
         setErrorMessage(error.message);
       } else {
-        setErrorMessage('Nao foi possivel consultar o rastreamento.');
+        setErrorMessage('Não foi possível consultar o rastreamento.');
       }
     } finally {
       setIsLoading(false);
@@ -796,13 +796,13 @@ export default function TrackingsPage() {
   return (
     <AppLayout>
       <div className="mx-auto flex w-full max-w-7xl flex-col gap-6">
-        <section className="relative overflow-hidden rounded-[34px] border border-white/80 bg-white/95 shadow-[0_24px_70px_rgba(15,23,42,0.08)] backdrop-blur">
-          <div className="pointer-events-none absolute -right-24 -top-24 h-72 w-72 rounded-full bg-blue-100 blur-3xl" />
-          <div className="pointer-events-none absolute -bottom-24 left-10 h-72 w-72 rounded-full bg-cyan-100 blur-3xl" />
+        <section className="relative overflow-hidden rounded-[34px] border border-white/80 bg-white/95 shadow-[0_24px_70px_rgba(52,52,52,0.08)] backdrop-blur">
+          <div className="pointer-events-none absolute -right-24 -top-24 h-72 w-72 rounded-full bg-[#ec3139]/10 blur-3xl" />
+          <div className="pointer-events-none absolute -bottom-24 left-10 h-72 w-72 rounded-full bg-[#fab519]/18 blur-3xl" />
 
           <div className="relative grid gap-0 xl:grid-cols-[0.82fr_1.18fr]">
-            <div className="border-b border-slate-200/70 bg-[linear-gradient(135deg,#020617_0%,#0f172a_55%,#1d4ed8_100%)] p-6 text-white xl:border-b-0 xl:border-r xl:border-white/10 lg:p-8">
-              <div className="inline-flex items-center gap-2 rounded-full border border-white/15 bg-white/10 px-3 py-1 text-xs font-semibold uppercase tracking-[0.20em] text-sky-100">
+            <div className="border-b border-slate-200/70 bg-[linear-gradient(135deg,#343434_0%,#2b2b2b_55%,#eb2c38_100%)] p-6 text-white xl:border-b-0 xl:border-r xl:border-white/10 lg:p-8">
+              <div className="inline-flex items-center gap-2 rounded-full border border-white/15 bg-white/10 px-3 py-1 text-xs font-semibold uppercase tracking-[0.20em] text-[#fab519]">
                 <Package className="h-3.5 w-3.5" />
                 Logistica
               </div>
@@ -812,13 +812,12 @@ export default function TrackingsPage() {
               </h1>
 
               <p className="mt-4 max-w-xl text-sm leading-7 text-slate-200">
-                Consulte a situacao da entrega pelo CNPJ e pelo identificador informado
-                no contrato de rastreamento.
+                Consulte a situacão da entrega pelo CNPJ.
               </p>
 
               <div className="mt-8 grid gap-3 sm:grid-cols-3 xl:grid-cols-1 2xl:grid-cols-3">
                 <div className="rounded-[22px] border border-white/10 bg-white/10 p-4 backdrop-blur">
-                  <div className="flex h-10 w-10 items-center justify-center rounded-2xl bg-white/10 text-sky-100">
+                  <div className="flex h-10 w-10 items-center justify-center rounded-2xl bg-white/10 text-[#fab519]">
                     <Package className="h-5 w-5" />
                   </div>
 
@@ -832,7 +831,7 @@ export default function TrackingsPage() {
                 </div>
 
                 <div className="rounded-[22px] border border-white/10 bg-white/10 p-4 backdrop-blur">
-                  <div className="flex h-10 w-10 items-center justify-center rounded-2xl bg-white/10 text-sky-100">
+                  <div className="flex h-10 w-10 items-center justify-center rounded-2xl bg-white/10 text-[#fab519]">
                     <Truck className="h-5 w-5" />
                   </div>
 
@@ -841,12 +840,12 @@ export default function TrackingsPage() {
                   </p>
 
                   <p className="mt-1 text-xs leading-5 text-slate-300">
-                    Eventos, localizacao e ocorrencia atual.
+                    Eventos, localização e ocorrência atual.
                   </p>
                 </div>
 
                 <div className="rounded-[22px] border border-white/10 bg-white/10 p-4 backdrop-blur">
-                  <div className="flex h-10 w-10 items-center justify-center rounded-2xl bg-white/10 text-sky-100">
+                  <div className="flex h-10 w-10 items-center justify-center rounded-2xl bg-white/10 text-[#fab519]">
                     <Clock3 className="h-5 w-5" />
                   </div>
 
@@ -855,7 +854,7 @@ export default function TrackingsPage() {
                   </p>
 
                   <p className="mt-1 text-xs leading-5 text-slate-300">
-                    Previsao, atraso ou baixa final registrada.
+                    Previsão, atraso ou baixa final registrada.
                   </p>
                 </div>
               </div>
@@ -864,11 +863,11 @@ export default function TrackingsPage() {
             <div className="relative p-6 lg:p-8">
               <div className="flex flex-col gap-4 md:flex-row md:items-start md:justify-between">
                 <div>
-                  <p className="text-xs font-semibold uppercase tracking-[0.20em] text-blue-600">
+                  <p className="text-xs font-semibold uppercase tracking-[0.20em] text-[#ec3139]">
                     Consulta
                   </p>
 
-                  <h2 className="mt-2 text-2xl font-bold tracking-tight text-slate-950">
+                  <h2 className="mt-2 text-2xl font-bold tracking-tight text-[#343434]">
                     Dados para rastreamento
                   </h2>
 
@@ -883,7 +882,7 @@ export default function TrackingsPage() {
                     Tipo atual
                   </p>
 
-                  <p className="mt-1 text-sm font-semibold text-slate-900">
+                  <p className="mt-1 text-sm font-semibold text-[#343434]">
                     {selectedQueryLabel}
                   </p>
                 </div>
@@ -902,7 +901,7 @@ export default function TrackingsPage() {
                       updateField('cnpj', formatCnpj(event.target.value))
                     }
                     placeholder="00.000.000/0000-00"
-                    className="h-12 rounded-2xl border-slate-200 bg-slate-50/70 px-4 text-slate-900 shadow-none transition focus-visible:bg-white"
+                    className="h-12 rounded-2xl border-slate-200 bg-slate-50/70 px-4 text-[#343434] shadow-none transition focus-visible:bg-white"
                   />
                 </div>
 
@@ -919,7 +918,7 @@ export default function TrackingsPage() {
                         event.target.value as TrackingQueryType,
                       )
                     }
-                    className="flex h-12 w-full rounded-2xl border border-slate-200 bg-slate-50/70 px-4 py-3 text-sm text-slate-900 outline-none transition focus:bg-white focus:ring-2 focus:ring-blue-500/20"
+                    className="flex h-12 w-full rounded-2xl border border-slate-200 bg-slate-50/70 px-4 py-3 text-sm text-[#343434] outline-none transition focus:bg-white focus:ring-2 focus:ring-[#ec3139]/20"
                   >
                     <option value="nro_nf">{getQueryTypeLabel('nro_nf')}</option>
                     <option value="pedido">{getQueryTypeLabel('pedido')}</option>
@@ -938,7 +937,7 @@ export default function TrackingsPage() {
                     value={formData.valor}
                     onChange={(event) => updateField('valor', event.target.value)}
                     placeholder={selectedQueryPlaceholder}
-                    className="h-12 rounded-2xl border-slate-200 bg-slate-50/70 px-4 text-slate-900 shadow-none transition focus-visible:bg-white"
+                    className="h-12 rounded-2xl border-slate-200 bg-slate-50/70 px-4 text-[#343434] shadow-none transition focus-visible:bg-white"
                   />
                 </div>
 
@@ -952,7 +951,7 @@ export default function TrackingsPage() {
                     value={formData.siglaEmp}
                     onChange={(event) => updateField('siglaEmp', event.target.value)}
                     placeholder="Ex: ABC"
-                    className="h-12 rounded-2xl border-slate-200 bg-slate-50/70 px-4 text-slate-900 shadow-none transition focus-visible:bg-white"
+                    className="h-12 rounded-2xl border-slate-200 bg-slate-50/70 px-4 text-[#343434] shadow-none transition focus-visible:bg-white"
                   />
                 </div>
 
@@ -966,13 +965,13 @@ export default function TrackingsPage() {
                     value={formData.senha}
                     onChange={(event) => updateField('senha', event.target.value)}
                     placeholder="Preencha apenas se a consulta exigir senha"
-                    className="h-12 rounded-2xl border-slate-200 bg-slate-50/70 px-4 text-slate-900 shadow-none transition focus-visible:bg-white"
+                    className="h-12 rounded-2xl border-slate-200 bg-slate-50/70 px-4 text-[#343434] shadow-none transition focus-visible:bg-white"
                   />
                 </div>
               </div>
 
               {errorMessage ? (
-                <div className="mt-5 flex items-start gap-3 rounded-[22px] border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700">
+                <div className="mt-5 flex items-start gap-3 rounded-[22px] border border-[#ec3139]/25 bg-[#ec3139]/10 px-4 py-3 text-sm text-[#ec3139]">
                   <AlertCircle className="mt-0.5 h-4 w-4 shrink-0" />
 
                   <p>{errorMessage}</p>
@@ -984,7 +983,7 @@ export default function TrackingsPage() {
                   type="button"
                   onClick={handleSearchTracking}
                   disabled={isLoading}
-                  className="h-12 rounded-2xl bg-blue-600 px-5 font-semibold text-white shadow-[0_14px_28px_rgba(37,99,235,0.22)] transition hover:bg-blue-700"
+                  className="h-12 rounded-2xl bg-[#ec3139] px-5 font-semibold text-white shadow-[0_14px_28px_rgba(236,49,57,0.22)] transition hover:bg-[#eb2c38]"
                 >
                   {isLoading ? 'Consultando...' : 'Rastrear encomenda'}
                 </Button>
@@ -1003,36 +1002,36 @@ export default function TrackingsPage() {
         </section>
 
         {!hasResponseData && !isLoading && !errorMessage && (
-          <section className="rounded-[30px] border border-dashed border-slate-300 bg-white/70 p-10 text-center shadow-[0_18px_45px_rgba(15,23,42,0.04)]">
+          <section className="rounded-[30px] border border-dashed border-slate-300 bg-white/70 p-10 text-center shadow-[0_18px_45px_rgba(52,52,52,0.04)]">
             <div className="mx-auto flex h-14 w-14 items-center justify-center rounded-2xl bg-slate-100 text-slate-500">
               <Package className="h-6 w-6" />
             </div>
 
-            <h3 className="mt-4 text-lg font-semibold text-slate-950">
+            <h3 className="mt-4 text-lg font-semibold text-[#343434]">
               Nenhum rastreamento consultado
             </h3>
 
             <p className="mx-auto mt-2 max-w-md text-sm leading-6 text-slate-500">
-              Preencha os dados acima para localizar a entrega e visualizar o historico
-              de movimentacoes.
+              Preencha os dados acima para localizar a entrega e visualizar o histórico
+              de movimentações.
             </p>
           </section>
         )}
 
         {isLoading && (
-          <section className="rounded-[30px] border border-blue-200 bg-blue-50/80 p-8 shadow-[0_18px_45px_rgba(37,99,235,0.08)]">
+          <section className="rounded-[30px] border border-[#fab519]/40 bg-[#fab519]/10 p-8 shadow-[0_18px_45px_rgba(52,52,52,0.08)]">
             <div className="flex flex-col gap-5 md:flex-row md:items-center">
-              <div className="flex h-14 w-14 shrink-0 items-center justify-center rounded-2xl bg-blue-600 text-white shadow-[0_14px_28px_rgba(37,99,235,0.24)]">
+              <div className="flex h-14 w-14 shrink-0 items-center justify-center rounded-2xl bg-[#ec3139] text-white shadow-[0_14px_28px_rgba(236,49,57,0.24)]">
                 <Truck className="h-6 w-6 animate-pulse" />
               </div>
 
               <div>
-                <h3 className="text-lg font-semibold text-blue-950">
+                <h3 className="text-lg font-semibold text-[#343434]">
                   Consultando rastreamento
                 </h3>
 
-                <p className="mt-1 text-sm leading-6 text-blue-700">
-                  Aguarde enquanto buscamos as informacoes da encomenda e organizamos os
+                <p className="mt-1 text-sm leading-6 text-[#343434]/70">
+                  Aguarde enquanto buscamos as informações da encomenda e organizamos os
                   eventos retornados.
                 </p>
               </div>
@@ -1049,8 +1048,8 @@ export default function TrackingsPage() {
         {hasResponseData && (
           <>
             <section className="grid grid-cols-1 gap-4 md:grid-cols-2 xl:grid-cols-4">
-              <article className="group relative overflow-hidden rounded-[28px] border border-slate-200/70 bg-white/90 p-5 shadow-[0_18px_45px_rgba(15,23,42,0.06)] backdrop-blur transition duration-300 hover:-translate-y-1 hover:shadow-[0_24px_55px_rgba(15,23,42,0.10)]">
-                <div className="absolute inset-x-0 top-0 h-1 bg-gradient-to-r from-blue-600 to-cyan-400" />
+              <article className="group relative overflow-hidden rounded-[28px] border border-slate-200/70 bg-white/90 p-5 shadow-[0_18px_45px_rgba(52,52,52,0.06)] backdrop-blur transition duration-300 hover:-translate-y-1 hover:shadow-[0_24px_55px_rgba(52,52,52,0.10)]">
+                <div className="absolute inset-x-0 top-0 h-1 bg-gradient-to-r from-[#ec3139] to-[#fab519]" />
 
                 <div className="flex items-start justify-between gap-4">
                   <div className="min-w-0">
@@ -1058,7 +1057,7 @@ export default function TrackingsPage() {
                       Consulta monitorada
                     </p>
 
-                    <h2 className="mt-3 truncate text-2xl font-bold tracking-tight text-slate-950">
+                    <h2 className="mt-3 truncate text-2xl font-bold tracking-tight text-[#343434]">
                       {formData.valor || '-'}
                     </h2>
 
@@ -1069,14 +1068,14 @@ export default function TrackingsPage() {
                     </p>
                   </div>
 
-                  <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-2xl bg-blue-50 text-blue-700 ring-1 ring-blue-100">
+                  <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-2xl bg-[#ec3139]/10 text-[#ec3139] ring-1 ring-[#ec3139]/20">
                     <PackageSearch className="h-5 w-5" />
                   </div>
                 </div>
               </article>
 
-              <article className="group relative overflow-hidden rounded-[28px] border border-slate-200/70 bg-white/90 p-5 shadow-[0_18px_45px_rgba(15,23,42,0.06)] backdrop-blur transition duration-300 hover:-translate-y-1 hover:shadow-[0_24px_55px_rgba(15,23,42,0.10)]">
-                <div className="absolute inset-x-0 top-0 h-1 bg-gradient-to-r from-violet-600 to-fuchsia-400" />
+              <article className="group relative overflow-hidden rounded-[28px] border border-slate-200/70 bg-white/90 p-5 shadow-[0_18px_45px_rgba(52,52,52,0.06)] backdrop-blur transition duration-300 hover:-translate-y-1 hover:shadow-[0_24px_55px_rgba(52,52,52,0.10)]">
+                <div className="absolute inset-x-0 top-0 h-1 bg-gradient-to-r from-[#343434] to-[#ec3139]" />
 
                 <div className="flex items-start justify-between gap-4">
                   <div className="min-w-0">
@@ -1090,7 +1089,7 @@ export default function TrackingsPage() {
                           variant="outline"
                           className="rounded-full border-slate-200 bg-slate-50 px-3 py-1 text-xs font-semibold text-slate-700"
                         >
-                          Codigo {currentOccurrence.code}
+                          Código {currentOccurrence.code}
                         </Badge>
                       ) : null}
 
@@ -1101,19 +1100,19 @@ export default function TrackingsPage() {
                       </Badge>
                     </div>
 
-                    <h2 className="mt-3 line-clamp-2 text-base font-semibold leading-6 text-slate-950">
+                    <h2 className="mt-3 line-clamp-2 text-base font-semibold leading-6 text-[#343434]">
                       {currentOccurrence.label}
                     </h2>
                   </div>
 
-                  <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-2xl bg-violet-50 text-violet-700 ring-1 ring-violet-100">
+                  <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-2xl bg-[#343434]/10 text-[#343434] ring-1 ring-[#343434]/20">
                     <CircleDashed className="h-5 w-5" />
                   </div>
                 </div>
               </article>
 
-              <article className="group relative overflow-hidden rounded-[28px] border border-slate-200/70 bg-white/90 p-5 shadow-[0_18px_45px_rgba(15,23,42,0.06)] backdrop-blur transition duration-300 hover:-translate-y-1 hover:shadow-[0_24px_55px_rgba(15,23,42,0.10)]">
-                <div className="absolute inset-x-0 top-0 h-1 bg-gradient-to-r from-emerald-600 to-teal-400" />
+              <article className="group relative overflow-hidden rounded-[28px] border border-slate-200/70 bg-white/90 p-5 shadow-[0_18px_45px_rgba(52,52,52,0.06)] backdrop-blur transition duration-300 hover:-translate-y-1 hover:shadow-[0_24px_55px_rgba(52,52,52,0.10)]">
+                <div className="absolute inset-x-0 top-0 h-1 bg-gradient-to-r from-[#fab519] to-[#ec3139]" />
 
                 <div className="flex items-start justify-between gap-4">
                   <div className="min-w-0">
@@ -1121,7 +1120,7 @@ export default function TrackingsPage() {
                       {deliveryDisplay.title}
                     </p>
 
-                    <h2 className="mt-3 text-xl font-bold tracking-tight text-slate-950">
+                    <h2 className="mt-3 text-xl font-bold tracking-tight text-[#343434]">
                       {deliveryDisplay.value}
                     </h2>
 
@@ -1130,14 +1129,14 @@ export default function TrackingsPage() {
                     </p>
                   </div>
 
-                  <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-2xl bg-emerald-50 text-emerald-700 ring-1 ring-emerald-100">
+                  <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-2xl bg-[#fab519]/15 text-[#343434] ring-1 ring-[#fab519]/40">
                     <Truck className="h-5 w-5" />
                   </div>
                 </div>
               </article>
 
-              <article className="group relative overflow-hidden rounded-[28px] border border-slate-200/70 bg-white/90 p-5 shadow-[0_18px_45px_rgba(15,23,42,0.06)] backdrop-blur transition duration-300 hover:-translate-y-1 hover:shadow-[0_24px_55px_rgba(15,23,42,0.10)]">
-                <div className="absolute inset-x-0 top-0 h-1 bg-gradient-to-r from-amber-500 to-orange-400" />
+              <article className="group relative overflow-hidden rounded-[28px] border border-slate-200/70 bg-white/90 p-5 shadow-[0_18px_45px_rgba(52,52,52,0.06)] backdrop-blur transition duration-300 hover:-translate-y-1 hover:shadow-[0_24px_55px_rgba(52,52,52,0.10)]">
+                <div className="absolute inset-x-0 top-0 h-1 bg-gradient-to-r from-[#fab519] to-[#eb2c38]" />
 
                 <div className="flex items-start justify-between gap-4">
                   <div className="min-w-0">
@@ -1158,22 +1157,22 @@ export default function TrackingsPage() {
                     </div>
                   </div>
 
-                  <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-2xl bg-amber-50 text-amber-700 ring-1 ring-amber-100">
+                  <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-2xl bg-[#fab519]/15 text-[#343434] ring-1 ring-[#fab519]/40">
                     <Clock3 className="h-5 w-5" />
                   </div>
                 </div>
               </article>
             </section>
 
-            <section className="overflow-hidden rounded-[30px] border border-slate-200/70 bg-white/90 shadow-[0_18px_45px_rgba(15,23,42,0.06)] backdrop-blur">
+            <section className="overflow-hidden rounded-[30px] border border-slate-200/70 bg-white/90 shadow-[0_18px_45px_rgba(52,52,52,0.06)] backdrop-blur">
               <div className="border-b border-slate-200/70 px-6 py-5">
                 <div className="flex flex-col gap-3 md:flex-row md:items-end md:justify-between">
                   <div>
-                    <p className="text-xs font-semibold uppercase tracking-[0.20em] text-blue-600">
+                    <p className="text-xs font-semibold uppercase tracking-[0.20em] text-[#ec3139]">
                       Acompanhamento
                     </p>
 
-                    <h2 className="mt-2 text-2xl font-bold tracking-tight text-slate-950">
+                    <h2 className="mt-2 text-2xl font-bold tracking-tight text-[#343434]">
                       Etapas da encomenda
                     </h2>
 
@@ -1202,29 +1201,29 @@ export default function TrackingsPage() {
 
                       const cardClass = isReached
                         ? isCurrent
-                          ? 'border-blue-200 bg-blue-50/80'
-                          : 'border-emerald-200 bg-emerald-50/80'
+                          ? 'border-[#ec3139]/25 bg-[#ec3139]/10'
+                          : 'border-[#fab519]/40 bg-[#fab519]/10'
                         : 'border-slate-200 bg-slate-50/80';
 
                       const iconClass = isReached
                         ? isCurrent
-                          ? 'bg-blue-600 text-white shadow-[0_14px_28px_rgba(37,99,235,0.22)]'
-                          : 'bg-emerald-600 text-white shadow-[0_14px_28px_rgba(5,150,105,0.18)]'
+                          ? 'bg-[#ec3139] text-white shadow-[0_14px_28px_rgba(236,49,57,0.22)]'
+                          : 'bg-[#343434] text-white shadow-[0_14px_28px_rgba(52,52,52,0.18)]'
                         : 'bg-white text-slate-400 ring-1 ring-slate-200';
 
                       const titleClass = isReached
                         ? isCurrent
-                          ? 'text-blue-950'
-                          : 'text-emerald-950'
+                          ? 'text-[#ec3139]'
+                          : 'text-[#343434]'
                         : 'text-slate-600';
 
                       const textClass = isReached
                         ? isCurrent
-                          ? 'text-blue-700'
-                          : 'text-emerald-700'
+                          ? 'text-[#ec3139]'
+                          : 'text-[#343434]/75'
                         : 'text-slate-500';
 
-                      const connectorClass = isReached ? 'bg-emerald-300' : 'bg-slate-200';
+                      const connectorClass = isReached ? 'bg-[#fab519]' : 'bg-slate-200';
 
                       return (
                         <div key={stage.title} className="relative">
@@ -1235,10 +1234,10 @@ export default function TrackingsPage() {
                           ) : null}
 
                           <div
-                            className={`group relative h-full overflow-hidden rounded-[26px] border p-5 transition duration-300 hover:-translate-y-1 hover:shadow-[0_20px_45px_rgba(15,23,42,0.08)] ${cardClass}`}
+                            className={`group relative h-full overflow-hidden rounded-[26px] border p-5 transition duration-300 hover:-translate-y-1 hover:shadow-[0_20px_45px_rgba(52,52,52,0.08)] ${cardClass}`}
                           >
                             {isCurrent ? (
-                              <div className="absolute inset-x-0 top-0 h-1 bg-gradient-to-r from-blue-600 to-cyan-400" />
+                              <div className="absolute inset-x-0 top-0 h-1 bg-gradient-to-r from-[#ec3139] to-[#fab519]" />
                             ) : null}
 
                             <div className="flex items-start gap-4 lg:flex-col">
@@ -1255,13 +1254,13 @@ export default function TrackingsPage() {
                                   </h3>
 
                                   {isCurrent ? (
-                                    <Badge className="rounded-full bg-blue-600 px-2.5 py-1 text-[11px] font-semibold text-white">
+                                    <Badge className="rounded-full bg-[#ec3139] px-2.5 py-1 text-[11px] font-semibold text-white">
                                       Atual
                                     </Badge>
                                   ) : null}
 
                                   {!isCurrent && isReached ? (
-                                    <Badge className="rounded-full border border-emerald-200 bg-emerald-100 px-2.5 py-1 text-[11px] font-semibold text-emerald-700">
+                                    <Badge className="rounded-full border border-[#fab519]/40 bg-[#fab519]/15 px-2.5 py-1 text-[11px] font-semibold text-[#343434]">
                                       Concluida
                                     </Badge>
                                   ) : null}
@@ -1295,15 +1294,15 @@ export default function TrackingsPage() {
               </div>
             </section>
 
-<section className="overflow-hidden rounded-[30px] border border-slate-200/70 bg-white/90 shadow-[0_18px_45px_rgba(15,23,42,0.06)] backdrop-blur">
+<section className="overflow-hidden rounded-[30px] border border-slate-200/70 bg-white/90 shadow-[0_18px_45px_rgba(52,52,52,0.06)] backdrop-blur">
   <div className="border-b border-slate-200/70 px-6 py-5">
     <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
       <div>
-        <p className="text-xs font-semibold uppercase tracking-[0.20em] text-blue-600">
+        <p className="text-xs font-semibold uppercase tracking-[0.20em] text-[#ec3139]">
           Movimentações
         </p>
 
-        <h2 className="mt-2 text-2xl font-bold tracking-tight text-slate-950">
+        <h2 className="mt-2 text-2xl font-bold tracking-tight text-[#343434]">
           Histórico de movimentações
         </h2>
 
@@ -1317,7 +1316,7 @@ export default function TrackingsPage() {
         type="button"
         variant="outline"
         onClick={() => setShowRawJson((prev) => !prev)}
-        className="h-11 w-fit rounded-2xl border-slate-200 bg-white px-4 font-semibold text-slate-700 shadow-[0_8px_18px_rgba(15,23,42,0.04)] transition hover:bg-slate-50"
+        className="h-11 w-fit rounded-2xl border-slate-200 bg-white px-4 font-semibold text-slate-700 shadow-[0_8px_18px_rgba(52,52,52,0.04)] transition hover:bg-[#fab519]/10"
       >
         {showRawJson ? 'Ocultar JSON' : 'Ver JSON bruto'}
       </Button>
@@ -1331,7 +1330,7 @@ export default function TrackingsPage() {
           <CircleDashed className="h-5 w-5" />
         </div>
 
-        <h3 className="mt-4 text-base font-semibold text-slate-950">
+        <h3 className="mt-4 text-base font-semibold text-[#343434]">
           Nenhuma movimentação encontrada
         </h3>
 
@@ -1354,7 +1353,7 @@ export default function TrackingsPage() {
             return (
               <article
                 key={`${item.data_hora}-${index}`}
-                className="group relative rounded-[28px] border border-slate-200/70 bg-white p-5 shadow-sm transition duration-300 hover:-translate-y-0.5 hover:shadow-[0_18px_45px_rgba(15,23,42,0.08)]"
+                className="group relative rounded-[28px] border border-slate-200/70 bg-white p-5 shadow-sm transition duration-300 hover:-translate-y-0.5 hover:shadow-[0_18px_45px_rgba(52,52,52,0.08)]"
               >
                 <div className="flex gap-4">
                   <div className="relative flex flex-col items-center">
@@ -1398,7 +1397,7 @@ export default function TrackingsPage() {
                           ) : null}
                         </div>
 
-                        <h4 className="mt-3 text-base font-bold leading-6 text-slate-950">
+                        <h4 className="mt-3 text-base font-bold leading-6 text-[#343434]">
                           {occurrence.label}
                         </h4>
 
@@ -1409,7 +1408,7 @@ export default function TrackingsPage() {
                       </div>
 
                       <div className="shrink-0 rounded-[22px] border border-slate-200 bg-slate-50/80 px-4 py-3 text-sm text-slate-600">
-                        <p className="font-semibold text-slate-950">
+                        <p className="font-semibold text-[#343434]">
                           {formatDateTime(
                             item.data_hora_efetiva || item.data_hora,
                           )}
@@ -1431,7 +1430,7 @@ export default function TrackingsPage() {
                           </span>
                         </div>
 
-                        <p className="mt-2 text-sm font-semibold text-slate-950">
+                        <p className="mt-2 text-sm font-semibold text-[#343434]">
                           {getLocationLabel(item)}
                         </p>
                       </div>
@@ -1445,14 +1444,14 @@ export default function TrackingsPage() {
                           </span>
                         </div>
 
-                        <p className="mt-2 text-sm font-semibold text-slate-950">
+                        <p className="mt-2 text-sm font-semibold text-[#343434]">
                           {formatDateTime(item.data_hora)}
                         </p>
                       </div>
                     </div>
 
                     {item.nome_recebedor ? (
-                      <div className="mt-4 rounded-[22px] border border-emerald-200 bg-emerald-50 px-4 py-3 text-sm text-emerald-800">
+                      <div className="mt-4 rounded-[22px] border border-[#fab519]/40 bg-[#fab519]/10 px-4 py-3 text-sm text-[#343434]">
                         <span className="font-semibold">Recebedor:</span>{' '}
                         {item.nome_recebedor}
                         {item.nro_doc_recebedor
@@ -1470,7 +1469,7 @@ export default function TrackingsPage() {
     )}
 
     {showRawJson ? (
-      <div className="mt-6 overflow-hidden rounded-[24px] border border-slate-200 bg-slate-950">
+      <div className="mt-6 overflow-hidden rounded-[24px] border border-slate-200 bg-[#343434]">
         <div className="flex items-center justify-between border-b border-white/10 bg-white/5 px-4 py-3">
           <p className="text-sm font-semibold text-white">
             JSON retornado

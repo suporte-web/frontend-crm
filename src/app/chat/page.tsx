@@ -27,7 +27,7 @@ import type {
 const entityLabels: Record<string, string> = {
   LEAD: "Lead",
   CLIENTE: "Cliente",
-  COTACAO: "Cotacao",
+  COTACAO: "Cotação",
   PROPOSTA: "Proposta",
   TICKET: "Ticket",
 };
@@ -35,7 +35,7 @@ const entityLabels: Record<string, string> = {
 const visibilityLabels: Record<ChatMessageVisibility, string> = {
   PUBLICA_CLIENTE: "Publica para cliente",
   INTERNA: "Interna",
-  GESTAO_COMERCIAL: "Gestao e Comercial",
+  GESTAO_COMERCIAL: "Gestão e Comercial",
   PRIVADA_USUARIOS: "Privada",
 };
 
@@ -232,7 +232,7 @@ export default function ChatPage() {
             </p>
             <h1 className="mt-1 text-2xl font-bold text-slate-950">Chat</h1>
             <p className="mt-1 max-w-2xl text-sm text-slate-600">
-              Conversas vinculadas a leads, clientes, cotacoes, propostas e
+              Conversas vinculadas a leads, clientes, cotações, propostas e
               tickets, com visibilidade controlada pelo backend.
             </p>
           </div>
@@ -254,7 +254,7 @@ export default function ChatPage() {
             <div className="border-b border-slate-200 px-4 py-3">
               <p className="text-sm font-semibold text-slate-950">Conversas</p>
               <p className="mt-1 text-xs text-slate-500">
-                {chats.length} chat(s) disponivel(is)
+                {chats.length} chat(s) disponível(is)
               </p>
             </div>
 
@@ -265,7 +265,7 @@ export default function ChatPage() {
                 </p>
               ) : chats.length === 0 ? (
                 <div className="m-2 rounded-2xl border border-dashed border-slate-300 p-5 text-sm text-slate-500">
-                  Nenhuma conversa disponivel para seu usuario.
+                  Nenhuma conversa disponível para seu usuário.
                 </div>
               ) : (
                 chats.map((chat) => {
@@ -348,7 +348,7 @@ export default function ChatPage() {
                     </p>
                   ) : messages.length === 0 ? (
                     <div className="rounded-2xl border border-dashed border-slate-300 bg-white p-8 text-center text-sm text-slate-500">
-                      Nenhuma mensagem visivel neste chat.
+                      Nenhuma mensagem visível neste chat.
                     </div>
                   ) : (
                     messages.map((message) => {
@@ -368,7 +368,7 @@ export default function ChatPage() {
                           >
                             <div className="mb-2 flex flex-wrap items-center gap-2">
                               <span className="text-sm font-semibold">
-                                {message.author?.name || "Usuario"}
+                                {message.author?.name || "Usuário"}
                               </span>
                               <span
                                 className={`rounded-full px-2 py-0.5 text-xs ${
@@ -452,7 +452,7 @@ export default function ChatPage() {
                   Selecione uma conversa
                 </h2>
                 <p className="mt-2 max-w-md text-sm text-slate-500">
-                  As mensagens exibidas aqui ja chegam filtradas pela API de
+                  As mensagens exibidas aqui já chegam filtradas pela API de
                   acordo com seu perfil e sua participacao no chat.
                 </p>
               </div>

@@ -2,7 +2,17 @@
 
 import Link from 'next/link';
 import { useEffect, useMemo, useState } from 'react';
-import { ArrowLeft, Building2, Edit3, Mail, Phone, Save, UserRound, X } from 'lucide-react';
+import {
+  ArrowLeft,
+  Building2,
+  Edit3,
+  Mail,
+  Phone,
+  PhoneCall,
+  Save,
+  UserRound,
+  X,
+} from 'lucide-react';
 import { AppLayout } from '@/components/layout/app-layout';
 import { OpportunityList } from '@/components/crm/opportunity-list';
 import { TimelineSection } from '@/components/crm/timeline-section';
@@ -10,6 +20,7 @@ import { Button } from '@/components/ui/button';
 import { FeedbackToast } from '@/components/ui/feedback-toast';
 import { useAuth } from '@/context/auth-context';
 import {
+  createTimelineContact,
   createOpportunity,
   formatLeadStatus,
   formatOpportunityStage,
@@ -26,6 +37,16 @@ import type {
   OpportunityStage,
   TimelineEvent,
 } from '@/types/crm';
+
+const contactChannels = [
+  'Ligacao',
+  'WhatsApp',
+  'E-mail',
+  'Reuniao',
+  'Visita',
+  'Videochamada',
+  'Outro',
+] as const;
 
 const statusClasses = {
   ATIVO: 'bg-emerald-100 text-emerald-700',
@@ -49,6 +70,11 @@ function formatCurrency(value?: number | null) {
     style: 'currency',
     currency: 'BRL',
   }).format(value ?? 0);
+}
+
+function toDateTimeLocalValue(date = new Date()) {
+  const offset = date.getTimezoneOffset();
+  return new Date(date.getTime() - offset * 60000).toISOString().slice(0, 16);
 }
 
 function clientToFormState(lead: LeadDetail) {
@@ -93,7 +119,15 @@ export default function ClientDetailsPage({
     expectedCloseDate: '',
     notes: '',
   });
+  const [contactForm, setContactForm] = useState({
+    contactChannel: 'Ligacao',
+    customContactChannel: '',
+    contactPerson: '',
+    contactedAt: toDateTimeLocalValue(),
+    description: '',
+  });
   const [savingPreContract, setSavingPreContract] = useState(false);
+  const [savingContact, setSavingContact] = useState(false);
   const [toast, setToast] = useState<{
     title: string;
     message: string;
@@ -104,6 +138,7 @@ export default function ClientDetailsPage({
     ? ['ADMIN', 'GESTAO', 'COMERCIAL'].includes(user.role)
     : false;
   const canEditClient = canEditOpportunities;
+  const isDarkScreen = false;
 
   useEffect(() => {
     let active = true;
@@ -126,7 +161,7 @@ export default function ClientDetailsPage({
         }
 
         if (!nextLead) {
-          setError('Cliente nao encontrado.');
+          setError('Cliente não encontrado.');
           setLead(null);
           return;
         }
@@ -187,7 +222,7 @@ export default function ClientDetailsPage({
     if (!clientForm.name.trim() || !clientForm.email.trim()) {
       setClientFormError('Informe nome e e-mail do cliente.');
       setToast({
-        title: 'Campos obrigatorios',
+        title: 'Campos obrigatórios',
         message: 'Informe nome e e-mail do cliente.',
         variant: 'error',
       });
@@ -310,7 +345,7 @@ export default function ClientDetailsPage({
       return;
     }
 
-    const trimmedReason = reason.trim() || 'Motivo nao informado.';
+    const trimmedReason = reason.trim() || 'Motivo não informado.';
 
     try {
       await updateOpportunityStage(opportunityId, 'PERDIDO', token, trimmedReason);
@@ -393,8 +428,8 @@ export default function ClientDetailsPage({
 
     if (payload.title !== undefined && !payload.title.trim()) {
       setToast({
-        title: 'Titulo obrigatorio',
-        message: 'Informe o titulo da oportunidade.',
+        title: 'Título obrigatório',
+        message: 'Informe o título da oportunidade.',
         variant: 'error',
       });
       return;
@@ -420,6 +455,87 @@ export default function ClientDetailsPage({
     }
   }
 
+  async function handleCreateContact(event: React.FormEvent<HTMLFormElement>) {
+    event.preventDefault();
+
+    if (!token || !lead) {
+      return;
+    }
+
+    const description = contactForm.description.trim();
+    const contactChannel =
+      contactForm.contactChannel === 'Outro'
+        ? contactForm.customContactChannel.trim()
+        : contactForm.contactChannel;
+
+    if (!description) {
+      setToast({
+        title: 'Resumo obrigatório',
+        message: 'Descreva o que foi tratado no contato.',
+        variant: 'error',
+      });
+      return;
+    }
+
+    if (!contactChannel) {
+      setToast({
+        title: 'Canal obrigatório',
+        message: 'Informe como o cliente foi contatado.',
+        variant: 'error',
+      });
+      return;
+    }
+
+    try {
+      setSavingContact(true);
+      const nextEvent = await createTimelineContact(
+        lead.id,
+        {
+          title: 'Contato com cliente',
+          description,
+          contactChannel,
+          contactPerson: contactForm.contactPerson.trim() || undefined,
+          contactedAt: contactForm.contactedAt || undefined,
+        },
+        token,
+      );
+
+      setLead((current) =>
+        current
+          ? {
+              ...current,
+              lastContactAt: nextEvent.createdAt,
+              timeline: [nextEvent, ...current.timeline],
+            }
+          : current,
+      );
+      setContactForm({
+        contactChannel: contactForm.contactChannel,
+        customContactChannel:
+          contactForm.contactChannel === 'Outro' ? contactForm.customContactChannel : '',
+        contactPerson: '',
+        contactedAt: toDateTimeLocalValue(),
+        description: '',
+      });
+      setToast({
+        title: 'Contato registrado',
+        message: 'Histórico do cliente atualizado com sucesso.',
+        variant: 'success',
+      });
+    } catch (contactError) {
+      setToast({
+        title: 'Falha ao registrar contato',
+        message:
+          contactError instanceof Error
+            ? contactError.message
+            : 'Erro ao registrar contato.',
+        variant: 'error',
+      });
+    } finally {
+      setSavingContact(false);
+    }
+  }
+
   async function handleCreatePreContract(event: React.FormEvent<HTMLFormElement>) {
     event.preventDefault();
 
@@ -432,7 +548,7 @@ export default function ClientDetailsPage({
       await createOpportunity(
         {
           clientId: lead.id,
-          title: preContractForm.title.trim() || 'Pre-contrato comercial',
+          title: preContractForm.title.trim() || 'Pré-contrato comercial',
           value: preContractForm.value
             ? Number(preContractForm.value.replace(',', '.'))
             : undefined,
@@ -451,17 +567,17 @@ export default function ClientDetailsPage({
       });
       await reloadClient();
       setToast({
-        title: 'Pre-contrato incluido',
+        title: 'Pré-contrato incluido',
         message: 'Oportunidade comercial registrada com sucesso.',
         variant: 'success',
       });
     } catch (preContractError) {
       setToast({
-        title: 'Falha ao incluir pre-contrato',
+        title: 'Falha ao incluir pré-contrato',
         message:
           preContractError instanceof Error
             ? preContractError.message
-            : 'Erro ao incluir pre-contrato.',
+            : 'Erro ao incluir pré-contrato.',
         variant: 'error',
       });
     } finally {
@@ -471,20 +587,36 @@ export default function ClientDetailsPage({
 
   return (
     <AppLayout>
-      <div className="mx-auto flex w-full max-w-7xl flex-col gap-6">
-        <section className="overflow-hidden rounded-[28px] border border-slate-200 bg-white shadow-sm">
+      <div
+        className={`mx-auto flex w-full max-w-7xl flex-col gap-6 rounded-[32px] p-3 transition-colors md:p-4 ${
+          isDarkScreen
+            ? 'bg-slate-950 text-white [&_.crm-input]:border-slate-700 [&_.crm-input]:bg-slate-950 [&_.crm-input]:text-white [&_.crm-textarea]:border-slate-700 [&_.crm-textarea]:bg-slate-950 [&_.crm-textarea]:text-white [&_section]:border-slate-700'
+            : 'bg-transparent text-slate-950'
+        }`}
+      >
+        <section
+          className={`overflow-hidden rounded-[28px] border shadow-sm ${
+            isDarkScreen ? 'border-slate-700 bg-slate-900' : 'border-slate-200 bg-white'
+          }`}
+        >
           <div className="grid gap-6 p-6 lg:grid-cols-[1.2fr_.8fr] lg:p-8">
             <div>
               <Link
                 href="/clients"
-                className="inline-flex items-center gap-2 rounded-full border border-slate-200 bg-slate-50 px-3 py-1 text-xs font-semibold uppercase tracking-[0.16em] text-slate-600 transition hover:bg-slate-100"
+                className={`inline-flex items-center gap-2 rounded-full border px-3 py-1 text-xs font-semibold uppercase tracking-[0.16em] transition ${
+                  isDarkScreen
+                    ? 'border-slate-700 bg-slate-950 text-slate-300 hover:bg-slate-800'
+                    : 'border-slate-200 bg-slate-50 text-slate-600 hover:bg-slate-100'
+                }`}
               >
                 <ArrowLeft className="h-3.5 w-3.5" />
                 Voltar para clientes
               </Link>
 
               {loading ? (
-                <div className="mt-6 text-sm text-slate-500">Carregando cliente...</div>
+                <div className={`mt-6 text-sm ${isDarkScreen ? 'text-slate-400' : 'text-slate-500'}`}>
+                  Carregando cliente...
+                </div>
               ) : error ? (
                 <div className="mt-6 rounded-2xl border border-rose-200 bg-rose-50 px-4 py-3 text-sm text-rose-700">
                   {error}
@@ -504,27 +636,49 @@ export default function ClientDetailsPage({
                     </span>
                   </div>
 
-                  <h1 className="mt-4 text-3xl font-bold tracking-tight text-slate-900 md:text-4xl">
+                  <h1
+                    className={`mt-4 text-3xl font-bold tracking-tight md:text-4xl ${
+                      isDarkScreen ? 'text-white' : 'text-slate-900'
+                    }`}
+                  >
                     {lead.company}
                   </h1>
 
-                  <p className="mt-3 max-w-3xl text-sm leading-6 text-slate-500 md:text-base">
+                  <p
+                    className={`mt-3 max-w-3xl text-sm leading-6 md:text-base ${
+                      isDarkScreen ? 'text-slate-300' : 'text-slate-500'
+                    }`}
+                  >
                     {lead.notes ??
-                      'Conta comercial com historico de atividades e oportunidades em andamento.'}
+                      'Conta comercial com histórico de atividades e oportunidades em andamento.'}
                   </p>
 
-                  <div className="mt-6 grid gap-4 text-sm text-slate-600 sm:grid-cols-2">
-                    <div className="rounded-2xl border border-slate-200 bg-slate-50 p-4">
+                  <div className="mt-6 grid gap-4 text-sm sm:grid-cols-2">
+                    <div
+                      className={`rounded-2xl border p-4 ${
+                        isDarkScreen
+                          ? 'border-slate-700 bg-slate-950 text-slate-300'
+                          : 'border-slate-200 bg-slate-50 text-slate-600'
+                      }`}
+                    >
                       <p className="text-xs font-medium uppercase tracking-wide text-slate-400">
-                        Responsavel
+                        Responsável
                       </p>
-                      <p className="mt-2 font-semibold text-slate-900">{lead.owner}</p>
+                      <p className={`mt-2 font-semibold ${isDarkScreen ? 'text-white' : 'text-slate-900'}`}>
+                        {lead.owner}
+                      </p>
                     </div>
-                    <div className="rounded-2xl border border-slate-200 bg-slate-50 p-4">
+                    <div
+                      className={`rounded-2xl border p-4 ${
+                        isDarkScreen
+                          ? 'border-slate-700 bg-slate-950 text-slate-300'
+                          : 'border-slate-200 bg-slate-50 text-slate-600'
+                      }`}
+                    >
                       <p className="text-xs font-medium uppercase tracking-wide text-slate-400">
                         Ultimo contato
                       </p>
-                      <p className="mt-2 font-semibold text-slate-900">
+                      <p className={`mt-2 font-semibold ${isDarkScreen ? 'text-white' : 'text-slate-900'}`}>
                         {formatDate(lead.lastContactAt)}
                       </p>
                     </div>
@@ -534,11 +688,19 @@ export default function ClientDetailsPage({
             </div>
 
             {lead ? (
-              <div className="rounded-[24px] border border-slate-200 bg-slate-50 p-5">
-                <p className="text-sm font-medium text-slate-500">Visao da conta</p>
+              <div
+                className={`rounded-[24px] border p-5 ${
+                  isDarkScreen
+                    ? 'border-slate-700 bg-slate-950'
+                    : 'border-slate-200 bg-slate-50'
+                }`}
+              >
+                <p className={`text-sm font-medium ${isDarkScreen ? 'text-slate-300' : 'text-slate-500'}`}>
+                  Visão da conta
+                </p>
 
                 <div className="mt-5 space-y-3">
-                  <div className="rounded-2xl bg-white p-4 shadow-sm">
+                  <div className={`rounded-2xl p-4 shadow-sm ${isDarkScreen ? 'bg-slate-900' : 'bg-white'}`}>
                     <div className="flex items-center gap-3">
                       <div className="flex h-10 w-10 items-center justify-center rounded-2xl bg-blue-50 text-blue-700">
                         <Building2 className="h-4 w-4" />
@@ -547,14 +709,14 @@ export default function ClientDetailsPage({
                         <p className="text-xs font-medium uppercase tracking-wide text-slate-400">
                           Segmento
                         </p>
-                        <p className="mt-1 text-sm font-semibold text-slate-900">
+                        <p className={`mt-1 text-sm font-semibold ${isDarkScreen ? 'text-white' : 'text-slate-900'}`}>
                           {lead.segment}
                         </p>
                       </div>
                     </div>
                   </div>
 
-                  <div className="rounded-2xl bg-white p-4 shadow-sm">
+                  <div className={`rounded-2xl p-4 shadow-sm ${isDarkScreen ? 'bg-slate-900' : 'bg-white'}`}>
                     <div className="flex items-center gap-3">
                       <div className="flex h-10 w-10 items-center justify-center rounded-2xl bg-slate-100 text-slate-700">
                         <Mail className="h-4 w-4" />
@@ -563,14 +725,14 @@ export default function ClientDetailsPage({
                         <p className="text-xs font-medium uppercase tracking-wide text-slate-400">
                           Contato
                         </p>
-                        <p className="mt-1 text-sm font-semibold text-slate-900">
+                        <p className={`mt-1 text-sm font-semibold ${isDarkScreen ? 'text-white' : 'text-slate-900'}`}>
                           {lead.email}
                         </p>
                       </div>
                     </div>
                   </div>
 
-                  <div className="rounded-2xl bg-white p-4 shadow-sm">
+                  <div className={`rounded-2xl p-4 shadow-sm ${isDarkScreen ? 'bg-slate-900' : 'bg-white'}`}>
                     <div className="flex items-center gap-3">
                       <div className="flex h-10 w-10 items-center justify-center rounded-2xl bg-emerald-100 text-emerald-700">
                         <Phone className="h-4 w-4" />
@@ -579,14 +741,14 @@ export default function ClientDetailsPage({
                         <p className="text-xs font-medium uppercase tracking-wide text-slate-400">
                           Telefone
                         </p>
-                        <p className="mt-1 text-sm font-semibold text-slate-900">
+                        <p className={`mt-1 text-sm font-semibold ${isDarkScreen ? 'text-white' : 'text-slate-900'}`}>
                           {lead.phone ?? '-'}
                         </p>
                       </div>
                     </div>
                   </div>
 
-                  <div className="rounded-2xl bg-white p-4 shadow-sm">
+                  <div className={`rounded-2xl p-4 shadow-sm ${isDarkScreen ? 'bg-slate-900' : 'bg-white'}`}>
                     <div className="flex items-center gap-3">
                       <div className="flex h-10 w-10 items-center justify-center rounded-2xl bg-violet-100 text-violet-700">
                         <UserRound className="h-4 w-4" />
@@ -595,7 +757,7 @@ export default function ClientDetailsPage({
                         <p className="text-xs font-medium uppercase tracking-wide text-slate-400">
                           Valor em aberto
                         </p>
-                        <p className="mt-1 text-sm font-semibold text-slate-900">
+                        <p className={`mt-1 text-sm font-semibold ${isDarkScreen ? 'text-white' : 'text-slate-900'}`}>
                           {formatCurrency(openValue)}
                         </p>
                       </div>
@@ -609,13 +771,23 @@ export default function ClientDetailsPage({
 
         {lead ? (
           <>
-            <section className="rounded-[28px] border border-slate-200 bg-white p-5 shadow-sm md:p-6">
+            <section
+              className={`rounded-[28px] border p-5 shadow-sm md:p-6 ${
+                isDarkScreen
+                  ? 'border-slate-700 bg-slate-900'
+                  : 'border-slate-200 bg-white'
+              }`}
+            >
               <div className="flex flex-col gap-3 md:flex-row md:items-start md:justify-between">
                 <div>
                   <p className="text-sm font-semibold uppercase tracking-[0.18em] text-blue-700">
                     Cadastro
                   </p>
-                  <h2 className="mt-2 text-2xl font-bold text-slate-950">
+                  <h2
+                    className={`mt-2 text-2xl font-bold ${
+                      isDarkScreen ? 'text-white' : 'text-slate-950'
+                    }`}
+                  >
                     Dados do cliente
                   </h2>
                 </div>
@@ -628,14 +800,18 @@ export default function ClientDetailsPage({
                       setClientForm(clientToFormState(lead));
                       setClientFormError('');
                     }}
-                    className="inline-flex items-center justify-center gap-2 rounded-2xl border border-slate-300 bg-white px-4 py-2.5 text-sm font-semibold text-slate-700 transition hover:bg-slate-100"
+                    className={`inline-flex items-center justify-center gap-2 rounded-2xl border px-4 py-2.5 text-sm font-semibold transition ${
+                      isDarkScreen
+                        ? 'border-slate-700 bg-slate-950 text-slate-200 hover:bg-slate-800'
+                        : 'border-slate-300 bg-white text-slate-700 hover:bg-slate-100'
+                    }`}
                   >
                     {isEditingClient ? (
                       <X className="h-4 w-4" />
                     ) : (
                       <Edit3 className="h-4 w-4" />
                     )}
-                    {isEditingClient ? 'Cancelar edicao' : 'Editar cadastro'}
+                    {isEditingClient ? 'Cancelar edição' : 'Editar cadastro'}
                   </button>
                 ) : null}
               </div>
@@ -654,7 +830,7 @@ export default function ClientDetailsPage({
                       setClientForm((current) => ({ ...current, name: event.target.value }))
                     }
                     className="crm-input"
-                    placeholder="Nome do usuario"
+                    placeholder="Nome do usuário"
                   />
                   <input
                     type="email"
@@ -718,7 +894,7 @@ export default function ClientDetailsPage({
                     }
                     className="crm-textarea md:col-span-2"
                     rows={3}
-                    placeholder="Observacoes cadastrais"
+                    placeholder="Observações cadastrais"
                   />
                   <div className="flex justify-end md:col-span-2">
                     <button
@@ -741,13 +917,22 @@ export default function ClientDetailsPage({
                     ['Documento', lead.document ?? '-'],
                     ['Segmento', lead.segment],
                     ['Status', formatLeadStatus(lead.status)],
-                    ['Observacoes', lead.notes ?? '-'],
+                    ['Observações', lead.notes ?? '-'],
                   ].map(([label, value]) => (
-                    <div key={label} className="rounded-2xl bg-slate-50 p-4 text-sm">
+                    <div
+                      key={label}
+                      className={`rounded-2xl p-4 text-sm ${
+                        isDarkScreen ? 'bg-slate-950' : 'bg-slate-50'
+                      }`}
+                    >
                       <p className="text-xs font-semibold uppercase tracking-[0.18em] text-slate-400">
                         {label}
                       </p>
-                      <p className="mt-2 font-semibold text-slate-900">
+                      <p
+                        className={`mt-2 font-semibold ${
+                          isDarkScreen ? 'text-white' : 'text-slate-900'
+                        }`}
+                      >
                         {value}
                       </p>
                     </div>
@@ -756,20 +941,140 @@ export default function ClientDetailsPage({
               )}
             </section>
 
+            {canEditClient ? (
+              <section
+                className={`rounded-[28px] border p-5 shadow-sm md:p-6 ${
+                  isDarkScreen
+                    ? 'border-slate-700 bg-slate-900'
+                    : 'border-slate-200 bg-white'
+                }`}
+              >
+                <div className="flex flex-col gap-3 md:flex-row md:items-start md:justify-between">
+                  <div>
+                    <p className="text-sm font-semibold uppercase tracking-[0.18em] text-blue-700">
+                      Contato
+                    </p>
+                    <h2
+                      className={`mt-2 text-2xl font-bold ${
+                        isDarkScreen ? 'text-white' : 'text-slate-950'
+                      }`}
+                    >
+                      Registrar contato com o cliente
+                    </h2>
+                    <p className={`mt-2 text-sm ${isDarkScreen ? 'text-slate-300' : 'text-slate-500'}`}>
+                      Cada registro entra na linha do tempo com quem fez o contato.
+                    </p>
+                  </div>
+                  <div className="flex h-11 w-11 items-center justify-center rounded-2xl bg-emerald-100 text-emerald-700">
+                    <PhoneCall className="h-5 w-5" />
+                  </div>
+                </div>
+
+                <form onSubmit={handleCreateContact} className="mt-5 grid gap-4 lg:grid-cols-4">
+                  <select
+                    value={contactForm.contactChannel}
+                    onChange={(event) =>
+                      setContactForm((current) => ({
+                        ...current,
+                        contactChannel: event.target.value,
+                        customContactChannel:
+                          event.target.value === 'Outro' ? current.customContactChannel : '',
+                      }))
+                    }
+                    className="crm-input"
+                  >
+                    {contactChannels.map((channel) => (
+                      <option key={channel} value={channel}>
+                        {channel}
+                      </option>
+                    ))}
+                  </select>
+                  {contactForm.contactChannel === 'Outro' ? (
+                    <input
+                      type="text"
+                      value={contactForm.customContactChannel}
+                      onChange={(event) =>
+                        setContactForm((current) => ({
+                          ...current,
+                          customContactChannel: event.target.value,
+                        }))
+                      }
+                      className="crm-input"
+                      placeholder="Canal personalizado"
+                    />
+                  ) : null}
+                  <input
+                    type="text"
+                    value={contactForm.contactPerson}
+                    onChange={(event) =>
+                      setContactForm((current) => ({
+                        ...current,
+                        contactPerson: event.target.value,
+                      }))
+                    }
+                    className="crm-input"
+                    placeholder="Pessoa contatada"
+                  />
+                  <input
+                    type="datetime-local"
+                    value={contactForm.contactedAt}
+                    onChange={(event) =>
+                      setContactForm((current) => ({
+                        ...current,
+                        contactedAt: event.target.value,
+                      }))
+                    }
+                    className="crm-input"
+                  />
+                  <button
+                    type="submit"
+                    disabled={savingContact}
+                    className="inline-flex items-center justify-center gap-2 rounded-2xl bg-slate-950 px-4 py-3 text-sm font-semibold text-white transition hover:bg-slate-800 disabled:opacity-60"
+                  >
+                    <PhoneCall className="h-4 w-4" />
+                    {savingContact ? 'Registrando...' : 'Registrar contato'}
+                  </button>
+                  <textarea
+                    value={contactForm.description}
+                    onChange={(event) =>
+                      setContactForm((current) => ({
+                        ...current,
+                        description: event.target.value,
+                      }))
+                    }
+                    rows={3}
+                    className="crm-textarea lg:col-span-4"
+                    placeholder="Resumo do contato, retorno combinado ou próxima ação"
+                  />
+                </form>
+              </section>
+            ) : null}
+
             <OpportunityList
               opportunities={lead.opportunities}
               onStageChange={handleStageChange}
               onMarkLost={handleMarkLost}
               canEdit={canEditOpportunities}
               onEdit={handleEditOpportunity}
+              darkMode={isDarkScreen}
             />
-            <section className="rounded-[28px] border border-slate-200 bg-white p-5 shadow-sm md:p-6">
+            <section
+              className={`rounded-[28px] border p-5 shadow-sm md:p-6 ${
+                isDarkScreen
+                  ? 'border-slate-700 bg-slate-900'
+                  : 'border-slate-200 bg-white'
+              }`}
+            >
               <div>
                 <p className="text-sm font-semibold uppercase tracking-[0.18em] text-blue-700">
-                  Pre-contrato
+                  Pré-contrato
                 </p>
-                <h2 className="mt-2 text-2xl font-bold text-slate-950">
-                  Registrar proposta como pre-contrato
+                <h2
+                  className={`mt-2 text-2xl font-bold ${
+                    isDarkScreen ? 'text-white' : 'text-slate-950'
+                  }`}
+                >
+                  Registrar proposta como pré-contrato
                 </h2>
               </div>
 
@@ -784,7 +1089,7 @@ export default function ClientDetailsPage({
                     }))
                   }
                   className="crm-input"
-                  placeholder="Titulo do pre-contrato"
+                  placeholder="Título do pré-contrato"
                 />
                 <input
                   type="text"
@@ -814,7 +1119,7 @@ export default function ClientDetailsPage({
                   disabled={savingPreContract}
                   className="rounded-2xl bg-slate-950 px-4 py-3 text-sm font-semibold text-white transition hover:bg-slate-800 disabled:opacity-60"
                 >
-                  {savingPreContract ? 'Salvando...' : 'Incluir pre-contrato'}
+                  {savingPreContract ? 'Salvando...' : 'Incluir pré-contrato'}
                 </button>
                 <textarea
                   value={preContractForm.notes}
@@ -826,16 +1131,22 @@ export default function ClientDetailsPage({
                   }
                   rows={3}
                   className="crm-textarea lg:col-span-4"
-                  placeholder="Condicoes, observacoes ou combinados comerciais"
+                  placeholder="Condições, observações ou combinados comerciais"
                 />
               </form>
             </section>
-            <TimelineSection events={lead.timeline} />
+            <TimelineSection events={lead.timeline} darkMode={isDarkScreen} />
           </>
         ) : loading ? null : (
-          <section className="rounded-[28px] border border-slate-200 bg-white p-10 text-center shadow-sm">
-            <p className="text-sm text-slate-500">
-              Nao foi possivel carregar os dados deste cliente.
+          <section
+            className={`rounded-[28px] border p-10 text-center shadow-sm ${
+              isDarkScreen
+                ? 'border-slate-700 bg-slate-900'
+                : 'border-slate-200 bg-white'
+            }`}
+          >
+            <p className={`text-sm ${isDarkScreen ? 'text-slate-300' : 'text-slate-500'}`}>
+              Não foi possível carregar os dados deste cliente.
             </p>
             <Button asChild className="mt-4 rounded-2xl px-4 py-2 text-sm">
               <Link href="/clients">Voltar para a lista</Link>

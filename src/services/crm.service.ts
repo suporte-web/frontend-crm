@@ -59,6 +59,7 @@ type BackendTimelineEvent = {
   createdAt?: string;
   createdBy?: {
     name?: string | null;
+    role?: string | null;
   } | null;
   metadata?: Record<string, string | number | boolean | null> | null;
 };
@@ -151,6 +152,7 @@ function mapTimelineEvent(clientId: string, event: BackendTimelineEvent): Timeli
     description: event.description,
     createdAt: event.createdAt ?? event.date ?? new Date().toISOString(),
     createdBy: event.createdBy?.name ?? null,
+    createdByRole: event.createdBy?.role ?? null,
     metadata: event.metadata ?? null,
   };
 }
@@ -209,6 +211,29 @@ export async function updateClient(
     },
     token,
   );
+}
+
+export async function createTimelineContact(
+  clientId: string,
+  payload: {
+    title?: string;
+    description: string;
+    contactChannel?: string;
+    contactPerson?: string;
+    contactedAt?: string;
+  },
+  token: string,
+): Promise<TimelineEvent> {
+  const event = await apiFetch<BackendTimelineEvent>(
+    `/clients/${clientId}/timeline`,
+    {
+      method: 'POST',
+      body: JSON.stringify(payload),
+    },
+    token,
+  );
+
+  return mapTimelineEvent(clientId, event);
 }
 
 export async function getCrmDashboardSummary(token: string): Promise<CrmDashboardSummary> {

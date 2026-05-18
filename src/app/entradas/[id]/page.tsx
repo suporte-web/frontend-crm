@@ -35,7 +35,7 @@ const statusLabels: Record<string, string> = {
   ABERTO: "Aberto",
   EM_ANDAMENTO: "Em atendimento",
   CONVERTIDO_EM_PROSPECT: "Convertido em prospect",
-  COTACAO_CRIADA: "Cotacao criada",
+  COTACAO_CRIADA: "Cotação criada",
   FINALIZADO: "Finalizado",
   PERDIDO: "Perdido",
   TRANSFERIDO: "Transferido",
@@ -184,8 +184,8 @@ export default function EntradaDetailPage({
       });
     } catch (error) {
       setToast({
-        title: "Acao nao concluida",
-        message: error instanceof Error ? error.message : "Erro na operacao.",
+        title: "Ação não concluída",
+        message: error instanceof Error ? error.message : "Erro na operação.",
         variant: "error",
       });
     } finally {
@@ -220,7 +220,7 @@ export default function EntradaDetailPage({
           token,
         ),
       "Prospect vinculado",
-      "A entrada ja pode seguir para criacao de cotacao.",
+      "A entrada já pode seguir para criação de cotação.",
     );
   }
 
@@ -233,8 +233,8 @@ export default function EntradaDetailPage({
 
     await runAction(
       () => createEntradaQuote(entrada.id, cleanQuotePayload(quoteForm), token),
-      "Cotacao criada",
-      "A cotacao foi vinculada ao ticket de entrada.",
+      "Cotação criada",
+      "A cotação foi vinculada ao ticket de entrada.",
     );
   }
 
@@ -268,7 +268,7 @@ export default function EntradaDetailPage({
                     runAction(
                       () => assumirEntrada(entrada.id, token ?? ""),
                       "Entrada assumida",
-                      "O ticket foi atribuido ao seu usuario.",
+                      "O ticket foi atribuído ao seu usuário.",
                     )
                   }
                   className="inline-flex h-10 items-center gap-2 rounded-md border border-slate-300 px-3 text-sm font-medium text-slate-700 hover:bg-slate-50 disabled:opacity-60"
@@ -344,7 +344,7 @@ export default function EntradaDetailPage({
                 <div className="mt-5 grid gap-4 md:grid-cols-3">
                   <Info label="Protocolo" value={entrada.protocolo ?? entrada.id} />
                   <Info label="Criado em" value={formatDate(entrada.createdAt)} />
-                  <Info label="Responsavel" value={entrada.assignedTo?.name ?? "Sem responsavel"} />
+                  <Info label="Responsável" value={entrada.assignedTo?.name ?? "Sem responsável"} />
                   <Info label="Email" value={entrada.emailSolicitante ?? "-"} />
                   <Info label="Telefone" value={entrada.telefoneSolicitante ?? "-"} />
                   <Info label="Origem" value={entrada.origem ?? "SITE"} />
@@ -385,10 +385,10 @@ export default function EntradaDetailPage({
                 <div className="flex items-center justify-between gap-3">
                   <div>
                     <p className="text-xs font-semibold uppercase tracking-[0.2em] text-slate-500">
-                      Historico
+                      Histórico
                     </p>
                     <h2 className="mt-1 text-lg font-semibold text-slate-950">
-                      Acoes registradas
+                      Ações registradas
                     </h2>
                   </div>
                 </div>
@@ -412,7 +412,7 @@ export default function EntradaDetailPage({
                     ))
                   ) : (
                     <p className="py-6 text-sm text-slate-500">
-                      Nenhum historico registrado.
+                      Nenhum histórico registrado.
                     </p>
                   )}
                 </div>
@@ -451,7 +451,7 @@ export default function EntradaDetailPage({
                 ) : (
                   <div className="mt-4">
                     <div className="rounded-md bg-amber-50 px-3 py-2 text-sm text-amber-800">
-                      Vincule ou crie um prospect antes de criar cotacao.
+                      Vincule ou crie um prospect antes de criar cotação.
                     </div>
 
                     {suggestions ? (
@@ -592,10 +592,10 @@ export default function EntradaDetailPage({
                 <div className="flex items-start justify-between gap-3">
                   <div>
                     <p className="text-xs font-semibold uppercase tracking-[0.2em] text-slate-500">
-                      Cotacao
+                      Cotação
                     </p>
                     <h2 className="mt-1 text-lg font-semibold text-slate-950">
-                      Proxima etapa
+                      Próxima etapa
                     </h2>
                   </div>
                   <FileText className="h-5 w-5 text-slate-500" />
@@ -613,14 +613,14 @@ export default function EntradaDetailPage({
                       href={`/quotes/${entrada.quote.id}`}
                       className="mt-3 inline-flex h-9 items-center rounded-md bg-slate-950 px-3 text-sm font-semibold text-white hover:bg-slate-800"
                     >
-                      Abrir cotacao
+                      Abrir cotação
                     </Link>
                   </div>
                 ) : (
                   <form onSubmit={handleCreateQuote} className="mt-4 space-y-3">
                     {!hasAccountLink ? (
                       <div className="rounded-md bg-slate-100 px-3 py-2 text-sm text-slate-600">
-                        Crie ou vincule um prospect para liberar a cotacao.
+                        Crie ou vincule um prospect para liberar a cotação.
                       </div>
                     ) : null}
                     <TextInput
@@ -640,7 +640,7 @@ export default function EntradaDetailPage({
                       required
                     />
                     <TextInput
-                      label="Tipo de servico"
+                      label="Tipo de serviço"
                       value={quoteForm.serviceType}
                       onChange={(value) =>
                         setQuoteForm((prev) => ({ ...prev, serviceType: value }))
@@ -666,7 +666,7 @@ export default function EntradaDetailPage({
                       }
                     />
                     <label className="block text-sm">
-                      <span className="font-medium text-slate-700">Observacoes</span>
+                      <span className="font-medium text-slate-700">Observações</span>
                       <textarea
                         value={quoteForm.notes ?? ""}
                         onChange={(event) =>
@@ -682,7 +682,7 @@ export default function EntradaDetailPage({
                       className="inline-flex h-10 w-full items-center justify-center gap-2 rounded-md bg-slate-950 px-4 text-sm font-semibold text-white hover:bg-slate-800 disabled:cursor-not-allowed disabled:opacity-50"
                     >
                       <FileText className="h-4 w-4" />
-                      Criar cotacao
+                      Criar cotação
                     </button>
                   </form>
                 )}

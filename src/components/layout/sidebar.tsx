@@ -20,6 +20,11 @@ import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import { useAuth } from '@/context/auth-context';
 import {
+  appScreens,
+  isScreenEnabledForRole,
+  type ScreenKey,
+} from '@/config/screens';
+import {
   Sidebar,
   SidebarContent,
   SidebarFooter,
@@ -30,120 +35,46 @@ import {
   SidebarRail,
 } from '@/components/ui/sidebar';
 
-type UserRole = 'ADMIN' | 'GESTAO' | 'COMERCIAL' | 'MARKETING' | 'CLIENTE';
-
-type MenuItem = {
-  href: string;
-  label: string;
-  icon: LucideIcon;
-  roles: UserRole[];
+const screenIcons: Record<ScreenKey, LucideIcon> = {
+  dashboard: LayoutDashboard,
+  entregas: Truck,
+  trackings: PackageSearch,
+  quotes: FileText,
+  clients: Building2,
+  leads: UserPlus,
+  entradas: Inbox,
+  tickets: Ticket,
+  chat: MessageCircle,
+  suppliers: Handshake,
+  users: Users,
+  marketing: Megaphone,
+  logs: History,
 };
-
-const menuItems: MenuItem[] = [
-  {
-    href: '/dashboard',
-    label: 'Dashboard',
-    icon: LayoutDashboard,
-    roles: ['ADMIN', 'GESTAO', 'COMERCIAL', 'MARKETING', 'CLIENTE'],
-  },
-  {
-    href: '/entregas',
-    label: 'Entregas',
-    icon: Truck,
-    roles: ['ADMIN', 'GESTAO', 'COMERCIAL', 'MARKETING'],
-  },
-  {
-    href: '/trackings',
-    label: 'Rastreamento',
-    icon: PackageSearch,
-    roles: ['ADMIN', 'GESTAO', 'COMERCIAL', 'MARKETING', 'CLIENTE'],
-  },
-  {
-    href: '/quotes',
-    label: 'Cotacoes',
-    icon: FileText,
-    roles: ['ADMIN', 'GESTAO', 'COMERCIAL', 'CLIENTE'],
-  },
-  {
-    href: '/clients',
-    label: 'Clientes',
-    icon: Building2,
-    roles: ['ADMIN', 'GESTAO', 'COMERCIAL', 'MARKETING'],
-  },
-  {
-    href: '/leads',
-    label: 'Leads',
-    icon: UserPlus,
-    roles: ['ADMIN', 'GESTAO', 'COMERCIAL', 'MARKETING'],
-  },
-  {
-    href: '/entradas',
-    label: 'Central de Entradas',
-    icon: Inbox,
-    roles: ['ADMIN', 'GESTAO', 'COMERCIAL'],
-  },
-  {
-    href: '/tickets',
-    label: 'Tickets',
-    icon: Ticket,
-    roles: ['ADMIN', 'GESTAO', 'COMERCIAL', 'CLIENTE'],
-  },
-  {
-    href: '/chat',
-    label: 'Chat',
-    icon: MessageCircle,
-    roles: ['ADMIN', 'GESTAO', 'COMERCIAL', 'MARKETING', 'CLIENTE'],
-  },
-  {
-    href: '/suppliers',
-    label: 'Fornecedores',
-    icon: Handshake,
-    roles: ['ADMIN', 'GESTAO', 'COMERCIAL'],
-  },
-  {
-    href: '/users',
-    label: 'Usuarios',
-    icon: Users,
-    roles: ['ADMIN', 'GESTAO'],
-  },
-  {
-    href: '/marketing',
-    label: 'Marketing',
-    icon: Megaphone,
-    roles: ['ADMIN', 'GESTAO', 'MARKETING'],
-  },
-  {
-    href: '/logs',
-    label: 'Logs',
-    icon: History,
-    roles: ['ADMIN', 'GESTAO'],
-  },
-];
 
 export function AppSidebar() {
   const pathname = usePathname();
   const { user } = useAuth();
 
-  const filteredMenu = menuItems.filter((item) =>
-    user?.role ? item.roles.includes(user.role as UserRole) : false,
+  const filteredMenu = appScreens.filter((item) =>
+    isScreenEnabledForRole(item, user?.role, user?.screenPermissions),
   );
 
   return (
     <Sidebar
       collapsible="icon"
-      className="border-r border-slate-950/10 bg-[linear-gradient(180deg,#070d18_0%,#0d1728_46%,#111c33_100%)] text-slate-100"
+      className="border-r border-slate-950/10 bg-[linear-gradient(180deg,#343434_0%,#2b2b2b_46%,#1f1f1f_100%)] text-slate-100"
     >
       <SidebarHeader className="relative overflow-hidden border-b border-white/8 bg-transparent px-3 py-4">
-        <div className="pointer-events-none absolute -right-10 -top-10 h-28 w-28 rounded-full bg-blue-500/20 blur-3xl" />
+        <div className="pointer-events-none absolute -right-10 -top-10 h-28 w-28 rounded-full bg-[#ec3139]/25 blur-3xl" />
 
         <div className="relative flex items-center gap-3 rounded-[22px] px-1 py-1 group-data-[collapsible=icon]:justify-center">
-          <div className="relative flex h-11 w-11 shrink-0 items-center justify-center rounded-2xl bg-[linear-gradient(135deg,#2563eb_0%,#38bdf8_100%)] text-sm font-black text-white shadow-[0_16px_30px_rgba(37,99,235,0.30)]">
+          <div className="relative flex h-11 w-11 shrink-0 items-center justify-center rounded-2xl bg-[linear-gradient(135deg,#ec3139_0%,#fab519_100%)] text-sm font-black text-white shadow-[0_16px_30px_rgba(236,49,57,0.26)]">
             <span className="absolute inset-0 rounded-2xl bg-white/10" />
             <span className="relative">P</span>
           </div>
 
           <div className="min-w-0 group-data-[collapsible=icon]:hidden">
-            <p className="text-[10px] font-semibold uppercase tracking-[0.26em] text-sky-300/90">
+            <p className="text-[10px] font-semibold uppercase tracking-[0.26em] text-[#fab519]">
               CRM Portal
             </p>
 
@@ -165,7 +96,7 @@ export function AppSidebar() {
           {filteredMenu.map((item) => {
             const active =
               pathname === item.href || pathname.startsWith(`${item.href}/`);
-            const Icon = item.icon;
+            const Icon = screenIcons[item.key];
             const label =
               item.href === '/dashboard' && user?.role === 'CLIENTE'
                 ? 'Canal do Cliente'
@@ -181,10 +112,10 @@ export function AppSidebar() {
                 >
                   <Link href={item.href}>
                     {active ? (
-                      <span className="absolute left-0 top-1/2 h-7 w-1 -translate-y-1/2 rounded-r-full bg-blue-500 group-data-[collapsible=icon]:hidden" />
+                      <span className="absolute left-0 top-1/2 h-7 w-1 -translate-y-1/2 rounded-r-full bg-[#ec3139] group-data-[collapsible=icon]:hidden" />
                     ) : null}
 
-                    <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-2xl bg-white/[0.07] text-slate-300 ring-1 ring-white/[0.04] transition group-hover/menu-button:bg-white/[0.10] group-hover/menu-button:text-white group-data-[active=true]/menu-button:bg-slate-100 group-data-[active=true]/menu-button:text-blue-700 group-data-[active=true]/menu-button:ring-slate-200">
+                    <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-2xl bg-white/[0.07] text-slate-300 ring-1 ring-white/[0.04] transition group-hover/menu-button:bg-white/[0.10] group-hover/menu-button:text-white group-data-[active=true]/menu-button:bg-[#fff7df] group-data-[active=true]/menu-button:text-[#ec3139] group-data-[active=true]/menu-button:ring-[#fab519]/40">
                       <Icon className="h-4.5 w-4.5" />
                     </span>
 

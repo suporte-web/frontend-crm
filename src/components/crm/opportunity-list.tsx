@@ -87,12 +87,14 @@ export function OpportunityList({
   onMarkLost,
   canEdit = false,
   onEdit,
+  darkMode = false,
 }: {
   opportunities: Opportunity[];
   onStageChange: (opportunityId: string, stage: OpportunityStage) => void | Promise<void>;
   onMarkLost: (opportunityId: string, reason: string) => void | Promise<void>;
   canEdit?: boolean;
   onEdit?: (opportunityId: string, payload: OpportunityEditPayload) => void | Promise<void>;
+  darkMode?: boolean;
 }) {
   const [pendingStage, setPendingStage] = useState<Record<string, OpportunityStage>>(
     {},
@@ -108,15 +110,19 @@ export function OpportunityList({
   }, [opportunities]);
 
   return (
-    <section className="rounded-[28px] border border-slate-200 bg-white p-5 shadow-sm md:p-6">
+    <section
+      className={`rounded-[28px] border p-5 shadow-sm md:p-6 ${
+        darkMode ? 'border-slate-700 bg-slate-900' : 'border-slate-200 bg-white'
+      }`}
+    >
       <div>
         <p className="text-sm font-semibold uppercase tracking-[0.18em] text-blue-700">
           Pipeline
         </p>
-        <h2 className="mt-2 text-2xl font-bold text-slate-950">
+        <h2 className={`mt-2 text-2xl font-bold ${darkMode ? 'text-white' : 'text-slate-950'}`}>
           Oportunidades comerciais
         </h2>
-        <p className="mt-2 text-sm text-slate-500">
+        <p className={`mt-2 text-sm ${darkMode ? 'text-slate-300' : 'text-slate-500'}`}>
           Controle simples de etapa e status, sem alterar o fluxo principal do
           portal.
         </p>
@@ -126,12 +132,16 @@ export function OpportunityList({
         {pipelineStages.map((stage, index) => (
           <div
             key={stage}
-            className="rounded-2xl border border-slate-200 bg-slate-50 px-3 py-3"
+            className={`rounded-2xl border px-3 py-3 ${
+              darkMode
+                ? 'border-slate-700 bg-slate-950'
+                : 'border-slate-200 bg-slate-50'
+            }`}
           >
             <p className="text-xs font-semibold uppercase tracking-[0.14em] text-slate-400">
               {String(index + 1).padStart(2, '0')}
             </p>
-            <p className="mt-1 text-sm font-semibold text-slate-800">
+            <p className={`mt-1 text-sm font-semibold ${darkMode ? 'text-white' : 'text-slate-800'}`}>
               {formatOpportunityStage(stage)}
             </p>
           </div>
@@ -147,7 +157,11 @@ export function OpportunityList({
           return (
             <article
               key={opportunity.id}
-              className="rounded-[24px] border border-slate-200 bg-slate-50/70 p-4"
+              className={`rounded-[24px] border p-4 ${
+                darkMode
+                  ? 'border-slate-700 bg-slate-950'
+                  : 'border-slate-200 bg-slate-50/70'
+              }`}
             >
               <div className="flex flex-col gap-4 lg:flex-row lg:items-start lg:justify-between">
                 <div className="min-w-0 flex-1">
@@ -163,10 +177,10 @@ export function OpportunityList({
                           )
                         }
                         className="min-w-0 flex-1 rounded-2xl border border-slate-300 bg-white px-4 py-2 text-sm font-semibold text-slate-950 outline-none transition focus:border-blue-400"
-                        placeholder="Titulo da oportunidade"
+                        placeholder="Título da oportunidade"
                       />
                     ) : (
-                      <h3 className="text-lg font-semibold text-slate-950">
+                      <h3 className={`text-lg font-semibold ${darkMode ? 'text-white' : 'text-slate-950'}`}>
                         {opportunity.title}
                       </h3>
                     )}
@@ -224,10 +238,10 @@ export function OpportunityList({
                           }
                           className="h-4 w-4 rounded border-slate-300"
                         />
-                        Pre-contrato registrado
+                        Pré-contrato registrado
                       </label>
                       <label className="text-sm font-semibold text-slate-700 md:col-span-2">
-                        Observacoes do pre-contrato
+                        Observações do pré-contrato
                         <textarea
                           value={editForm.preContractNotes}
                           onChange={(event) =>
@@ -246,7 +260,7 @@ export function OpportunityList({
                       </label>
                     </div>
                   ) : (
-                    <div className="mt-3 flex flex-wrap gap-3 text-sm text-slate-500">
+                    <div className={`mt-3 flex flex-wrap gap-3 text-sm ${darkMode ? 'text-slate-300' : 'text-slate-500'}`}>
                       <span className="inline-flex items-center gap-2">
                         <CircleDollarSign className="h-4 w-4 text-slate-400" />
                         {formatCurrency(opportunity.value)}
@@ -270,7 +284,7 @@ export function OpportunityList({
 
                   {opportunity.preContract ? (
                     <div className="mt-3 rounded-2xl border border-blue-200 bg-blue-50 px-4 py-3 text-sm text-blue-800">
-                      Pre-contrato registrado
+                      Pré-contrato registrado
                       {opportunity.preContractNotes ? `: ${opportunity.preContractNotes}` : '.'}
                     </div>
                   ) : null}
@@ -278,14 +292,24 @@ export function OpportunityList({
                   {opportunity.quoteId ? (
                     <Link
                       href={`/quotes/${opportunity.quoteId}`}
-                      className="mt-3 inline-flex rounded-2xl border border-slate-300 bg-white px-3 py-2 text-xs font-semibold text-slate-700 transition hover:bg-slate-100"
+                      className={`mt-3 inline-flex rounded-2xl border px-3 py-2 text-xs font-semibold transition ${
+                        darkMode
+                          ? 'border-slate-700 bg-slate-900 text-slate-200 hover:bg-slate-800'
+                          : 'border-slate-300 bg-white text-slate-700 hover:bg-slate-100'
+                      }`}
                     >
-                      Abrir cotacao vinculada
+                      Abrir cotação vinculada
                     </Link>
                   ) : null}
                 </div>
 
-                <div className="w-full max-w-sm rounded-[22px] border border-slate-200 bg-white p-4">
+                <div
+                  className={`w-full max-w-sm rounded-[22px] border p-4 ${
+                    darkMode
+                      ? 'border-slate-700 bg-slate-900'
+                      : 'border-slate-200 bg-white'
+                  }`}
+                >
                   {canEdit && onEdit ? (
                     <div className="mb-4 flex flex-wrap gap-2">
                       {isEditing ? (
@@ -343,7 +367,7 @@ export function OpportunityList({
                     </div>
                   ) : null}
 
-                  <label className="mb-2 block text-sm font-semibold text-slate-700">
+                  <label className={`mb-2 block text-sm font-semibold ${darkMode ? 'text-slate-200' : 'text-slate-700'}`}>
                     Etapa da oportunidade
                   </label>
                   <select
@@ -359,7 +383,11 @@ export function OpportunityList({
                         onStageChange(opportunity.id, nextStage);
                       }
                     }}
-                    className="w-full rounded-2xl border border-slate-300 bg-slate-50 px-4 py-3 text-sm text-slate-900 outline-none transition focus:border-blue-400 focus:bg-white"
+                    className={`w-full rounded-2xl border px-4 py-3 text-sm outline-none transition focus:border-blue-400 ${
+                      darkMode
+                        ? 'border-slate-700 bg-slate-950 text-white'
+                        : 'border-slate-300 bg-slate-50 text-slate-900 focus:bg-white'
+                    }`}
                   >
                     {pipelineStages.map((stage) => (
                       <option key={stage} value={stage}>
@@ -370,7 +398,7 @@ export function OpportunityList({
 
                   {isLostDraft ? (
                     <div className="mt-4 space-y-3">
-                      <label className="block text-sm font-semibold text-slate-700">
+                      <label className={`block text-sm font-semibold ${darkMode ? 'text-slate-200' : 'text-slate-700'}`}>
                         Motivo da perda
                       </label>
                       <textarea
@@ -382,7 +410,11 @@ export function OpportunityList({
                           }))
                         }
                         rows={3}
-                        className="w-full rounded-2xl border border-slate-300 bg-slate-50 px-4 py-3 text-sm text-slate-900 outline-none transition focus:border-blue-400 focus:bg-white"
+                        className={`w-full rounded-2xl border px-4 py-3 text-sm outline-none transition focus:border-blue-400 ${
+                          darkMode
+                            ? 'border-slate-700 bg-slate-950 text-white'
+                            : 'border-slate-300 bg-slate-50 text-slate-900 focus:bg-white'
+                        }`}
                         placeholder="Informe o motivo principal da perda"
                       />
                       <div className="flex flex-wrap gap-3">
@@ -394,7 +426,7 @@ export function OpportunityList({
                               opportunity.id,
                               lostReasons[opportunity.id] ??
                                 opportunity.lostReason ??
-                                'Motivo nao informado.',
+                                'Motivo não informado.',
                             )
                           }
                         >

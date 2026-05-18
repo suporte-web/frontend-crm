@@ -1,6 +1,8 @@
 import { API_BASE_URL, apiFetch } from '@/services/api';
 import type {
   CreateLeadPayload,
+  ConvertLeadToClientPayload,
+  ConvertLeadToClientResponse,
   ImportLeadsCsvPayload,
   Lead,
   LeadFilters,
@@ -38,6 +40,21 @@ export function getLeadById(id: string, token: string) {
 export function createLead(payload: CreateLeadPayload, token: string) {
   return apiFetch<Lead>(
     '/leads',
+    {
+      method: 'POST',
+      body: JSON.stringify(payload),
+    },
+    token,
+  );
+}
+
+export function convertLeadToClient(
+  id: string,
+  payload: ConvertLeadToClientPayload,
+  token: string,
+) {
+  return apiFetch<ConvertLeadToClientResponse>(
+    `/leads/${id}/convert-to-client`,
     {
       method: 'POST',
       body: JSON.stringify(payload),

@@ -59,7 +59,7 @@ function formatDate(date: string) {
 }
 
 function exportClients(clients: LeadSummary[]) {
-  const headers = ['Cliente', 'Email', 'Empresa', 'Segmento', 'Responsavel', 'Status', 'Criado em'];
+  const headers = ['Cliente', 'Email', 'Empresa', 'Segmento', 'Responsável', 'Status', 'Criado em'];
   const csv = [headers, ...clients.map((client) => [
     client.name,
     client.email,
@@ -179,7 +179,7 @@ export default function ClientsPage() {
 
     if (!form.name.trim() || !form.email.trim() || !form.password.trim()) {
       setToast({
-        title: 'Campos obrigatorios',
+        title: 'Campos obrigatórios',
         message: 'Informe nome, e-mail e senha inicial.',
         variant: 'error',
       });
@@ -235,8 +235,8 @@ export default function ClientsPage() {
         token,
       );
       setToast({
-        title: 'Solicitacao enviada',
-        message: 'A exclusao do cliente foi enviada para aprovacao da Gestao.',
+        title: 'Solicitação enviada',
+        message: 'A exclusão do cliente foi enviada para aprovação da Gestão.',
         variant: 'success',
       });
       setDeletionModalClient(null);
@@ -244,9 +244,9 @@ export default function ClientsPage() {
       await loadClients();
     } catch (error) {
       setToast({
-        title: 'Falha ao solicitar exclusao',
+        title: 'Falha ao solicitar exclusão',
         message:
-          error instanceof Error ? error.message : 'Erro ao solicitar exclusao.',
+          error instanceof Error ? error.message : 'Erro ao solicitar exclusão.',
         variant: 'error',
       });
     } finally {
@@ -271,7 +271,7 @@ export default function ClientsPage() {
       );
       setToast({
         title:
-          action === 'APPROVE' ? 'Exclusao aprovada' : 'Solicitacao recusada',
+          action === 'APPROVE' ? 'Exclusão aprovada' : 'Solicitação recusada',
         message: result.message,
         variant: 'success',
       });
@@ -280,9 +280,9 @@ export default function ClientsPage() {
       await loadClients();
     } catch (error) {
       setToast({
-        title: 'Falha ao analisar solicitacao',
+        title: 'Falha ao analisar solicitação',
         message:
-          error instanceof Error ? error.message : 'Erro ao analisar solicitacao.',
+          error instanceof Error ? error.message : 'Erro ao analisar solicitação.',
         variant: 'error',
       });
     } finally {
@@ -297,9 +297,9 @@ export default function ClientsPage() {
           <div className="flex flex-col gap-5 lg:flex-row lg:items-end lg:justify-between">
             <div>
               <p className="crm-eyebrow">CRM</p>
-              <h1 className="crm-page-title">Gestao de clientes</h1>
+              <h1 className="crm-page-title">Gestão de clientes</h1>
               <p className="crm-page-copy">
-                Base real de clientes com cadastro, filtro, exportacao e acesso ao pipeline por conta.
+                Base clientes Pizzattologo, funil comercial e solicitações de exclusão.
               </p>
             </div>
 
@@ -360,10 +360,10 @@ export default function ClientsPage() {
           <section className="crm-shell-card overflow-hidden">
             <div className="border-b border-slate-200 px-5 py-4 md:px-6">
               <h2 className="text-lg font-semibold text-slate-900">
-                Solicitacoes de exclusao
+                Solicitações de exclusão
               </h2>
               <p className="mt-1 text-sm text-slate-500">
-                Gestao aprova ou recusa a remocao definitiva de clientes.
+                Gestão aprova ou recusa a remoção definitiva de clientes.
               </p>
             </div>
 
@@ -490,7 +490,7 @@ export default function ClientsPage() {
                     <p className="mt-1 text-sm text-slate-500">{client.email}</p>
                     {pendingDeletion ? (
                       <span className="mt-2 inline-flex rounded-full bg-amber-50 px-2.5 py-1 text-xs font-semibold text-amber-700">
-                        Exclusao aguardando Gestao
+                        Exclusão aguardando Gestão
                       </span>
                     ) : null}
                   </div>
@@ -567,7 +567,7 @@ export default function ClientsPage() {
                   value={form.name}
                   onChange={(event) => setForm((current) => ({ ...current, name: event.target.value }))}
                   className="crm-input"
-                  placeholder="Nome do usuario"
+                  placeholder="Nome do usuário"
                 />
                 <input
                   type="email"
@@ -651,13 +651,13 @@ export default function ClientsPage() {
             <div className="w-full max-w-xl rounded-[28px] border border-white/80 bg-white p-6 shadow-[0_32px_90px_rgba(15,23,42,0.16)]">
               <div className="flex items-start justify-between gap-4">
                 <div>
-                  <p className="crm-eyebrow">Exclusao de cliente</p>
+                  <p className="crm-eyebrow">Exclusão de cliente</p>
                   <h2 className="mt-2 text-2xl font-bold text-slate-950">
-                    Solicitar aprovacao da Gestao
+                    Solicitar aprovação da Gestão
                   </h2>
                   <p className="mt-2 text-sm text-slate-500">
-                    O cliente {deletionModalClient.company} so sera excluido
-                    apos aprovacao formal da Gestao.
+                    O cliente {deletionModalClient.company} só será excluído
+                    após aprovação formal da Gestão.
                   </p>
                 </div>
                 <button
@@ -678,7 +678,7 @@ export default function ClientsPage() {
                   onChange={(event) => setDeletionReason(event.target.value)}
                   className="crm-textarea"
                   rows={4}
-                  placeholder="Motivo da exclusao"
+                  placeholder="Motivo da exclusão"
                 />
                 <div className="flex justify-end gap-3">
                   <button
@@ -696,7 +696,7 @@ export default function ClientsPage() {
                     disabled={saving}
                     className="rounded-2xl bg-rose-600 px-4 py-3 text-sm font-semibold text-white transition hover:bg-rose-700 disabled:opacity-60"
                   >
-                    {saving ? 'Enviando...' : 'Enviar para Gestao'}
+                    {saving ? 'Enviando...' : 'Enviar para Gestão'}
                   </button>
                 </div>
               </form>
@@ -709,12 +709,12 @@ export default function ClientsPage() {
             <div className="w-full max-w-xl rounded-[28px] border border-white/80 bg-white p-6 shadow-[0_32px_90px_rgba(15,23,42,0.16)]">
               <div className="flex items-start justify-between gap-4">
                 <div>
-                  <p className="crm-eyebrow">Analise da Gestao</p>
+                  <p className="crm-eyebrow">Análise da Gestão</p>
                   <h2 className="mt-2 text-2xl font-bold text-slate-950">
-                    Aprovar ou recusar exclusao
+                    Aprovar ou recusar exclusão
                   </h2>
                   <p className="mt-2 text-sm text-slate-500">
-                    O retorno sera registrado para o time comercial.
+                    O retorno será registrado para o time comercial.
                   </p>
                 </div>
                 <button
@@ -743,7 +743,7 @@ export default function ClientsPage() {
                 onChange={(event) => setDecisionMessage(event.target.value)}
                 className="crm-textarea mt-4"
                 rows={4}
-                placeholder="Parecer da Gestao"
+                placeholder="Parecer da Gestão"
               />
 
               <div className="mt-4 flex justify-end gap-3">
@@ -763,7 +763,7 @@ export default function ClientsPage() {
                   className="inline-flex items-center gap-2 rounded-2xl bg-emerald-600 px-4 py-3 text-sm font-semibold text-white transition hover:bg-emerald-700 disabled:opacity-60"
                 >
                   <ShieldCheck className="h-4 w-4" />
-                  Aprovar exclusao
+                  Aprovar exclusão
                 </button>
               </div>
             </div>

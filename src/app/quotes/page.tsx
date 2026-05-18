@@ -141,7 +141,7 @@ export default function QuotesPage() {
       const data = isClient ? await getMyQuotes(token) : await getAllQuotes(token);
       setQuotes(data);
     } catch (error) {
-      setPageError(error instanceof Error ? error.message : 'Erro ao carregar cotacoes.');
+      setPageError(error instanceof Error ? error.message : 'Erro ao carregar cotações.');
     } finally {
       setLoading(false);
     }
@@ -202,9 +202,9 @@ export default function QuotesPage() {
   function validateForm() {
     if (!form.origin.trim()) return 'Informe a origem.';
     if (!form.destination.trim()) return 'Informe o destino.';
-    if (!form.serviceType.trim()) return 'Informe o tipo de servico.';
-    if (!form.requestType.trim()) return 'Informe se e cotacao avulsa ou contrato.';
-    if (!form.cargoDescription.trim()) return 'Descreva a carga ou servico.';
+    if (!form.serviceType.trim()) return 'Informe o tipo de serviço.';
+    if (!form.requestType.trim()) return 'Informe se e cotação avulsa ou contrato.';
+    if (!form.cargoDescription.trim()) return 'Descreva a carga ou serviço.';
     if (!form.contactName.trim()) return 'Informe o nome do contato.';
     if (!form.contactPhone.trim()) return 'Informe o telefone do contato.';
     if (!form.contactEmail.trim()) return 'Informe o e-mail do contato.';
@@ -253,11 +253,11 @@ export default function QuotesPage() {
       setFormError('');
       const created = await createQuote(payload, token);
       setQuotes((prev) => [created, ...prev]);
-      setSuccessMessage('Cotacao enviada com sucesso.');
+      setSuccessMessage('Cotação enviada com sucesso.');
       setIsModalOpen(false);
       resetForm();
     } catch (error) {
-      const message = error instanceof Error ? error.message : 'Erro ao enviar cotacao.';
+      const message = error instanceof Error ? error.message : 'Erro ao enviar cotação.';
       setFormError(message);
       setErrorToastMessage(message);
     } finally {
@@ -271,11 +271,11 @@ export default function QuotesPage() {
         <section className="crm-shell-card p-6">
           <div className="flex flex-col gap-5 xl:flex-row xl:items-end xl:justify-between">
             <div>
-              <p className="crm-eyebrow">{isClient ? 'Solicitacoes' : 'Pipeline comercial'}</p>
-              <h1 className="crm-page-title">Cotacoes</h1>
+              <p className="crm-eyebrow">{isClient ? 'Solicitações' : 'Pipeline comercial'}</p>
+              <h1 className="crm-page-title">Cotações</h1>
               <p className="crm-page-copy">
                 {isClient
-                  ? 'Solicite servicos com mais contexto operacional e acompanhe o retorno comercial com mais clareza.'
+                  ? 'Solicite serviços com mais contexto operacional e acompanhe o retorno comercial com mais clareza.'
                   : 'Visual empresarial para leitura de volume, resposta e contexto operacional de cada pedido.'}
               </p>
             </div>
@@ -308,7 +308,7 @@ export default function QuotesPage() {
                   className="inline-flex items-center justify-center gap-2 rounded-2xl bg-slate-950 px-4 py-2.5 text-sm font-semibold text-white transition hover:bg-slate-800"
                 >
                   <PlusCircle className="h-4 w-4" />
-                  Nova cotacao
+                  Nova cotação
                 </button>
               ) : null}
             </div>
@@ -317,7 +317,7 @@ export default function QuotesPage() {
 
         <section className="grid grid-cols-1 gap-4 md:grid-cols-2 xl:grid-cols-4">
           <article className="crm-kpi-card">
-            <p className="text-sm text-slate-500">Total de cotacoes</p>
+            <p className="text-sm text-slate-500">Total de cotações</p>
             <h2 className="mt-2 text-3xl font-bold text-slate-950">{stats.total}</h2>
           </article>
           <article className="crm-kpi-card">
@@ -340,11 +340,11 @@ export default function QuotesPage() {
           <div className="grid gap-4 lg:grid-cols-[1fr_280px]">
             <div>
               <label className="mb-2 block text-sm font-semibold text-slate-700">
-                Buscar cotacao
+                Buscar cotação
               </label>
               <input
                 type="text"
-                placeholder="Buscar por codigo, cliente, origem, destino ou servico..."
+                placeholder="Buscar por código, cliente, origem, destino ou serviço..."
                 value={search}
                 onChange={(e) => setSearch(e.target.value)}
                 className="crm-input"
@@ -373,14 +373,14 @@ export default function QuotesPage() {
 
         <section className="crm-shell-card overflow-hidden">
           <div className="border-b border-slate-200 px-5 py-4">
-            <h3 className="text-lg font-semibold text-slate-900">Lista de cotacoes</h3>
+            <h3 className="text-lg font-semibold text-slate-900">Lista de cotações</h3>
             <p className="mt-1 text-sm text-slate-500">
               {filteredQuotes.length} registro(s) encontrado(s)
             </p>
           </div>
 
           {loading ? (
-            <div className="p-10 text-center text-sm text-slate-500">Carregando cotacoes...</div>
+            <div className="p-10 text-center text-sm text-slate-500">Carregando cotações...</div>
           ) : pageError ? (
             <div className="p-10 text-center text-sm text-rose-600">{pageError}</div>
           ) : (
@@ -416,7 +416,7 @@ export default function QuotesPage() {
                       </p>
                       <div className="mt-4 inline-flex items-center gap-2 rounded-full bg-slate-100 px-3 py-1 text-xs font-semibold text-slate-600">
                         <Building2 className="h-3.5 w-3.5" />
-                        {isClient ? 'Solicitacao enviada' : getClientName(quote)}
+                        {isClient ? 'Solicitação enviada' : getClientName(quote)}
                       </div>
                     </div>
 
@@ -433,7 +433,7 @@ export default function QuotesPage() {
 
                   <div className="mt-5 grid gap-3 md:grid-cols-2 xl:grid-cols-5">
                     <div className="crm-soft-panel p-4 text-sm">
-                      <p className="text-slate-500">Tipo de solicitacao</p>
+                      <p className="text-slate-500">Tipo de solicitação</p>
                       <p className="mt-1 font-semibold text-slate-900">
                         {quote.requestType || '-'}
                       </p>
@@ -468,7 +468,7 @@ export default function QuotesPage() {
 
               {filteredQuotes.length === 0 ? (
                 <div className="rounded-2xl border border-dashed border-slate-300 p-8 text-center text-sm text-slate-500">
-                  Nenhuma cotacao encontrada com os filtros atuais.
+                  Nenhuma cotação encontrada com os filtros atuais.
                 </div>
               ) : null}
             </div>
@@ -480,8 +480,8 @@ export default function QuotesPage() {
             <div className="max-h-[calc(100vh-2rem)] w-full max-w-5xl overflow-y-auto rounded-[32px] border border-white/80 bg-[linear-gradient(180deg,#ffffff_0%,#f8fafc_100%)] p-6 shadow-[0_32px_90px_rgba(15,23,42,0.16)]">
               <div className="flex items-start justify-between gap-4">
                 <div>
-                  <p className="crm-eyebrow">Nova solicitacao</p>
-                  <h2 className="mt-2 text-3xl font-bold text-slate-950">Nova cotacao</h2>
+                  <p className="crm-eyebrow">Nova solicitação</p>
+                  <h2 className="mt-2 text-3xl font-bold text-slate-950">Nova cotação</h2>
                   <p className="mt-2 text-sm text-slate-500">
                     Quanto mais contexto operacional entrar aqui, melhor fica a resposta comercial.
                   </p>
@@ -530,7 +530,7 @@ export default function QuotesPage() {
 
                 <div>
                   <label className="mb-2 block text-sm font-semibold text-slate-700">
-                    Tipo de servico
+                    Tipo de serviço
                   </label>
                   <input
                     type="text"
@@ -545,7 +545,7 @@ export default function QuotesPage() {
 
                 <div>
                   <label className="mb-2 block text-sm font-semibold text-slate-700">
-                    Tipo de solicitacao
+                    Tipo de solicitação
                   </label>
                   <select
                     value={form.requestType}
@@ -590,7 +590,7 @@ export default function QuotesPage() {
 
                 <div className="md:col-span-2">
                   <label className="mb-2 block text-sm font-semibold text-slate-700">
-                    Descricao da carga / servico
+                    Descrição da carga / serviço
                   </label>
                   <textarea
                     value={form.cargoDescription}
@@ -604,7 +604,7 @@ export default function QuotesPage() {
 
                 <div>
                   <label className="mb-2 block text-sm font-semibold text-slate-700">
-                    Contato responsavel
+                    Contato responsável
                   </label>
                   <input
                     type="text"
@@ -704,14 +704,14 @@ export default function QuotesPage() {
                     onChange={(e) =>
                       setForm((prev) => ({ ...prev, desiredDeadline: e.target.value }))
                     }
-                    placeholder="Ex: 30 dias, 10 dias uteis, conforme negociacao"
+                    placeholder="Ex: 30 dias, 10 dias úteis, conforme negociação"
                     className="crm-input"
                   />
                 </div>
 
                 <div className="md:col-span-2">
                   <label className="mb-2 block text-sm font-semibold text-slate-700">
-                    Observacoes adicionais
+                    Observações adicionais
                   </label>
                   <textarea
                     value={form.notes}
@@ -741,7 +741,7 @@ export default function QuotesPage() {
                   className="inline-flex items-center justify-center gap-2 rounded-2xl bg-slate-950 px-4 py-3 text-sm font-semibold text-white transition hover:bg-slate-800 disabled:opacity-60"
                 >
                   <FileStack className="h-4 w-4" />
-                  {saving ? 'Enviando...' : 'Salvar cotacao'}
+                  {saving ? 'Enviando...' : 'Salvar cotação'}
                 </button>
               </div>
             </div>
@@ -758,7 +758,7 @@ export default function QuotesPage() {
 
         <FeedbackToast
           open={!!errorToastMessage}
-          title="Atencao"
+          title="Atenção"
           message={errorToastMessage}
           variant="error"
           onClose={() => setErrorToastMessage('')}
