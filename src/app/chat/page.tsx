@@ -123,7 +123,15 @@ export default function ChatPage() {
       setError(null);
       const data = await getChats(token);
       setChats(data);
-      setSelectedChatId((current) => current || data[0]?.id || "");
+      const requestedChatId =
+        typeof window !== "undefined"
+          ? new URLSearchParams(window.location.search).get("chat")
+          : null;
+      setSelectedChatId((current) =>
+        requestedChatId && data.some((chat) => chat.id === requestedChatId)
+          ? requestedChatId
+          : current || data[0]?.id || "",
+      );
     } catch (err) {
       setError(err instanceof Error ? err.message : "Erro ao carregar chats.");
     } finally {
@@ -232,8 +240,7 @@ export default function ChatPage() {
             </p>
             <h1 className="mt-1 text-2xl font-bold text-slate-950">Chat</h1>
             <p className="mt-1 max-w-2xl text-sm text-slate-600">
-              Conversas vinculadas a leads, clientes, cotações, propostas e
-              tickets, com visibilidade controlada pelo backend.
+              Conversas relacionadas a clientes, propostas, cotações e tickets.
             </p>
           </div>
 

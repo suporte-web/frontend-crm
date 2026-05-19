@@ -92,8 +92,8 @@ function getTypeClass(type: ContentType) {
 
 function getTypeHelper(type: ContentType) {
   const helpers: Record<ContentType, string> = {
-    NOTICIA: 'Feed visual com imagem e título forte.',
-    INFORMACAO: 'Campanha com CTA e chamada comercial.',
+    NOTICIA: 'Feed visual com imagem',
+    INFORMACAO: 'Campanha comercial',
     VLOG: 'Conteúdo em vídeo para empresa e cliente.',
   };
 
@@ -128,7 +128,7 @@ function getTemplate(type: ContentType): Pick<
 
   return {
     title: 'Nova noticia do portal',
-    summary: 'Comunique uma novidade importante para clientes e equipes internas.',
+    summary: 'Comunique uma novidade ',
     body:
       'Escreva um texto curto, escaneavel e com informações centrais para leitura rápida.',
     campaignName: 'Atualização do portal',
@@ -375,23 +375,19 @@ export default function MarketingPage() {
   return (
     <AppLayout>
       <div className="mx-auto flex w-full max-w-7xl flex-col gap-6">
-        <section className="relative overflow-hidden rounded-[36px] border border-slate-200 bg-[linear-gradient(135deg,#0f172a_0%,#172554_38%,#2563eb_76%,#38bdf8_100%)] p-6 text-white shadow-[0_28px_80px_rgba(15,23,42,0.18)] lg:p-8">
+        <section className="relative overflow-hidden rounded-[36px] border border-slate-200 bg-[linear-gradient(135deg,#343434_0%,#ec3139_55%,#fab519_100%)] p-6 text-white shadow-[0_28px_80px_rgba(15,23,42,0.18)] lg:p-8">
           <div className="absolute -right-12 top-0 h-48 w-48 rounded-full bg-white/10 blur-3xl" />
           <div className="absolute bottom-0 left-10 h-40 w-40 rounded-full bg-cyan-300/20 blur-3xl" />
           <div className="relative grid gap-6 xl:grid-cols-[1.2fr_.8fr]">
             <div>
               <span className="inline-flex items-center gap-2 rounded-full border border-white/15 bg-white/10 px-3 py-1 text-xs font-semibold uppercase tracking-[0.22em] text-sky-100">
                 <Megaphone className="h-3.5 w-3.5" />
-                Content Studio
+                Marketing Portal
               </span>
               <h1 className="mt-5 max-w-3xl text-4xl font-bold leading-tight md:text-5xl">
-                Publique noticias, campanhas e vídeos com cara de feed social.
+                Publicação e gestão de conteúdos para o portal do cliente
               </h1>
-              <p className="mt-4 max-w-2xl text-sm leading-7 text-slate-200 md:text-base">
-                Esta tela agora funciona como um mini estudio de marketing para o
-                portal do cliente: mídia, CTA, destaque, campanhas e preview da
-                publicação antes de liberar.
-              </p>
+    
             </div>
 
             <div className="grid gap-3 sm:grid-cols-2">
@@ -434,7 +430,7 @@ export default function MarketingPage() {
                   {editingId ? 'Editar campanha' : 'Criar conteúdo'}
                 </h2>
                 <p className="mt-2 text-sm text-slate-500">
-                  Monte o post com foto, vídeo, CTA e campanha sem sair da tela.
+                  Monte o post com foto, vídeo, CTA e campanha.
                 </p>
               </div>
 

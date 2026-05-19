@@ -109,7 +109,7 @@ function getClientName(quote: Quote) {
     quote.client?.companyName ||
     quote.client?.user?.name ||
     quote.prospect?.nomeRazaoSocial ||
-    'Prospect'
+    'Cliente'
   );
 }
 
@@ -273,10 +273,10 @@ export default function QuotesPage() {
             <div>
               <p className="crm-eyebrow">{isClient ? 'Solicitações' : 'Pipeline comercial'}</p>
               <h1 className="crm-page-title">Cotações</h1>
-              <p className="crm-page-copy">
+              <p className="mt-2 text-sm text-slate-500">
                 {isClient
-                  ? 'Solicite serviços com mais contexto operacional e acompanhe o retorno comercial com mais clareza.'
-                  : 'Visual empresarial para leitura de volume, resposta e contexto operacional de cada pedido.'}
+                  ? 'Acompanhe o status das suas solicitações de cotação e visualize os detalhes de cada resposta comercial.'
+                  : 'Gerencie as cotações enviadas pelos clientes.'}
               </p>
             </div>
 

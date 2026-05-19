@@ -299,7 +299,7 @@ export default function ClientsPage() {
               <p className="crm-eyebrow">CRM</p>
               <h1 className="crm-page-title">Gestão de clientes</h1>
               <p className="crm-page-copy">
-                Base clientes Pizzattologo, funil comercial e solicitações de exclusão.
+                Base clientes Pizzattolog
               </p>
             </div>
 
@@ -340,7 +340,7 @@ export default function ClientsPage() {
             ['Total de clientes', summary.total, 'text-slate-950'],
             ['Ativos', summary.active, 'text-emerald-600'],
             ['Pendentes', summary.pending, 'text-amber-600'],
-            ['Novos no mes', summary.newThisMonth, 'text-blue-600'],
+            ['Novos mês', summary.newThisMonth, 'text-blue-600'],
           ].map(([label, value, color]) => (
             <article key={label} className="crm-kpi-card">
               <div className="flex items-start justify-between gap-3">

@@ -1,4 +1,9 @@
-import type { CreateQuotePayload, Quote, QuoteStatus } from '@/types/quotes';
+import type {
+  CreateInternalQuotePayload,
+  CreateQuotePayload,
+  Quote,
+  QuoteStatus,
+} from '@/types/quotes';
 
 const API_BASE_URL = 'http://localhost:3001/api';
 
@@ -58,6 +63,22 @@ export async function getQuoteById(id: string, token: string) {
     headers: {
       Authorization: `Bearer ${token}`,
     },
+  });
+
+  return parseResponse<Quote>(response);
+}
+
+export async function createInternalQuote(
+  payload: CreateInternalQuotePayload,
+  token: string,
+) {
+  const response = await fetch(`${API_BASE_URL}/quotes/internal`, {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+      Authorization: `Bearer ${token}`,
+    },
+    body: JSON.stringify(payload),
   });
 
   return parseResponse<Quote>(response);

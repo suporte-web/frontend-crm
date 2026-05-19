@@ -491,8 +491,7 @@ export default function UsersPage() {
                 </h1>
 
                 <p className="mt-3 max-w-2xl text-sm leading-6 text-slate-500 md:text-base">
-                  Gerencie acessos, permissões e status dos usuários em uma tela
-                  mais organizada, moderna e fácil de operar.
+                  Gerencie acessos, permissões e status dos usuários.
                 </p>
 
                 <div className="mt-6 flex flex-wrap gap-3">

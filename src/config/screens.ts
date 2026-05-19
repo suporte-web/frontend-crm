@@ -2,6 +2,7 @@ import type { UserRole } from '@/types/user';
 
 export type ScreenKey =
   | 'dashboard'
+  | 'bi'
   | 'entregas'
   | 'trackings'
   | 'quotes'
@@ -30,10 +31,16 @@ export const appScreens: AppScreen[] = [
     roles: ['ADMIN', 'GESTAO', 'COMERCIAL', 'MARKETING', 'CLIENTE'],
   },
   {
+    key: 'bi',
+    href: '/bi',
+    label: 'BI Comercial',
+    roles: ['ADMIN', 'GESTAO', 'COMERCIAL'],
+  },
+  {
     key: 'entregas',
     href: '/entregas',
     label: 'Entregas',
-    roles: ['ADMIN', 'GESTAO', 'COMERCIAL', 'MARKETING'],
+    roles: ['ADMIN', 'GESTAO', 'COMERCIAL', 'MARKETING', 'CLIENTE'],
   },
   {
     key: 'trackings',
@@ -44,7 +51,7 @@ export const appScreens: AppScreen[] = [
   {
     key: 'quotes',
     href: '/quotes',
-    label: 'Cotacoes',
+    label: 'Cotações',
     roles: ['ADMIN', 'GESTAO', 'COMERCIAL', 'CLIENTE'],
   },
   {
@@ -86,7 +93,7 @@ export const appScreens: AppScreen[] = [
   {
     key: 'users',
     href: '/users',
-    label: 'Usuarios',
+    label: 'Usuários',
     roles: ['ADMIN', 'GESTAO'],
   },
   {

@@ -34,7 +34,7 @@ const statusLabels: Record<string, string> = {
   NOVO: "Novo",
   ABERTO: "Aberto",
   EM_ANDAMENTO: "Em atendimento",
-  CONVERTIDO_EM_PROSPECT: "Convertido em prospect",
+  CONVERTIDO_EM_PROSPECT: "Convertido",
   COTACAO_CRIADA: "Cotação criada",
   FINALIZADO: "Finalizado",
   PERDIDO: "Perdido",
@@ -219,7 +219,7 @@ export default function EntradaDetailPage({
           cleanProspectPayload(prospectForm),
           token,
         ),
-      "Prospect vinculado",
+      "Cadastro vinculado",
       "A entrada já pode seguir para criação de cotação.",
     );
   }
@@ -254,7 +254,7 @@ export default function EntradaDetailPage({
               {entrada?.protocolo ?? "Entrada"}
             </h1>
             <p className="mt-1 text-sm text-slate-600">
-              Origem site, tratamento comercial e conversao em prospect.
+              Origem site, tratamento comercial e conversao em cliente.
             </p>
           </div>
 
@@ -424,7 +424,7 @@ export default function EntradaDetailPage({
                 <div className="flex items-start justify-between gap-3">
                   <div>
                     <p className="text-xs font-semibold uppercase tracking-[0.2em] text-slate-500">
-                      Prospect
+                      Cliente
                     </p>
                     <h2 className="mt-1 text-lg font-semibold text-slate-950">
                       Vinculo comercial
@@ -451,7 +451,7 @@ export default function EntradaDetailPage({
                 ) : (
                   <div className="mt-4">
                     <div className="rounded-md bg-amber-50 px-3 py-2 text-sm text-amber-800">
-                      Vincule ou crie um prospect antes de criar cotação.
+                      Vincule ou crie um cadastro antes de criar cotação.
                     </div>
 
                     {suggestions ? (
@@ -473,8 +473,8 @@ export default function EntradaDetailPage({
                                     { prospectId: prospect.id },
                                     token ?? "",
                                   ),
-                                "Prospect vinculado",
-                                "A entrada foi vinculada a um prospect existente.",
+                                "Cadastro vinculado",
+                                "A entrada foi vinculada a um cadastro existente.",
                               )
                             }
                             className="w-full rounded-md border border-slate-200 px-3 py-2 text-left text-sm hover:bg-slate-50"
@@ -581,7 +581,7 @@ export default function EntradaDetailPage({
                         className="inline-flex h-10 w-full items-center justify-center gap-2 rounded-md bg-slate-950 px-4 text-sm font-semibold text-white hover:bg-slate-800 disabled:opacity-60"
                       >
                         <UserPlus className="h-4 w-4" />
-                        Criar/Vincular Prospect
+                        Criar/Vincular cadastro
                       </button>
                     </form>
                   </div>
@@ -620,7 +620,7 @@ export default function EntradaDetailPage({
                   <form onSubmit={handleCreateQuote} className="mt-4 space-y-3">
                     {!hasAccountLink ? (
                       <div className="rounded-md bg-slate-100 px-3 py-2 text-sm text-slate-600">
-                        Crie ou vincule um prospect para liberar a cotação.
+                        Crie ou vincule um cadastro para liberar a cotação.
                       </div>
                     ) : null}
                     <TextInput

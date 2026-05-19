@@ -72,7 +72,7 @@ const internalStatusLabels: Record<TicketStatus, string> = {
   REPROVADO: "Reprovado",
   FECHADO: "Fechado",
   CANCELADO: "Cancelado",
-  CONVERTIDO_EM_PROSPECT: "Convertido em prospect",
+  CONVERTIDO_EM_PROSPECT: "Convertido",
   COTACAO_CRIADA: "Cotação criada",
   FINALIZADO: "Finalizado",
   PERDIDO: "Perdido",
@@ -335,6 +335,26 @@ function getActionBadge(ticket: Ticket, role?: string | null) {
   return null;
 }
 
+function getActionBadgeClass(label: string) {
+  if (label.includes("aprov") || label.includes("Aprov")) {
+    return "bg-emerald-100 text-emerald-800 ring-1 ring-emerald-200";
+  }
+
+  if (label.includes("Aguardando")) {
+    return "bg-amber-100 text-amber-800 ring-1 ring-amber-200";
+  }
+
+  if (label.includes("Ajuste")) {
+    return "bg-orange-100 text-orange-800 ring-1 ring-orange-200";
+  }
+
+  if (label.includes("Nova")) {
+    return "bg-blue-100 text-blue-800 ring-1 ring-blue-200";
+  }
+
+  return "bg-violet-100 text-violet-800 ring-1 ring-violet-200";
+}
+
 function isClosedStatus(status: TicketStatus) {
   return ["FECHADO", "CANCELADO", "CLOSED", "FINALIZADO", "PERDIDO"].includes(status);
 }
@@ -345,8 +365,12 @@ function canClientAct(status: TicketStatus) {
 }
 
 function getPropostaStatusClass(status: StatusProposta) {
-  if (["APROVADA_PELO_CLIENTE", "APROVADA_PELA_GESTAO"].includes(status)) {
-    return "bg-emerald-100 text-emerald-700";
+  if (status === "APROVADA_PELO_CLIENTE") {
+    return "bg-emerald-100 text-emerald-800 ring-emerald-200";
+  }
+
+  if (status === "APROVADA_PELA_GESTAO") {
+    return "bg-teal-100 text-teal-800 ring-teal-200";
   }
 
   if (
@@ -354,7 +378,7 @@ function getPropostaStatusClass(status: StatusProposta) {
       status,
     )
   ) {
-    return "bg-rose-100 text-rose-700";
+    return "bg-rose-100 text-rose-800 ring-rose-200";
   }
 
   if (
@@ -363,18 +387,18 @@ function getPropostaStatusClass(status: StatusProposta) {
       "AJUSTE_SOLICITADO_PELA_GESTAO",
     ].includes(status)
   ) {
-    return "bg-amber-100 text-amber-700";
+    return "bg-orange-100 text-orange-800 ring-orange-200";
   }
 
   if (status === "ENVIADA_PARA_GESTAO") {
-    return "bg-indigo-100 text-indigo-700";
+    return "bg-indigo-100 text-indigo-800 ring-indigo-200";
   }
 
   if (status === "ENVIADA_AO_CLIENTE") {
-    return "bg-blue-100 text-blue-700";
+    return "bg-blue-100 text-blue-800 ring-blue-200";
   }
 
-  return "bg-slate-100 text-slate-700";
+  return "bg-slate-100 text-slate-700 ring-slate-200";
 }
 
 type ProposalFormState = {
@@ -538,6 +562,7 @@ export default function TicketsPage() {
 
     const params = new URLSearchParams(window.location.search);
     const ticketId = params.get("ticket");
+    const propostaMode = params.get("proposta");
 
     if (ticketId) {
       Promise.all([
@@ -547,6 +572,20 @@ export default function TicketsPage() {
         .then(([ticket, ticketPropostas]) => {
           setSelectedTicket(ticket);
           setPropostas(ticketPropostas);
+          if (propostaMode === "new") {
+            setSelectedPropostaId("new");
+            setProposalFile(null);
+            setProposalForm({
+              ...emptyProposalFormState,
+              titulo: ticket.quote ? `Proposta ${ticket.quote.serviceType}` : "",
+              origem: ticket.quote?.origin ?? "",
+              destino: ticket.quote?.destination ?? "",
+              valor:
+                ticket.quote?.price !== null && ticket.quote?.price !== undefined
+                  ? String(ticket.quote.price)
+                  : "",
+            });
+          }
         })
         .catch(() => undefined);
     }
@@ -972,10 +1011,7 @@ export default function TicketsPage() {
             <div>
               <p className="crm-eyebrow">Central de atendimento</p>
               <h1 className="crm-page-title">Tickets do CRM</h1>
-              <p className="crm-page-copy">
-                Comunicação entre Cliente, Comercial e Gestão com histórico e
-                notificacoes.
-              </p>
+              
             </div>
 
             <button
@@ -1086,7 +1122,7 @@ export default function TicketsPage() {
                           {ticket.subject}
                         </p>
                         {badge ? (
-                          <span className="rounded-full bg-rose-50 px-2.5 py-1 text-xs font-semibold text-rose-700">
+                          <span className={`rounded-full px-2.5 py-1 text-xs font-semibold ${getActionBadgeClass(badge)}`}>
                             {badge}
                           </span>
                         ) : null}
@@ -1283,6 +1319,7 @@ export default function TicketsPage() {
 
               <div className="mt-5 grid gap-5 xl:grid-cols-[1fr_330px]">
                 <div className="space-y-5">
+                  {!isClient ? (
                   <section className="rounded-2xl border border-slate-200 bg-slate-50 p-4">
                     <h3 className="flex items-center gap-2 text-sm font-semibold text-slate-900">
                       <FileText className="h-4 w-4 text-slate-500" />
@@ -1359,6 +1396,7 @@ export default function TicketsPage() {
                       ) : null}
                     </div>
                   </section>
+                  ) : null}
 
                   <section className="rounded-2xl border border-slate-200 bg-slate-50 p-4">
                     <div className="flex flex-col gap-3 border-b border-slate-200 pb-4 md:flex-row md:items-start md:justify-between">

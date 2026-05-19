@@ -116,7 +116,7 @@ function getQuoteRequesterName(quote: Quote) {
     quote.client?.companyName ||
     quote.client?.user?.name ||
     quote.prospect?.nomeRazaoSocial ||
-    "Prospect"
+    "Cliente"
   );
 }
 
@@ -127,6 +127,18 @@ function getStatusLabel(status: Quote["status"]) {
     ANSWERED: "Respondida",
     APPROVED: "Aprovada",
     REJECTED: "Rejeitada",
+  };
+
+  return map[status];
+}
+
+function getStatusClasses(status: Quote["status"]) {
+  const map: Record<Quote["status"], string> = {
+    RECEIVED: "bg-sky-100 text-sky-800 border-sky-200",
+    IN_ANALYSIS: "bg-amber-100 text-amber-800 border-amber-200",
+    ANSWERED: "bg-violet-100 text-violet-800 border-violet-200",
+    APPROVED: "bg-emerald-100 text-emerald-800 border-emerald-200",
+    REJECTED: "bg-rose-100 text-rose-800 border-rose-200",
   };
 
   return map[status];
@@ -197,6 +209,7 @@ export default function QuoteDetailsPage({
 
   const canRespond =
     !!user?.role && ["ADMIN", "GESTAO", "COMERCIAL"].includes(user.role);
+  const isClient = user?.role === "CLIENTE";
   const isProspectQuote = Boolean(quote?.prospectId && !quote.clientId);
   const canEdit = useMemo(() => {
     if (!quote || !user?.role) return false;
@@ -261,8 +274,7 @@ export default function QuoteDetailsPage({
                 {quote?.code ?? "Carregando..."}
               </h1>
               <p className="mt-2 text-sm text-zinc-500">
-                Todos os detalhes, histórico, valores e retorno comercial em uma
-                unica tela.
+                Todos os detalhes, histórico, valores e retorno comercial.
               </p>
             </div>
 
@@ -331,22 +343,24 @@ export default function QuoteDetailsPage({
           </section>
         ) : quote ? (
           <>
-            <section className="grid gap-4 md:grid-cols-2 xl:grid-cols-6">
+            <section className="grid gap-4 md:grid-cols-2 xl:grid-cols-5">
               <div className="rounded-3xl border border-zinc-200 bg-white p-5 shadow-sm">
                 <p className="text-sm text-zinc-500">Código</p>
                 <h2 className="mt-2 text-2xl font-bold text-zinc-900">
                   {quote.code}
                 </h2>
               </div>
+              {!isClient ? (
               <div className="rounded-3xl border border-zinc-200 bg-white p-5 shadow-sm">
                 <p className="text-sm text-zinc-500">Solicitante</p>
                 <h2 className="mt-2 text-xl font-bold text-zinc-900">
                   {getQuoteRequesterName(quote)}
                 </h2>
               </div>
+              ) : null}
               <div className="rounded-3xl border border-zinc-200 bg-white p-5 shadow-sm">
                 <p className="text-sm text-zinc-500">Status</p>
-                <h2 className="mt-2 text-2xl font-bold text-zinc-900">
+                <h2 className={`mt-2 inline-flex rounded-full border px-3 py-1 text-sm font-bold ${getStatusClasses(quote.status)}`}>
                   {getStatusLabel(quote.status)}
                 </h2>
               </div>
@@ -426,7 +440,12 @@ export default function QuoteDetailsPage({
                     ["Quantidade", "quantity"],
                     ["Valor da mercadoria", "merchandiseValue"],
                     ["Prazo desejado", "desiredDeadline"],
-                  ].map(([label, field]) => (
+                  ]
+                    .filter(([, field]) =>
+                      !isClient ||
+                      !["contactName", "contactPhone", "contactEmail"].includes(field),
+                    )
+                    .map(([label, field]) => (
                     <div key={field} className="rounded-2xl bg-zinc-50 p-4">
                       <p className="text-sm text-zinc-500">{label}</p>
                       {isEditing ? (
@@ -511,7 +530,7 @@ export default function QuoteDetailsPage({
                         className="rounded-2xl border border-zinc-200 bg-zinc-50 p-4"
                       >
                         <div className="flex items-center justify-between gap-2">
-                          <p className="text-sm font-semibold text-zinc-900">
+                          <p className={`rounded-full border px-3 py-1 text-sm font-semibold ${getStatusClasses(entry.status)}`}>
                             {getStatusLabel(entry.status)}
                           </p>
                           <span className="text-xs text-zinc-400">
@@ -543,9 +562,7 @@ export default function QuoteDetailsPage({
                     <>
                       <div className="rounded-2xl border border-slate-200 bg-white p-4">
                         <p className="text-sm font-semibold text-slate-900">
-                          {isProspectQuote
-                            ? "Registrar retorno comercial"
-                            : "Enviar proposta ao cliente"}
+                          Enviar proposta ao cliente
                         </p>
                         <div className="mt-4 space-y-3">
                           <input
@@ -570,11 +587,7 @@ export default function QuoteDetailsPage({
                               }))
                             }
                             className="crm-textarea"
-                            placeholder={
-                              isProspectQuote
-                                ? "Observações comerciais internas"
-                                : "Observações comerciais para o cliente"
-                            }
+                            placeholder="Observacoes comerciais para o cliente"
                           />
                           <button
                             type="button"
@@ -604,11 +617,7 @@ export default function QuoteDetailsPage({
                                   token,
                                 );
                                 setQuote(updated);
-                                setActionMessage(
-                                  isProspectQuote
-                                    ? "Retorno comercial registrado na cotação do prospect."
-                                    : "Proposta enviada e registrada na cotação.",
-                                );
+                                setActionMessage("Proposta enviada e registrada na cotacao.");
                                 setResponseForm({
                                   price: "",
                                   commercialNotes: "",
@@ -625,11 +634,7 @@ export default function QuoteDetailsPage({
                             }}
                             className="w-full rounded-2xl bg-slate-950 px-4 py-3 text-sm font-semibold text-white transition hover:bg-slate-800 disabled:opacity-60"
                           >
-                            {saving
-                              ? "Salvando..."
-                              : isProspectQuote
-                                ? "Registrar resposta"
-                                : "Enviar proposta"}
+                            {saving ? "Salvando..." : "Enviar proposta"}
                           </button>
                         </div>
                       </div>
@@ -686,13 +691,6 @@ export default function QuoteDetailsPage({
                             className="crm-input"
                             placeholder="Nota opcional para histórico"
                           />
-                          {isProspectQuote ? (
-                            <p className="text-xs leading-5 text-slate-500">
-                              Ao aprovar uma cotação de prospect, o cadastro vai
-                              para aguardando cadastro. Contrato e operação só
-                              ficam liberados após virar cliente ativo.
-                            </p>
-                          ) : null}
                         </div>
                       </div>
                     </>

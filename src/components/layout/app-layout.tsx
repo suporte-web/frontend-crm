@@ -14,18 +14,20 @@ export function AppLayout({
   return (
     <ProtectedRoute>
       <TooltipProvider delayDuration={0}>
-        <SidebarProvider defaultOpen>
-          <AppSidebar />
+        <SidebarProvider defaultOpen={false} className="flex-col">
+          <Header />
 
-          <SidebarInset className="relative min-h-screen bg-transparent">
-            <Header />
+          <div className="flex w-full flex-1">
+            <AppSidebar />
 
-            <main className="relative flex-1 overflow-x-hidden overflow-y-auto">
-              <div className="mx-auto w-full max-w-[1580px] px-4 py-5 md:px-6 md:py-6 xl:px-7">
-                {children}
-              </div>
-            </main>
-          </SidebarInset>
+            <SidebarInset className="relative min-h-[calc(100svh-94px)] bg-transparent">
+              <main className="relative flex-1 overflow-x-hidden overflow-y-auto">
+                <div className="mx-auto w-full max-w-[1580px] px-4 py-5 md:px-6 md:py-6 xl:px-7">
+                  {children}
+                </div>
+              </main>
+            </SidebarInset>
+          </div>
         </SidebarProvider>
       </TooltipProvider>
     </ProtectedRoute>

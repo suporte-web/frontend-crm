@@ -18,7 +18,7 @@ const statusOptions: Array<{ value: EntradaStatus | "TODOS"; label: string }> = 
   { value: "TODOS", label: "Todos" },
   { value: "NOVO", label: "Novo" },
   { value: "EM_ANDAMENTO", label: "Em atendimento" },
-  { value: "CONVERTIDO_EM_PROSPECT", label: "Convertido em prospect" },
+  { value: "CONVERTIDO_EM_PROSPECT", label: "Convertido" },
   { value: "COTACAO_CRIADA", label: "Cotação criada" },
   { value: "FINALIZADO", label: "Finalizado" },
   { value: "PERDIDO", label: "Perdido" },
@@ -144,7 +144,7 @@ export default function EntradasPage() {
               Central de Entradas
             </h1>
             <p className="mt-1 max-w-2xl text-sm text-slate-600">
-              Tickets criados pelo formulario publico antes de virarem prospect
+              Tickets criados pelo formulario publico antes de virarem cliente
               e cotação.
             </p>
           </div>

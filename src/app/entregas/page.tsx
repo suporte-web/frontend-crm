@@ -421,7 +421,7 @@ export default function DeliveriesPage() {
   }
 
   const canViewPage =
-    user?.role && ['ADMIN', 'GESTAO', 'COMERCIAL', 'MARKETING'].includes(user.role);
+    user?.role && ['ADMIN', 'GESTAO', 'COMERCIAL', 'MARKETING', 'CLIENTE'].includes(user.role);
 
   if (!authLoading && !canViewPage) {
     return (
@@ -456,7 +456,7 @@ export default function DeliveriesPage() {
           </CardTitle>
 
           <CardDescription className="mt-2 max-w-2xl text-sm leading-6 text-slate-500">
-            Acompanhamento diario de entregas, prazos, SLA e status operacional
+            Acompanhamento de entregas, prazos, SLA e status operacional
             dos pedidos Aero | E-commerce.
           </CardDescription>
         </div>
@@ -481,9 +481,7 @@ export default function DeliveriesPage() {
           Filtros de consulta
         </h2>
 
-        <p className="mt-1 text-sm text-slate-500">
-          Ajuste os campos abaixo para refinar o monitoramento.
-        </p>
+        
       </div>
     </div>
 

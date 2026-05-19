@@ -540,7 +540,7 @@ function ClientDashboard({
               </h2>
               <p className="mx-auto mt-5 max-w-3xl text-base leading-7 text-[#343434]/80">
                 Conheça as últimas tendências em logística, transformação digital e
-                gestão estratégica que impulsionam o sucesso dos nossos clientes.
+                gestão estratégica pizzattolog.
               </p>
             </div>
 
@@ -719,8 +719,6 @@ function InternalDashboard({
     1,
   );
 
-
-
   const heroHighlights = [
     {
       label: 'Clientes ativos',
@@ -748,10 +746,10 @@ function InternalDashboard({
         <div className="absolute bottom-0 left-10 h-40 w-40 rounded-full bg-[#ec3139]/20 blur-3xl" />
         <div className="absolute inset-0 bg-[linear-gradient(to_right,rgba(255,255,255,0.04)_1px,transparent_1px),linear-gradient(to_bottom,rgba(255,255,255,0.04)_1px,transparent_1px)] bg-[size:28px_28px] opacity-20" />
 
-        <div className="relative grid gap-6 xl:grid-cols-[1.55fr_.9fr]">
+        <div className="relative">
           <div className="flex min-h-full flex-col">
             <div className="flex flex-wrap items-center gap-3">
-              <span className="inline-flex items-center gap-2 rounded-full border border-white/15 bg-white/10 px-3 py-1 text-xs font-semibold uppercase tracking-[0.22em] text-[#fab519] backdrop-blur">
+              <span className="hidden items-center gap-2 rounded-full border border-white/15 bg-white/10 px-3 py-1 text-xs font-semibold uppercase tracking-[0.22em] text-[#fab519] backdrop-blur">
                 <Layers3 className="h-3.5 w-3.5" />
                 CRM Workspace
               </span>
@@ -787,7 +785,7 @@ function InternalDashboard({
               </Link>
             </div>
 
-            <div className="mt-6 grid gap-4 lg:grid-cols-[1fr_.95fr]">
+            <div className="mt-6 grid gap-4">
               <div className="rounded-[28px] border border-white/10 bg-white/10 p-4 backdrop-blur">
                 <div className="flex items-center gap-3">
                   <div className="flex h-10 w-10 items-center justify-center rounded-2xl bg-white/10 text-[#fab519]">
@@ -831,7 +829,7 @@ function InternalDashboard({
                 </div>
               </div>
 
-              <div className="rounded-[28px] border border-white/10 bg-white/10 p-4 backdrop-blur">
+              <div className="hidden rounded-[28px] border border-white/10 bg-white/10 p-4 backdrop-blur">
                 <div className="flex items-center gap-3">
                   <div className="flex h-10 w-10 items-center justify-center rounded-2xl bg-white/10 text-[#fab519]">
                     <TrendingUp className="h-4 w-4" />
@@ -891,7 +889,7 @@ function InternalDashboard({
             </div>
           </div>
 
-          <aside className="rounded-[30px] border border-white/10 bg-white/10 p-5 backdrop-blur-xl">
+          <aside className="hidden rounded-[30px] border border-white/10 bg-white/10 p-5 backdrop-blur-xl">
             <div className="flex items-center gap-3">
               <div className="relative">
                 <div className="absolute inset-0 rounded-2xl bg-[#fab519]/35 blur-md" />
@@ -1097,7 +1095,7 @@ function InternalDashboard({
             </article>
 
             <article className="rounded-[26px] border border-[#ec3139]/20 bg-[#ec3139]/10 p-4">
-              <p className="text-sm text-[#343434]/75">Taxa de conversao</p>
+              <p className="text-sm text-[#343434]/75">Taxa de conversão</p>
 
               <p className="mt-2 text-3xl font-bold text-[#ec3139]">
                 {crmSummary.conversionRate}%
@@ -1203,7 +1201,7 @@ function InternalDashboard({
 
                 <div className="rounded-[22px] border border-white bg-white p-4">
                   <p className="text-xs font-semibold uppercase tracking-[0.18em] text-slate-400">
-                    Conversao atual
+                    Conversão atual
                   </p>
 
                   <p className="mt-2 text-2xl font-bold text-[#ec3139]">

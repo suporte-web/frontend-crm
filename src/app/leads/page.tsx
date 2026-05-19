@@ -2,7 +2,7 @@
 
 import Link from 'next/link';
 import { useEffect, useMemo, useState } from 'react';
-import { MessageCircleMore, Sparkles, UserPlus } from 'lucide-react';
+import { MessageCircleMore, UserPlus } from 'lucide-react';
 import { AppLayout } from '@/components/layout/app-layout';
 import { LeadForm } from '@/components/leads/lead-form';
 import {
@@ -29,6 +29,17 @@ function formatDate(date: string) {
     dateStyle: 'short',
     timeStyle: 'short',
   }).format(new Date(date));
+}
+
+function getLeadStatusLabel(status?: string | null) {
+  const labels: Record<string, string> = {
+    new: 'Novo',
+    qualified: 'Qualificado',
+    converted: 'Convertido em cliente',
+    converted_to_prospect: 'Convertido',
+  };
+
+  return status ? labels[status] ?? status : '-';
 }
 
 export default function LeadsPage() {
@@ -282,9 +293,6 @@ export default function LeadsPage() {
             <div className="flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between">
               <div>
                 <h2 className="text-2xl font-bold text-slate-950">Entradas de lead</h2>
-                <p className="mt-2 text-sm text-slate-500">
-                  Fluxos pequenos, prontos para o time comercial operar sem quebrar a base.
-                </p>
               </div>
               <TabsList variant="line" className="w-fit">
                 <TabsTrigger value="manual">Manual</TabsTrigger>
@@ -294,7 +302,7 @@ export default function LeadsPage() {
             </div>
 
             <TabsContent value="manual">
-              <div className="grid gap-6 xl:grid-cols-[1fr_.88fr]">
+              <div className="grid gap-6">
                 <article className="crm-soft-panel p-5">
                   <div className="mb-5 flex items-center gap-3">
                     <div className="flex h-11 w-11 items-center justify-center rounded-2xl bg-blue-100 text-blue-700">
@@ -303,17 +311,16 @@ export default function LeadsPage() {
                     <div>
                       <h3 className="text-lg font-semibold text-slate-950">Cadastro manual</h3>
                       <p className="text-sm text-slate-500">
-                        Entrada rápida com contexto comercial e deduplicação segura.
+                        Entrada rápida.
                       </p>
                     </div>
                   </div>
                   <LeadForm loading={manualLoading} onSubmit={handleManualCreate} />
                 </article>
 
-                <article className="crm-soft-panel p-5">
+                <article className="hidden">
                   <div className="mb-5 flex items-center gap-3">
                     <div className="flex h-11 w-11 items-center justify-center rounded-2xl bg-violet-100 text-violet-700">
-                      <Sparkles className="h-5 w-5" />
                     </div>
                     <div>
                       <h3 className="text-lg font-semibold text-slate-950">Regras da captação</h3>
@@ -513,7 +520,7 @@ export default function LeadsPage() {
               <p className="crm-eyebrow">Pipeline de entrada</p>
               <h2 className="mt-2 text-2xl font-bold text-slate-950">Base de leads</h2>
               <p className="mt-2 text-sm text-slate-500">
-                Visão de lista para comercial operar origem, status e ultimo contexto.
+                Visão de lista para comercial.
               </p>
             </div>
 
@@ -592,7 +599,9 @@ export default function LeadsPage() {
 
                   <div>
                     <p className="text-xs uppercase tracking-[0.18em] text-slate-400">Status</p>
-                    <p className="mt-2 text-sm font-semibold text-slate-900">{lead.status}</p>
+                    <p className="mt-2 text-sm font-semibold text-slate-900">
+                      {getLeadStatusLabel(lead.status)}
+                    </p>
                   </div>
 
                   <div>

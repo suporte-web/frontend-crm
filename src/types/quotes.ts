@@ -74,6 +74,11 @@ export interface Quote {
   client?: QuoteClient | null;
   prospect?: QuoteProspect | null;
   propostas?: QuotePropostaSummary[];
+  tickets?: Array<{
+    id: string;
+    status?: string;
+    subject?: string;
+  }>;
 }
 
 export interface CreateQuotePayload {
@@ -93,4 +98,9 @@ export interface CreateQuotePayload {
   merchandiseValue: number;
   desiredDeadline?: string;
   notes?: string;
+}
+
+export interface CreateInternalQuotePayload extends CreateQuotePayload {
+  clientId?: string;
+  prospectId?: string;
 }

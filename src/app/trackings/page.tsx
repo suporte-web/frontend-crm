@@ -53,19 +53,28 @@ type TrackingApiItem = {
 };
 
 type TrackingApiResponse = {
-  tracking?: {
-    success?: boolean;
-    message?: string;
-    header?: {
-      remetente?: string;
-      destinatario?: string;
-      [key: string]: unknown;
-    };
-    items?: {
-      item?: TrackingApiItem | TrackingApiItem[];
-    };
+  success?: boolean;
+  message?: string;
+  header?: {
+    remetente?: string;
+    destinatario?: string;
     [key: string]: unknown;
   };
+  tracking?:
+    | TrackingApiItem[]
+    | {
+        success?: boolean;
+        message?: string;
+        header?: {
+          remetente?: string;
+          destinatario?: string;
+          [key: string]: unknown;
+        };
+        items?: {
+          item?: TrackingApiItem | TrackingApiItem[];
+        };
+        [key: string]: unknown;
+      };
   [key: string]: unknown;
 };
 
@@ -130,7 +139,10 @@ function normalizeItems(data: unknown): TrackingApiItem[] {
   if (!isRecord(data)) return [];
 
   const response = data as TrackingApiResponse;
-  const rawItems = response.tracking?.items?.item;
+  const rawTracking = response.tracking;
+  const rawItems = Array.isArray(rawTracking)
+    ? rawTracking
+    : rawTracking?.items?.item;
 
   if (!rawItems) return [];
   if (Array.isArray(rawItems)) return rawItems;
@@ -237,7 +249,7 @@ function findStringByKeys(value: unknown, keys: string[]): string | null {
 }
 
 function getEstimatedDeliveryDate(data: TrackingApiResponse | null) {
-  return findStringByKeys(data, [
+  const explicitValue = findStringByKeys(data, [
     'previsao_entrega',
     'previsaoEntrega',
     'data_previsao_entrega',
@@ -247,6 +259,24 @@ function getEstimatedDeliveryDate(data: TrackingApiResponse | null) {
     'prazoEntrega',
     'previsao',
   ]);
+
+  if (explicitValue) {
+    return explicitValue;
+  }
+
+  const items = normalizeItems(data);
+
+  for (let index = items.length - 1; index >= 0; index -= 1) {
+    const match = items[index]?.descricao?.match(
+      /previs[aã]o de entrega:\s*(\d{2}\/\d{2}\/\d{2,4})/i,
+    );
+
+    if (match) {
+      return match[1];
+    }
+  }
+
+  return null;
 }
 
 function getTransportDocument(data: TrackingApiResponse | null) {
@@ -728,7 +758,7 @@ export default function TrackingsPage() {
     setResponseData(null);
 
     if (!formData.cnpj.trim()) {
-      setErrorMessage('Informe o CNPJ do destinatario.');
+      setErrorMessage('Informe o CNPJ do destinatário.');
       return;
     }
 
@@ -872,8 +902,7 @@ export default function TrackingsPage() {
                   </h2>
 
                   <p className="mt-2 max-w-2xl text-sm leading-6 text-slate-500">
-                    Informe os dados necessários para localizar a encomenda e acompanhar
-                    a movimentação retornada pela transportadora.
+                    Informe os dados necessários para localizar a encomenda.
                   </p>
                 </div>
 
@@ -891,7 +920,7 @@ export default function TrackingsPage() {
               <div className="mt-7 grid grid-cols-1 gap-4 md:grid-cols-2">
                 <div>
                   <label className="mb-2 block text-sm font-semibold text-slate-700">
-                    CNPJ do destinatario
+                    CNPJ do destinatário
                   </label>
 
                   <Input
