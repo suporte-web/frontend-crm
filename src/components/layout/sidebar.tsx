@@ -4,6 +4,7 @@ import type { LucideIcon } from 'lucide-react';
 import {
   Building2,
   ChartSpline,
+  CircleHelp,
   FileText,
   Handshake,
   History,
@@ -49,6 +50,7 @@ const screenIcons: Record<ScreenKey, LucideIcon> = {
   leads: UserPlus,
   entradas: Inbox,
   tickets: Ticket,
+  helpCenter: CircleHelp,
   chat: MessageCircle,
   suppliers: Handshake,
   users: Users,

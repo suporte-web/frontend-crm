@@ -617,7 +617,7 @@ export default function QuoteDetailsPage({
                                   token,
                                 );
                                 setQuote(updated);
-                                setActionMessage("Proposta enviada e registrada na cotacao.");
+                                setActionMessage("Proposta enviada e registrada na cotação.");
                                 setResponseForm({
                                   price: "",
                                   commercialNotes: "",

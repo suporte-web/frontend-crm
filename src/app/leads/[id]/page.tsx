@@ -1,7 +1,7 @@
 'use client';
 
 import Link from 'next/link';
-import { useParams, useRouter } from 'next/navigation';
+import { useParams } from 'next/navigation';
 import { useEffect, useState } from 'react';
 import { AppLayout } from '@/components/layout/app-layout';
 import { FeedbackToast } from '@/components/ui/feedback-toast';
@@ -15,8 +15,6 @@ import {
   convertLeadToClient,
   getLeadById,
 } from '@/services/leads.service';
-import { createInternalQuote } from '@/services/quotes.service';
-import type { CreateInternalQuotePayload } from '@/types/quotes';
 import type { Lead } from '@/types/leads';
 
 const internalRoles = new Set(['ADMIN', 'GESTAO', 'COMERCIAL', 'MARKETING']);
@@ -58,15 +56,12 @@ function getConversionTarget(lead?: Lead | null) {
 
 export default function LeadDetailPage() {
   const { id } = useParams<{ id: string }>();
-  const router = useRouter();
   const { user, token } = useAuth();
   const [lead, setLead] = useState<Lead | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
   const [convertOpen, setConvertOpen] = useState(false);
-  const [quoteOpen, setQuoteOpen] = useState(false);
   const [converting, setConverting] = useState(false);
-  const [savingQuote, setSavingQuote] = useState(false);
   const [convertForm, setConvertForm] = useState({
     document: '',
     password: '',
@@ -76,24 +71,6 @@ export default function LeadDetailPage() {
     companyName: '',
     segment: '',
     status: 'PENDENTE',
-  });
-  const [quoteForm, setQuoteForm] = useState({
-    origin: '',
-    destination: '',
-    serviceType: '',
-    requestType: '',
-    pickupAddress: '',
-    deliveryAddress: '',
-    cargoDescription: '',
-    contactName: '',
-    contactPhone: '',
-    contactEmail: '',
-    weight: '',
-    volume: '',
-    quantity: '',
-    merchandiseValue: '',
-    desiredDeadline: '',
-    notes: '',
   });
   const [toast, setToast] = useState<{
     title: string;
@@ -149,32 +126,6 @@ export default function LeadDetailPage() {
       status: 'PENDENTE',
     });
     setConvertOpen(true);
-  }
-
-  function openQuoteModal() {
-    if (!lead) {
-      return;
-    }
-
-    setQuoteForm({
-      origin: '',
-      destination: '',
-      serviceType: '',
-      requestType: '',
-      pickupAddress: '',
-      deliveryAddress: '',
-      cargoDescription: '',
-      contactName: lead.name ?? '',
-      contactPhone: lead.phone ?? '',
-      contactEmail: lead.email ?? '',
-      weight: '',
-      volume: '',
-      quantity: '',
-      merchandiseValue: '',
-      desiredDeadline: '',
-      notes: lead.notes ?? '',
-    });
-    setQuoteOpen(true);
   }
 
   async function handleConvertLead(event: React.FormEvent<HTMLFormElement>) {
@@ -245,87 +196,6 @@ export default function LeadDetailPage() {
       });
     } finally {
       setConverting(false);
-    }
-  }
-
-  async function handleCreateQuote(event: React.FormEvent<HTMLFormElement>) {
-    event.preventDefault();
-
-    if (!token || !lead) {
-      return;
-    }
-
-    const target = getConversionTarget(lead);
-
-    if (!target.clientId) {
-      setToast({
-        title: 'Converta o lead primeiro',
-        message: 'A proposta deve estar vinculada a um cliente.',
-        variant: 'error',
-      });
-      return;
-    }
-
-    if (
-      !quoteForm.origin.trim() ||
-      !quoteForm.destination.trim() ||
-      !quoteForm.serviceType.trim() ||
-      !quoteForm.merchandiseValue.trim()
-    ) {
-      setToast({
-        title: 'Dados obrigatorios',
-        message: 'Informe origem, destino, servico e valor da mercadoria.',
-        variant: 'error',
-      });
-      return;
-    }
-
-    const payload: CreateInternalQuotePayload = {
-      clientId: target.clientId || undefined,
-      origin: quoteForm.origin.trim(),
-      destination: quoteForm.destination.trim(),
-      serviceType: quoteForm.serviceType.trim(),
-      requestType: quoteForm.requestType.trim() || undefined,
-      pickupAddress: quoteForm.pickupAddress.trim() || undefined,
-      deliveryAddress: quoteForm.deliveryAddress.trim() || undefined,
-      cargoDescription: quoteForm.cargoDescription.trim() || undefined,
-      contactName: quoteForm.contactName.trim() || undefined,
-      contactPhone: quoteForm.contactPhone.trim() || undefined,
-      contactEmail: quoteForm.contactEmail.trim() || undefined,
-      weight: quoteForm.weight ? Number(quoteForm.weight.replace(',', '.')) : undefined,
-      volume: quoteForm.volume ? Number(quoteForm.volume.replace(',', '.')) : undefined,
-      quantity: quoteForm.quantity ? Number(quoteForm.quantity) : undefined,
-      merchandiseValue: Number(quoteForm.merchandiseValue.replace(',', '.')),
-      desiredDeadline: quoteForm.desiredDeadline.trim() || undefined,
-      notes: quoteForm.notes.trim() || undefined,
-    };
-
-    try {
-      setSavingQuote(true);
-      const created = await createInternalQuote(payload, token);
-      setQuoteOpen(false);
-      setToast({
-        title: 'Proposta iniciada',
-        message: 'A tela da proposta foi aberta para preenchimento.',
-        variant: 'success',
-      });
-      const ticketId = created.tickets?.[0]?.id;
-      router.push(
-        ticketId
-          ? `/tickets?ticket=${ticketId}&proposta=new`
-          : `/quotes/${created.id}`,
-      );
-    } catch (quoteError) {
-      setToast({
-        title: 'Falha ao abrir proposta',
-        message:
-          quoteError instanceof Error
-            ? quoteError.message
-            : 'Erro ao abrir proposta.',
-        variant: 'error',
-      });
-    } finally {
-      setSavingQuote(false);
     }
   }
 
@@ -424,49 +294,6 @@ export default function LeadDetailPage() {
                 </p>
               </article>
             </section>
-
-            {isConverted ? (
-              <section className="rounded-[28px] border border-slate-200 bg-white p-6 shadow-sm">
-                <div className="flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between">
-                  <div>
-                    <p className="crm-eyebrow">Proxima etapa</p>
-                    <h2 className="mt-2 text-xl font-bold text-slate-950">
-                      Cliente qualificado
-                    </h2>
-                    <p className="mt-2 text-sm leading-6 text-slate-500">
-                      O lead ja foi convertido. Quando o cliente pedir a
-                      cotacao, abra a proposta preenchida para enviar ao cliente
-                      ou para aprovacao da gestao.
-                    </p>
-                  </div>
-
-                  <div className="flex flex-wrap gap-3">
-                    <button
-                      type="button"
-                      onClick={openQuoteModal}
-                      className="rounded-2xl bg-slate-950 px-4 py-3 text-sm font-semibold text-white transition hover:bg-slate-800"
-                    >
-                      Criar proposta
-                    </button>
-
-                    <button
-                      type="button"
-                      onClick={() =>
-                        setToast({
-                          title: 'Fluxo mantido',
-                          message:
-                            'Sem proposta por enquanto. O comercial pode abrir quando o cliente pedir cotacao.',
-                          variant: 'success',
-                        })
-                      }
-                      className="rounded-2xl border border-slate-300 bg-white px-4 py-3 text-sm font-semibold text-slate-700 transition hover:bg-slate-100"
-                    >
-                      Aguardar cliente
-                    </button>
-                  </div>
-                </div>
-              </section>
-            ) : null}
 
             <section className="grid gap-6 xl:grid-cols-[.95fr_1.05fr]">
               <article className="rounded-[28px] border border-slate-200 bg-white p-6 shadow-sm">
@@ -662,195 +489,6 @@ export default function LeadDetailPage() {
           </div>
         ) : null}
 
-        {quoteOpen ? (
-          <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-950/55 px-4 py-8">
-            <div className="max-h-[calc(100vh-2rem)] w-full max-w-5xl overflow-y-auto rounded-[28px] border border-white/80 bg-white p-6 shadow-[0_32px_90px_rgba(15,23,42,0.2)]">
-              <div className="flex flex-col gap-3 md:flex-row md:items-start md:justify-between">
-                <div>
-                  <p className="crm-eyebrow">Proposta</p>
-                  <h2 className="mt-2 text-2xl font-bold text-slate-950">
-                    Criar proposta
-                  </h2>
-                  <p className="mt-2 text-sm text-slate-500">
-                    Preencha os dados da cotacao para abrir a proposta ja
-                    vinculada ao cliente.
-                  </p>
-                </div>
-                <button
-                  type="button"
-                  onClick={() => setQuoteOpen(false)}
-                  className="rounded-2xl border border-slate-300 px-4 py-2 text-sm font-semibold text-slate-700 transition hover:bg-slate-100"
-                >
-                  Fechar
-                </button>
-              </div>
-
-              <form onSubmit={handleCreateQuote} className="mt-5 grid gap-4 md:grid-cols-2">
-                <input
-                  value={quoteForm.origin}
-                  onChange={(event) =>
-                    setQuoteForm((current) => ({ ...current, origin: event.target.value }))
-                  }
-                  className="crm-input"
-                  placeholder="Origem"
-                />
-                <input
-                  value={quoteForm.destination}
-                  onChange={(event) =>
-                    setQuoteForm((current) => ({ ...current, destination: event.target.value }))
-                  }
-                  className="crm-input"
-                  placeholder="Destino"
-                />
-                <input
-                  value={quoteForm.serviceType}
-                  onChange={(event) =>
-                    setQuoteForm((current) => ({ ...current, serviceType: event.target.value }))
-                  }
-                  className="crm-input"
-                  placeholder="Tipo de servico"
-                />
-                <select
-                  value={quoteForm.requestType}
-                  onChange={(event) =>
-                    setQuoteForm((current) => ({ ...current, requestType: event.target.value }))
-                  }
-                  className="crm-input"
-                >
-                  <option value="">Tipo de solicitacao</option>
-                  <option value="Avulsa">Avulsa</option>
-                  <option value="Contrato">Contrato</option>
-                </select>
-                <input
-                  value={quoteForm.pickupAddress}
-                  onChange={(event) =>
-                    setQuoteForm((current) => ({ ...current, pickupAddress: event.target.value }))
-                  }
-                  className="crm-input"
-                  placeholder="Endereco de coleta"
-                />
-                <input
-                  value={quoteForm.deliveryAddress}
-                  onChange={(event) =>
-                    setQuoteForm((current) => ({ ...current, deliveryAddress: event.target.value }))
-                  }
-                  className="crm-input"
-                  placeholder="Endereco de entrega"
-                />
-                <textarea
-                  value={quoteForm.cargoDescription}
-                  onChange={(event) =>
-                    setQuoteForm((current) => ({
-                      ...current,
-                      cargoDescription: event.target.value,
-                    }))
-                  }
-                  className="crm-textarea md:col-span-2"
-                  rows={3}
-                  placeholder="Descricao da carga / servico"
-                />
-                <input
-                  value={quoteForm.contactName}
-                  onChange={(event) =>
-                    setQuoteForm((current) => ({ ...current, contactName: event.target.value }))
-                  }
-                  className="crm-input"
-                  placeholder="Contato responsavel"
-                />
-                <input
-                  value={quoteForm.contactPhone}
-                  onChange={(event) =>
-                    setQuoteForm((current) => ({ ...current, contactPhone: event.target.value }))
-                  }
-                  className="crm-input"
-                  placeholder="Telefone do contato"
-                />
-                <input
-                  type="email"
-                  value={quoteForm.contactEmail}
-                  onChange={(event) =>
-                    setQuoteForm((current) => ({ ...current, contactEmail: event.target.value }))
-                  }
-                  className="crm-input"
-                  placeholder="E-mail do contato"
-                />
-                <input
-                  value={quoteForm.merchandiseValue}
-                  onChange={(event) =>
-                    setQuoteForm((current) => ({
-                      ...current,
-                      merchandiseValue: event.target.value,
-                    }))
-                  }
-                  className="crm-input"
-                  placeholder="Valor da mercadoria"
-                />
-                <input
-                  value={quoteForm.weight}
-                  onChange={(event) =>
-                    setQuoteForm((current) => ({ ...current, weight: event.target.value }))
-                  }
-                  className="crm-input"
-                  placeholder="Peso estimado"
-                />
-                <input
-                  value={quoteForm.volume}
-                  onChange={(event) =>
-                    setQuoteForm((current) => ({ ...current, volume: event.target.value }))
-                  }
-                  className="crm-input"
-                  placeholder="Volume"
-                />
-                <input
-                  type="number"
-                  value={quoteForm.quantity}
-                  onChange={(event) =>
-                    setQuoteForm((current) => ({ ...current, quantity: event.target.value }))
-                  }
-                  className="crm-input"
-                  placeholder="Quantidade"
-                />
-                <input
-                  value={quoteForm.desiredDeadline}
-                  onChange={(event) =>
-                    setQuoteForm((current) => ({
-                      ...current,
-                      desiredDeadline: event.target.value,
-                    }))
-                  }
-                  className="crm-input"
-                  placeholder="Prazo desejado"
-                />
-                <textarea
-                  value={quoteForm.notes}
-                  onChange={(event) =>
-                    setQuoteForm((current) => ({ ...current, notes: event.target.value }))
-                  }
-                  className="crm-textarea md:col-span-2"
-                  rows={3}
-                  placeholder="Observacoes"
-                />
-
-                <div className="flex justify-end gap-3 md:col-span-2">
-                  <button
-                    type="button"
-                    onClick={() => setQuoteOpen(false)}
-                    className="rounded-2xl border border-slate-300 px-4 py-3 text-sm font-semibold text-slate-700 transition hover:bg-slate-100"
-                  >
-                    Cancelar
-                  </button>
-                  <button
-                    type="submit"
-                    disabled={savingQuote}
-                    className="rounded-2xl bg-slate-950 px-5 py-3 text-sm font-semibold text-white transition hover:bg-slate-800 disabled:opacity-60"
-                  >
-                    {savingQuote ? 'Salvando...' : 'Abrir proposta'}
-                  </button>
-                </div>
-              </form>
-            </div>
-          </div>
-        ) : null}
       </div>
       <FeedbackToast
         open={!!toast}

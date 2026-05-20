@@ -422,8 +422,7 @@ function ClientDashboard({
             </h1>
 
             <p className="mt-3 max-w-2xl text-sm leading-7 text-slate-500">
-              Ola, {userName}. Veja novidades, campanhas, vídeos e acessos rapidos
-              para rastreamento, suporte e relacionamento.
+              Olá, {userName}. Veja novidades, campanhas, vídeos e notícias selecionadas para você.
             </p>
           </div>
 

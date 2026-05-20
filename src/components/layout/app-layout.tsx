@@ -2,6 +2,7 @@
 
 import { SidebarInset, SidebarProvider } from '@/components/ui/sidebar';
 import { TooltipProvider } from '@/components/ui/tooltip';
+import { FloatingHelpAssistant } from '@/components/help-center/floating-help-assistant';
 import { Header } from './header';
 import { ProtectedRoute } from './protected-route';
 import { AppSidebar } from './sidebar';
@@ -25,6 +26,7 @@ export function AppLayout({
                 <div className="mx-auto w-full max-w-[1580px] px-4 py-5 md:px-6 md:py-6 xl:px-7">
                   {children}
                 </div>
+                <FloatingHelpAssistant />
               </main>
             </SidebarInset>
           </div>

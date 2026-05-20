@@ -461,7 +461,7 @@ function getTrackingStages(items: TrackingApiItem[]): TrackingStage[] {
     },
     {
       title: 'Em rota',
-      description: 'Carga em transito ou em roteiro de entrega.',
+      description: 'Carga em trânsito ou em roteiro de entrega.',
       icon: Truck,
       reached: hasTransit || hasDelivered,
       current: currentStageIndex === 2,
@@ -469,7 +469,7 @@ function getTrackingStages(items: TrackingApiItem[]): TrackingStage[] {
     },
     {
       title: 'Entregue',
-      description: 'Recebimento confirmado pelo destinatario.',
+      description: 'Recebimento confirmado pelo destinatário.',
       icon: CheckCircle2,
       reached: hasDelivered,
       current: currentStageIndex === 3,
@@ -1109,7 +1109,7 @@ export default function TrackingsPage() {
                 <div className="flex items-start justify-between gap-4">
                   <div className="min-w-0">
                     <p className="text-sm font-medium text-slate-500">
-                      Ocorrencia atual
+                      Ocorrência atual
                     </p>
 
                     <div className="mt-3 flex flex-wrap items-center gap-2">
@@ -1205,10 +1205,7 @@ export default function TrackingsPage() {
                       Etapas da encomenda
                     </h2>
 
-                    <p className="mt-2 max-w-2xl text-sm leading-6 text-slate-500">
-                      A leitura abaixo usa as ocorrencias da API para mostrar a evolucao
-                      operacional da carga.
-                    </p>
+                    
                   </div>
 
                   <div className="w-fit rounded-full border border-slate-200 bg-slate-50 px-3 py-1 text-xs font-semibold text-slate-600">
@@ -1336,8 +1333,7 @@ export default function TrackingsPage() {
         </h2>
 
         <p className="mt-2 max-w-2xl text-sm leading-6 text-slate-500">
-          Eventos retornados pela consulta de rastreamento, com destaque para
-          ocorrência, local e data do registro.
+          Eventos retornados pela consulta de rastreamento.
         </p>
       </div>
 

@@ -27,7 +27,7 @@ import type {
 const entityLabels: Record<string, string> = {
   LEAD: "Lead",
   CLIENTE: "Cliente",
-  COTACAO: "Cotação",
+  COTAÇÃO: "Cotação",
   PROPOSTA: "Proposta",
   TICKET: "Ticket",
 };

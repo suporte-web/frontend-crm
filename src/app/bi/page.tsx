@@ -227,8 +227,8 @@ export default function BusinessIntelligencePage() {
 
     if (metrics.openQuotes > metrics.answeredQuotes) {
       signals.push({
-        title: 'Cotacoes a responder',
-        text: `${metrics.openQuotes} cotacao(oes) ainda estao em recebimento ou analise.`,
+        title: 'Cotações a responder',
+        text: `${metrics.openQuotes} cotação(ões) ainda estão em recebimento ou análise.`,
         tone: 'red',
       });
     }
@@ -275,7 +275,6 @@ export default function BusinessIntelligencePage() {
                 BI estratégico do funil de vendas
               </h1>
               <p className="mt-3 max-w-3xl text-sm leading-6 text-white/78">
-                Visão executiva de leads, oportunidades, cotacoes e tickets para impulsionar resultados.
               </p>
             </div>
 

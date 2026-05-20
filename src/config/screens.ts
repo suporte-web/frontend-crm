@@ -10,6 +10,7 @@ export type ScreenKey =
   | 'leads'
   | 'entradas'
   | 'tickets'
+  | 'helpCenter'
   | 'chat'
   | 'suppliers'
   | 'users'
@@ -77,6 +78,12 @@ export const appScreens: AppScreen[] = [
     href: '/tickets',
     label: 'Tickets',
     roles: ['ADMIN', 'GESTAO', 'COMERCIAL', 'CLIENTE'],
+  },
+  {
+    key: 'helpCenter',
+    href: '/help-center',
+    label: 'Central de Ajuda',
+    roles: ['ADMIN', 'GESTAO', 'COMERCIAL', 'MARKETING'],
   },
   {
     key: 'chat',
