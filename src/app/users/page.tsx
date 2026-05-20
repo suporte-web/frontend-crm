@@ -16,7 +16,7 @@ import type {
   User,
   UserRole,
 } from '../../types/user';
-import { appScreens } from '@/config/screens';
+import { profilePermissionItems } from '@/config/screens';
 import { useAuth } from '@/context/auth-context';
 
 const roles: UserRole[] = [
@@ -189,20 +189,24 @@ export default function UsersPage() {
     );
   }, [screenPermissions, selectedPermissionRole]);
 
-  function isScreenChecked(screen: (typeof appScreens)[number]) {
-    const permission = selectedRolePermissions.get(screen.key);
+  function isPermissionItemChecked(
+    permissionItem: (typeof profilePermissionItems)[number],
+  ) {
+    const permission = selectedRolePermissions.get(permissionItem.key);
 
     return permission
       ? permission.isEnabled
-      : screen.roles.includes(selectedPermissionRole);
+      : permissionItem.roles.includes(selectedPermissionRole);
   }
 
-  async function handleToggleScreenPermission(screenKey: string) {
-    const screen = appScreens.find((item) => item.key === screenKey);
+  async function handleTogglePermissionItem(screenKey: string) {
+    const permissionItem = profilePermissionItems.find(
+      (item) => item.key === screenKey,
+    );
 
-    if (!screen) return;
+    if (!permissionItem) return;
 
-    const nextPermissions = appScreens.map((item) => {
+    const nextPermissions = profilePermissionItems.map((item) => {
       const existingPermission = selectedRolePermissions.get(item.key);
       const currentValue = existingPermission
         ? existingPermission.isEnabled
@@ -601,10 +605,10 @@ export default function UsersPage() {
             <div className="flex flex-col gap-4 border-b border-slate-200 pb-5 lg:flex-row lg:items-end lg:justify-between">
               <div>
                 <h2 className="text-lg font-semibold text-slate-900">
-                  Telas por perfil
+                  Telas e recursos por perfil
                 </h2>
                 <p className="mt-1 text-sm text-slate-500">
-                  Marque as telas liberadas para cada perfil do portal.
+                  Marque as telas e recursos liberados para cada perfil do portal.
                 </p>
               </div>
 
@@ -627,15 +631,15 @@ export default function UsersPage() {
             </div>
 
             <div className="mt-5 grid gap-3 sm:grid-cols-2 xl:grid-cols-3">
-              {appScreens.map((screen) => {
-                const checked = isScreenChecked(screen);
-                const allowedByBaseRole = screen.roles.includes(
+              {profilePermissionItems.map((permissionItem) => {
+                const checked = isPermissionItemChecked(permissionItem);
+                const allowedByBaseRole = permissionItem.roles.includes(
                   selectedPermissionRole,
                 );
 
                 return (
                   <label
-                    key={screen.key}
+                    key={permissionItem.key}
                     className={`flex min-h-[72px] cursor-pointer items-center justify-between gap-4 rounded-2xl border px-4 py-3 transition ${
                       checked
                         ? 'border-blue-200 bg-blue-50'
@@ -644,7 +648,7 @@ export default function UsersPage() {
                   >
                     <span>
                       <span className="block text-sm font-semibold text-slate-900">
-                        {screen.label}
+                        {permissionItem.label}
                       </span>
                       <span className="mt-1 block text-xs text-slate-500">
                         {allowedByBaseRole
@@ -656,7 +660,7 @@ export default function UsersPage() {
                     <input
                       type="checkbox"
                       checked={checked}
-                      onChange={() => handleToggleScreenPermission(screen.key)}
+                      onChange={() => handleTogglePermissionItem(permissionItem.key)}
                       className="h-5 w-5 rounded border-slate-300 text-blue-600 focus:ring-blue-500"
                     />
                   </label>

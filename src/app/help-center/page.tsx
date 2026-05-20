@@ -307,12 +307,12 @@ export default function HelpCenterPage() {
                 Central de Ajuda
               </p>
               <h1 className="mt-2 text-3xl font-bold text-slate-950">
-                {isClient ? greeting : 'Artigos e chat de atendimento'}
+                {isClient ? greeting : 'Chat de atendimento'}
               </h1>
               {isClient ? (
                 <p className="mt-3 max-w-2xl text-sm leading-6 text-slate-600">
                   Sou sua assistente virtual da Central de Ajuda. Posso orientar
-                  sobre cotacoes, rastreamento e suporte usando as informacoes
+                  sobre cotações, rastreamento e suporte usando as informacoes
                   cadastradas pela equipe.
                 </p>
               ) : null}
@@ -348,7 +348,7 @@ export default function HelpCenterPage() {
                 <div className="flex items-center justify-between gap-4">
                   <div>
                     <h2 className="text-xl font-bold text-slate-950">
-                      {editingId ? 'Editar artigo' : 'Novo artigo'}
+                      {editingId ? 'Editar artigo' : 'Agente de respostas'}
                     </h2>
                     <p className="mt-1 text-sm text-slate-500">
                       Cadastre respostas que o chat pode usar.
@@ -500,7 +500,7 @@ export default function HelpCenterPage() {
 
               <article className="rounded-2xl border border-slate-200 bg-white p-6 shadow-sm">
                 <h2 className="text-xl font-bold text-slate-950">
-                  Artigos cadastrados
+                  Perguntas e respostas cadastradas.
                 </h2>
 
                 {loadingArticles ? (

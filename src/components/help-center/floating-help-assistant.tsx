@@ -10,6 +10,10 @@ import {
   X,
 } from 'lucide-react';
 import { useAuth } from '@/context/auth-context';
+import {
+  isPermissionEnabledForRole,
+  virtualAssistantPermission,
+} from '@/config/screens';
 import { askHelpCenter } from '@/services/help-center.service';
 
 type ChatMessage = {
@@ -48,7 +52,7 @@ export function FloatingHelpAssistant() {
   const [message, setMessage] = useState('');
   const [sending, setSending] = useState(false);
   const [error, setError] = useState('');
-  const firstName = user?.name?.split(' ')[0] || 'cliente';
+  const firstName = user?.name?.split(' ')[0] || 'usuário';
   const greeting = useMemo(
     () => `${getGreeting()}, ${firstName}. Como posso te ajudar?`,
     [firstName],
@@ -61,7 +65,13 @@ export function FloatingHelpAssistant() {
     },
   ]);
 
-  if (user?.role !== 'CLIENTE') {
+  if (
+    !isPermissionEnabledForRole(
+      virtualAssistantPermission,
+      user?.role,
+      user?.screenPermissions,
+    )
+  ) {
     return null;
   }
 

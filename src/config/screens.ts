@@ -17,9 +17,17 @@ export type ScreenKey =
   | 'marketing'
   | 'logs';
 
+export type ProfilePermissionKey = ScreenKey | 'virtualAssistant';
+
 export type AppScreen = {
   key: ScreenKey;
   href: string;
+  label: string;
+  roles: UserRole[];
+};
+
+export type ProfilePermissionItem = {
+  key: ProfilePermissionKey;
   label: string;
   roles: UserRole[];
 };
@@ -117,8 +125,25 @@ export const appScreens: AppScreen[] = [
   },
 ];
 
-export function isScreenEnabledForRole(
-  screen: AppScreen,
+export const profilePermissionItems: ProfilePermissionItem[] = [
+  ...appScreens.map(({ key, label, roles }) => ({
+    key,
+    label,
+    roles,
+  })),
+  {
+    key: 'virtualAssistant',
+    label: 'Assistente Virtual',
+    roles: ['ADMIN', 'CLIENTE'],
+  },
+];
+
+export const virtualAssistantPermission = profilePermissionItems.find(
+  (item) => item.key === 'virtualAssistant',
+)!;
+
+export function isPermissionEnabledForRole(
+  permissionItem: ProfilePermissionItem,
   role?: UserRole,
   permissions?: Array<{ screenKey: string; isEnabled: boolean }>,
 ) {
@@ -126,7 +151,17 @@ export function isScreenEnabledForRole(
     return false;
   }
 
-  const permission = permissions?.find((item) => item.screenKey === screen.key);
+  const permission = permissions?.find(
+    (item) => item.screenKey === permissionItem.key,
+  );
 
-  return permission ? permission.isEnabled : screen.roles.includes(role);
+  return permission ? permission.isEnabled : permissionItem.roles.includes(role);
+}
+
+export function isScreenEnabledForRole(
+  screen: AppScreen,
+  role?: UserRole,
+  permissions?: Array<{ screenKey: string; isEnabled: boolean }>,
+) {
+  return isPermissionEnabledForRole(screen, role, permissions);
 }

@@ -259,7 +259,7 @@ export default function LeadsPage() {
               <p className="crm-eyebrow">Captação</p>
               <h1 className="crm-page-title">Leads por cadastro manual, CSV e WhatsApp</h1>
               <p className="crm-page-copy">
-                Validar e fazer um fluxo
+                Falta fazer o fluxo
               </p>
             </div>
 

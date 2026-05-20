@@ -524,6 +524,13 @@ export default function TicketsPage() {
     (selectedPropostaId === "new" ||
       !selectedProposta ||
       propostaEditableStatuses.includes(selectedProposta.status));
+  const selectedTicketHasClientPortalUser = Boolean(
+    selectedTicket?.clientId &&
+      selectedTicket.client?.user?.id &&
+      selectedTicket.client.user.email,
+  );
+  const canCreateProposalForSelectedTicket =
+    isCommercial && selectedTicketHasClientPortalUser;
 
   async function loadTickets() {
     if (!token) {
@@ -1430,7 +1437,7 @@ export default function TicketsPage() {
                           </select>
                         ) : null}
 
-                        {isCommercial ? (
+                        {canCreateProposalForSelectedTicket ? (
                           <button
                             type="button"
                             onClick={() => {
@@ -1675,7 +1682,16 @@ export default function TicketsPage() {
                       </div>
                     )}
 
-                    {isCommercial ? (
+                    {isCommercial && !selectedTicketHasClientPortalUser ? (
+                      <div className="mt-4 rounded-2xl border border-amber-200 bg-amber-50 p-4 text-sm text-amber-800">
+                        Para criar e enviar proposta, este ticket precisa estar
+                        vinculado a um cliente com usuÃ¡rio e e-mail no portal.
+                        Converta o lead em cliente ou crie a cotaÃ§Ã£o pelo fluxo
+                        de cliente antes de enviar a proposta.
+                      </div>
+                    ) : null}
+
+                    {canCreateProposalForSelectedTicket ? (
                       <form
                         onSubmit={handleProposalSubmit}
                         className="mt-4 rounded-2xl border border-slate-200 bg-white p-4"
