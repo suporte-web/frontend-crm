@@ -31,7 +31,8 @@ body {
 }
 
 @theme inline {
-  --font-heading: "Aptos Display", "Arial Narrow", "Bahnschrift SemiCondensed", sans-serif;
+  --font-heading:
+    "Aptos Display", "Arial Narrow", "Bahnschrift SemiCondensed", sans-serif;
   --font-sans: "Aptos", "Segoe UI", "Trebuchet MS", sans-serif;
   --color-sidebar-ring: var(--sidebar-ring);
   --color-sidebar-border: var(--sidebar-border);
@@ -286,7 +287,7 @@ body {
   color: #94a3b8 !important;
 }
 
-.dark [class*='shadow-'] {
+.dark [class*="shadow-"] {
   --tw-shadow-color: rgb(0 0 0 / 0.35);
 }
 
@@ -437,7 +438,11 @@ body {
 .hover\:bg-amber-100:hover,
 .hover\:bg-emerald-100:hover,
 .hover\:bg-green-100:hover {
-  background-color: color-mix(in srgb, var(--brand-yellow) 26%, white) !important;
+  background-color: color-mix(
+    in srgb,
+    var(--brand-yellow) 26%,
+    white
+  ) !important;
   color: var(--brand-graphite) !important;
 }
 
@@ -451,7 +456,8 @@ body {
 .from-rose-600 {
   --tw-gradient-from: var(--brand-red) var(--tw-gradient-from-position) !important;
   --tw-gradient-to: rgb(236 49 57 / 0) var(--tw-gradient-to-position) !important;
-  --tw-gradient-stops: var(--tw-gradient-from), var(--tw-gradient-to) !important;
+  --tw-gradient-stops:
+    var(--tw-gradient-from), var(--tw-gradient-to) !important;
 }
 
 .to-blue-600,
@@ -495,4 +501,148 @@ body {
 .dark .text-emerald-700,
 .dark .text-emerald-600 {
   color: var(--brand-yellow) !important;
+}
+
+.crm-app-surface {
+  color: var(--brand-graphite);
+}
+
+.crm-app-surface > [class*="min-h-screen"] {
+  min-height: auto !important;
+  background: transparent !important;
+}
+
+.crm-app-surface
+  :where(section, article, div)[class*="border"][class*="bg-white"] {
+  border-color: rgb(255 255 255 / 0.82) !important;
+  background: rgb(255 255 255 / 0.9) !important;
+  box-shadow: 0 18px 48px rgb(15 23 42 / 0.055) !important;
+  backdrop-filter: blur(16px);
+}
+
+.crm-app-surface
+  :where(
+    section,
+    article,
+    div
+  )[class*="rounded-md"][class*="border"][class*="bg-white"],
+.crm-app-surface
+  :where(
+    section,
+    article,
+    div
+  )[class*="rounded-lg"][class*="border"][class*="bg-white"],
+.crm-app-surface
+  :where(
+    section,
+    article,
+    div
+  )[class*="rounded-xl"][class*="border"][class*="bg-white"] {
+  border-radius: 18px !important;
+}
+
+.crm-app-surface :where(form)[class*="border"][class*="bg-white"] {
+  border-color: rgb(255 255 255 / 0.82) !important;
+  border-radius: 18px !important;
+  background: rgb(255 255 255 / 0.9) !important;
+  box-shadow: 0 18px 48px rgb(15 23 42 / 0.055) !important;
+  backdrop-filter: blur(16px);
+}
+
+.crm-app-surface > div > div:first-child[class*="border-b"][class*="pb-4"],
+.crm-app-surface > div > div:first-child[class*="border-b"][class*="pb-5"] {
+  border: 1px solid rgb(255 255 255 / 0.82) !important;
+  border-radius: 20px !important;
+  background: rgb(255 255 255 / 0.9) !important;
+  padding: 24px !important;
+  box-shadow: 0 18px 48px rgb(15 23 42 / 0.055) !important;
+  backdrop-filter: blur(16px);
+}
+
+.crm-app-surface
+  :where(input:not([type="checkbox"]):not([type="radio"]), select, textarea) {
+  min-height: 44px;
+  border-color: rgb(203 213 225 / 0.9) !important;
+  border-radius: 16px !important;
+  background-color: rgb(255 255 255 / 0.95) !important;
+  color: var(--brand-graphite) !important;
+  box-shadow: inset 0 1px 0 rgb(255 255 255 / 0.72);
+}
+
+.crm-app-surface
+  :where(
+    input:not([type="checkbox"]):not([type="radio"]),
+    select,
+    textarea
+  ):focus {
+  border-color: var(--brand-red) !important;
+  box-shadow: 0 0 0 3px rgb(236 49 57 / 0.12);
+}
+
+.crm-app-surface :where(button, a)[class*="rounded-md"] {
+  border-radius: 10px !important;
+}
+
+.crm-app-surface :where(button, a)[class*="bg-slate-950"],
+.crm-app-surface :where(button, a)[class*="bg-slate-900"],
+.crm-app-surface :where(button, a)[class*="bg-blue-600"] {
+  box-shadow: 0 14px 30px rgb(52 52 52 / 0.14);
+}
+
+.crm-app-surface table {
+  border-color: rgb(226 232 240 / 0.95);
+}
+
+.crm-app-surface thead,
+.crm-app-surface thead[class*="bg-slate-50"] {
+  background: rgb(248 246 241 / 0.92) !important;
+  color: rgb(100 116 139) !important;
+}
+
+.crm-app-surface th {
+  font-size: 12px;
+  font-weight: 700;
+  letter-spacing: 0;
+  text-transform: none;
+}
+
+.crm-app-surface tbody tr {
+  transition: background-color 160ms ease;
+}
+
+.crm-app-surface tbody tr:hover {
+  background: rgb(248 250 252 / 0.82);
+}
+
+.crm-app-surface [class*="border-b"][class*="border-slate-200"] {
+  border-color: rgb(226 232 240 / 0.86) !important;
+}
+
+.crm-app-surface [class*="bg-slate-100"] {
+  background-color: rgb(248 246 241 / 0.9) !important;
+}
+
+.crm-app-surface [class*="bg-slate-50"] {
+  background-color: rgb(250 248 244 / 0.86) !important;
+}
+
+.dark
+  .crm-app-surface
+  :where(section, article, div, form)[class*="border"][class*="bg-white"],
+.dark
+  .crm-app-surface
+  :where(section, article, div, form)[class*="border"][class*="bg-slate-50"],
+.dark
+  .crm-app-surface
+  :where(section, article, div, form)[class*="border"][class*="bg-slate-100"] {
+  border-color: rgb(51 65 85 / 0.85) !important;
+  background: rgb(15 23 42 / 0.92) !important;
+}
+
+.dark
+  .crm-app-surface
+  :where(input:not([type="checkbox"]):not([type="radio"]), select, textarea) {
+  border-color: rgb(51 65 85 / 0.9) !important;
+  background-color: rgb(2 6 23 / 0.78) !important;
+  color: #f8fafc !important;
 }

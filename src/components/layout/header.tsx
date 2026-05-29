@@ -1,109 +1,109 @@
-'use client';
+"use client";
 
-import { useEffect, useState } from 'react';
-import {
-  Bell,
-  CheckCheck,
-  Grid3X3,
-  LogOut,
-  Moon,
-  Settings,
-  Sun,
-  UserCircle,
-  X,
-} from 'lucide-react';
-import Link from 'next/link';
-import { usePathname, useRouter } from 'next/navigation';
-import { useAuth } from '@/context/auth-context';
-import { useTheme } from '@/context/theme-context';
-import { SidebarTrigger } from '@/components/ui/sidebar';
-import { appScreens, isScreenEnabledForRole } from '@/config/screens';
+import { useEffect, useState } from "react";
+import { Bell, CheckCheck, Grid3X3, Moon, Settings, Sun } from "lucide-react";
+import Link from "next/link";
+import { usePathname, useRouter } from "next/navigation";
+import { useAuth } from "@/context/auth-context";
+import { useTheme } from "@/context/theme-context";
+import { SidebarTrigger } from "@/components/ui/sidebar";
+import { appScreens, isScreenEnabledForRole } from "@/config/screens";
 import {
   getNotifications,
   getUnreadNotificationCount,
   markAllNotificationsRead,
   markNotificationRead,
-} from '@/services/notifications.service';
-import type { CrmNotification } from '@/types/notifications';
+} from "@/services/notifications.service";
+import type { CrmNotification } from "@/types/notifications";
 
 function getPageTitle(pathname: string, role?: string) {
-  if (pathname.startsWith('/dashboard')) {
-    return role === 'CLIENTE' ? 'Canal do Cliente' : 'Dashboard';
+  if (pathname.startsWith("/dashboard")) {
+    return role === "CLIENTE" ? "Canal do Cliente" : "Dashboard";
   }
 
-  if (pathname.startsWith('/bi')) return 'BI Comercial';
-  if (pathname.startsWith('/trackings')) return 'Rastreamento';
-  if (pathname.startsWith('/quotes')) return 'Cotações';
-  if (pathname.startsWith('/clients')) return 'Clientes';
-  if (pathname.startsWith('/leads')) return 'Leads';
-  if (pathname.startsWith('/tickets')) return 'Tickets';
-  if (pathname.startsWith('/users')) return 'Usuários';
-  if (pathname.startsWith('/marketing')) return 'Marketing';
-  if (pathname.startsWith('/entregas')) return 'Entregas';
-  if (pathname.startsWith('/entradas')) return 'Entradas';
-  if (pathname.startsWith('/suppliers')) return 'Fornecedores';
-  if (pathname.startsWith('/chat')) return 'Chat';
-  if (pathname.startsWith('/logs')) return 'Logs';
+  if (pathname.startsWith("/bi")) return "BI Comercial";
+  if (pathname.startsWith("/trackings")) return "Rastreamento";
+  if (pathname.startsWith("/quotes")) return "Cotações";
+  if (pathname.startsWith("/clients")) return "Clientes";
+  if (pathname.startsWith("/leads")) return "Leads";
+  if (pathname.startsWith("/tickets")) return "Tickets";
+  if (pathname.startsWith("/users")) return "Usuários";
+  if (pathname.startsWith("/marketing")) return "Marketing";
+  if (pathname.startsWith("/entregas")) return "Entregas";
+  if (pathname.startsWith("/entradas")) return "Central de Entradas";
+  if (pathname.startsWith("/suppliers")) return "Fornecedores";
+  if (pathname.startsWith("/chat")) return "Chat";
+  if (pathname.startsWith("/logs")) return "Logs";
 
-  return 'CRM';
+  return "CRM";
 }
 
 function getRoleLabel(role?: string) {
-  if (!role) return 'Perfil';
+  if (!role) return "Perfil";
 
   const labels: Record<string, string> = {
-    ADMIN: 'Administrador',
-    GESTAO: 'Gestão',
-    COMERCIAL: 'Comercial',
-    MARKETING: 'Marketing',
-    CLIENTE: 'Cliente',
+    ADMIN: "Administrador",
+    GESTAO: "Gestão",
+    COMERCIAL: "Comercial",
+    MARKETING: "Marketing",
+    CLIENTE: "Cliente",
   };
 
   return labels[role] ?? role;
 }
 
 function getNotificationToneClass(notification: CrmNotification) {
-  const type = String(notification.metadata?.type ?? '').toUpperCase();
+  const type = String(notification.metadata?.type ?? "").toUpperCase();
   const text = `${notification.title} ${notification.message}`.toLowerCase();
 
-  if (type === 'CHAT_MESSAGE' || text.includes('chat') || text.includes('mensagem')) {
+  if (
+    type === "CHAT_MESSAGE" ||
+    text.includes("chat") ||
+    text.includes("mensagem")
+  ) {
     return notification.readAt
-      ? 'border-blue-100 bg-white hover:bg-blue-50'
-      : 'border-blue-100 bg-blue-50 hover:bg-blue-100';
+      ? "border-blue-100 bg-white hover:bg-blue-50"
+      : "border-blue-100 bg-blue-50 hover:bg-blue-100";
   }
 
-  if (text.includes('aprov')) {
+  if (text.includes("aprov")) {
     return notification.readAt
-      ? 'border-emerald-100 bg-white hover:bg-emerald-50'
-      : 'border-emerald-100 bg-emerald-50 hover:bg-emerald-100';
+      ? "border-emerald-100 bg-white hover:bg-emerald-50"
+      : "border-emerald-100 bg-emerald-50 hover:bg-emerald-100";
   }
 
-  if (text.includes('ajuste') || text.includes('aguardando')) {
+  if (text.includes("ajuste") || text.includes("aguardando")) {
     return notification.readAt
-      ? 'border-amber-100 bg-white hover:bg-amber-50'
-      : 'border-amber-100 bg-amber-50 hover:bg-amber-100';
+      ? "border-amber-100 bg-white hover:bg-amber-50"
+      : "border-amber-100 bg-amber-50 hover:bg-amber-100";
   }
 
   return notification.readAt
-    ? 'border-slate-100 bg-white hover:bg-slate-50'
-    : 'border-rose-100 bg-rose-50 hover:bg-rose-100';
+    ? "border-slate-100 bg-white hover:bg-slate-50"
+    : "border-rose-100 bg-rose-50 hover:bg-rose-100";
 }
 
 function getNotificationDotClass(notification: CrmNotification) {
-  const type = String(notification.metadata?.type ?? '').toUpperCase();
+  const type = String(notification.metadata?.type ?? "").toUpperCase();
   const text = `${notification.title} ${notification.message}`.toLowerCase();
 
-  if (notification.readAt) return 'bg-slate-300';
-  if (type === 'CHAT_MESSAGE' || text.includes('chat') || text.includes('mensagem')) return 'bg-blue-600';
-  if (text.includes('aprov')) return 'bg-emerald-600';
-  if (text.includes('ajuste') || text.includes('aguardando')) return 'bg-amber-500';
-  return 'bg-[#ec3139]';
+  if (notification.readAt) return "bg-slate-300";
+  if (
+    type === "CHAT_MESSAGE" ||
+    text.includes("chat") ||
+    text.includes("mensagem")
+  )
+    return "bg-blue-600";
+  if (text.includes("aprov")) return "bg-emerald-600";
+  if (text.includes("ajuste") || text.includes("aguardando"))
+    return "bg-amber-500";
+  return "bg-[#ec3139]";
 }
 
 export function Header() {
   const pathname = usePathname();
   const router = useRouter();
-  const { user, token, signOut } = useAuth();
+  const { user, token } = useAuth();
   const { theme, setTheme } = useTheme();
 
   const [appsOpen, setAppsOpen] = useState(false);
@@ -111,16 +111,11 @@ export function Header() {
   const [notifications, setNotifications] = useState<CrmNotification[]>([]);
   const [unreadCount, setUnreadCount] = useState(0);
 
-  const userFirstName = user?.name?.split(' ').filter(Boolean)[0] ?? 'Usuário';
+  const userFirstName = user?.name?.split(" ").filter(Boolean)[0] ?? "Usuário";
   const pageTitle = getPageTitle(pathname, user?.role);
   const availableScreens = appScreens.filter((item) =>
     isScreenEnabledForRole(item, user?.role, user?.screenPermissions),
   );
-
-  function handleSignOut() {
-    signOut();
-    router.replace('/login');
-  }
 
   async function loadNotifications() {
     if (!token) {
@@ -164,13 +159,15 @@ export function Header() {
 
     setNotificationsOpen(false);
 
-    const targetLink = notification.link?.startsWith('/tickets/')
-      ? `/tickets?ticket=${notification.link.split('/').pop()}`
+    const targetLink = notification.link?.startsWith("/tickets/")
+      ? `/tickets?ticket=${notification.link.split("/").pop()}`
       : notification.link;
 
     router.push(
       targetLink ||
-        (notification.ticketId ? `/tickets?ticket=${notification.ticketId}` : '/tickets'),
+        (notification.ticketId
+          ? `/tickets?ticket=${notification.ticketId}`
+          : "/tickets"),
     );
   }
 
@@ -192,35 +189,30 @@ export function Header() {
 
   return (
     <header className="sticky top-0 z-40 w-full">
-      <div className="flex h-[52px] items-center justify-between bg-[#343434] px-3 text-white shadow-[0_1px_0_rgba(255,255,255,0.08)] md:px-5">
-        <div className="flex min-w-0 items-center gap-3">
-          <SidebarTrigger className="h-9 w-9 rounded-md text-white hover:bg-white/10 md:hidden" />
+      <div className="flex h-[72px] items-center justify-between border-b border-[#343434]/8 bg-[#fbf7ef] px-4 text-[#343434] shadow-[0_10px_30px_rgba(52,52,52,0.04)] md:px-8">
+        <div className="flex min-w-0 items-center gap-4">
+          <SidebarTrigger className="h-10 w-10 rounded-md text-[#343434] hover:bg-[#343434]/8" />
 
-          <div className="flex items-center gap-2">
-            <span className="grid h-7 w-7 place-items-center rounded-md bg-[#ec3139] text-sm font-black leading-none text-white shadow-[0_0_0_2px_rgba(250,181,25,0.22)]">
-              P
-            </span>
-            <span className="text-lg font-black leading-none tracking-normal text-white">
-              CRM
-            </span>
-          </div>
-
-          <span className="hidden h-5 w-px bg-white/30 sm:block" />
-
-          <span className="hidden max-w-[280px] truncate text-xs font-semibold uppercase tracking-normal text-white sm:block">
-            {user?.name ?? 'Pizzattolog'} {user?.role ? `(${getRoleLabel(user.role)})` : ''}
-          </span>
+          <h1 className="truncate text-lg font-bold leading-none text-[#343434]">
+            {pageTitle}
+          </h1>
         </div>
 
         <div className="flex shrink-0 items-center gap-1.5">
           <button
             type="button"
-            onClick={() => setTheme(theme === 'dark' ? 'light' : 'dark')}
-            className="grid h-9 w-9 place-items-center rounded-md text-white/88 transition hover:bg-white/10 hover:text-white"
-            aria-label={theme === 'dark' ? 'Ativar tema claro' : 'Ativar tema escuro'}
-            title={theme === 'dark' ? 'Tema claro' : 'Tema escuro'}
+            onClick={() => setTheme(theme === "dark" ? "light" : "dark")}
+            className="grid h-9 w-9 place-items-center rounded-md text-[#343434]/78 transition hover:bg-[#343434]/8 hover:text-[#343434]"
+            aria-label={
+              theme === "dark" ? "Ativar tema claro" : "Ativar tema escuro"
+            }
+            title={theme === "dark" ? "Tema claro" : "Tema escuro"}
           >
-            {theme === 'dark' ? <Sun className="h-4.5 w-4.5" /> : <Moon className="h-4.5 w-4.5" />}
+            {theme === "dark" ? (
+              <Sun className="h-4.5 w-4.5" />
+            ) : (
+              <Moon className="h-4.5 w-4.5" />
+            )}
           </button>
 
           <div className="relative hidden sm:block">
@@ -230,7 +222,7 @@ export function Header() {
                 setAppsOpen((current) => !current);
                 setNotificationsOpen(false);
               }}
-              className="grid h-9 w-9 place-items-center rounded-md text-white/88 transition hover:bg-white/10 hover:text-white"
+              className="grid h-9 w-9 place-items-center rounded-md text-[#343434]/78 transition hover:bg-[#343434]/8 hover:text-[#343434]"
               aria-label="Aplicativos"
               title="Aplicativos"
             >
@@ -246,8 +238,8 @@ export function Header() {
                     onClick={() => setAppsOpen(false)}
                     className="rounded-md px-3 py-2 text-xs font-semibold transition hover:bg-[#fff7df] hover:text-[#ec3139]"
                   >
-                    {item.href === '/dashboard' && user?.role === 'CLIENTE'
-                      ? 'Canal do Cliente'
+                    {item.href === "/dashboard" && user?.role === "CLIENTE"
+                      ? "Canal do Cliente"
                       : item.label}
                   </Link>
                 ))}
@@ -257,8 +249,8 @@ export function Header() {
 
           <button
             type="button"
-            onClick={() => router.push('/change-password')}
-            className="hidden h-9 w-9 place-items-center rounded-md text-white/88 transition hover:bg-white/10 hover:text-white md:grid"
+            onClick={() => router.push("/change-password")}
+            className="hidden h-9 w-9 place-items-center rounded-md text-[#343434]/78 transition hover:bg-[#343434]/8 hover:text-[#343434] md:grid"
             aria-label="Configurações da conta"
             title="Configurações da conta"
           >
@@ -273,7 +265,7 @@ export function Header() {
                 setAppsOpen(false);
                 loadNotifications().catch(() => undefined);
               }}
-              className="relative grid h-9 w-9 place-items-center rounded-md text-white/88 transition hover:bg-white/10 hover:text-white"
+              className="relative grid h-9 w-9 place-items-center rounded-md text-[#343434]/78 transition hover:bg-[#343434]/8 hover:text-[#343434]"
               aria-label="Notificações"
               title="Notificações"
             >
@@ -281,7 +273,7 @@ export function Header() {
 
               {unreadCount > 0 ? (
                 <span className="absolute right-1 top-1 flex h-4 min-w-4 items-center justify-center rounded-full bg-[#ec3139] px-1 text-[10px] font-black text-white ring-1 ring-[#fab519]">
-                  {unreadCount > 9 ? '9+' : unreadCount}
+                  {unreadCount > 9 ? "9+" : unreadCount}
                 </span>
               ) : null}
             </button>
@@ -319,9 +311,9 @@ export function Header() {
                     >
                       <div className="flex items-start gap-3">
                         <span
-                          className={`mt-1 h-2 w-2 shrink-0 rounded-full ${
-                            getNotificationDotClass(notification)
-                          }`}
+                          className={`mt-1 h-2 w-2 shrink-0 rounded-full ${getNotificationDotClass(
+                            notification,
+                          )}`}
                         />
 
                         <div className="min-w-0">
@@ -347,29 +339,18 @@ export function Header() {
             ) : null}
           </div>
 
-          <span className="ml-1 hidden max-w-[120px] truncate text-xs font-semibold text-white sm:inline">
-            {userFirstName}
-          </span>
-
-          <UserCircle className="hidden h-7 w-7 text-white/90 sm:block" />
-
-          <button
-            type="button"
-            onClick={handleSignOut}
-            className="grid h-9 w-9 place-items-center rounded-md text-white/88 transition hover:bg-white/10 hover:text-white"
-            aria-label="Sair"
-            title="Sair"
+          <div
+            className="ml-2 hidden items-center gap-2 rounded-full border border-[#343434]/10 bg-white/85 py-1 pl-1 pr-3 text-[#343434] shadow-[0_8px_22px_rgba(52,52,52,0.08)] sm:flex"
+            title={`${user?.name ?? "Usuário"}${
+              user?.role ? ` (${getRoleLabel(user.role)})` : ""
+            }`}
           >
-            <LogOut className="h-4.5 w-4.5" />
-          </button>
-        </div>
-      </div>
-
-      <div className="flex h-[42px] items-end border-b border-[#ec3139]/45 bg-white pl-3 shadow-[0_1px_0_rgba(52,52,52,0.05)] md:pl-[72px]">
-        <div className="flex h-full items-end">
-          <div className="flex h-[38px] min-w-[112px] items-center justify-between gap-3 rounded-t-md bg-[#ec3139] px-4 text-sm font-bold text-white shadow-[inset_0_-1px_0_rgba(255,255,255,0.16)]">
-            <span className="truncate">{pageTitle}</span>
-            <X className="h-3.5 w-3.5 opacity-80" />
+            <span className="grid h-9 w-9 place-items-center rounded-full bg-[#ec3139] text-xs font-black uppercase text-white ring-2 ring-[#fab519]/55">
+              {userFirstName.slice(0, 1)}
+            </span>
+            <span className="max-w-[130px] truncate text-sm font-bold text-[#343434]">
+              {userFirstName}
+            </span>
           </div>
         </div>
       </div>

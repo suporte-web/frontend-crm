@@ -1,15 +1,25 @@
-'use client';
+"use client";
 
-import type { LucideIcon } from 'lucide-react';
+import Badge from "@mui/material/Badge";
+import Box from "@mui/material/Box";
+import Collapse from "@mui/material/Collapse";
+import List from "@mui/material/List";
+import ListItemButton from "@mui/material/ListItemButton";
+import ListItemIcon from "@mui/material/ListItemIcon";
+import ListItemText from "@mui/material/ListItemText";
+import Tooltip from "@mui/material/Tooltip";
+import type { LucideIcon } from "lucide-react";
 import {
   Building2,
   ChartSpline,
+  ChevronDown,
   CircleHelp,
   FileText,
   Handshake,
   History,
   Inbox,
   LayoutDashboard,
+  LogOut,
   Megaphone,
   MessageCircle,
   PackageSearch,
@@ -17,28 +27,27 @@ import {
   Truck,
   UserPlus,
   Users,
-} from 'lucide-react';
-import Link from 'next/link';
-import { usePathname } from 'next/navigation';
-import { useEffect, useMemo, useState } from 'react';
-import { useAuth } from '@/context/auth-context';
+} from "lucide-react";
+import Link from "next/link";
+import { usePathname, useRouter } from "next/navigation";
+import { useEffect, useMemo, useState } from "react";
+import { useAuth } from "@/context/auth-context";
 import {
   appScreens,
   isScreenEnabledForRole,
+  type AppScreen,
   type ScreenKey,
-} from '@/config/screens';
-import { getNotifications } from '@/services/notifications.service';
-import type { CrmNotification } from '@/types/notifications';
+} from "@/config/screens";
+import { getNotifications } from "@/services/notifications.service";
+import type { CrmNotification } from "@/types/notifications";
 import {
   Sidebar,
   SidebarContent,
+  SidebarFooter,
   SidebarHeader,
-  SidebarMenu,
-  SidebarMenuButton,
-  SidebarMenuItem,
   SidebarRail,
-  SidebarTrigger,
-} from '@/components/ui/sidebar';
+  useSidebar,
+} from "@/components/ui/sidebar";
 
 const screenIcons: Record<ScreenKey, LucideIcon> = {
   dashboard: LayoutDashboard,
@@ -58,25 +67,160 @@ const screenIcons: Record<ScreenKey, LucideIcon> = {
   logs: History,
 };
 
+const sidebarSections: Array<{
+  id: string;
+  title?: string;
+  icon?: LucideIcon;
+  keys: ScreenKey[];
+}> = [
+  { id: "dashboard", keys: ["dashboard"] },
+  {
+    id: "crm-comercial",
+    title: "CRM Comercial",
+    icon: ChartSpline,
+    keys: ["clients", "leads", "quotes", "bi"],
+  },
+  {
+    id: "operacao",
+    title: "Operação",
+    icon: Truck,
+    keys: ["entregas", "trackings", "suppliers"],
+  },
+  {
+    id: "atendimento",
+    title: "Atendimento",
+    icon: Inbox,
+    keys: ["entradas", "tickets", "chat", "helpCenter"],
+  },
+  {
+    id: "administracao",
+    title: "Administração",
+    icon: Users,
+    keys: ["users", "marketing", "logs"],
+  },
+];
+
+const sidebarFontFamily = '"Inter Variable", Inter, system-ui, sans-serif';
+
+const menuTextSx = {
+  display: "block",
+  overflow: "hidden",
+  textOverflow: "ellipsis",
+  whiteSpace: "nowrap",
+  fontFamily: sidebarFontFamily,
+  fontSize: 14,
+  fontWeight: 700,
+  letterSpacing: 0,
+  color: "inherit",
+};
+
+const subMenuTextSx = {
+  ...menuTextSx,
+  fontWeight: 500,
+};
+
+const itemButtonSx = {
+  minHeight: 55,
+  borderRadius: "10px",
+  px: 2,
+  fontFamily: sidebarFontFamily,
+  fontSize: 14,
+  color: "#fff",
+  transition:
+    "background-color 160ms ease, color 160ms ease, box-shadow 160ms ease",
+  "&:hover": {
+    bgcolor: "rgba(255,255,255,0.08)",
+    color: "#fff",
+  },
+  "&.Mui-selected": {
+    bgcolor: "#ec3139",
+    color: "#fff",
+    boxShadow: "0 18px 32px rgba(236,49,57,0.24)",
+  },
+  "&.Mui-selected:hover": {
+    bgcolor: "#d82931",
+  },
+  ".MuiListItemIcon-root": {
+    minWidth: 52,
+    color: "#fab519",
+    transition: "color 160ms ease",
+  },
+  "&.Mui-selected .MuiListItemIcon-root": {
+    color: "#fff",
+  },
+};
+
+const subItemButtonSx = {
+  minHeight: 45,
+  borderRadius: "12px",
+  px: 1.5,
+  fontFamily: sidebarFontFamily,
+  fontSize: 14,
+  color: "#fff",
+  transition:
+    "background-color 160ms ease, color 160ms ease, box-shadow 160ms ease",
+  "&:hover": {
+    bgcolor: "rgba(255,255,255,0.08)",
+    color: "#fff",
+  },
+  "&.Mui-selected": {
+    bgcolor: "#fff2c2",
+    color: "#343434",
+    boxShadow: "0 14px 26px rgba(0,0,0,0.18)",
+  },
+  "&.Mui-selected:hover": {
+    bgcolor: "#fff2c2",
+  },
+  ".MuiListItemIcon-root": {
+    minWidth: 44,
+    color: "inherit",
+  },
+};
+
 function isUnreadChatNotification(notification: CrmNotification) {
   if (notification.readAt) return false;
 
-  const type = String(notification.metadata?.type ?? '').toUpperCase();
+  const type = String(notification.metadata?.type ?? "").toUpperCase();
   const text = `${notification.title} ${notification.message}`.toLowerCase();
 
-  return type === 'CHAT_MESSAGE' || text.includes('chat') || text.includes('mensagem');
+  return (
+    type === "CHAT_MESSAGE" ||
+    text.includes("chat") ||
+    text.includes("mensagem")
+  );
+}
+
+function isScreenActive(pathname: string, href: string) {
+  return pathname === href || pathname.startsWith(`${href}/`);
+}
+
+function getScreenLabel(item: AppScreen, role?: string) {
+  return item.href === "/dashboard" && role === "CLIENTE"
+    ? "Canal do Cliente"
+    : item.label;
 }
 
 export function AppSidebar() {
   const pathname = usePathname();
-  const { user, token } = useAuth();
+  const router = useRouter();
+  const { toggleSidebar } = useSidebar();
+  const { user, token, signOut } = useAuth();
   const [unreadChatCount, setUnreadChatCount] = useState(0);
+  const [openSections, setOpenSections] = useState<Record<string, boolean>>({});
 
   const filteredMenu = appScreens.filter((item) =>
     isScreenEnabledForRole(item, user?.role, user?.screenPermissions),
   );
+  const filteredSections = sidebarSections
+    .map((section) => ({
+      ...section,
+      items: section.keys
+        .map((key) => filteredMenu.find((item) => item.key === key))
+        .filter((item): item is AppScreen => Boolean(item)),
+    }))
+    .filter((section) => section.items.length > 0);
   const chatBadgeLabel = useMemo(
-    () => (unreadChatCount > 9 ? '9+' : String(unreadChatCount)),
+    () => (unreadChatCount > 9 ? "9+" : String(unreadChatCount)),
     [unreadChatCount],
   );
 
@@ -107,71 +251,247 @@ export function AppSidebar() {
     };
   }, [token, pathname]);
 
+  function handleSignOut() {
+    signOut();
+    router.replace("/login");
+  }
+
   return (
     <Sidebar
       collapsible="icon"
-      className="!top-[94px] !h-[calc(100svh-94px)] border-r border-black/20 bg-[linear-gradient(180deg,#343434_0%,#2d2d2d_48%,#242424_100%)] text-slate-100"
+      className="!top-0 z-50 !h-svh border-r border-black/20 bg-[linear-gradient(180deg,#343434_0%,#2f2f2f_52%,#242424_100%)] text-slate-100"
     >
-      <SidebarHeader className="border-b border-white/8 bg-transparent px-2 py-2">
-        <div className="flex items-center gap-2 group-data-[collapsible=icon]:justify-center">
-          <SidebarTrigger className="h-12 w-14 rounded-md bg-[#ec3139] text-white shadow-[0_10px_22px_rgba(236,49,57,0.22)] transition hover:bg-[#d82931] group-data-[collapsible=icon]:h-12 group-data-[collapsible=icon]:w-14" />
+      <SidebarHeader className="bg-transparent px-6 pb-8 pt-8 group-data-[collapsible=icon]:px-2 group-data-[collapsible=icon]:pb-3 group-data-[collapsible=icon]:pt-4">
+        <Box className="flex items-center justify-start gap-2.5 group-data-[collapsible=icon]:justify-center">
+          <button
+            type="button"
+            onClick={toggleSidebar}
+            className="grid h-[72px] w-[72px] shrink-0 place-items-center overflow-hidden rounded-xl bg-white p-2 shadow-[0_18px_34px_rgba(236,49,57,0.16)] ring-1 ring-white/10 transition hover:bg-[#fff7df] group-data-[collapsible=icon]:h-11 group-data-[collapsible=icon]:w-11 group-data-[collapsible=icon]:rounded-md group-data-[collapsible=icon]:p-1.5"
+            aria-label="Alternar menu lateral"
+            title="Alternar menu lateral"
+          >
+            <img
+              src="/logopizzatto.png"
+              alt="Pizzattolog"
+              className="h-full w-full object-contain"
+            />
+          </button>
 
-          <div className="min-w-0 group-data-[collapsible=icon]:hidden">
-            <p className="text-[10px] font-semibold uppercase tracking-[0.18em] text-[#fab519]">
+          <Box className="min-w-0 group-data-[collapsible=icon]:hidden">
+            <Box
+              component="p"
+              className="text-[10px] font-bold uppercase leading-none tracking-[0.18em] text-[#fab519]"
+              sx={{ fontFamily: sidebarFontFamily }}
+            >
               CRM Portal
-            </p>
+            </Box>
 
-            <h2 className="truncate text-base font-bold leading-tight text-white">
+            <Box
+              component="h2"
+              className="mt-2 truncate text-sm font-semibold leading-none text-white"
+              sx={{ fontFamily: sidebarFontFamily }}
+            >
               Pizzattolog
-            </h2>
-          </div>
-        </div>
+            </Box>
+          </Box>
+        </Box>
       </SidebarHeader>
 
-      <SidebarContent className="bg-transparent px-2 py-3">
-        <SidebarMenu className="space-y-2">
-          {filteredMenu.map((item) => {
-            const active =
-              pathname === item.href || pathname.startsWith(`${item.href}/`);
-            const Icon = screenIcons[item.key];
-            const label =
-              item.href === '/dashboard' && user?.role === 'CLIENTE'
-                ? 'Canal do Cliente'
-                : item.label;
+      <SidebarContent className="bg-transparent px-4 py-2 group-data-[collapsible=icon]:px-2">
+        <Box
+          component="nav"
+          aria-label="Navegação principal"
+          className="flex flex-col gap-2 group-data-[collapsible=icon]:gap-2"
+        >
+          {filteredSections.map((section) => {
+            const sectionActive = section.items.some((item) =>
+              isScreenActive(pathname, item.href),
+            );
+            const sectionOpen = openSections[section.id] ?? sectionActive;
+
+            if (!section.title) {
+              return (
+                <List
+                  key={section.id}
+                  disablePadding
+                  sx={{ display: "grid", gap: 0.5 }}
+                >
+                  {section.items.map((item) => {
+                    const active = isScreenActive(pathname, item.href);
+                    const Icon = screenIcons[item.key];
+                    const label = getScreenLabel(item, user?.role);
+
+                    return (
+                      <Tooltip
+                        key={item.href}
+                        title={label}
+                        placement="right"
+                        arrow
+                      >
+                        <ListItemButton
+                          component={Link}
+                          href={item.href}
+                          selected={active}
+                          sx={itemButtonSx}
+                          className="relative group-data-[collapsible=icon]:h-11! group-data-[collapsible=icon]:w-14! group-data-[collapsible=icon]:justify-center group-data-[collapsible=icon]:px-0!"
+                        >
+                          {active ? (
+                            <Box className="absolute -right-2 top-1/2 hidden h-6 w-1 -translate-y-1/2 rounded-l-full bg-[#fab519] group-data-[collapsible=icon]:block" />
+                          ) : null}
+
+                          <ListItemIcon className="group-data-[collapsible=icon]:min-w-0!">
+                            <Icon className="h-4.5 w-4.5" />
+                          </ListItemIcon>
+
+                          <ListItemText
+                            primary={
+                              <Box component="span" sx={menuTextSx}>
+                                {label}
+                              </Box>
+                            }
+                            className="group-data-[collapsible=icon]:hidden"
+                          />
+                        </ListItemButton>
+                      </Tooltip>
+                    );
+                  })}
+                </List>
+              );
+            }
+
+            const SectionIcon = section.icon;
 
             return (
-              <SidebarMenuItem key={item.href}>
-                <SidebarMenuButton
-                  asChild
-                  isActive={active}
-                  tooltip={label}
-                  className="group/menu-button relative h-11 overflow-visible rounded-md px-2 text-sm font-medium text-white/78 transition-all duration-200 hover:bg-white/[0.08] hover:text-white data-[active=true]:bg-white data-[active=true]:text-[#343434] data-[active=true]:shadow-[0_12px_22px_rgba(0,0,0,0.18)] group-data-[collapsible=icon]:h-11! group-data-[collapsible=icon]:w-14! group-data-[collapsible=icon]:justify-center group-data-[collapsible=icon]:px-0!"
+              <List
+                key={section.id}
+                disablePadding
+                sx={{ display: "grid", gap: 0.5 }}
+              >
+                <Tooltip title={section.title} placement="right" arrow>
+                  <ListItemButton
+                    selected={sectionActive}
+                    aria-expanded={sectionOpen}
+                    onClick={() =>
+                      setOpenSections((current) => ({
+                        ...current,
+                        [section.id]: !(current[section.id] ?? sectionActive),
+                      }))
+                    }
+                    sx={itemButtonSx}
+                    className="group-data-[collapsible=icon]:h-11! group-data-[collapsible=icon]:w-14! group-data-[collapsible=icon]:justify-center group-data-[collapsible=icon]:px-0!"
+                  >
+                    <ListItemIcon className="group-data-[collapsible=icon]:min-w-0!">
+                      {SectionIcon ? (
+                        <SectionIcon className="h-4.5 w-4.5" />
+                      ) : null}
+                    </ListItemIcon>
+
+                    <ListItemText
+                      primary={
+                        <Box component="span" sx={menuTextSx}>
+                          {section.title}
+                        </Box>
+                      }
+                      className="group-data-[collapsible=icon]:hidden"
+                    />
+
+                    <ChevronDown
+                      className={`h-4 w-4 text-white/55 transition-transform group-data-[collapsible=icon]:hidden ${
+                        sectionOpen ? "rotate-180" : ""
+                      }`}
+                    />
+                  </ListItemButton>
+                </Tooltip>
+
+                <Collapse
+                  in={sectionOpen}
+                  timeout={180}
+                  unmountOnExit
+                  className="group-data-[collapsible=icon]:hidden"
                 >
-                  <Link href={item.href}>
-                    {active ? (
-                      <span className="absolute -right-2 top-1/2 hidden h-6 w-1 -translate-y-1/2 rounded-l-full bg-[#fab519] group-data-[collapsible=icon]:block" />
-                    ) : null}
+                  <List
+                    disablePadding
+                    sx={{
+                      mx: 0.5,
+                      my: 0.5,
+                      p: 1.5,
+                      border: "1px solid rgba(255,255,255,0.06)",
+                      borderRadius: "14px",
+                      bgcolor: "rgba(0,0,0,0.12)",
+                      boxShadow: "inset 0 1px 0 rgba(255,255,255,0.04)",
+                      display: "grid",
+                      gap: 0.75,
+                    }}
+                  >
+                    {section.items.map((item) => {
+                      const active = isScreenActive(pathname, item.href);
+                      const Icon = screenIcons[item.key];
 
-                    <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-md bg-transparent text-white/82 transition group-hover/menu-button:text-white group-data-[active=true]/menu-button:text-[#ec3139]">
-                      <Icon className="h-4.5 w-4.5" />
-                    </span>
+                      return (
+                        <ListItemButton
+                          key={item.href}
+                          component={Link}
+                          href={item.href}
+                          selected={active}
+                          sx={subItemButtonSx}
+                        >
+                          <ListItemIcon>
+                            <Icon className="h-4 w-4" />
+                          </ListItemIcon>
 
-                    {item.key === 'chat' && unreadChatCount > 0 ? (
-                      <span className="absolute right-2 top-1 flex h-4 min-w-4 items-center justify-center rounded-full bg-[#ec3139] px-1 text-[10px] font-black leading-none text-white ring-2 ring-[#fab519] group-data-[collapsible=icon]:right-1 group-data-[collapsible=icon]:top-0">
-                        {chatBadgeLabel}
-                      </span>
-                    ) : null}
+                          <ListItemText
+                            primary={
+                              <Box component="span" sx={subMenuTextSx}>
+                                {item.label}
+                              </Box>
+                            }
+                          />
 
-                    <span className="truncate font-semibold group-data-[collapsible=icon]:hidden">
-                      {label}
-                    </span>
-                  </Link>
-                </SidebarMenuButton>
-              </SidebarMenuItem>
+                          {item.key === "chat" && unreadChatCount > 0 ? (
+                            <Badge
+                              badgeContent={chatBadgeLabel}
+                              sx={{
+                                "& .MuiBadge-badge": {
+                                  bgcolor: "#ec3139",
+                                  color: "#fff",
+                                  fontWeight: 900,
+                                  fontSize: 10,
+                                  height: 16,
+                                  minWidth: 16,
+                                  border: "2px solid #fab519",
+                                },
+                              }}
+                            />
+                          ) : null}
+                        </ListItemButton>
+                      );
+                    })}
+                  </List>
+                </Collapse>
+              </List>
             );
           })}
-        </SidebarMenu>
+        </Box>
       </SidebarContent>
+
+      <SidebarFooter className="mt-auto border-t border-white/8 bg-transparent px-4 py-4 group-data-[collapsible=icon]:px-2">
+        <button
+          type="button"
+          onClick={handleSignOut}
+          className="flex h-11 w-full items-center gap-3 rounded-md px-2 text-sm font-semibold text-white/78 transition hover:bg-white/[0.08] hover:text-white group-data-[collapsible=icon]:w-14 group-data-[collapsible=icon]:justify-center group-data-[collapsible=icon]:px-0"
+          style={{ fontFamily: sidebarFontFamily, fontSize: 14 }}
+          aria-label="Sair"
+          title="Sair"
+        >
+          <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-md text-[#fab519] transition group-hover:text-[#ffd267]">
+            <LogOut className="h-4.5 w-4.5" />
+          </span>
+
+          <span className="truncate group-data-[collapsible=icon]:hidden">
+            Sair
+          </span>
+        </button>
+      </SidebarFooter>
 
       <SidebarRail />
     </Sidebar>

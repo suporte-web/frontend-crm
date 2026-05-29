@@ -1,10 +1,9 @@
-'use client';
+"use client";
 
+import Avatar from "@mui/material/Avatar";
 
-import Avatar from '@mui/material/Avatar';
-
-import Link from 'next/link';
-import { useEffect, useMemo, useState } from 'react';
+import Link from "next/link";
+import { useEffect, useMemo, useState } from "react";
 import {
   Activity,
   ArrowRight,
@@ -18,20 +17,21 @@ import {
   Sparkles,
   Ticket,
   TrendingUp,
+  Users,
   type LucideIcon,
-} from 'lucide-react';
-import { AppLayout } from '@/components/layout/app-layout';
-import { useAuth } from '@/context/auth-context';
+} from "lucide-react";
+import { AppLayout } from "@/components/layout/app-layout";
+import { useAuth } from "@/context/auth-context";
 import {
   formatOpportunityStage,
   getCrmDashboardSummary,
-} from '@/services/crm.service';
+} from "@/services/crm.service";
 import {
   getPortalContents,
   getPublishedPortalContents,
-} from '@/services/portal-content.service';
-import type { CrmDashboardSummary } from '@/types/crm';
-import type { ContentType, PortalContent } from '@/types/portal-content';
+} from "@/services/portal-content.service";
+import type { CrmDashboardSummary } from "@/types/crm";
+import type { ContentType, PortalContent } from "@/types/portal-content";
 
 const internalShortcuts: Array<{
   label: string;
@@ -40,77 +40,77 @@ const internalShortcuts: Array<{
   icon: LucideIcon;
   accent: string;
 }> = [
-    {
-      label: 'Clientes',
-      href: '/clients',
-      helper: 'Relação comercial e base ativa',
-      icon: Building2,
-      accent: 'from-[#ec3139] to-[#eb2c38]',
-    },
-    {
-      label: 'Cotações',
-      href: '/quotes',
-      helper: 'Pipeline e resposta comercial',
-      icon: FileText,
-      accent: 'from-[#fab519] to-[#ec3139]',
-    },
-    {
-      label: 'Rastreamento',
-      href: '/trackings',
-      helper: 'Consulta operacional e andamento',
-      icon: Activity,
-      accent: 'from-[#343434] to-[#ec3139]',
-    },
-    {
-      label: 'Tickets',
-      href: '/tickets',
-      helper: 'Suporte e atendimento',
-      icon: Ticket,
-      accent: 'from-[#fab519] to-[#eb2c38]',
-    },
-    {
-      label: 'Portal',
-      href: '/portal-content',
-      helper: 'Comunicação, campanhas e publicações',
-      icon: Megaphone,
-      accent: 'from-[#ec3139] to-[#fab519]',
-    },
-  ];
+  {
+    label: "Clientes",
+    href: "/clients",
+    helper: "Relação comercial e base ativa",
+    icon: Building2,
+    accent: "from-[#ec3139] to-[#eb2c38]",
+  },
+  {
+    label: "Cotações",
+    href: "/quotes",
+    helper: "Pipeline e resposta comercial",
+    icon: FileText,
+    accent: "from-[#fab519] to-[#ec3139]",
+  },
+  {
+    label: "Rastreamento",
+    href: "/trackings",
+    helper: "Consulta operacional e andamento",
+    icon: Activity,
+    accent: "from-[#343434] to-[#ec3139]",
+  },
+  {
+    label: "Tickets",
+    href: "/tickets",
+    helper: "Suporte e atendimento",
+    icon: Ticket,
+    accent: "from-[#fab519] to-[#eb2c38]",
+  },
+  {
+    label: "Portal",
+    href: "/portal-content",
+    helper: "Comunicação, campanhas e publicações",
+    icon: Megaphone,
+    accent: "from-[#ec3139] to-[#fab519]",
+  },
+];
 
 function formatDate(date?: string | null) {
   if (!date) {
-    return '-';
+    return "-";
   }
 
-  return new Intl.DateTimeFormat('pt-BR', {
-    dateStyle: 'short',
-    timeStyle: 'short',
+  return new Intl.DateTimeFormat("pt-BR", {
+    dateStyle: "short",
+    timeStyle: "short",
   }).format(new Date(date));
 }
 
 function formatCurrency(value: number) {
-  return new Intl.NumberFormat('pt-BR', {
-    style: 'currency',
-    currency: 'BRL',
+  return new Intl.NumberFormat("pt-BR", {
+    style: "currency",
+    currency: "BRL",
   }).format(value);
 }
 
 function getUserInitials(name: string) {
   return name
     .trim()
-    .split(' ')
+    .split(" ")
     .filter(Boolean)
     .map((part) => part[0])
-    .join('')
+    .join("")
     .slice(0, 2)
     .toUpperCase();
 }
 
 function getTypeLabel(type: ContentType) {
   const labels: Record<ContentType, string> = {
-    NOTICIA: 'Noticia',
-    INFORMACAO: 'Campanha',
-    VLOG: 'Vídeo',
+    NOTICIA: "Noticia",
+    INFORMACAO: "Campanha",
+    VLOG: "Vídeo",
   };
 
   return labels[type];
@@ -118,9 +118,9 @@ function getTypeLabel(type: ContentType) {
 
 function getTypeBadgeClass(type: ContentType) {
   const classes: Record<ContentType, string> = {
-    NOTICIA: 'bg-[#fab519] text-[#343434]',
-    INFORMACAO: 'bg-[#fab519] text-[#343434]',
-    VLOG: 'bg-[#fab519] text-[#343434]',
+    NOTICIA: "bg-[#fab519] text-[#343434]",
+    INFORMACAO: "bg-[#fab519] text-[#343434]",
+    VLOG: "bg-[#fab519] text-[#343434]",
   };
 
   return classes[type];
@@ -128,9 +128,9 @@ function getTypeBadgeClass(type: ContentType) {
 
 function getClientFeedAccent(type: ContentType) {
   const classes: Record<ContentType, string> = {
-    NOTICIA: 'from-[#343434] via-[#ec3139] to-[#eb2c38]',
-    INFORMACAO: 'from-[#343434] via-[#fab519] to-[#ec3139]',
-    VLOG: 'from-[#343434] via-[#eb2c38] to-[#fab519]',
+    NOTICIA: "from-[#343434] via-[#ec3139] to-[#eb2c38]",
+    INFORMACAO: "from-[#343434] via-[#fab519] to-[#ec3139]",
+    VLOG: "from-[#343434] via-[#eb2c38] to-[#fab519]",
   };
 
   return classes[type];
@@ -140,27 +140,23 @@ function getPublishedActionUrl(item: PortalContent) {
   return item.ctaUrl || item.videoUrl || null;
 }
 
-function MarketingDashboard({
-  userName,
-}: {
-  userName: string;
-}) {
+function MarketingDashboard({ userName }: { userName: string }) {
   const [contents, setContents] = useState<PortalContent[]>([]);
   const [loading, setLoading] = useState(true);
-  const [error, setError] = useState('');
+  const [error, setError] = useState("");
 
   useEffect(() => {
     async function loadContents() {
       try {
         setLoading(true);
-        setError('');
+        setError("");
         const data = await getPortalContents();
         setContents(data);
       } catch (loadError) {
         setError(
           loadError instanceof Error
             ? loadError.message
-            : 'Erro ao carregar publicações.',
+            : "Erro ao carregar publicações.",
         );
       } finally {
         setLoading(false);
@@ -176,11 +172,11 @@ function MarketingDashboard({
       published: contents.filter((item) => item.isPublished).length,
       drafts: contents.filter((item) => !item.isPublished).length,
       highlights: contents.filter((item) => item.highlight).length,
-      videos: contents.filter((item) => item.type === 'VLOG').length,
+      videos: contents.filter((item) => item.type === "VLOG").length,
     };
   }, [contents]);
 
-  const firstName = userName?.trim()?.split(' ')[0] || 'Marketing';
+  const firstName = userName?.trim()?.split(" ")[0] || "Marketing";
 
   return (
     <div className="mx-auto flex w-full max-w-7xl flex-col gap-6">
@@ -224,10 +220,10 @@ function MarketingDashboard({
 
           <div className="grid gap-3 sm:grid-cols-2">
             {[
-              ['Publicados', summary.published],
-              ['Rascunhos', summary.drafts],
-              ['Destaques', summary.highlights],
-              ['Vídeos', summary.videos],
+              ["Publicados", summary.published],
+              ["Rascunhos", summary.drafts],
+              ["Destaques", summary.highlights],
+              ["Vídeos", summary.videos],
             ].map(([label, value]) => (
               <article
                 key={label}
@@ -316,7 +312,7 @@ function MarketingDashboard({
                     </span>
 
                     <span className="rounded-full bg-white/18 px-3 py-1 text-xs font-bold text-white backdrop-blur">
-                      {item.isPublished ? 'Publicado' : 'Rascunho'}
+                      {item.isPublished ? "Publicado" : "Rascunho"}
                     </span>
                   </div>
 
@@ -365,27 +361,23 @@ function MarketingDashboard({
   );
 }
 
-function ClientDashboard({
-  userName,
-}: {
-  userName: string;
-}) {
+function ClientDashboard({ userName }: { userName: string }) {
   const [contents, setContents] = useState<PortalContent[]>([]);
   const [loading, setLoading] = useState(true);
-  const [error, setError] = useState('');
+  const [error, setError] = useState("");
 
   useEffect(() => {
     async function loadContents() {
       try {
         setLoading(true);
-        setError('');
+        setError("");
         const data = await getPublishedPortalContents();
         setContents(data);
       } catch (loadError) {
         setError(
           loadError instanceof Error
             ? loadError.message
-            : 'Erro ao carregar o conteúdo do portal.',
+            : "Erro ao carregar o conteúdo do portal.",
         );
       } finally {
         setLoading(false);
@@ -397,9 +389,9 @@ function ClientDashboard({
 
   const grouped = useMemo(() => {
     return {
-      noticias: contents.filter((item) => item.type === 'NOTICIA'),
-      informacoes: contents.filter((item) => item.type === 'INFORMACAO'),
-      vlogs: contents.filter((item) => item.type === 'VLOG'),
+      noticias: contents.filter((item) => item.type === "NOTICIA"),
+      informacoes: contents.filter((item) => item.type === "INFORMACAO"),
+      vlogs: contents.filter((item) => item.type === "VLOG"),
       highlights: contents.filter((item) => item.highlight),
     };
   }, [contents]);
@@ -417,12 +409,9 @@ function ClientDashboard({
               Canal do Cliente
             </span>
 
-            <h1 className="mt-4 text-3xl font-bold tracking-tight text-[#343434] md:text-4xl">
-              Canal do Cliente
-            </h1>
-
             <p className="mt-3 max-w-2xl text-sm leading-7 text-slate-500">
-              Olá, {userName}. Veja novidades, campanhas, vídeos e notícias selecionadas para você.
+              Olá, {userName}. Veja novidades, campanhas, vídeos e notícias
+              selecionadas para você.
             </p>
           </div>
 
@@ -436,7 +425,7 @@ function ClientDashboard({
 
             <Link
               href="/tickets"
-                className="inline-flex items-center justify-center rounded-2xl bg-[#343434] px-5 py-3 text-sm font-semibold text-white transition hover:bg-[#eb2c38]"
+              className="inline-flex items-center justify-center rounded-2xl bg-[#343434] px-5 py-3 text-sm font-semibold text-white transition hover:bg-[#eb2c38]"
             >
               Abrir atendimento
             </Link>
@@ -494,7 +483,9 @@ function ClientDashboard({
                       {item.coverImageUrl ? (
                         <div
                           className="absolute inset-0 bg-cover bg-center transition duration-500 group-hover:scale-105"
-                          style={{ backgroundImage: `url(${item.coverImageUrl})` }}
+                          style={{
+                            backgroundImage: `url(${item.coverImageUrl})`,
+                          }}
                         />
                       ) : (
                         <div
@@ -518,7 +509,7 @@ function ClientDashboard({
 
                       <div className="absolute bottom-4 left-4 right-4 text-white">
                         <p className="text-xs uppercase tracking-[0.18em] text-white/75">
-                          {item.campaignName || 'Portal do cliente'}
+                          {item.campaignName || "Portal do cliente"}
                         </p>
 
                         <h3 className="mt-2 text-xl font-bold leading-tight">
@@ -538,73 +529,73 @@ function ClientDashboard({
                 Novidades do Portal
               </h2>
               <p className="mx-auto mt-5 max-w-3xl text-base leading-7 text-[#343434]/80">
-                Conheça as últimas tendências em logística, transformação digital e
-                gestão estratégica pizzattolog.
+                Conheça as últimas tendências em logística, transformação
+                digital e gestão estratégica pizzattolog.
               </p>
             </div>
 
             <div className="grid gap-7 md:grid-cols-2 xl:grid-cols-3">
-            {contents.map((item) => (
-              <article
-                key={item.id}
-                className="group relative min-h-[380px] overflow-hidden rounded-[22px] bg-[#343434] shadow-[0_20px_45px_rgba(52,52,52,0.18)] transition duration-300 hover:-translate-y-1 hover:shadow-[0_26px_60px_rgba(52,52,52,0.24)]"
-              >
-                {item.coverImageUrl ? (
-                  <div
-                    className="absolute inset-0 bg-cover bg-center transition duration-700 group-hover:scale-105"
-                    style={{ backgroundImage: `url(${item.coverImageUrl})` }}
-                  />
-                ) : (
-                  <div
-                    className={`absolute inset-0 bg-gradient-to-br ${getClientFeedAccent(
-                      item.type,
-                    )}`}
-                  />
-                )}
-
-                <div className="absolute inset-0 bg-[linear-gradient(180deg,rgba(52,52,52,0.20)_0%,rgba(52,52,52,0.50)_45%,rgba(0,0,0,0.78)_100%)]" />
-
-                <div className="relative flex min-h-[380px] flex-col justify-end p-6 text-white">
-                  <div className="mb-5">
-                    <span
-                      className={`inline-flex rounded-full px-4 py-2 text-sm font-extrabold shadow-[0_10px_24px_rgba(0,0,0,0.18)] ${getTypeBadgeClass(
+              {contents.map((item) => (
+                <article
+                  key={item.id}
+                  className="group relative min-h-[380px] overflow-hidden rounded-[22px] bg-[#343434] shadow-[0_20px_45px_rgba(52,52,52,0.18)] transition duration-300 hover:-translate-y-1 hover:shadow-[0_26px_60px_rgba(52,52,52,0.24)]"
+                >
+                  {item.coverImageUrl ? (
+                    <div
+                      className="absolute inset-0 bg-cover bg-center transition duration-700 group-hover:scale-105"
+                      style={{ backgroundImage: `url(${item.coverImageUrl})` }}
+                    />
+                  ) : (
+                    <div
+                      className={`absolute inset-0 bg-gradient-to-br ${getClientFeedAccent(
                         item.type,
                       )}`}
-                    >
-                      {getTypeLabel(item.type)}
-                    </span>
-                  </div>
+                    />
+                  )}
 
-                  <h3 className="max-w-[18rem] text-2xl font-black leading-tight drop-shadow md:text-[1.65rem]">
-                    {item.title}
-                  </h3>
+                  <div className="absolute inset-0 bg-[linear-gradient(180deg,rgba(52,52,52,0.20)_0%,rgba(52,52,52,0.50)_45%,rgba(0,0,0,0.78)_100%)]" />
 
-                  <p className="mt-3 line-clamp-2 max-w-[18rem] text-sm font-semibold leading-6 text-white/90">
-                    {item.summary}
-                  </p>
-
-                  <div className="mt-6 flex items-center justify-between gap-4">
-                    {getPublishedActionUrl(item) ? (
-                      <a
-                        href={getPublishedActionUrl(item) ?? undefined}
-                        target="_blank"
-                        rel="noreferrer"
-                        className="inline-flex items-center gap-2 text-base font-extrabold text-white transition hover:text-[#fab519]"
+                  <div className="relative flex min-h-[380px] flex-col justify-end p-6 text-white">
+                    <div className="mb-5">
+                      <span
+                        className={`inline-flex rounded-full px-4 py-2 text-sm font-extrabold shadow-[0_10px_24px_rgba(0,0,0,0.18)] ${getTypeBadgeClass(
+                          item.type,
+                        )}`}
                       >
-                        Saiba mais
-                        <ArrowRight className="h-5 w-5 -rotate-45" />
-                      </a>
-                    ) : null}
-
-                    {item.highlight ? (
-                      <span className="rounded-full bg-white/18 px-3 py-1 text-xs font-bold text-white backdrop-blur">
-                        Destaque
+                        {getTypeLabel(item.type)}
                       </span>
-                    ) : null}
+                    </div>
+
+                    <h3 className="max-w-[18rem] text-2xl font-black leading-tight drop-shadow md:text-[1.65rem]">
+                      {item.title}
+                    </h3>
+
+                    <p className="mt-3 line-clamp-2 max-w-[18rem] text-sm font-semibold leading-6 text-white/90">
+                      {item.summary}
+                    </p>
+
+                    <div className="mt-6 flex items-center justify-between gap-4">
+                      {getPublishedActionUrl(item) ? (
+                        <a
+                          href={getPublishedActionUrl(item) ?? undefined}
+                          target="_blank"
+                          rel="noreferrer"
+                          className="inline-flex items-center gap-2 text-base font-extrabold text-white transition hover:text-[#fab519]"
+                        >
+                          Saiba mais
+                          <ArrowRight className="h-5 w-5 -rotate-45" />
+                        </a>
+                      ) : null}
+
+                      {item.highlight ? (
+                        <span className="rounded-full bg-white/18 px-3 py-1 text-xs font-bold text-white backdrop-blur">
+                          Destaque
+                        </span>
+                      ) : null}
+                    </div>
                   </div>
-                </div>
-              </article>
-            ))}
+                </article>
+              ))}
             </div>
           </section>
         </div>
@@ -622,8 +613,10 @@ function InternalDashboard({
   userRole: string;
   token: string | null;
 }) {
-  const [crmSummary, setCrmSummary] = useState<CrmDashboardSummary | null>(null);
-  const [summaryError, setSummaryError] = useState('');
+  const [crmSummary, setCrmSummary] = useState<CrmDashboardSummary | null>(
+    null,
+  );
+  const [summaryError, setSummaryError] = useState("");
   const [isLoadingSummary, setIsLoadingSummary] = useState(true);
 
   useEffect(() => {
@@ -637,10 +630,12 @@ function InternalDashboard({
         setIsLoadingSummary(true);
         const data = await getCrmDashboardSummary(token);
         setCrmSummary(data);
-        setSummaryError('');
+        setSummaryError("");
       } catch (error) {
         setSummaryError(
-          error instanceof Error ? error.message : 'Erro ao carregar dashboard.',
+          error instanceof Error
+            ? error.message
+            : "Erro ao carregar dashboard.",
         );
       } finally {
         setIsLoadingSummary(false);
@@ -650,44 +645,47 @@ function InternalDashboard({
     loadCrmSummary();
   }, [token]);
 
-  const firstName = userName?.trim()?.split(' ')[0] || 'Usuário';
+  const firstName = userName?.trim()?.split(" ")[0] || "Usuário";
 
   const internalMetrics = useMemo(
     () => [
       {
-        title: 'Clientes ativos',
+        title: "Clientes ativos",
         value: String(crmSummary?.activeClients ?? 0),
         detail: `${crmSummary?.totalClients ?? 0} cliente(s) na base`,
         icon: Building2,
-        accent: 'from-[#ec3139] to-[#eb2c38]',
+        accent: "from-[#ec3139] to-[#eb2c38]",
       },
       {
-        title: 'Cotações abertas',
+        title: "Cotações abertas",
         value: String(crmSummary?.openQuotes ?? 0),
         detail: `${crmSummary?.totalQuotes ?? 0} cotação(ões) no total`,
         icon: FileText,
-        accent: 'from-[#fab519] to-[#ec3139]',
+        accent: "from-[#fab519] to-[#ec3139]",
       },
       {
-        title: 'Tickets em aberto',
+        title: "Tickets em aberto",
         value: String(crmSummary?.openTickets ?? 0),
         detail: `${crmSummary?.closedTickets ?? 0} fechado(s)`,
         icon: Ticket,
-        accent: 'from-[#fab519] to-[#eb2c38]',
+        accent: "from-[#fab519] to-[#eb2c38]",
       },
       {
-        title: 'Usuários com acesso',
+        title: "Usuários com acesso",
         value: String(crmSummary?.usersWithAccess ?? 0),
-        detail: 'Usuários ativos na plataforma',
+        detail: "Usuários ativos na plataforma",
         icon: ShieldCheck,
-        accent: 'from-[#343434] to-[#ec3139]',
+        accent: "from-[#343434] to-[#ec3139]",
       },
     ],
     [crmSummary],
   );
 
   const pipelineTotal =
-    crmSummary?.opportunitiesByStage.reduce((acc, item) => acc + item.count, 0) ?? 0;
+    crmSummary?.opportunitiesByStage.reduce(
+      (acc, item) => acc + item.count,
+      0,
+    ) ?? 0;
 
   const maxStageCount = Math.max(
     ...(crmSummary?.opportunitiesByStage.map((item) => item.count) ?? [1]),
@@ -695,17 +693,17 @@ function InternalDashboard({
 
   const heroQuickStats = [
     {
-      label: 'Clientes ativos',
+      label: "Clientes ativos",
       value: String(crmSummary?.activeClients ?? 0),
       icon: Building2,
     },
     {
-      label: 'Cotações abertas',
+      label: "Cotações abertas",
       value: String(crmSummary?.openQuotes ?? 0),
       icon: FileText,
     },
     {
-      label: 'Tickets em aberto',
+      label: "Tickets em aberto",
       value: String(crmSummary?.openTickets ?? 0),
       icon: Ticket,
     },
@@ -720,17 +718,17 @@ function InternalDashboard({
 
   const heroHighlights = [
     {
-      label: 'Clientes ativos',
+      label: "Clientes ativos",
       value: String(crmSummary?.activeClients ?? 0),
       icon: Building2,
     },
     {
-      label: 'Cotações abertas',
+      label: "Cotações abertas",
       value: String(crmSummary?.openQuotes ?? 0),
       icon: FileText,
     },
     {
-      label: 'Tickets em aberto',
+      label: "Tickets em aberto",
       value: String(crmSummary?.openTickets ?? 0),
       icon: Ticket,
     },
@@ -744,6 +742,25 @@ function InternalDashboard({
         <div className="absolute -right-10 top-0 h-48 w-48 rounded-full bg-[#fab519]/20 blur-3xl" />
         <div className="absolute bottom-0 left-10 h-40 w-40 rounded-full bg-[#ec3139]/20 blur-3xl" />
         <div className="absolute inset-0 bg-[linear-gradient(to_right,rgba(255,255,255,0.04)_1px,transparent_1px),linear-gradient(to_bottom,rgba(255,255,255,0.04)_1px,transparent_1px)] bg-[size:28px_28px] opacity-20" />
+
+        <div className="pointer-events-none absolute right-8 top-8 hidden h-[260px] w-[420px] lg:block">
+          <div className="absolute right-4 top-2 h-32 w-64 rotate-[-7deg] rounded-[28px] border border-[#fab519]/35 bg-white/10 shadow-[0_24px_70px_rgba(0,0,0,0.22)] backdrop-blur">
+            <div className="absolute left-8 top-16 h-1 w-44 rounded-full bg-[#ec3139]/35" />
+            <div className="absolute left-8 top-16 h-16 w-44 rounded-full border-t-4 border-[#ec3139]" />
+          </div>
+
+          <div className="absolute bottom-14 left-12 flex h-20 w-20 rotate-[-6deg] items-center justify-center rounded-2xl bg-[#fab519] text-white shadow-[0_18px_40px_rgba(250,181,25,0.30)]">
+            <Users className="h-9 w-9" />
+          </div>
+
+          <div className="absolute bottom-3 left-36 flex h-20 w-20 rotate-[7deg] items-center justify-center rounded-2xl bg-[#ec3139] text-white shadow-[0_18px_40px_rgba(236,49,57,0.28)]">
+            <TrendingUp className="h-9 w-9" />
+          </div>
+
+          <div className="absolute bottom-8 right-10 flex h-20 w-20 rotate-[4deg] items-center justify-center rounded-2xl bg-[#343434]/70 text-white shadow-[0_18px_40px_rgba(0,0,0,0.24)]">
+            <Activity className="h-9 w-9" />
+          </div>
+        </div>
 
         <div className="relative">
           <div className="flex min-h-full flex-col">
@@ -784,7 +801,7 @@ function InternalDashboard({
               </Link>
             </div>
 
-            <div className="mt-6 grid gap-4">
+            <div className="hidden">
               <div className="rounded-[28px] border border-white/10 bg-white/10 p-4 backdrop-blur">
                 <div className="flex items-center gap-3">
                   <div className="flex h-10 w-10 items-center justify-center rounded-2xl bg-white/10 text-[#fab519]">
@@ -797,7 +814,7 @@ function InternalDashboard({
                     </p>
 
                     <h3 className="text-lg font-bold text-white">
-                      Panorama da operação
+                      Panorama geral do CRM
                     </h3>
                   </div>
                 </div>
@@ -898,14 +915,14 @@ function InternalDashboard({
                   sx={{
                     width: 56,
                     height: 56,
-                    bgcolor: '#ec3139',
-                    color: '#fff',
+                    bgcolor: "#ec3139",
+                    color: "#fff",
                     fontWeight: 700,
                     fontSize: 18,
-                    borderRadius: '18px',
-                    border: '1px solid rgba(255, 255, 255, 0.22)',
-                    boxShadow: '0 14px 30px rgba(52, 52, 52, 0.28)',
-                    position: 'relative',
+                    borderRadius: "18px",
+                    border: "1px solid rgba(255, 255, 255, 0.22)",
+                    boxShadow: "0 14px 30px rgba(52, 52, 52, 0.28)",
+                    position: "relative",
                   }}
                 >
                   {getUserInitials(userName)}
@@ -915,9 +932,7 @@ function InternalDashboard({
               </div>
 
               <div className="min-w-0">
-                <p className="text-sm text-slate-200">
-                  Sessão atual
-                </p>
+                <p className="text-sm text-slate-200">Sessão atual</p>
 
                 <h2 className="truncate text-2xl font-bold text-white">
                   {userName}
@@ -962,7 +977,8 @@ function InternalDashboard({
                 </div>
 
                 <p className="mt-2 text-sm leading-6 text-slate-300">
-                  Relação entre oportunidades ganhas e oportunidades trabalhadas.
+                  Relação entre oportunidades ganhas e oportunidades
+                  trabalhadas.
                 </p>
               </div>
 
@@ -1054,16 +1070,15 @@ function InternalDashboard({
               </h2>
 
               <p className="mt-2 max-w-2xl text-sm leading-6 text-slate-500">
-                Acompanhar volume, performance e valor
-                comercial em aberto.
+                Performance e valor comercial em aberto.
               </p>
             </div>
 
             <Link
-              href="/clients"
+              href="/bi"
               className="inline-flex items-center gap-2 rounded-2xl border border-slate-200 bg-slate-50 px-4 py-3 text-sm font-semibold text-slate-700 transition hover:bg-slate-100"
             >
-              Abrir detalhe comercial
+              Abrir BI comercial
               <ArrowRight className="h-4 w-4" />
             </Link>
           </div>
@@ -1072,7 +1087,7 @@ function InternalDashboard({
             <article className="rounded-[26px] border border-slate-200/70 bg-slate-50/80 p-4">
               <p className="text-sm text-slate-500">Total de leads</p>
 
-                <p className="mt-2 text-3xl font-bold text-[#343434]">
+              <p className="mt-2 text-3xl font-bold text-[#343434]">
                 {crmSummary.totalLeads}
               </p>
             </article>
@@ -1080,7 +1095,7 @@ function InternalDashboard({
             <article className="rounded-[26px] border border-slate-200/70 bg-slate-50/80 p-4">
               <p className="text-sm text-slate-500">Oportunidades abertas</p>
 
-                <p className="mt-2 text-3xl font-bold text-[#343434]">
+              <p className="mt-2 text-3xl font-bold text-[#343434]">
                 {crmSummary.openOpportunities}
               </p>
             </article>
@@ -1122,9 +1137,7 @@ function InternalDashboard({
                     Oportunidades por etapa
                   </p>
 
-                  <p className="text-sm text-slate-500">
-
-                  </p>
+                  <p className="text-sm text-slate-500"></p>
                 </div>
               </div>
 
@@ -1177,9 +1190,7 @@ function InternalDashboard({
                     Leitura operacional
                   </p>
 
-                  <p className="text-sm text-slate-500">
-                    Indicadores rapidos.
-                  </p>
+                  <p className="text-sm text-slate-500">Indicadores rapidos.</p>
                 </div>
               </div>
 
@@ -1208,7 +1219,8 @@ function InternalDashboard({
                   </p>
 
                   <p className="mt-1 text-sm text-slate-500">
-                    Relação entre oportunidades ganhas e oportunidades trabalhadas.
+                    Relação entre oportunidades ganhas e oportunidades
+                    trabalhadas.
                   </p>
                 </div>
 
@@ -1247,7 +1259,7 @@ function InternalDashboard({
             </h2>
 
             <p className="mt-2 text-sm text-slate-500">
-              Acesso rápido aos fluxos mais importantes da operação.
+              Acesso rápido aos fluxos da operação.
             </p>
           </div>
         </div>
@@ -1293,18 +1305,16 @@ function InternalDashboard({
 export default function DashboardPage() {
   const { user, token } = useAuth();
 
-
-
   return (
     <AppLayout>
-      {user?.role === 'CLIENTE' ? (
+      {user?.role === "CLIENTE" ? (
         <ClientDashboard userName={user.name} />
-      ) : user?.role === 'MARKETING' ? (
+      ) : user?.role === "MARKETING" ? (
         <MarketingDashboard userName={user.name} />
       ) : (
         <InternalDashboard
-          userName={user?.name ?? 'Usuário do portal'}
-          userRole={user?.role ?? '-'}
+          userName={user?.name ?? "Usuário do portal"}
+          userRole={user?.role ?? "-"}
           token={token}
         />
       )}

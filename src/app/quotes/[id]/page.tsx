@@ -2,6 +2,23 @@
 
 import Link from "next/link";
 import { useEffect, useMemo, useState } from "react";
+import {
+  ArrowLeft,
+  Banknote,
+  Box,
+  CalendarDays,
+  ClipboardList,
+  DollarSign,
+  Edit3,
+  FileText,
+  History,
+  MapPin,
+  MessageSquareText,
+  Package,
+  Trash2,
+  Truck,
+  UserRound,
+} from "lucide-react";
 import { AppLayout } from "@/components/layout/app-layout";
 import { useAuth } from "@/context/auth-context";
 import {
@@ -263,19 +280,26 @@ export default function QuoteDetailsPage({
 
   return (
     <AppLayout>
-      <div className="mx-auto flex w-full max-w-6xl flex-col gap-6">
-        <section className="rounded-3xl border border-zinc-200 bg-white p-6 shadow-sm">
-          <div className="flex flex-wrap items-center justify-between gap-3">
-            <div>
-              <p className="text-sm font-medium text-zinc-500">
-                Detalhe da cotação
-              </p>
-              <h1 className="mt-1 text-3xl font-bold tracking-tight text-zinc-900">
-                {quote?.code ?? "Carregando..."}
-              </h1>
-              <p className="mt-2 text-sm text-zinc-500">
-                Todos os detalhes, histórico, valores e retorno comercial.
-              </p>
+      <div className="mx-auto flex w-full flex-col gap-5">
+        <section className="crm-shell-card rounded-[20px] p-6 md:p-8">
+          <div className="flex flex-col gap-6 xl:flex-row xl:items-center xl:justify-between">
+            <div className="grid gap-6 xl:grid-cols-[1.15fr_1px_.85fr] xl:items-center">
+              <div>
+                <p className="crm-eyebrow">Pipeline comercial</p>
+                <h1 className="crm-page-title">Detalhe da cotação</h1>
+                <p className="crm-page-copy">
+                  Todos os detalhes, histórico, valores e retorno comercial.
+                </p>
+              </div>
+              <div className="hidden h-20 w-px bg-slate-200 xl:block" />
+              <div>
+                <p className="text-sm font-medium text-slate-500">
+                  Código da cotação
+                </p>
+                <h2 className="mt-2 text-3xl font-bold text-slate-950">
+                  {quote?.code ?? "Carregando..."}
+                </h2>
+              </div>
             </div>
 
             <div className="flex flex-wrap gap-2">
@@ -288,8 +312,9 @@ export default function QuoteDetailsPage({
                       setForm(quoteToFormState(quote));
                       setActionMessage("");
                     }}
-                    className="inline-flex items-center justify-center rounded-2xl border border-zinc-300 bg-white px-4 py-2.5 text-sm font-semibold text-zinc-700 transition hover:bg-zinc-100"
+                    className="inline-flex min-h-12 items-center justify-center gap-2 rounded-2xl border border-slate-300 bg-white px-5 text-sm font-semibold text-slate-700 transition hover:bg-slate-100"
                   >
+                    <Edit3 className="h-4 w-4" />
                     {isEditing ? "Cancelar edição" : "Editar cotação"}
                   </button>
                   <button
@@ -316,8 +341,9 @@ export default function QuoteDetailsPage({
                         setSaving(false);
                       }
                     }}
-                    className="inline-flex items-center justify-center rounded-2xl border border-rose-300 bg-rose-50 px-4 py-2.5 text-sm font-semibold text-rose-700 transition hover:bg-rose-100"
+                    className="inline-flex min-h-12 items-center justify-center gap-2 rounded-2xl border border-rose-300 bg-rose-50 px-5 text-sm font-semibold text-rose-700 transition hover:bg-rose-100"
                   >
+                    <Trash2 className="h-4 w-4" />
                     Excluir
                   </button>
                 </>
@@ -325,8 +351,9 @@ export default function QuoteDetailsPage({
 
               <Link
                 href="/quotes"
-                className="inline-flex items-center justify-center rounded-2xl border border-zinc-300 bg-white px-4 py-2.5 text-sm font-semibold text-zinc-700 transition hover:bg-zinc-100"
+                className="inline-flex min-h-12 items-center justify-center gap-2 rounded-2xl border border-slate-300 bg-white px-5 text-sm font-semibold text-slate-700 transition hover:bg-slate-100"
               >
+                <ArrowLeft className="h-4 w-4" />
                 Voltar para cotações
               </Link>
             </div>
@@ -343,53 +370,164 @@ export default function QuoteDetailsPage({
           </section>
         ) : quote ? (
           <>
-            <section className="grid gap-4 md:grid-cols-2 xl:grid-cols-5">
-              <div className="rounded-3xl border border-zinc-200 bg-white p-5 shadow-sm">
-                <p className="text-sm text-zinc-500">Código</p>
-                <h2 className="mt-2 text-2xl font-bold text-zinc-900">
-                  {quote.code}
-                </h2>
-              </div>
-              {!isClient ? (
-              <div className="rounded-3xl border border-zinc-200 bg-white p-5 shadow-sm">
-                <p className="text-sm text-zinc-500">Solicitante</p>
-                <h2 className="mt-2 text-xl font-bold text-zinc-900">
-                  {getQuoteRequesterName(quote)}
-                </h2>
-              </div>
-              ) : null}
-              <div className="rounded-3xl border border-zinc-200 bg-white p-5 shadow-sm">
-                <p className="text-sm text-zinc-500">Status</p>
-                <h2 className={`mt-2 inline-flex rounded-full border px-3 py-1 text-sm font-bold ${getStatusClasses(quote.status)}`}>
-                  {getStatusLabel(quote.status)}
-                </h2>
-              </div>
-              <div className="rounded-3xl border border-zinc-200 bg-white p-5 shadow-sm">
-                <p className="text-sm text-zinc-500">Valor respondido</p>
-                <h2 className="mt-2 text-2xl font-bold text-zinc-900">
-                  {formatCurrency(getQuoteResponseValue(quote))}
-                </h2>
-              </div>
-              <div className="rounded-3xl border border-zinc-200 bg-white p-5 shadow-sm">
-                <p className="text-sm text-zinc-500">Valor da mercadoria</p>
-                <h2 className="mt-2 text-2xl font-bold text-zinc-900">
-                  {formatCurrency(quote.merchandiseValue)}
-                </h2>
-              </div>
-              <div className="rounded-3xl border border-zinc-200 bg-white p-5 shadow-sm">
-                <p className="text-sm text-zinc-500">Prazo desejado</p>
-                <h2 className="mt-2 text-2xl font-bold text-zinc-900">
-                  {formatDate(quote.desiredDeadline)}
-                </h2>
-              </div>
+            <section className="grid gap-4 md:grid-cols-2 xl:grid-cols-6">
+              {[
+                {
+                  label: "Código",
+                  value: quote.code,
+                  Icon: FileText,
+                  iconClass: "bg-[#fff0f1] text-[#ec3139]",
+                },
+                ...(!isClient
+                  ? [
+                      {
+                        label: "Solicitante",
+                        value: getQuoteRequesterName(quote),
+                        Icon: UserRound,
+                        iconClass: "bg-[#fff7df] text-[#343434]",
+                      },
+                    ]
+                  : []),
+                {
+                  label: "Status",
+                  value: getStatusLabel(quote.status),
+                  Icon: MessageSquareText,
+                  iconClass: "bg-[#eee7ff] text-[#6d42e8]",
+                },
+                {
+                  label: "Valor respondido",
+                  value: formatCurrency(getQuoteResponseValue(quote)),
+                  Icon: DollarSign,
+                  iconClass: "bg-[#eaf8e9] text-[#3c9a35]",
+                },
+                {
+                  label: "Valor da mercadoria",
+                  value: formatCurrency(quote.merchandiseValue),
+                  Icon: Box,
+                  iconClass: "bg-[#fff7df] text-[#343434]",
+                },
+                {
+                  label: "Prazo desejado",
+                  value: formatDate(quote.desiredDeadline),
+                  Icon: CalendarDays,
+                  iconClass: "bg-[#fff0f1] text-[#ec3139]",
+                },
+              ].map(({ label, value, Icon, iconClass }) => {
+                return (
+                  <article
+                    key={label}
+                    className="crm-kpi-card rounded-[18px] p-5"
+                  >
+                    <div className="flex items-center gap-4">
+                      <div
+                        className={`flex h-12 w-12 shrink-0 items-center justify-center rounded-full ${iconClass}`}
+                      >
+                        <Icon className="h-6 w-6" />
+                      </div>
+                      <div className="min-w-0">
+                        <p className="text-sm text-slate-500">{label}</p>
+                        {label === "Status" ? (
+                          <p
+                            className={`mt-2 inline-flex rounded-full border px-3 py-1 text-xs font-bold ${getStatusClasses(
+                              quote.status,
+                            )}`}
+                          >
+                            {value}
+                          </p>
+                        ) : (
+                          <h2 className="mt-2 truncate text-lg font-bold text-slate-950">
+                            {value}
+                          </h2>
+                        )}
+                      </div>
+                    </div>
+                  </article>
+                );
+              })}
             </section>
 
-            <section className="grid gap-6 xl:grid-cols-[1.1fr_.9fr]">
-              <article className="rounded-3xl border border-zinc-200 bg-white p-6 shadow-sm">
-                <div className="flex items-center justify-between gap-3">
-                  <h2 className="text-xl font-semibold text-zinc-900">
-                    Dados da solicitação
+            <section className="grid gap-5 xl:grid-cols-[1fr_1.1fr]">
+              <article className="crm-shell-card rounded-[18px] p-6">
+                <div className="flex items-center gap-3">
+                  <MapPin className="h-5 w-5 text-slate-900" />
+                  <h2 className="text-xl font-bold text-slate-950">
+                    1. Rota da cotação
                   </h2>
+                </div>
+
+                <div className="mt-8 grid grid-cols-[1fr_auto_1fr] items-center gap-4">
+                  <div className="flex items-center gap-4">
+                    <span className="flex h-12 w-12 items-center justify-center rounded-full bg-[#fff0f1] text-[#ec3139]">
+                      <MapPin className="h-5 w-5" />
+                    </span>
+                    <div>
+                      <p className="text-sm text-slate-500">Origem</p>
+                      <p className="mt-1 text-lg font-bold text-slate-950">
+                        {quote.origin || "-"}
+                      </p>
+                    </div>
+                  </div>
+
+                  <div className="flex min-w-[140px] items-center justify-center gap-3 text-slate-400">
+                    <span className="hidden h-px flex-1 border-t border-dashed border-slate-300 md:block" />
+                    <span className="flex h-14 w-14 items-center justify-center rounded-full bg-[#fff2bf] text-[#343434]">
+                      <Truck className="h-6 w-6" />
+                    </span>
+                    <span className="hidden h-px flex-1 border-t border-dashed border-slate-300 md:block" />
+                  </div>
+
+                  <div className="flex items-center justify-end gap-4 text-right">
+                    <div>
+                      <p className="text-sm text-slate-500">Destino</p>
+                      <p className="mt-1 text-lg font-bold text-slate-950">
+                        {quote.destination || "-"}
+                      </p>
+                    </div>
+                    <span className="flex h-12 w-12 items-center justify-center rounded-full bg-[#fff0f1] text-[#ec3139]">
+                      <MapPin className="h-5 w-5" />
+                    </span>
+                  </div>
+                </div>
+              </article>
+
+              <article className="crm-shell-card rounded-[18px] p-6">
+                <div className="flex items-center gap-3">
+                  <span className="flex h-10 w-10 items-center justify-center rounded-full bg-[#fff2bf] text-[#343434]">
+                    <ClipboardList className="h-5 w-5" />
+                  </span>
+                  <h2 className="text-xl font-bold text-slate-950">
+                    2. Detalhes da solicitação
+                  </h2>
+                </div>
+
+                <div className="mt-8 grid gap-4 md:grid-cols-2">
+                  <div className="rounded-2xl border border-slate-200 bg-white/80 p-5">
+                    <p className="text-sm text-slate-500">
+                      Tipo de solicitação
+                    </p>
+                    <p className="mt-2 text-lg font-bold text-slate-950">
+                      {quote.requestType || "-"}
+                    </p>
+                  </div>
+                  <div className="rounded-2xl border border-slate-200 bg-white/80 p-5">
+                    <p className="text-sm text-slate-500">Peso</p>
+                    <p className="mt-2 text-lg font-bold text-slate-950">
+                      {quote.weight ? `${quote.weight} kg` : "-"}
+                    </p>
+                  </div>
+                </div>
+              </article>
+            </section>
+
+            <section className="grid gap-5">
+              <article className="crm-shell-card rounded-[18px] p-6">
+                <div className="flex items-center justify-between gap-3">
+                  <div className="flex items-center gap-3">
+                    <Package className="h-5 w-5 text-[#ec3139]" />
+                    <h2 className="text-xl font-bold text-slate-950">
+                      Cadastro completo da cotação
+                    </h2>
+                  </div>
 
                   {isEditing ? (
                     <button
@@ -419,7 +557,7 @@ export default function QuoteDetailsPage({
                           setSaving(false);
                         }
                       }}
-                      className="rounded-2xl bg-zinc-900 px-4 py-2.5 text-sm font-semibold text-white transition hover:bg-zinc-800 disabled:opacity-60"
+                      className="rounded-2xl bg-slate-950 px-4 py-2.5 text-sm font-semibold text-white transition hover:bg-slate-800 disabled:opacity-60"
                     >
                       {saving ? "Salvando..." : "Salvar alterações"}
                     </button>
@@ -441,42 +579,50 @@ export default function QuoteDetailsPage({
                     ["Valor da mercadoria", "merchandiseValue"],
                     ["Prazo desejado", "desiredDeadline"],
                   ]
-                    .filter(([, field]) =>
-                      !isClient ||
-                      !["contactName", "contactPhone", "contactEmail"].includes(field),
+                    .filter(
+                      ([, field]) =>
+                        !isClient ||
+                        ![
+                          "contactName",
+                          "contactPhone",
+                          "contactEmail",
+                        ].includes(field),
                     )
                     .map(([label, field]) => (
-                    <div key={field} className="rounded-2xl bg-zinc-50 p-4">
-                      <p className="text-sm text-zinc-500">{label}</p>
-                      {isEditing ? (
-                        <input
-                          type="text"
-                          value={form[field as keyof QuoteFormState]}
-                          onChange={(event) =>
-                            setForm((current) => ({
-                              ...(current ?? emptyFormState),
-                              [field]: event.target.value,
-                            }))
-                          }
-                          className="crm-input mt-3"
-                        />
-                      ) : (
-                        <p className="mt-1 font-semibold text-zinc-900">
-                          {field === "merchandiseValue"
-                            ? formatCurrency(quote.merchandiseValue)
-                            : field === "desiredDeadline"
-                              ? formatDate(quote.desiredDeadline)
-                              : (
-                                  quote[field as keyof Quote] as
-                                    | string
-                                    | number
-                                    | null
-                                    | undefined
-                                )?.toString() || "-"}
-                        </p>
-                      )}
-                    </div>
-                  ))}
+                      <div
+                        key={field}
+                        className="rounded-2xl border border-slate-200 bg-white/80 p-4"
+                      >
+                        <p className="text-sm text-slate-500">{label}</p>
+                        {isEditing ? (
+                          <input
+                            type="text"
+                            value={form[field as keyof QuoteFormState]}
+                            onChange={(event) =>
+                              setForm((current) => ({
+                                ...(current ?? emptyFormState),
+                                [field]: event.target.value,
+                              }))
+                            }
+                            className="crm-input mt-3"
+                          />
+                        ) : (
+                          <p className="mt-1 font-semibold text-slate-900">
+                            {field === "merchandiseValue"
+                              ? formatCurrency(quote.merchandiseValue)
+                              : field === "desiredDeadline"
+                                ? formatDate(quote.desiredDeadline)
+                                : (
+                                    quote[field as keyof Quote] as
+                                      | string
+                                      | number
+                                      | null
+                                      | undefined
+                                  )?.toString() || "-"}
+                          </p>
+                        )}
+                      </div>
+                    ))}
 
                   {[
                     ["Endereco de coleta", "pickupAddress"],
@@ -486,9 +632,9 @@ export default function QuoteDetailsPage({
                   ].map(([label, field]) => (
                     <div
                       key={field}
-                      className="rounded-2xl bg-zinc-50 p-4 md:col-span-2"
+                      className="rounded-2xl border border-slate-200 bg-white/80 p-4 md:col-span-2"
                     >
-                      <p className="text-sm text-zinc-500">{label}</p>
+                      <p className="text-sm text-slate-500">{label}</p>
                       {isEditing ? (
                         <textarea
                           value={form[field as keyof QuoteFormState]}
@@ -502,7 +648,7 @@ export default function QuoteDetailsPage({
                           className="crm-textarea mt-3"
                         />
                       ) : (
-                        <p className="mt-1 font-semibold text-zinc-900">
+                        <p className="mt-1 font-semibold text-slate-900">
                           {(
                             quote[field as keyof Quote] as
                               | string
@@ -517,10 +663,15 @@ export default function QuoteDetailsPage({
                 </div>
               </article>
 
-              <article className="rounded-3xl border border-zinc-200 bg-white p-6 shadow-sm">
-                <h2 className="text-xl font-semibold text-zinc-900">
-                  Histórico e retorno
-                </h2>
+              <article className="crm-shell-card rounded-[18px] p-6">
+                <div className="flex items-center gap-3">
+                  <span className="flex h-10 w-10 items-center justify-center rounded-full bg-[#fff2bf] text-[#343434]">
+                    <History className="h-5 w-5" />
+                  </span>
+                  <h2 className="text-xl font-bold text-slate-950">
+                    3. Histórico e observações
+                  </h2>
+                </div>
 
                 <div className="mt-6 space-y-3">
                   {quote.history?.length ? (
@@ -530,7 +681,9 @@ export default function QuoteDetailsPage({
                         className="rounded-2xl border border-zinc-200 bg-zinc-50 p-4"
                       >
                         <div className="flex items-center justify-between gap-2">
-                          <p className={`rounded-full border px-3 py-1 text-sm font-semibold ${getStatusClasses(entry.status)}`}>
+                          <p
+                            className={`rounded-full border px-3 py-1 text-sm font-semibold ${getStatusClasses(entry.status)}`}
+                          >
                             {getStatusLabel(entry.status)}
                           </p>
                           <span className="text-xs text-zinc-400">
@@ -617,7 +770,9 @@ export default function QuoteDetailsPage({
                                   token,
                                 );
                                 setQuote(updated);
-                                setActionMessage("Proposta enviada e registrada na cotação.");
+                                setActionMessage(
+                                  "Proposta enviada e registrada na cotação.",
+                                );
                                 setResponseForm({
                                   price: "",
                                   commercialNotes: "",

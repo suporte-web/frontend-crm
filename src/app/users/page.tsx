@@ -495,7 +495,7 @@ export default function UsersPage() {
                 </h1>
 
                 <p className="mt-3 max-w-2xl text-sm leading-6 text-slate-500 md:text-base">
-                  Gerencie acessos, permissões e status dos usuários.
+                  Acessos, permissões e status dos usuários.
                 </p>
 
                 <div className="mt-6 flex flex-wrap gap-3">
@@ -605,10 +605,10 @@ export default function UsersPage() {
             <div className="flex flex-col gap-4 border-b border-slate-200 pb-5 lg:flex-row lg:items-end lg:justify-between">
               <div>
                 <h2 className="text-lg font-semibold text-slate-900">
-                  Telas e recursos por perfil
+                  Telas por perfil
                 </h2>
                 <p className="mt-1 text-sm text-slate-500">
-                  Marque as telas e recursos liberados para cada perfil do portal.
+                  Marque as telas por perfil no portal.
                 </p>
               </div>
 
@@ -732,10 +732,6 @@ export default function UsersPage() {
                   <h2 className="text-lg font-semibold text-slate-900">
                     Usuários cadastrados
                   </h2>
-                  <p className="text-sm text-slate-500">
-                    Visualize, edite e acompanhe o status dos usuários do
-                    sistema.
-                  </p>
                 </div>
 
                 <span className="inline-flex w-fit rounded-full bg-slate-100 px-3 py-1 text-xs font-semibold text-slate-600">

@@ -2209,7 +2209,7 @@ export default function TicketsPage() {
                                       {},
                                       token,
                                     ),
-                                  "Negociacao enviada para Gestão.",
+                                  "Negociação enviada para Gestão.",
                                 ))
                           }
                           className="flex w-full items-center justify-center gap-2 rounded-2xl bg-indigo-700 px-4 py-2.5 text-sm font-semibold text-white hover:bg-indigo-800 disabled:opacity-60"

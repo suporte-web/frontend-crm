@@ -367,7 +367,7 @@ export function formatOpportunityStage(stage: OpportunityStage) {
     NOVO: 'Novo',
     QUALIFICADO: 'Qualificado',
     PROPOSTA: 'Proposta',
-    NEGOCIACAO: 'Negociacao',
+    NEGOCIACAO: 'Negociação',
     GANHO: 'Ganho',
     PERDIDO: 'Perdido',
   };
