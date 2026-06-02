@@ -798,8 +798,8 @@ export default function UsersPage() {
                       <span
                         className={`inline-flex rounded-full px-3 py-1 text-xs font-semibold ${
                           user.isActive
-                            ? 'bg-emerald-100 text-emerald-700'
-                            : 'bg-rose-100 text-rose-700'
+                            ? 'bg-[#e8f5e7] text-[#2f7b2d]'
+                            : 'bg-[#ffe6e8] text-[#b52631]'
                         }`}
                       >
                         {user.isActive ? 'Ativo' : 'Inativo'}
