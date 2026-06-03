@@ -391,26 +391,26 @@ export default function MarketingPage() {
             </div>
 
             <div className="grid gap-3 sm:grid-cols-2">
-              <div className="rounded-[24px] border border-white/10 bg-white/10 p-4 backdrop-blur">
-                <p className="text-xs uppercase tracking-[0.18em] text-sky-100/80">
+              <div className="rounded-[24px] border border-white/15 bg-[#343434]/82 p-4 text-white shadow-[0_14px_32px_rgba(0,0,0,0.18)] backdrop-blur">
+                <p className="text-xs font-bold uppercase tracking-[0.18em] text-[#fab519]">
                   Publicados
                 </p>
                 <p className="mt-2 text-3xl font-bold">{summary.published}</p>
               </div>
-              <div className="rounded-[24px] border border-white/10 bg-white/10 p-4 backdrop-blur">
-                <p className="text-xs uppercase tracking-[0.18em] text-sky-100/80">
+              <div className="rounded-[24px] border border-white/15 bg-[#343434]/82 p-4 text-white shadow-[0_14px_32px_rgba(0,0,0,0.18)] backdrop-blur">
+                <p className="text-xs font-bold uppercase tracking-[0.18em] text-[#fab519]">
                   Rascunhos
                 </p>
                 <p className="mt-2 text-3xl font-bold">{summary.drafts}</p>
               </div>
-              <div className="rounded-[24px] border border-white/10 bg-white/10 p-4 backdrop-blur">
-                <p className="text-xs uppercase tracking-[0.18em] text-sky-100/80">
+              <div className="rounded-[24px] border border-white/15 bg-[#343434]/82 p-4 text-white shadow-[0_14px_32px_rgba(0,0,0,0.18)] backdrop-blur">
+                <p className="text-xs font-bold uppercase tracking-[0.18em] text-[#fab519]">
                   Destaques
                 </p>
                 <p className="mt-2 text-3xl font-bold">{summary.highlights}</p>
               </div>
-              <div className="rounded-[24px] border border-white/10 bg-white/10 p-4 backdrop-blur">
-                <p className="text-xs uppercase tracking-[0.18em] text-sky-100/80">
+              <div className="rounded-[24px] border border-white/15 bg-[#343434]/82 p-4 text-white shadow-[0_14px_32px_rgba(0,0,0,0.18)] backdrop-blur">
+                <p className="text-xs font-bold uppercase tracking-[0.18em] text-[#fab519]">
                   Vídeos
                 </p>
                 <p className="mt-2 text-3xl font-bold">{summary.videos}</p>

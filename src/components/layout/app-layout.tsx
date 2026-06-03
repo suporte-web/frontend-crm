@@ -11,7 +11,7 @@ export function AppLayout({ children }: { children: React.ReactNode }) {
   return (
     <ProtectedRoute>
       <TooltipProvider delayDuration={0}>
-        <SidebarProvider defaultOpen={false} className="flex-col">
+        <SidebarProvider defaultOpen className="flex-col">
           <Header />
 
           <div className="flex w-full flex-1">

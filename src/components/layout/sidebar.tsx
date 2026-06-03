@@ -261,26 +261,26 @@ export function AppSidebar() {
       collapsible="icon"
       className="!top-0 z-50 !h-svh border-r border-black/20 bg-[linear-gradient(180deg,#343434_0%,#2f2f2f_52%,#242424_100%)] text-slate-100"
     >
-      <SidebarHeader className="bg-transparent px-6 pb-8 pt-8 group-data-[collapsible=icon]:px-2 group-data-[collapsible=icon]:pb-3 group-data-[collapsible=icon]:pt-4">
-        <Box className="flex items-center justify-start gap-2.5 group-data-[collapsible=icon]:justify-center">
+      <SidebarHeader className="bg-transparent px-6 pb-8 pt-8 group-data-[collapsible=icon]:items-center group-data-[collapsible=icon]:px-0 group-data-[collapsible=icon]:pb-3 group-data-[collapsible=icon]:pt-4">
+        <Box className="flex min-w-0 items-center justify-start gap-3 group-data-[collapsible=icon]:justify-center">
           <button
             type="button"
             onClick={toggleSidebar}
-            className="grid h-[72px] w-[72px] shrink-0 place-items-center overflow-hidden rounded-xl bg-white p-2 shadow-[0_18px_34px_rgba(236,49,57,0.16)] ring-1 ring-white/10 transition hover:bg-[#fff7df] group-data-[collapsible=icon]:h-11 group-data-[collapsible=icon]:w-11 group-data-[collapsible=icon]:rounded-md group-data-[collapsible=icon]:p-1.5"
+            className="grid h-[58px] w-[58px] shrink-0 place-items-center overflow-hidden rounded-xl bg-white p-2 shadow-[0_18px_34px_rgba(236,49,57,0.16)] ring-1 ring-white/10 transition hover:bg-[#fff7df] group-data-[collapsible=icon]:h-11 group-data-[collapsible=icon]:w-11 group-data-[collapsible=icon]:rounded-md group-data-[collapsible=icon]:p-1.5"
             aria-label="Alternar menu lateral"
             title="Alternar menu lateral"
           >
             <img
               src="/logopizzatto.png"
               alt="Pizzattolog"
-              className="h-full w-full object-contain"
+              className="h-full w-full object-contain object-center"
             />
           </button>
 
           <Box className="min-w-0 group-data-[collapsible=icon]:hidden">
             <Box
               component="p"
-              className="text-[10px] font-bold uppercase leading-none tracking-[0.18em] text-[#fab519]"
+              className="text-[10px] font-bold uppercase leading-4 tracking-[0.18em] text-[#fab519]"
               sx={{ fontFamily: sidebarFontFamily }}
             >
               CRM Portal
@@ -288,7 +288,7 @@ export function AppSidebar() {
 
             <Box
               component="h2"
-              className="mt-2 truncate text-sm font-semibold leading-none text-white"
+              className="mt-1.5 truncate pb-0.5 text-sm font-semibold leading-5 text-white"
               sx={{ fontFamily: sidebarFontFamily }}
             >
               Pizzattolog
@@ -297,11 +297,11 @@ export function AppSidebar() {
         </Box>
       </SidebarHeader>
 
-      <SidebarContent className="bg-transparent px-4 py-2 group-data-[collapsible=icon]:px-2">
+      <SidebarContent className="bg-transparent px-4 py-2 group-data-[collapsible=icon]:items-center group-data-[collapsible=icon]:px-0">
         <Box
           component="nav"
           aria-label="Navegação principal"
-          className="flex flex-col gap-2 group-data-[collapsible=icon]:gap-2"
+          className="flex flex-col gap-2 group-data-[collapsible=icon]:w-full group-data-[collapsible=icon]:items-center group-data-[collapsible=icon]:gap-2"
         >
           {filteredSections.map((section) => {
             const sectionActive = section.items.some((item) =>
@@ -333,7 +333,7 @@ export function AppSidebar() {
                           href={item.href}
                           selected={active}
                           sx={itemButtonSx}
-                          className="relative group-data-[collapsible=icon]:h-11! group-data-[collapsible=icon]:w-14! group-data-[collapsible=icon]:justify-center group-data-[collapsible=icon]:px-0!"
+                          className="relative group-data-[collapsible=icon]:h-11! group-data-[collapsible=icon]:w-11! group-data-[collapsible=icon]:justify-center group-data-[collapsible=icon]:px-0! group-data-[collapsible=icon]:[&_.MuiListItemIcon-root]:flex! group-data-[collapsible=icon]:[&_.MuiListItemIcon-root]:w-full! group-data-[collapsible=icon]:[&_.MuiListItemIcon-root]:min-w-0! group-data-[collapsible=icon]:[&_.MuiListItemIcon-root]:justify-center!"
                         >
                           {active ? (
                             <Box className="absolute -right-2 top-1/2 hidden h-6 w-1 -translate-y-1/2 rounded-l-full bg-[#fab519] group-data-[collapsible=icon]:block" />
@@ -378,7 +378,7 @@ export function AppSidebar() {
                       }))
                     }
                     sx={itemButtonSx}
-                    className="group-data-[collapsible=icon]:h-11! group-data-[collapsible=icon]:w-14! group-data-[collapsible=icon]:justify-center group-data-[collapsible=icon]:px-0!"
+                    className="group-data-[collapsible=icon]:h-11! group-data-[collapsible=icon]:w-11! group-data-[collapsible=icon]:justify-center group-data-[collapsible=icon]:px-0! group-data-[collapsible=icon]:[&_.MuiListItemIcon-root]:flex! group-data-[collapsible=icon]:[&_.MuiListItemIcon-root]:w-full! group-data-[collapsible=icon]:[&_.MuiListItemIcon-root]:min-w-0! group-data-[collapsible=icon]:[&_.MuiListItemIcon-root]:justify-center!"
                   >
                     <ListItemIcon className="group-data-[collapsible=icon]:min-w-0!">
                       {SectionIcon ? (
@@ -474,11 +474,11 @@ export function AppSidebar() {
         </Box>
       </SidebarContent>
 
-      <SidebarFooter className="mt-auto border-t border-white/8 bg-transparent px-4 py-4 group-data-[collapsible=icon]:px-2">
+      <SidebarFooter className="mt-auto border-t border-white/8 bg-transparent px-4 py-4 group-data-[collapsible=icon]:items-center group-data-[collapsible=icon]:px-0">
         <button
           type="button"
           onClick={handleSignOut}
-          className="flex h-11 w-full items-center gap-3 rounded-md px-2 text-sm font-semibold text-white/78 transition hover:bg-white/[0.08] hover:text-white group-data-[collapsible=icon]:w-14 group-data-[collapsible=icon]:justify-center group-data-[collapsible=icon]:px-0"
+          className="flex h-11 w-full items-center gap-3 rounded-md px-2 text-sm font-semibold text-white/78 transition hover:bg-white/[0.08] hover:text-white group-data-[collapsible=icon]:w-11 group-data-[collapsible=icon]:justify-center group-data-[collapsible=icon]:px-0"
           style={{ fontFamily: sidebarFontFamily, fontSize: 14 }}
           aria-label="Sair"
           title="Sair"

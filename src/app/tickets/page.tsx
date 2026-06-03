@@ -1413,9 +1413,7 @@ export default function TicketsPage() {
                           Pré-contrato / Proposta
                         </h3>
                         <p className="mt-1 text-sm text-slate-500">
-                          Comercial monta e envia a proposta. Cliente visualiza
-                          e responde. Gestão revisa valores e trecho quando a
-                          negociação segue para aprovação.
+                          Comercial monta e envia a proposta.
                         </p>
                       </div>
 
