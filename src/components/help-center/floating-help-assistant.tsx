@@ -1,6 +1,8 @@
 'use client';
 
 import { useMemo, useState } from 'react';
+import { v4 as uuidv4 } from 'uuid';
+
 import {
   Bot,
   Loader2,
@@ -84,7 +86,7 @@ export function FloatingHelpAssistant() {
   function backToQuestionMenu() {
     setMessages([
       {
-        id: crypto.randomUUID(),
+        id: uuidv4(),
         role: 'assistant',
         content: welcomeMessage,
       },
@@ -115,7 +117,7 @@ export function FloatingHelpAssistant() {
       setMessages((current) => [
         ...current,
         {
-          id: crypto.randomUUID(),
+          id: uuidv4(),
           role: 'user',
           content: trimmed,
         },
@@ -126,7 +128,7 @@ export function FloatingHelpAssistant() {
       setMessages((current) => [
         ...current,
         {
-          id: crypto.randomUUID(),
+          id: uuidv4(),
           role: 'assistant',
           content: response.answer,
         },

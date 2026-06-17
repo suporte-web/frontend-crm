@@ -2,6 +2,8 @@
 
 import { useEffect, useMemo, useState } from 'react';
 import { useRouter } from 'next/navigation';
+import { v4 as uuidv4 } from 'uuid';
+
 import {
   Bot,
   CheckCircle2,
@@ -256,7 +258,7 @@ export default function HelpCenterPage() {
     }
 
     const userMessage: ChatMessage = {
-      id: crypto.randomUUID(),
+      id: uuidv4(),
       role: 'user',
       content: trimmed,
     };
@@ -272,7 +274,7 @@ export default function HelpCenterPage() {
       setChatMessages((current) => [
         ...current,
         {
-          id: crypto.randomUUID(),
+          id: uuidv4(),
           role: 'assistant',
           content: response.answer,
         },
