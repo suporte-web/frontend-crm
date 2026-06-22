@@ -6,8 +6,9 @@ import type {
   User,
   UserRole,
 } from '../types/user';
+import { API_BASE_URL } from '@/services/api';
 
-const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001/api';
+const API_URL = API_BASE_URL;
 const TOKEN_KEY = 'crm_token';
 
 function getAuthHeaders() {

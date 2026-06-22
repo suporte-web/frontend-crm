@@ -45,7 +45,6 @@ import {
   SidebarContent,
   SidebarFooter,
   SidebarHeader,
-  SidebarRail,
   useSidebar,
 } from "@/components/ui/sidebar";
 
@@ -133,12 +132,12 @@ const itemButtonSx = {
     color: "#fff",
   },
   "&.Mui-selected": {
-    bgcolor: "#ec3139",
+    bgcolor: "#ff4d00",
     color: "#fff",
-    boxShadow: "0 18px 32px rgba(236,49,57,0.24)",
+    boxShadow: "0 18px 32px rgba(255,77,0,0.24)",
   },
   "&.Mui-selected:hover": {
-    bgcolor: "#d82931",
+    bgcolor: "#e64500",
   },
   ".MuiListItemIcon-root": {
     minWidth: 52,
@@ -164,12 +163,12 @@ const subItemButtonSx = {
     color: "#fff",
   },
   "&.Mui-selected": {
-    bgcolor: "#fff2c2",
-    color: "#343434",
-    boxShadow: "0 14px 26px rgba(0,0,0,0.18)",
+    bgcolor: "#ff4d00",
+    color: "#fff",
+    boxShadow: "0 14px 26px rgba(255,77,0,0.22)",
   },
   "&.Mui-selected:hover": {
-    bgcolor: "#fff2c2",
+    bgcolor: "#e64500",
   },
   ".MuiListItemIcon-root": {
     minWidth: 44,
@@ -261,38 +260,34 @@ export function AppSidebar() {
       collapsible="icon"
       className="!top-0 z-50 !h-svh border-r border-black/20 bg-[linear-gradient(180deg,#343434_0%,#2f2f2f_52%,#242424_100%)] text-slate-100"
     >
-      <SidebarHeader className="bg-transparent px-6 pb-8 pt-8 group-data-[collapsible=icon]:items-center group-data-[collapsible=icon]:px-0 group-data-[collapsible=icon]:pb-3 group-data-[collapsible=icon]:pt-4">
-        <Box className="flex min-w-0 items-center justify-start gap-3 group-data-[collapsible=icon]:justify-center">
+      <SidebarHeader className="bg-transparent px-6 pb-5 pt-4 group-data-[collapsible=icon]:items-center group-data-[collapsible=icon]:px-0 group-data-[collapsible=icon]:pb-3 group-data-[collapsible=icon]:pt-3">
+        <Box className="flex min-w-0 flex-col items-start justify-start group-data-[collapsible=icon]:items-center">
           <button
             type="button"
             onClick={toggleSidebar}
-            className="grid h-[58px] w-[58px] shrink-0 place-items-center overflow-hidden rounded-xl bg-white p-2 shadow-[0_18px_34px_rgba(236,49,57,0.16)] ring-1 ring-white/10 transition hover:bg-[#fff7df] group-data-[collapsible=icon]:h-11 group-data-[collapsible=icon]:w-11 group-data-[collapsible=icon]:rounded-md group-data-[collapsible=icon]:p-1.5"
+            className="flex min-w-0 items-center justify-start rounded-md p-0 transition group-data-[collapsible=icon]:grid group-data-[collapsible=icon]:h-11 group-data-[collapsible=icon]:w-11 group-data-[collapsible=icon]:place-items-center group-data-[collapsible=icon]:overflow-hidden group-data-[collapsible=icon]:rounded-full group-data-[collapsible=icon]:bg-white group-data-[collapsible=icon]:p-2 group-data-[collapsible=icon]:shadow-[0_18px_34px_rgba(236,49,57,0.16)] group-data-[collapsible=icon]:ring-1 group-data-[collapsible=icon]:ring-white/10 group-data-[collapsible=icon]:hover:bg-[#fff7df]"
             aria-label="Alternar menu lateral"
             title="Alternar menu lateral"
           >
             <img
+              src="/logobranca-transparente.png"
+              alt="Pizzattolog"
+              className="h-auto w-[178px] object-contain object-left drop-shadow-[0_10px_18px_rgba(0,0,0,0.18)] group-data-[collapsible=icon]:hidden"
+            />
+
+            <img
               src="/logopizzatto.png"
               alt="Pizzattolog"
-              className="h-full w-full object-contain object-center"
+              className="hidden h-full w-full object-contain object-center group-data-[collapsible=icon]:block"
             />
           </button>
 
-          <Box className="min-w-0 group-data-[collapsible=icon]:hidden">
-            <Box
-              component="p"
-              className="text-[10px] font-bold uppercase leading-4 tracking-[0.18em] text-[#fab519]"
-              sx={{ fontFamily: sidebarFontFamily }}
-            >
-              CRM Portal
-            </Box>
-
-            <Box
-              component="h2"
-              className="mt-1.5 truncate pb-0.5 text-sm font-semibold leading-5 text-white"
-              sx={{ fontFamily: sidebarFontFamily }}
-            >
-              Pizzattolog
-            </Box>
+          <Box
+            component="p"
+            className="mt-3 border-l-2 border-[#ff4d00] pl-3 text-[10px] font-bold uppercase leading-4 tracking-[0.18em] text-white/72 group-data-[collapsible=icon]:hidden"
+            sx={{ fontFamily: sidebarFontFamily }}
+          >
+            Portal CRM
           </Box>
         </Box>
       </SidebarHeader>
@@ -493,7 +488,6 @@ export function AppSidebar() {
         </button>
       </SidebarFooter>
 
-      <SidebarRail />
     </Sidebar>
   );
 }

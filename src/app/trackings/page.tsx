@@ -5,6 +5,7 @@ import { AppLayout } from '@/components/layout/app-layout';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
+import { API_BASE_URL } from '@/services/api';
 import {
   AlertCircle,
   CheckCircle2,
@@ -705,9 +706,6 @@ export default function TrackingsPage() {
   const [responseData, setResponseData] = useState<unknown>(null);
   const [showRawJson, setShowRawJson] = useState(false);
 
-  const apiBaseUrl =
-    process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001/api';
-
   const trackingData = useMemo(() => {
     if (!isRecord(responseData)) return null;
     return responseData as TrackingApiResponse;
@@ -792,7 +790,7 @@ export default function TrackingsPage() {
         }),
       };
 
-      const response = await fetch(`${apiBaseUrl}/trackings/public-query`, {
+      const response = await fetch(`${API_BASE_URL}/trackings/public-query`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',

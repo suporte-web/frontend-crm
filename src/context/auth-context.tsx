@@ -1,6 +1,7 @@
 'use client';
 
 import { createContext, useContext, useEffect, useMemo, useState } from 'react';
+import { API_BASE_URL } from '@/services/api';
 import type { AuthUser, LoginResponse } from '@/types/auth';
 
 type AuthContextType = {
@@ -20,7 +21,6 @@ const AuthContext = createContext<AuthContextType | null>(null);
 
 const TOKEN_KEY = 'crm_token';
 const USER_KEY = 'crm_user';
-const API_BASE_URL = 'http://localhost:3001/api';
 
 export function AuthProvider({ children }: { children: React.ReactNode }) {
   const [user, setUser] = useState<AuthUser | null>(null);

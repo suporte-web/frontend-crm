@@ -3,8 +3,7 @@ import type {
   DeliveryRow,
   DeliverySummary,
 } from '@/types/deliveries';
-
-const API_BASE_URL = 'http://localhost:3001/api';
+import { API_BASE_URL } from '@/services/api';
 
 function buildQueryString(filters: Partial<DeliveryFilters>) {
   const params = new URLSearchParams();

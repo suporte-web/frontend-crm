@@ -1,5 +1,21 @@
 import type { NextConfig } from 'next';
 
-const nextConfig: NextConfig = {};
+const backendInternalUrl =
+  process.env.BACKEND_INTERNAL_URL || 'http://127.0.0.1:3001';
+
+const nextConfig: NextConfig = {
+  async rewrites() {
+    return [
+      {
+        source: '/api/:path*',
+        destination: `${backendInternalUrl}/api/:path*`,
+      },
+      {
+        source: '/docs/:path*',
+        destination: `${backendInternalUrl}/docs/:path*`,
+      },
+    ];
+  },
+};
 
 export default nextConfig;

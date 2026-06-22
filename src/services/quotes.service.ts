@@ -4,8 +4,7 @@ import type {
   Quote,
   QuoteStatus,
 } from '@/types/quotes';
-
-const API_BASE_URL = 'http://localhost:3001/api';
+import { API_BASE_URL } from '@/services/api';
 
 async function parseResponse<T>(response: Response): Promise<T> {
   const data = await response.json().catch(() => null);
