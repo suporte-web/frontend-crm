@@ -34,9 +34,22 @@ export type DeliverySummary = {
   porcentagemEntrega: number;
 };
 
+export type DeliveryCity = {
+  cidade_dest: string;
+  uf_dest: string;
+};
+
+export type DeliveryRegion = {
+  uf_dest: string;
+  classificacao_rota: string;
+};
+
 export type DeliveryFilters = {
-  dataRef: string;
+  dataRef?: string;
+  dataInicio: string;
+  dataFim: string;
   ufDest: string;
+  cidadeDest: string;
   nroCtrc: string;
   statusEntrega: string;
   classificacaoRota: string;

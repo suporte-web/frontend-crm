@@ -646,3 +646,27 @@ body {
   background-color: rgb(2 6 23 / 0.78) !important;
   color: #f8fafc !important;
 }
+
+.feedback-toast-success {
+  background-color: rgb(46 125 50 / 0.08) !important;
+  border-color: #2e7d32 !important;
+  color: #1b5e20 !important;
+}
+
+.feedback-toast-info {
+  background-color: rgb(2 136 209 / 0.08) !important;
+  border-color: #0288d1 !important;
+  color: #01579b !important;
+}
+
+.feedback-toast-warning {
+  background-color: rgb(237 108 2 / 0.1) !important;
+  border-color: #ed6c02 !important;
+  color: #7a4100 !important;
+}
+
+.feedback-toast-error {
+  background-color: rgb(211 47 47 / 0.08) !important;
+  border-color: #d32f2f !important;
+  color: #7f1d1d !important;
+}

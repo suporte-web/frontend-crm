@@ -1,5 +1,7 @@
 import type {
+  DeliveryCity,
   DeliveryFilters,
+  DeliveryRegion,
   DeliveryRow,
   DeliverySummary,
 } from '@/types/deliveries';
@@ -9,7 +11,11 @@ function buildQueryString(filters: Partial<DeliveryFilters>) {
   const params = new URLSearchParams();
 
   Object.entries(filters).forEach(([key, value]) => {
-    if (typeof value === 'string' && value.trim()) {
+    if (
+      typeof value === 'string' &&
+      value.trim() &&
+      value.trim() !== 'Todos'
+    ) {
       params.set(key, value.trim());
     }
   });
@@ -63,4 +69,38 @@ export async function getDeliveriesSummary(
   );
 
   return parseResponse<DeliverySummary>(response);
+}
+
+export async function getCities(
+  filters: Partial<DeliveryFilters>,
+  token: string,
+) {
+  const response = await fetch(
+    `${API_BASE_URL}/entregas/find-cities${buildQueryString(filters)}`,
+    {
+      method: 'GET',
+      headers: {
+        Authorization: `Bearer ${token}`,
+      },
+    },
+  );
+
+  return parseResponse<DeliveryCity[]>(response);
+}
+
+export async function getRegions(
+  filters: Partial<DeliveryFilters>,
+  token: string,
+) {
+  const response = await fetch(
+    `${API_BASE_URL}/entregas/find-regions${buildQueryString(filters)}`,
+    {
+      method: 'GET',
+      headers: {
+        Authorization: `Bearer ${token}`,
+      },
+    },
+  );
+
+  return parseResponse<DeliveryRegion[]>(response);
 }

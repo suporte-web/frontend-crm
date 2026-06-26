@@ -199,12 +199,23 @@ export default function UsersPage() {
       : permissionItem.roles.includes(selectedPermissionRole);
   }
 
+  function isProtectedAdminPermission(screenKey: string) {
+    return selectedPermissionRole === 'ADMIN' && screenKey === 'users';
+  }
+
   async function handleTogglePermissionItem(screenKey: string) {
     const permissionItem = profilePermissionItems.find(
       (item) => item.key === screenKey,
     );
 
     if (!permissionItem) return;
+
+    if (isProtectedAdminPermission(screenKey)) {
+      setErrorToastMessage(
+        'A tela Usuários é obrigatória para o perfil Admin e não pode ser desativada.',
+      );
+      return;
+    }
 
     const nextPermissions = profilePermissionItems.map((item) => {
       const existingPermission = selectedRolePermissions.get(item.key);
@@ -618,11 +629,10 @@ export default function UsersPage() {
                     key={role}
                     type="button"
                     onClick={() => setSelectedPermissionRole(role)}
-                    className={`rounded-2xl border px-4 py-2 text-sm font-semibold transition ${
-                      selectedPermissionRole === role
-                        ? 'border-blue-600 bg-blue-600 text-white'
-                        : 'border-slate-300 bg-white text-slate-700 hover:bg-slate-50'
-                    }`}
+                    className={`rounded-2xl border px-4 py-2 text-sm font-semibold transition ${selectedPermissionRole === role
+                      ? 'border-blue-600 bg-blue-600 text-white'
+                      : 'border-slate-300 bg-white text-slate-700 hover:bg-slate-50'
+                      }`}
                   >
                     {getRoleLabel(role)}
                   </button>
@@ -636,32 +646,38 @@ export default function UsersPage() {
                 const allowedByBaseRole = permissionItem.roles.includes(
                   selectedPermissionRole,
                 );
+                const isProtected = isProtectedAdminPermission(permissionItem.key);
 
                 return (
                   <label
                     key={permissionItem.key}
-                    className={`flex min-h-[72px] cursor-pointer items-center justify-between gap-4 rounded-2xl border px-4 py-3 transition ${
-                      checked
+                    className={`flex min-h-[72px] items-center justify-between gap-4 rounded-2xl border px-4 py-3 transition ${checked
                         ? 'border-blue-200 bg-blue-50'
                         : 'border-slate-200 bg-slate-50'
-                    } ${savingPermissions ? 'pointer-events-none opacity-70' : ''}`}
+                      } ${savingPermissions || isProtected
+                        ? 'cursor-not-allowed opacity-70'
+                        : 'cursor-pointer'
+                      }`}
                   >
                     <span>
                       <span className="block text-sm font-semibold text-slate-900">
                         {permissionItem.label}
                       </span>
                       <span className="mt-1 block text-xs text-slate-500">
-                        {allowedByBaseRole
-                          ? 'Disponivel para o perfil'
-                          : 'Fora do perfil padrao'}
+                        {isProtected
+                          ? 'Permissão obrigatória para administradores'
+                          : allowedByBaseRole
+                            ? 'Disponível para o perfil'
+                            : 'Fora do perfil padrão'}
                       </span>
                     </span>
 
                     <input
                       type="checkbox"
                       checked={checked}
+                      disabled={isProtected || savingPermissions}
                       onChange={() => handleTogglePermissionItem(permissionItem.key)}
-                      className="h-5 w-5 rounded border-slate-300 text-blue-600 focus:ring-blue-500"
+                      className="h-5 w-5 rounded border-slate-300 text-blue-600 focus:ring-blue-500 disabled:cursor-not-allowed disabled:opacity-60"
                     />
                   </label>
                 );
@@ -796,11 +812,10 @@ export default function UsersPage() {
                         Status
                       </p>
                       <span
-                        className={`inline-flex rounded-full px-3 py-1 text-xs font-semibold ${
-                          user.isActive
-                            ? 'bg-[#e8f5e7] text-[#2f7b2d]'
-                            : 'bg-[#ffe6e8] text-[#b52631]'
-                        }`}
+                        className={`inline-flex rounded-full px-3 py-1 text-xs font-semibold ${user.isActive
+                          ? 'bg-[#e8f5e7] text-[#2f7b2d]'
+                          : 'bg-[#ffe6e8] text-[#b52631]'
+                          }`}
                       >
                         {user.isActive ? 'Ativo' : 'Inativo'}
                       </span>

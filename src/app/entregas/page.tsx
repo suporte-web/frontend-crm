@@ -8,11 +8,15 @@ import { Card, CardContent } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { useAuth } from "@/context/auth-context";
 import {
+  getCities,
   getDeliveries,
   getDeliveriesSummary,
+  getRegions,
 } from "@/services/deliveries.service";
 import type {
+  DeliveryCity,
   DeliveryFilters,
+  DeliveryRegion,
   DeliveryRow,
   DeliverySummary,
 } from "@/types/deliveries";
@@ -34,14 +38,16 @@ import {
 
 const PAGE_SIZE = 10;
 const DEFAULT_FILTERS: DeliveryFilters = {
-  dataRef: new Date().toISOString().slice(0, 10),
+  dataInicio: "",
+  dataFim: "",
   ufDest: "",
+  cidadeDest: "",
   nroCtrc: "",
   statusEntrega: "Todos",
   classificacaoRota: "Todos",
 };
 
-const ROUTE_OPTIONS = ["Todos", "Curitiba", "Londrina", "Maringa", "-"];
+
 const STATUS_OPTIONS = ["Todos", "Entregue", "Pendente", "Em atraso"];
 
 type SortField =
@@ -67,81 +73,81 @@ type QuickFilter =
 
 const DELIVERY_TABLE_COLUMNS: Array<{
   field:
-    | SortField
-    | "ser_ctrc"
-    | "hora_entrega"
-    | "ult_ocor"
-    | "ocorrencia"
-    | "em_atraso";
+  | SortField
+  | "ser_ctrc"
+  | "hora_entrega"
+  | "ult_ocor"
+  | "ocorrencia"
+  | "em_atraso";
   label: string;
   sortable?: boolean;
   className?: string;
 }> = [
-  {
-    field: "nro_ctrc",
-    label: "Nº CTRC",
-    sortable: true,
-    className: "min-w-[105px]",
-  },
-  { field: "ser_ctrc", label: "Serie", className: "min-w-[86px]" },
-  {
-    field: "nome_cli_dest",
-    label: "Cliente destino",
-    sortable: true,
-    className: "min-w-[220px]",
-  },
-  {
-    field: "cidade_origem",
-    label: "Origem",
-    sortable: true,
-    className: "min-w-[130px]",
-  },
-  {
-    field: "cidade_dest",
-    label: "Destino",
-    sortable: true,
-    className: "min-w-[130px]",
-  },
-  { field: "uf_dest", label: "UF", sortable: true, className: "min-w-[72px]" },
-  {
-    field: "data_prev_ent",
-    label: "Prev. entrega",
-    sortable: true,
-    className: "min-w-[132px]",
-  },
-  {
-    field: "data_entrega",
-    label: "Data entrega",
-    sortable: true,
-    className: "min-w-[132px]",
-  },
-  { field: "hora_entrega", label: "Hora entrega", className: "min-w-[128px]" },
-  { field: "ult_ocor", label: "Ult. ocorrencia", className: "min-w-[126px]" },
-  {
-    field: "ocorrencia",
-    label: "Descrição ocorrencia",
-    className: "min-w-[280px]",
-  },
-  {
-    field: "status_entrega",
-    label: "Status",
-    sortable: true,
-    className: "min-w-[140px]",
-  },
-  { field: "em_atraso", label: "Em atraso", className: "min-w-[116px]" },
-  {
-    field: "sla_entrega",
-    label: "SLA",
-    sortable: true,
-    className: "min-w-[150px]",
-  },
-  {
-    field: "classificacao_rota",
-    label: "Classificacao",
-    sortable: true,
-    className: "min-w-[150px]",
-  },
-];
+    {
+      field: "nro_ctrc",
+      label: "Nº CTRC",
+      sortable: true,
+      className: "min-w-[105px]",
+    },
+    { field: "ser_ctrc", label: "Serie", className: "min-w-[86px]" },
+    {
+      field: "nome_cli_dest",
+      label: "Cliente destino",
+      sortable: true,
+      className: "min-w-[220px]",
+    },
+    {
+      field: "cidade_origem",
+      label: "Origem",
+      sortable: true,
+      className: "min-w-[130px]",
+    },
+    {
+      field: "cidade_dest",
+      label: "Destino",
+      sortable: true,
+      className: "min-w-[130px]",
+    },
+    { field: "uf_dest", label: "UF", sortable: true, className: "min-w-[72px]" },
+    {
+      field: "data_prev_ent",
+      label: "Prev. entrega",
+      sortable: true,
+      className: "min-w-[132px]",
+    },
+    {
+      field: "data_entrega",
+      label: "Data entrega",
+      sortable: true,
+      className: "min-w-[132px]",
+    },
+    { field: "hora_entrega", label: "Hora entrega", className: "min-w-[128px]" },
+    { field: "ult_ocor", label: "Ult. ocorrencia", className: "min-w-[126px]" },
+    {
+      field: "ocorrencia",
+      label: "Descrição ocorrencia",
+      className: "min-w-[280px]",
+    },
+    {
+      field: "status_entrega",
+      label: "Status",
+      sortable: true,
+      className: "min-w-[140px]",
+    },
+    { field: "em_atraso", label: "Em atraso", className: "min-w-[116px]" },
+    {
+      field: "sla_entrega",
+      label: "SLA",
+      sortable: true,
+      className: "min-w-[150px]",
+    },
+    {
+      field: "classificacao_rota",
+      label: "Classificacao",
+      sortable: true,
+      className: "min-w-[150px]",
+    },
+  ];
 
 function formatDate(value?: string | null) {
   if (!value) return "-";
@@ -155,8 +161,33 @@ function formatDate(value?: string | null) {
   return new Intl.DateTimeFormat("pt-BR").format(parsed);
 }
 
+function formatFilterPeriod(filters: DeliveryFilters) {
+  if (filters.dataInicio && filters.dataFim) {
+    return `${formatDate(filters.dataInicio)} até ${formatDate(filters.dataFim)}`;
+  }
+
+  if (filters.dataInicio) {
+    return `A partir de ${formatDate(filters.dataInicio)}`;
+  }
+
+  if (filters.dataFim) {
+    return `Até ${formatDate(filters.dataFim)}`;
+  }
+
+  return "Todos os períodos";
+}
+
+function formatNumber(value: number) {
+  return new Intl.NumberFormat("pt-BR").format(value);
+}
+
 function formatPercentage(value: number) {
-  return `${Number.isInteger(value) ? value.toFixed(0) : value.toFixed(1)}%`;
+  return (
+    new Intl.NumberFormat("pt-BR", {
+      minimumFractionDigits: Number.isInteger(value) ? 0 : 1,
+      maximumFractionDigits: 1,
+    }).format(value) + "%"
+  );
 }
 
 function getStatusBadgeClass(status: string) {
@@ -189,7 +220,7 @@ function getSlaBadgeClass(value: string) {
   return "border-zinc-200 bg-zinc-50 text-zinc-600";
 }
 
-function exportRowsToCsv(rows: DeliveryRow[], dataRef: string) {
+function exportRowsToCsv(rows: DeliveryRow[], periodLabel: string) {
   const headers = [
     "Data referência",
     "Nº CTRC",
@@ -241,7 +272,14 @@ function exportRowsToCsv(rows: DeliveryRow[], dataRef: string) {
   const link = document.createElement("a");
 
   link.href = url;
-  link.download = `monitoramento-entregas-${dataRef || new Date().toISOString().slice(0, 10)}.csv`;
+  const safePeriodLabel = periodLabel
+    .normalize("NFD")
+    .replace(/[\u0300-\u036f]/g, "")
+    .replace(/[^a-zA-Z0-9-]+/g, "-")
+    .replace(/^-+|-+$/g, "")
+    .toLowerCase();
+
+  link.download = `monitoramento-entregas-${safePeriodLabel || new Date().toISOString().slice(0, 10)}.csv`;
   document.body.appendChild(link);
   link.click();
   document.body.removeChild(link);
@@ -255,12 +293,15 @@ function compareValues(a: string | null, b: string | null) {
   return a.localeCompare(b, "pt-BR", { numeric: true });
 }
 
+
 export default function DeliveriesPage() {
   const { token, user, loading: authLoading } = useAuth();
   const [filters, setFilters] = useState<DeliveryFilters>(DEFAULT_FILTERS);
   const [appliedFilters, setAppliedFilters] =
     useState<DeliveryFilters>(DEFAULT_FILTERS);
   const [rows, setRows] = useState<DeliveryRow[]>([]);
+  const [cities, setCities] = useState<DeliveryCity[]>([]);
+  const [regions, setRegions] = useState<DeliveryRegion[]>([]);
   const [summary, setSummary] = useState<DeliverySummary>({
     totalPedidos: 0,
     entregues: 0,
@@ -377,10 +418,31 @@ export default function DeliveriesPage() {
   }, [page, sortedRows]);
 
   const availableUfs = useMemo(() => {
+    const values = regions.length
+      ? regions.map((region) => region.uf_dest)
+      : rows.map((row) => row.uf_dest);
+
+    return Array.from(new Set(values.filter(Boolean))).sort();
+  }, [regions, rows]);
+
+  const availableClassifications = useMemo(() => {
+    const values = regions.length
+      ? regions.map((region) => region.classificacao_rota)
+      : rows.map((row) => row.classificacao_rota);
+
     return Array.from(
-      new Set(rows.map((row) => row.uf_dest).filter(Boolean)),
-    ).sort();
-  }, [rows]);
+      new Set(values.filter((value) => value && value !== "-")),
+    ).sort((left, right) => left.localeCompare(right, "pt-BR"));
+  }, [regions, rows]);
+
+  const availableCities = useMemo(() => {
+    return cities
+      .filter((city) => !filters.ufDest || city.uf_dest === filters.ufDest)
+      .map((city) => city.cidade_dest)
+      .filter(Boolean)
+      .filter((city, index, list) => list.indexOf(city) === index)
+      .sort((left, right) => left.localeCompare(right, "pt-BR"));
+  }, [cities, filters.ufDest]);
   const pendingVolume = summary.pendentes + summary.emAtraso;
   const progressWidth = `${Math.min(Math.max(summary.porcentagemEntrega, 0), 100)}%`;
 
@@ -391,6 +453,14 @@ export default function DeliveriesPage() {
     setFilters((previous) => ({
       ...previous,
       [field]: value,
+    }));
+  }
+
+  function updateUfFilter(value: string) {
+    setFilters((previous) => ({
+      ...previous,
+      ufDest: value,
+      cidadeDest: "",
     }));
   }
 
@@ -446,11 +516,66 @@ export default function DeliveriesPage() {
       : "";
   }
 
+  const fieldLabelClass =
+    "mb-2 block text-sm font-bold text-slate-700";
+
+  const fieldControlClass =
+    "h-12 rounded-2xl border-slate-300 bg-white px-4 text-sm font-semibold text-slate-900 shadow-none transition focus-visible:bg-white focus-visible:ring-2 focus-visible:ring-orange-500/20";
+
+  const selectControlClass =
+    "flex h-12 w-full rounded-2xl border border-slate-300 bg-white px-4 py-2 text-sm font-semibold text-slate-900 outline-none transition focus:bg-white focus:ring-2 focus:ring-orange-500/20";
+
   const canViewPage =
     user?.role &&
     ["ADMIN", "GESTAO", "COMERCIAL", "MARKETING", "CLIENTE"].includes(
       user.role,
     );
+
+  useEffect(() => {
+    if (!token) {
+      return;
+    }
+
+    let isMounted = true;
+    const authToken = token;
+
+    async function loadFilterOptions() {
+      try {
+        const optionFilters: Partial<DeliveryFilters> = {
+          dataInicio: filters.dataInicio,
+          dataFim: filters.dataFim,
+          ufDest: filters.ufDest,
+          statusEntrega: filters.statusEntrega,
+        };
+
+        const [deliveryCities, deliveryRegions] = await Promise.all([
+          getCities(optionFilters, authToken),
+          getRegions(optionFilters, authToken),
+        ]);
+
+        if (!isMounted) {
+          return;
+        }
+
+        setCities(deliveryCities);
+        setRegions(deliveryRegions);
+      } catch (error) {
+        console.error(error);
+      }
+    }
+
+    loadFilterOptions();
+
+    return () => {
+      isMounted = false;
+    };
+  }, [
+    filters.dataFim,
+    filters.dataInicio,
+    filters.statusEntrega,
+    filters.ufDest,
+    token,
+  ]);
 
   if (!authLoading && !canViewPage) {
     return (
@@ -467,68 +592,94 @@ export default function DeliveriesPage() {
   return (
     <AppLayout>
       <div className="mx-auto flex w-full max-w-[1680px] flex-col gap-6">
-        <section className="crm-shell-card rounded-[24px] p-8">
-          <div className="flex flex-col gap-6 lg:flex-row lg:items-center lg:justify-between">
-            <div className="flex items-center gap-7">
-              <div className="flex h-[92px] w-[92px] shrink-0 items-center justify-center rounded-full border border-[#ffbd7b] bg-[#fff7df]/70 text-[#ec3f12]">
-                <Truck className="h-9 w-9" />
+        <section className="crm-shell-card overflow-hidden rounded-[28px] p-6 shadow-[0_18px_45px_rgba(15,23,42,0.06)] md:p-8">
+          <div className="flex flex-col gap-7 lg:flex-row lg:items-center lg:justify-between">
+            <div className="flex flex-col gap-5 sm:flex-row sm:items-center">
+              <div className="flex h-[76px] w-[76px] shrink-0 items-center justify-center rounded-full border border-orange-200 bg-orange-50 text-[#ec3f12] shadow-[0_14px_30px_rgba(236,63,18,0.10)] md:h-[86px] md:w-[86px]">
+                <Truck className="h-8 w-8 md:h-9 md:w-9" />
               </div>
 
               <div>
-                <p className="text-sm font-black uppercase tracking-[0.12em] text-[#ec3f12]">
+                <p className="text-xs font-black uppercase tracking-[0.18em] text-[#ec3f12]">
                   Operação
                 </p>
-                <h1 className="mt-3 text-4xl font-black tracking-tight text-slate-950 md:text-5xl">
+
+                <h1 className="mt-2 text-3xl font-black tracking-tight text-slate-950 md:text-5xl">
                   Monitoramento de entregas
                 </h1>
-                <p className="mt-3 text-lg font-medium text-slate-500">
-                  BI - Aero | E-commerce.
+
+                <p className="mt-2 text-base font-semibold text-slate-500 md:text-lg">
+
                 </p>
               </div>
             </div>
 
-            <div className="w-fit rounded-2xl border border-slate-200 bg-white/80 px-4 py-3 shadow-sm">
-              <p className="text-sm font-black uppercase text-slate-400">
-                Data base
+            <div className="w-full rounded-2xl border border-slate-200 bg-white/90 px-5 py-4 shadow-[0_14px_35px_rgba(15,23,42,0.06)] sm:w-fit">
+              <p className="text-xs font-black uppercase tracking-[0.12em] text-slate-400">
+                Período aplicado
               </p>
-              <p className="mt-1 text-xl font-semibold text-slate-950">
-                {formatDate(filters.dataRef)}
+
+              <p className="mt-1 text-base font-bold text-slate-950 md:text-lg">
+                {formatFilterPeriod(appliedFilters)}
               </p>
             </div>
           </div>
         </section>
 
-        <section className="crm-shell-card rounded-[24px] p-8">
-          <div className="flex items-center gap-4">
-            <SlidersHorizontal className="h-6 w-6 text-[#ec3f12]" />
-            <h2 className="text-2xl font-black text-slate-950">
-              Filtros de consulta
-            </h2>
+        <section className="crm-shell-card rounded-[28px] p-6 shadow-[0_18px_45px_rgba(15,23,42,0.05)] md:p-8">
+          <div className="flex items-center gap-3">
+            <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-orange-50 text-[#ec3f12] ring-1 ring-orange-100">
+              <SlidersHorizontal className="h-5 w-5" />
+            </div>
+
+            <div>
+              <h2 className="text-xl font-black text-slate-950 md:text-2xl">
+                Filtros de consulta
+              </h2>
+
+              <p className="mt-1 text-sm font-medium text-slate-500">
+                Refine os resultados por período, destino, CTRC, status ou classificação.
+              </p>
+            </div>
           </div>
 
-          <div className="mt-8 grid grid-cols-1 gap-6 md:grid-cols-2 xl:grid-cols-5">
+          <div className="mt-7 grid grid-cols-1 gap-5 md:grid-cols-2 xl:grid-cols-4 2xl:grid-cols-7">
             <div>
-              <label className="mb-3 block text-base font-semibold text-slate-900">
-                Data de referência
+              <label className={fieldLabelClass}>
+                Data inicial
               </label>
               <Input
                 type="date"
-                value={filters.dataRef}
+                value={filters.dataInicio}
                 onChange={(event) =>
-                  updateFilter("dataRef", event.target.value)
+                  updateFilter("dataInicio", event.target.value)
                 }
-                className="h-[68px] rounded-2xl border-slate-300 bg-white px-5 text-base text-slate-900 shadow-none transition focus-visible:bg-white"
+                className={fieldControlClass}
               />
             </div>
 
             <div>
-              <label className="mb-3 block text-base font-semibold text-slate-900">
+              <label className={fieldLabelClass}>
+                Data final
+              </label>
+              <Input
+                type="date"
+                value={filters.dataFim}
+                onChange={(event) =>
+                  updateFilter("dataFim", event.target.value)
+                }
+                className={fieldControlClass}
+              />
+            </div>
+
+            <div>
+              <label className={fieldLabelClass}>
                 UF destino
               </label>
               <select
                 value={filters.ufDest}
-                onChange={(event) => updateFilter("ufDest", event.target.value)}
-                className="flex h-[68px] w-full rounded-2xl border border-slate-300 bg-white px-5 py-3 text-base text-slate-900 outline-none transition focus:bg-white focus:ring-2 focus:ring-orange-500/20"
+                onChange={(event) => updateUfFilter(event.target.value)}
+                className={selectControlClass}
               >
                 <option value="">Todas</option>
                 {availableUfs.map((uf) => (
@@ -540,7 +691,27 @@ export default function DeliveriesPage() {
             </div>
 
             <div>
-              <label className="mb-3 block text-base font-semibold text-slate-900">
+              <label className={fieldLabelClass}>
+                Cidade destino
+              </label>
+              <select
+                value={filters.cidadeDest}
+                onChange={(event) =>
+                  updateFilter("cidadeDest", event.target.value)
+                }
+                className={selectControlClass}
+              >
+                <option value="">Todas</option>
+                {availableCities.map((city) => (
+                  <option key={city} value={city}>
+                    {city}
+                  </option>
+                ))}
+              </select>
+            </div>
+
+            <div>
+              <label className={fieldLabelClass}>
                 Nº CTRC
               </label>
               <Input
@@ -549,12 +720,12 @@ export default function DeliveriesPage() {
                   updateFilter("nroCtrc", event.target.value)
                 }
                 placeholder="Digite parte do CTRC"
-                className="h-[68px] rounded-2xl border-slate-300 bg-white px-5 text-base text-slate-900 shadow-none transition focus-visible:bg-white"
+                className={fieldControlClass}
               />
             </div>
 
             <div>
-              <label className="mb-3 block text-base font-semibold text-slate-900">
+              <label className={fieldLabelClass}>
                 Status entrega
               </label>
               <select
@@ -562,7 +733,7 @@ export default function DeliveriesPage() {
                 onChange={(event) =>
                   updateFilter("statusEntrega", event.target.value)
                 }
-                className="flex h-[68px] w-full rounded-2xl border border-slate-300 bg-white px-5 py-3 text-base text-slate-900 outline-none transition focus:bg-white focus:ring-2 focus:ring-orange-500/20"
+                className={selectControlClass}
               >
                 {STATUS_OPTIONS.map((status) => (
                   <option key={status} value={status}>
@@ -573,7 +744,7 @@ export default function DeliveriesPage() {
             </div>
 
             <div>
-              <label className="mb-3 block text-base font-semibold text-slate-900">
+              <label className={fieldLabelClass}>
                 Classificação operacional
               </label>
               <select
@@ -581,11 +752,12 @@ export default function DeliveriesPage() {
                 onChange={(event) =>
                   updateFilter("classificacaoRota", event.target.value)
                 }
-                className="flex h-[68px] w-full rounded-2xl border border-slate-300 bg-white px-5 py-3 text-base text-slate-900 outline-none transition focus:bg-white focus:ring-2 focus:ring-orange-500/20"
+                className={selectControlClass}
               >
-                {ROUTE_OPTIONS.map((route) => (
-                  <option key={route} value={route}>
-                    {route}
+                <option value="Todos">Todas</option>
+                {availableClassifications.map((classification) => (
+                  <option key={classification} value={classification}>
+                    {classification}
                   </option>
                 ))}
               </select>
@@ -598,7 +770,7 @@ export default function DeliveriesPage() {
               variant="outline"
               className="h-[58px] rounded-2xl border-slate-200 bg-white px-7 text-base font-semibold text-slate-800 transition hover:bg-slate-50"
               onClick={() =>
-                exportRowsToCsv(sortedRows, appliedFilters.dataRef)
+                exportRowsToCsv(sortedRows, formatFilterPeriod(appliedFilters))
               }
               disabled={rows.length === 0}
             >
@@ -670,7 +842,7 @@ export default function DeliveriesPage() {
               </div>
 
               <p className="text-5xl font-bold tracking-tight text-slate-950">
-                {summary.totalPedidos}
+                {formatNumber(summary.totalPedidos)}
               </p>
             </div>
           </button>
@@ -695,7 +867,7 @@ export default function DeliveriesPage() {
               </div>
 
               <p className="text-5xl font-bold tracking-tight text-slate-950">
-                {summary.entregues}
+                {formatNumber(summary.entregues)}
               </p>
             </div>
           </button>
@@ -745,7 +917,7 @@ export default function DeliveriesPage() {
               </div>
 
               <p className="text-5xl font-bold tracking-tight text-slate-950">
-                {summary.emAtraso}
+                {formatNumber(summary.emAtraso)}
               </p>
             </div>
           </button>
@@ -782,7 +954,7 @@ export default function DeliveriesPage() {
 
                 <div className="mt-4 flex items-end justify-between gap-4">
                   <p className="text-base font-semibold text-slate-500">
-                    {summary.entregues} de {summary.totalPedidos} pedidos
+                    {formatNumber(summary.entregues)} de {formatNumber(summary.totalPedidos)} pedidos
                   </p>
                   <button
                     type="button"
@@ -812,7 +984,7 @@ export default function DeliveriesPage() {
                 </h2>
 
                 <p className="mt-2 inline-flex rounded-full border border-slate-200 bg-white/75 px-3 py-1 text-sm font-semibold leading-6 text-slate-600">
-                  Total filtrado: {sortedRows.length} registros.
+                  Total filtrado: {formatNumber(sortedRows.length)} registros.
                 </p>
               </div>
 
@@ -937,9 +1109,8 @@ export default function DeliveriesPage() {
                           paginatedRows.map((row, index) => (
                             <tr
                               key={`${row.seq_ctrc}-${row.nro_ctrc}`}
-                              className={`align-top transition hover:bg-[#fab519]/10 ${
-                                index % 2 === 0 ? "bg-white" : "bg-slate-50/55"
-                              }`}
+                              className={`align-top transition hover:bg-[#fab519]/10 ${index % 2 === 0 ? "bg-white" : "bg-slate-50/55"
+                                }`}
                             >
                               <td className="border-b border-slate-100 px-4 py-4">
                                 <div className="inline-flex rounded-2xl bg-[#343434] px-3 py-2 text-sm font-black text-white shadow-[0_10px_22px_rgba(52,52,52,0.12)]">

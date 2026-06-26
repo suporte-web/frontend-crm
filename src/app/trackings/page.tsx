@@ -98,6 +98,42 @@ const deliverySuccessIconClass = 'bg-[#e8f5e7] text-[#2f7b2d] border-[#bfe6c0]';
 const deliverySuccessCardClass =
   'border-[#bfe6c0] bg-[#e8f5e7]/75 text-[#2f7b2d]';
 
+function normalizeTrackingText(value?: string | null) {
+  return (value || '')
+    .normalize('NFD')
+    .replace(/[\u0300-\u036f]/g, '')
+    .toUpperCase();
+}
+
+function isTransportDocumentIssued(item: TrackingApiItem) {
+  const ocorrencia = normalizeTrackingText(item.ocorrencia);
+  const descricao = normalizeTrackingText(item.descricao);
+
+  return (
+    ocorrencia.includes('DOCUMENTO DE TRANSPORTE EMITIDO') ||
+    descricao.includes('CT-E AUTORIZADO')
+  );
+}
+
+function isDeliveredTrackingItem(item: TrackingApiItem) {
+  const ocorrencia = normalizeTrackingText(item.ocorrencia);
+  const hasReceiver =
+    Boolean(item.nome_recebedor?.trim()) ||
+    Boolean(item.nro_doc_recebedor?.trim());
+
+  if (isTransportDocumentIssued(item)) {
+    return false;
+  }
+
+  return (
+    ocorrencia.includes('MERCADORIA ENTREGUE') ||
+    ocorrencia.includes('ENTREGA REALIZADA') ||
+    ocorrencia.includes('COMPROVANTE DE ENTREGA') ||
+    (ocorrencia.includes('ENTREGUE') && !ocorrencia.includes('NAO ENTREGUE')) ||
+    hasReceiver
+  );
+}
+
 function formatCnpj(value: string) {
   const digits = value.replace(/\D/g, '').slice(0, 14);
 
@@ -164,8 +200,9 @@ function parseFlexibleDate(value?: string | null) {
   if (!match) return null;
 
   const [, day, month, year, hour = '00', minute = '00', second = '00'] = match;
+  const fullYear = year.length === 2 ? 2000 + Number(year) : Number(year);
   const parsed = new Date(
-    Number(year),
+    fullYear,
     Number(month) - 1,
     Number(day),
     Number(hour),
@@ -318,19 +355,32 @@ function getStatusInfo(items: TrackingApiItem[]) {
   }
 
   const latest = items[items.length - 1];
-  const combinedText =
-    `${latest.ocorrencia || ''} ${latest.tipo || ''}`.toUpperCase();
+  const combinedText = getTrackingText(latest);
 
-  if (combinedText.includes('ENTREGUE') || combinedText.includes('ENTREGA')) {
+  if (isDeliveredTrackingItem(latest)) {
     return {
       label: 'Entregue',
       className: deliverySuccessBadgeClass,
     };
   }
 
+  if (isTransportDocumentIssued(latest)) {
+    return {
+      label: 'Documento emitido',
+      className: 'bg-[#343434]/10 text-[#343434] border-[#343434]/20',
+    };
+  }
+
+  if (normalizeTrackingText(latest.descricao).includes('PREVISAO DE ENTREGA')) {
+    return {
+      label: 'Pendente',
+      className: 'bg-[#fab519]/15 text-[#343434] border-[#fab519]/40',
+    };
+  }
+
   if (
     combinedText.includes('TRANSITO') ||
-    combinedText.includes('TRANSPORTE') ||
+    combinedText.includes('TRÂNSITO') ||
     combinedText.includes('INFORMATIVO')
   ) {
     return {
@@ -351,7 +401,9 @@ function getLatestItem(items: TrackingApiItem[]) {
 }
 
 function getTrackingText(item: TrackingApiItem) {
-  return `${item.ocorrencia || ''} ${item.tipo || ''} ${item.descricao || ''}`.toUpperCase();
+  return normalizeTrackingText(
+    `${item.ocorrencia || ''} ${item.tipo || ''} ${item.descricao || ''}`,
+  );
 }
 
 function splitOccurrenceLabel(ocorrencia?: string) {
@@ -387,6 +439,18 @@ function findLatestStageDate(items: TrackingApiItem[], keywords: string[]) {
   return null;
 }
 
+function findLatestDeliveredDate(items: TrackingApiItem[]) {
+  for (let index = items.length - 1; index >= 0; index -= 1) {
+    const item = items[index];
+
+    if (isDeliveredTrackingItem(item)) {
+      return item.data_hora_efetiva || item.data_hora || null;
+    }
+  }
+
+  return null;
+}
+
 function getTrackingStages(items: TrackingApiItem[]): TrackingStage[] {
   const processingKeywords = [
     'COLETA',
@@ -403,7 +467,6 @@ function getTrackingStages(items: TrackingApiItem[]): TrackingStage[] {
   const transitKeywords = [
     'TRANSITO',
     'TRÂNSITO',
-    'TRANSPORTE',
     'A CAMINHO',
     'TRANSFERENCIA',
     'TRANSFERÊNCIA',
@@ -414,25 +477,15 @@ function getTrackingStages(items: TrackingApiItem[]): TrackingStage[] {
     'SAÍDA DE UNIDADE',
   ];
 
-  const deliveredKeywords = [
-    'ENTREGUE',
-    'ENTREGA',
-    'RECEBIDO',
-    'RECEBEDOR',
-    'ASSINADO',
-    'COMPROVANTE',
-  ];
-
   const hasItems = items.length > 0;
   const hasProcessing = items.some((item) =>
     includesAny(getTrackingText(item), processingKeywords),
   );
   const hasTransit = items.some((item) =>
+    !isTransportDocumentIssued(item) &&
     includesAny(getTrackingText(item), transitKeywords),
   );
-  const hasDelivered = items.some((item) =>
-    includesAny(getTrackingText(item), deliveredKeywords),
-  );
+  const hasDelivered = items.some(isDeliveredTrackingItem);
 
   const currentStageIndex = hasDelivered
     ? 3
@@ -477,7 +530,7 @@ function getTrackingStages(items: TrackingApiItem[]): TrackingStage[] {
       icon: CheckCircle2,
       reached: hasDelivered,
       current: currentStageIndex === 3,
-      timestamp: findLatestStageDate(items, deliveredKeywords),
+      timestamp: findLatestDeliveredDate(items),
     },
   ];
 }
@@ -488,19 +541,23 @@ function getLocationLabel(item: TrackingApiItem) {
 }
 
 function getMovementVisual(item: TrackingApiItem) {
-  const text =
-    `${item.ocorrencia || ''} ${item.tipo || ''} ${item.descricao || ''}`.toUpperCase();
+  const text = getTrackingText(item);
 
-  if (
-    text.includes('ENTREGUE') ||
-    text.includes('ENTREGA') ||
-    text.includes('RECEBIDO')
-  ) {
+  if (isDeliveredTrackingItem(item)) {
     return {
       icon: CheckCircle2,
       iconWrapClass: deliverySuccessIconClass,
       badgeClass: deliverySuccessBadgeClass,
       label: 'Entregue',
+    };
+  }
+
+  if (isTransportDocumentIssued(item)) {
+    return {
+      icon: PackageCheck,
+      iconWrapClass: 'bg-[#343434]/10 text-[#343434] border-[#343434]/20',
+      badgeClass: 'bg-[#343434]/10 text-[#343434] border-[#343434]/20',
+      label: 'Documento emitido',
     };
   }
 
@@ -554,7 +611,8 @@ function getMovementVisual(item: TrackingApiItem) {
   if (
     text.includes('PENDENTE') ||
     text.includes('AGUARDANDO') ||
-    text.includes('ATRASO')
+    text.includes('ATRASO') ||
+    text.includes('PREVISAO DE ENTREGA')
   ) {
     return {
       icon: Clock3,
@@ -591,16 +649,7 @@ function getDeadlineInfo(
   items: TrackingApiItem[],
   estimatedDelivery: string | null,
 ): DeadlineInfo {
-  const deliveredKeywords = [
-    'ENTREGUE',
-    'ENTREGA',
-    'RECEBIDO',
-    'RECEBEDOR',
-    'ASSINADO',
-    'COMPROVANTE',
-  ];
-
-  const latestDeliveredAt = findLatestStageDate(items, deliveredKeywords);
+  const latestDeliveredAt = findLatestDeliveredDate(items);
   const estimatedDate = parseFlexibleDate(estimatedDelivery);
   const deliveredDate = parseFlexibleDate(latestDeliveredAt);
 
@@ -660,16 +709,7 @@ function getDeliveryDisplay(
   estimatedDelivery: string | null,
   destinationLabel: string,
 ): DeliveryDisplay {
-  const deliveredKeywords = [
-    'ENTREGUE',
-    'ENTREGA',
-    'RECEBIDO',
-    'RECEBEDOR',
-    'ASSINADO',
-    'COMPROVANTE',
-  ];
-
-  const latestDeliveredAt = findLatestStageDate(items, deliveredKeywords);
+  const latestDeliveredAt = findLatestDeliveredDate(items);
 
   if (latestDeliveredAt) {
     return {
@@ -1425,6 +1465,7 @@ export default function TrackingsPage() {
                       const visual = getMovementVisual(item);
                       const occurrence = splitOccurrenceLabel(item.ocorrencia);
                       const Icon = visual.icon;
+                      const isCurrentMovement = index === items.length - 1;
 
                       return (
                         <article
@@ -1447,6 +1488,12 @@ export default function TrackingsPage() {
                                     >
                                       {visual.label}
                                     </Badge>
+
+                                    {isCurrentMovement ? (
+                                      <Badge className="rounded-full bg-[#b7dfbe] px-3 py-1 text-xs font-semibold text-white">
+                                        Atual
+                                      </Badge>
+                                    ) : null}
 
                                     {item.tipo ? (
                                       <Badge

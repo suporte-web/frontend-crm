@@ -80,3 +80,37 @@ export async function deleteUser(id: string): Promise<{ message: string }> {
 
   return handleResponse<{ message: string }>(response);
 }
+
+
+export async function forgotPassword(email: string): Promise<{
+  message: string;
+}> {
+  const response = await fetch(`${API_URL}/auth/forgot-password`, {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+    },
+    body: JSON.stringify({
+      email,
+    }),
+  });
+
+  return handleResponse<{ message: string }>(response);
+}
+
+export async function resetPassword(payload: {
+  token: string;
+  newPassword: string;
+}): Promise<{
+  message: string;
+}> {
+  const response = await fetch(`${API_URL}/auth/reset-password`, {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+    },
+    body: JSON.stringify(payload),
+  });
+
+  return handleResponse<{ message: string }>(response);
+}
