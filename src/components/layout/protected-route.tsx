@@ -11,7 +11,7 @@ function canAccessRoute(
   role?: UserRole,
   permissions?: RoleScreenPermission[],
 ) {
-  if (!role || pathname === '/change-password') {
+  if (!role || pathname === '/alterar-senha') {
     return true;
   }
 
@@ -29,7 +29,7 @@ function getDefaultRoute(
   return (
     appScreens.find((screen) =>
       isScreenEnabledForRole(screen, role, permissions),
-    )?.href ?? '/change-password'
+    )?.href ?? '/alterar-senha'
   );
 }
 
@@ -40,7 +40,7 @@ export function ProtectedRoute({ children }: { children: React.ReactNode }) {
 
   useEffect(() => {
     if (!loading && !token) {
-      router.replace('/login');
+      router.replace('/entrar');
       return;
     }
 
@@ -48,9 +48,9 @@ export function ProtectedRoute({ children }: { children: React.ReactNode }) {
       !loading &&
       token &&
       user?.mustChangePassword &&
-      pathname !== '/change-password'
+      pathname !== '/alterar-senha'
     ) {
-      router.replace('/change-password');
+      router.replace('/alterar-senha');
       return;
     }
 
@@ -79,7 +79,7 @@ export function ProtectedRoute({ children }: { children: React.ReactNode }) {
     return null;
   }
 
-  if (user?.mustChangePassword && pathname !== '/change-password') {
+  if (user?.mustChangePassword && pathname !== '/alterar-senha') {
     return null;
   }
 

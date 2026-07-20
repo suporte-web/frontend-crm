@@ -10,11 +10,31 @@ export interface ClientProfile {
   document?: string | null;
   phone?: string | null;
   companyName?: string | null;
+  legalName?: string | null;
+  tradeName?: string | null;
+  cnae?: string | null;
+  stateRegistration?: string | null;
+  businessActivity?: string | null;
+  taxRegime?: string | null;
+  address?: string | null;
+  bankDetails?: string | null;
+  modality?: string | null;
+  registrationDate?: string | null;
   segment?: string | null;
   status?: string | null;
   internalOwnerId?: string | null;
   createdAt?: string;
   updatedAt?: string;
+  contacts?: ClientContactPayload[];
+}
+
+export interface ClientContactPayload {
+  name?: string;
+  role?: string;
+  email?: string;
+  phone?: string;
+  notes?: string;
+  isPrimary?: boolean;
 }
 
 export interface RoleScreenPermission {
@@ -46,16 +66,27 @@ export interface User {
 
 export interface CreateUserPayload {
   name: string;
-  email: string;
-  password: string;
+  email?: string;
+  password?: string;
   role: UserRole;
   isActive?: boolean;
   document?: string;
   phone?: string;
   companyName?: string;
+  legalName?: string;
+  tradeName?: string;
+  cnae?: string;
+  stateRegistration?: string;
+  businessActivity?: string;
+  taxRegime?: string;
+  address?: string;
+  bankDetails?: string;
+  modality?: string;
+  registrationDate?: string;
   segment?: string;
   status?: string;
   internalOwnerId?: string;
+  contacts?: ClientContactPayload[];
 }
 
 export interface UpdateUserPayload {
@@ -66,6 +97,16 @@ export interface UpdateUserPayload {
   document?: string;
   phone?: string;
   companyName?: string;
+  legalName?: string;
+  tradeName?: string;
+  cnae?: string;
+  stateRegistration?: string;
+  businessActivity?: string;
+  taxRegime?: string;
+  address?: string;
+  bankDetails?: string;
+  modality?: string;
+  registrationDate?: string;
   segment?: string;
   status?: string;
   internalOwnerId?: string;

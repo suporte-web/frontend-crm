@@ -291,7 +291,7 @@ export function OpportunityList({
 
                   {opportunity.quoteId ? (
                     <Link
-                      href={`/quotes/${opportunity.quoteId}`}
+                      href={`/cotacoes/${opportunity.quoteId}`}
                       className={`mt-3 inline-flex rounded-2xl border px-3 py-2 text-xs font-semibold transition ${
                         darkMode
                           ? 'border-slate-700 bg-slate-900 text-slate-200 hover:bg-slate-800'

@@ -1,13 +1,32 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { Bell, CheckCheck, Grid3X3, Moon, Settings, Sun } from "lucide-react";
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
-import { useAuth } from "@/context/auth-context";
-import { useTheme } from "@/context/theme-context";
+
+import AppBar from "@mui/material/AppBar";
+import Avatar from "@mui/material/Avatar";
+import Badge from "@mui/material/Badge";
+import Box from "@mui/material/Box";
+import Button from "@mui/material/Button";
+import Divider from "@mui/material/Divider";
+import IconButton from "@mui/material/IconButton";
+import ListItemButton from "@mui/material/ListItemButton";
+import Paper from "@mui/material/Paper";
+import Popover from "@mui/material/Popover";
+import Stack from "@mui/material/Stack";
+import Toolbar from "@mui/material/Toolbar";
+import Tooltip from "@mui/material/Tooltip";
+import Typography from "@mui/material/Typography";
+
+import AppsRoundedIcon from "@mui/icons-material/AppsRounded";
+import DoneAllRoundedIcon from "@mui/icons-material/DoneAllRounded";
+import NotificationsNoneRoundedIcon from "@mui/icons-material/NotificationsNoneRounded";
+import SettingsRoundedIcon from "@mui/icons-material/SettingsRounded";
+
 import { SidebarTrigger } from "@/components/ui/sidebar";
 import { appScreens, isScreenEnabledForRole } from "@/config/screens";
+import { useAuth } from "@/context/auth-context";
 import {
   getNotifications,
   getUnreadNotificationCount,
@@ -16,22 +35,32 @@ import {
 } from "@/services/notifications.service";
 import type { CrmNotification } from "@/types/notifications";
 
+const headerColors = {
+  page: "#fbf7ef",
+  text: "#343434",
+  muted: "#64748b",
+  border: "rgba(52, 52, 52, 0.10)",
+  orange: "#ff4d00",
+  red: "#ec3139",
+  yellow: "#fab519",
+};
+
 function getPageTitle(pathname: string, role?: string) {
-  if (pathname.startsWith("/dashboard")) {
+  if (pathname.startsWith("/painel")) {
     return role === "CLIENTE" ? "Canal do Cliente" : "Dashboard";
   }
 
   if (pathname.startsWith("/bi")) return "BI Comercial";
-  if (pathname.startsWith("/trackings")) return "Rastreamento";
-  if (pathname.startsWith("/quotes")) return "Cotações";
-  if (pathname.startsWith("/clients")) return "Clientes";
+  if (pathname.startsWith("/rastreamentos")) return "Rastreamento";
+  if (pathname.startsWith("/cotacoes")) return "Cotações";
+  if (pathname.startsWith("/clientes")) return "Clientes";
   if (pathname.startsWith("/leads")) return "Leads";
-  if (pathname.startsWith("/tickets")) return "Tickets";
-  if (pathname.startsWith("/users")) return "Usuários";
+  if (pathname.startsWith("/chamados")) return "Chamados";
+  if (pathname.startsWith("/usuarios")) return "Usuários";
   if (pathname.startsWith("/marketing")) return "Marketing";
   if (pathname.startsWith("/entregas")) return "Entregas";
   if (pathname.startsWith("/entradas")) return "Central de Entradas";
-  if (pathname.startsWith("/suppliers")) return "Fornecedores";
+  if (pathname.startsWith("/fornecedores")) return "Fornecedores";
   if (pathname.startsWith("/chat")) return "Chat";
   if (pathname.startsWith("/logs")) return "Logs";
 
@@ -52,7 +81,7 @@ function getRoleLabel(role?: string) {
   return labels[role] ?? role;
 }
 
-function getNotificationToneClass(notification: CrmNotification) {
+function getNotificationTone(notification: CrmNotification) {
   const type = String(notification.metadata?.type ?? "").toUpperCase();
   const text = `${notification.title} ${notification.message}`.toLowerCase();
 
@@ -61,58 +90,71 @@ function getNotificationToneClass(notification: CrmNotification) {
     text.includes("chat") ||
     text.includes("mensagem")
   ) {
-    return notification.readAt
-      ? "border-blue-100 bg-white hover:bg-blue-50"
-      : "border-blue-100 bg-blue-50 hover:bg-blue-100";
+    return {
+      borderColor: "#dbeafe",
+      bgcolor: notification.readAt ? "#ffffff" : "#eff6ff",
+      hover: "#dbeafe",
+      dot: "#2563eb",
+    };
   }
 
   if (text.includes("aprov")) {
-    return notification.readAt
-      ? "border-emerald-100 bg-white hover:bg-emerald-50"
-      : "border-emerald-100 bg-emerald-50 hover:bg-emerald-100";
+    return {
+      borderColor: "#bbf7d0",
+      bgcolor: notification.readAt ? "#ffffff" : "#ecfdf5",
+      hover: "#dcfce7",
+      dot: "#059669",
+    };
   }
 
   if (text.includes("ajuste") || text.includes("aguardando")) {
-    return notification.readAt
-      ? "border-amber-100 bg-white hover:bg-amber-50"
-      : "border-amber-100 bg-amber-50 hover:bg-amber-100";
+    return {
+      borderColor: "#fde68a",
+      bgcolor: notification.readAt ? "#ffffff" : "#fffbeb",
+      hover: "#fef3c7",
+      dot: "#f59e0b",
+    };
   }
 
-  return notification.readAt
-    ? "border-slate-100 bg-white hover:bg-slate-50"
-    : "border-rose-100 bg-rose-50 hover:bg-rose-100";
+  return {
+    borderColor: "#fecdd3",
+    bgcolor: notification.readAt ? "#ffffff" : "#fff1f2",
+    hover: "#ffe4e6",
+    dot: notification.readAt ? "#cbd5e1" : headerColors.red,
+  };
 }
 
-function getNotificationDotClass(notification: CrmNotification) {
-  const type = String(notification.metadata?.type ?? "").toUpperCase();
-  const text = `${notification.title} ${notification.message}`.toLowerCase();
+function normalizeNotificationLink(link?: string | null) {
+  if (!link) {
+    return undefined;
+  }
 
-  if (notification.readAt) return "bg-slate-300";
-  if (
-    type === "CHAT_MESSAGE" ||
-    text.includes("chat") ||
-    text.includes("mensagem")
-  )
-    return "bg-blue-600";
-  if (text.includes("aprov")) return "bg-emerald-600";
-  if (text.includes("ajuste") || text.includes("aguardando"))
-    return "bg-amber-500";
-  return "bg-[#ec3139]";
+  if (link.startsWith("/tickets/") || link.startsWith("/chamados/")) {
+    return `/chamados?ticket=${link.split("/").pop()}`;
+  }
+
+  if (link === "/tickets") {
+    return "/chamados";
+  }
+
+  return link;
 }
 
 export function Header() {
   const pathname = usePathname();
   const router = useRouter();
   const { user, token } = useAuth();
-  const { theme, setTheme } = useTheme();
 
-  const [appsOpen, setAppsOpen] = useState(false);
-  const [notificationsOpen, setNotificationsOpen] = useState(false);
+  const [appsAnchorEl, setAppsAnchorEl] = useState<HTMLElement | null>(null);
+  const [notificationsAnchorEl, setNotificationsAnchorEl] =
+    useState<HTMLElement | null>(null);
   const [notifications, setNotifications] = useState<CrmNotification[]>([]);
   const [unreadCount, setUnreadCount] = useState(0);
 
   const userFirstName = user?.name?.split(" ").filter(Boolean)[0] ?? "Usuário";
   const pageTitle = getPageTitle(pathname, user?.role);
+  const appsOpen = Boolean(appsAnchorEl);
+  const notificationsOpen = Boolean(notificationsAnchorEl);
   const availableScreens = appScreens.filter((item) =>
     isScreenEnabledForRole(item, user?.role, user?.screenPermissions),
   );
@@ -157,17 +199,15 @@ export function Header() {
       setUnreadCount((current) => Math.max(0, current - 1));
     }
 
-    setNotificationsOpen(false);
+    setNotificationsAnchorEl(null);
 
-    const targetLink = notification.link?.startsWith("/tickets/")
-      ? `/tickets?ticket=${notification.link.split("/").pop()}`
-      : notification.link;
+    const targetLink = normalizeNotificationLink(notification.link);
 
     router.push(
       targetLink ||
         (notification.ticketId
-          ? `/tickets?ticket=${notification.ticketId}`
-          : "/tickets"),
+          ? `/chamados?ticket=${notification.ticketId}`
+          : "/chamados"),
     );
   }
 
@@ -188,172 +228,362 @@ export function Header() {
   }
 
   return (
-    <header className="sticky top-0 z-40 w-full">
-      <div className="flex h-[72px] items-center justify-between border-b border-[#343434]/8 bg-[#fbf7ef] px-4 text-[#343434] shadow-[0_10px_30px_rgba(52,52,52,0.04)] md:px-8">
-        <div className="flex min-w-0 items-center gap-4">
+    <AppBar
+      position="sticky"
+      elevation={0}
+      sx={{
+        top: 0,
+        zIndex: 40,
+        bgcolor: headerColors.page,
+        color: headerColors.text,
+        borderBottom: `1px solid ${headerColors.border}`,
+        boxShadow: "0 10px 30px rgba(52, 52, 52, 0.04)",
+      }}
+    >
+      <Toolbar
+        disableGutters
+        sx={{
+          minHeight: 72,
+          px: { xs: 2, md: 4 },
+          justifyContent: "space-between",
+          gap: 2,
+        }}
+      >
+        <Stack direction="row" spacing={1.5} sx={{ minWidth: 0, alignItems: "center" }}>
           <SidebarTrigger className="h-10 w-10 rounded-md text-[#343434] hover:bg-[#343434]/8" />
 
-          <h1 className="truncate text-lg font-bold leading-none text-[#343434]">
+          <Typography
+            component="h1"
+            noWrap
+            sx={{
+              color: headerColors.text,
+              fontSize: 18,
+              fontWeight: 900,
+              lineHeight: 1,
+            }}
+          >
             {pageTitle}
-          </h1>
-        </div>
+          </Typography>
+        </Stack>
 
-        <div className="flex shrink-0 items-center gap-1.5">
-          <button
-            type="button"
-            onClick={() => setTheme(theme === "dark" ? "light" : "dark")}
-            className="grid h-9 w-9 place-items-center rounded-md text-[#343434]/78 transition hover:bg-[#343434]/8 hover:text-[#343434]"
-            aria-label={
-              theme === "dark" ? "Ativar tema claro" : "Ativar tema escuro"
-            }
-            title={theme === "dark" ? "Tema claro" : "Tema escuro"}
-          >
-            {theme === "dark" ? (
-              <Sun className="h-4.5 w-4.5" />
-            ) : (
-              <Moon className="h-4.5 w-4.5" />
-            )}
-          </button>
-
-          <div className="relative hidden sm:block">
-            <button
-              type="button"
-              onClick={() => {
-                setAppsOpen((current) => !current);
-                setNotificationsOpen(false);
+        <Stack direction="row" spacing={1} sx={{ alignItems: "center" }}>
+          <Tooltip title="Aplicativos" arrow>
+            <IconButton
+              onClick={(event) => {
+                setAppsAnchorEl(appsOpen ? null : event.currentTarget);
+                setNotificationsAnchorEl(null);
               }}
-              className="grid h-9 w-9 place-items-center rounded-md text-[#343434]/78 transition hover:bg-[#343434]/8 hover:text-[#343434]"
               aria-label="Aplicativos"
-              title="Aplicativos"
+              sx={{
+                width: 40,
+                height: 40,
+                color: headerColors.text,
+                bgcolor: appsOpen ? "rgba(52,52,52,0.08)" : "transparent",
+                "&:hover": { bgcolor: "rgba(52,52,52,0.08)" },
+              }}
             >
-              <Grid3X3 className="h-4.5 w-4.5" />
-            </button>
+              <AppsRoundedIcon fontSize="small" />
+            </IconButton>
+          </Tooltip>
 
-            {appsOpen ? (
-              <div className="absolute right-0 top-12 z-50 grid w-[260px] grid-cols-2 gap-1 rounded-md border border-slate-200 bg-white p-2 text-[#343434] shadow-[0_24px_70px_rgba(15,23,42,0.16)]">
-                {availableScreens.slice(0, 10).map((item) => (
-                  <Link
-                    key={item.href}
-                    href={item.href}
-                    onClick={() => setAppsOpen(false)}
-                    className="rounded-md px-3 py-2 text-xs font-semibold transition hover:bg-[#fff7df] hover:text-[#ec3139]"
-                  >
-                    {item.href === "/dashboard" && user?.role === "CLIENTE"
-                      ? "Canal do Cliente"
-                      : item.label}
-                  </Link>
-                ))}
-              </div>
-            ) : null}
-          </div>
+          <Tooltip title="Configurações da conta" arrow>
+            <IconButton
+              onClick={() => router.push("/alterar-senha")}
+              aria-label="Configurações da conta"
+              sx={{
+                display: { xs: "none", md: "inline-flex" },
+                width: 40,
+                height: 40,
+                color: headerColors.text,
+                "&:hover": { bgcolor: "rgba(52,52,52,0.08)" },
+              }}
+            >
+              <SettingsRoundedIcon fontSize="small" />
+            </IconButton>
+          </Tooltip>
 
-          <button
-            type="button"
-            onClick={() => router.push("/change-password")}
-            className="hidden h-9 w-9 place-items-center rounded-md text-[#343434]/78 transition hover:bg-[#343434]/8 hover:text-[#343434] md:grid"
-            aria-label="Configurações da conta"
-            title="Configurações da conta"
-          >
-            <Settings className="h-4.5 w-4.5" />
-          </button>
-
-          <div className="relative">
-            <button
-              type="button"
-              onClick={() => {
-                setNotificationsOpen((current) => !current);
-                setAppsOpen(false);
+          <Tooltip title="Notificações" arrow>
+            <IconButton
+              onClick={(event) => {
+                setNotificationsAnchorEl(
+                  notificationsOpen ? null : event.currentTarget,
+                );
+                setAppsAnchorEl(null);
                 loadNotifications().catch(() => undefined);
               }}
-              className="relative grid h-9 w-9 place-items-center rounded-md text-[#343434]/78 transition hover:bg-[#343434]/8 hover:text-[#343434]"
               aria-label="Notificações"
-              title="Notificações"
+              sx={{
+                width: 40,
+                height: 40,
+                color: headerColors.text,
+                bgcolor: notificationsOpen
+                  ? "rgba(52,52,52,0.08)"
+                  : "transparent",
+                "&:hover": { bgcolor: "rgba(52,52,52,0.08)" },
+              }}
             >
-              <Bell className="h-4.5 w-4.5" />
+              <Badge
+                badgeContent={unreadCount > 9 ? "9+" : unreadCount}
+                color="error"
+                invisible={unreadCount === 0}
+                sx={{
+                  "& .MuiBadge-badge": {
+                    bgcolor: headerColors.red,
+                    color: "#ffffff",
+                    fontSize: 10,
+                    fontWeight: 900,
+                    border: `1px solid ${headerColors.yellow}`,
+                  },
+                }}
+              >
+                <NotificationsNoneRoundedIcon fontSize="small" />
+              </Badge>
+            </IconButton>
+          </Tooltip>
 
-              {unreadCount > 0 ? (
-                <span className="absolute right-1 top-1 flex h-4 min-w-4 items-center justify-center rounded-full bg-[#ec3139] px-1 text-[10px] font-black text-white ring-1 ring-[#fab519]">
-                  {unreadCount > 9 ? "9+" : unreadCount}
-                </span>
-              ) : null}
-            </button>
-
-            {notificationsOpen ? (
-              <div className="absolute right-0 top-12 z-50 w-[330px] overflow-hidden rounded-md border border-slate-200 bg-white text-[#343434] shadow-[0_24px_70px_rgba(15,23,42,0.16)] sm:w-[380px]">
-                <div className="flex items-center justify-between border-b border-slate-200 px-4 py-3">
-                  <div>
-                    <p className="text-sm font-semibold text-slate-950">
-                      Notificações
-                    </p>
-
-                    <p className="text-xs text-slate-500">
-                      {unreadCount} não lida(s)
-                    </p>
-                  </div>
-
-                  <button
-                    type="button"
-                    onClick={handleMarkAllRead}
-                    className="inline-flex items-center gap-1 rounded-md border border-slate-200 px-2.5 py-1.5 text-xs font-semibold text-slate-600 hover:bg-slate-50"
-                  >
-                    <CheckCheck className="h-3.5 w-3.5" />
-                    Marcar lidas
-                  </button>
-                </div>
-
-                <div className="max-h-[420px] overflow-y-auto">
-                  {notifications.map((notification) => (
-                    <button
-                      key={notification.id}
-                      type="button"
-                      onClick={() => handleNotificationClick(notification)}
-                      className={`block w-full border-b px-4 py-3 text-left transition ${getNotificationToneClass(notification)}`}
-                    >
-                      <div className="flex items-start gap-3">
-                        <span
-                          className={`mt-1 h-2 w-2 shrink-0 rounded-full ${getNotificationDotClass(
-                            notification,
-                          )}`}
-                        />
-
-                        <div className="min-w-0">
-                          <p className="truncate text-sm font-semibold text-slate-950">
-                            {notification.title}
-                          </p>
-
-                          <p className="mt-1 line-clamp-2 text-xs leading-5 text-slate-500">
-                            {notification.message}
-                          </p>
-                        </div>
-                      </div>
-                    </button>
-                  ))}
-
-                  {notifications.length === 0 ? (
-                    <div className="px-4 py-8 text-center text-sm text-slate-500">
-                      Nenhuma notificação.
-                    </div>
-                  ) : null}
-                </div>
-              </div>
-            ) : null}
-          </div>
-
-          <div
-            className="ml-2 hidden items-center gap-2 rounded-full border border-[#343434]/10 bg-white/85 py-1 pl-1 pr-3 text-[#343434] shadow-[0_8px_22px_rgba(52,52,52,0.08)] sm:flex"
+          <Paper
+            elevation={0}
+            sx={{
+              display: { xs: "none", sm: "flex" },
+              alignItems: "center",
+              gap: 1,
+              ml: 1,
+              py: 0.75,
+              pl: 0.75,
+              pr: 1.5,
+              border: `1px solid ${headerColors.border}`,
+              borderRadius: 999,
+              bgcolor: "rgba(255,255,255,0.86)",
+              boxShadow: "0 8px 22px rgba(52,52,52,0.08)",
+            }}
             title={`${user?.name ?? "Usuário"}${
               user?.role ? ` (${getRoleLabel(user.role)})` : ""
             }`}
           >
-            <span className="grid h-9 w-9 place-items-center rounded-full bg-[#ec3139] text-xs font-black uppercase text-white ring-2 ring-[#fab519]/55">
+            <Avatar
+              sx={{
+                width: 38,
+                height: 38,
+                bgcolor: headerColors.red,
+                color: "#ffffff",
+                fontSize: 13,
+                fontWeight: 900,
+                border: `2px solid ${headerColors.yellow}`,
+              }}
+            >
               {userFirstName.slice(0, 1)}
-            </span>
-            <span className="max-w-[130px] truncate text-sm font-bold text-[#343434]">
+            </Avatar>
+
+            <Typography
+              noWrap
+              sx={{
+                maxWidth: 130,
+                color: headerColors.text,
+                fontSize: 14,
+                fontWeight: 900,
+              }}
+            >
               {userFirstName}
-            </span>
-          </div>
-        </div>
-      </div>
-    </header>
+            </Typography>
+          </Paper>
+        </Stack>
+      </Toolbar>
+
+      <Popover
+        open={appsOpen}
+        anchorEl={appsAnchorEl}
+        onClose={() => setAppsAnchorEl(null)}
+        anchorOrigin={{ vertical: "bottom", horizontal: "right" }}
+        transformOrigin={{ vertical: "top", horizontal: "right" }}
+        slotProps={{
+          paper: {
+            sx: {
+              mt: 1,
+              width: 324,
+              border: "1px solid #e2e8f0",
+              borderRadius: "14px",
+              boxShadow: "0 24px 70px rgba(15,23,42,0.16)",
+              overflow: "hidden",
+            },
+          },
+        }}
+      >
+        <Box
+          sx={{
+            display: "grid",
+            gridTemplateColumns: "repeat(2, minmax(0, 1fr))",
+            gap: 0.75,
+            p: 1,
+            bgcolor: "#ffffff",
+          }}
+        >
+          {availableScreens.slice(0, 10).map((item) => (
+            <Button
+              key={item.href}
+              component={Link}
+              href={item.href}
+              onClick={() => setAppsAnchorEl(null)}
+              sx={{
+                justifyContent: "flex-start",
+                minHeight: 46,
+                px: 1.5,
+                borderRadius: "10px",
+                color: headerColors.text,
+                fontSize: 13,
+                fontWeight: 800,
+                textTransform: "none",
+                "&:hover": {
+                  bgcolor: "#fff7df",
+                  color: headerColors.red,
+                },
+              }}
+            >
+              {item.href === "/painel" && user?.role === "CLIENTE"
+                ? "Canal do Cliente"
+                : item.label}
+            </Button>
+          ))}
+        </Box>
+      </Popover>
+
+      <Popover
+        open={notificationsOpen}
+        anchorEl={notificationsAnchorEl}
+        onClose={() => setNotificationsAnchorEl(null)}
+        anchorOrigin={{ vertical: "bottom", horizontal: "right" }}
+        transformOrigin={{ vertical: "top", horizontal: "right" }}
+        slotProps={{
+          paper: {
+            sx: {
+              mt: 1,
+              width: { xs: 330, sm: 380 },
+              border: "1px solid #e2e8f0",
+              borderRadius: "14px",
+              boxShadow: "0 24px 70px rgba(15,23,42,0.16)",
+              overflow: "hidden",
+            },
+          },
+        }}
+      >
+        <Stack
+          direction="row"
+          spacing={2}
+          sx={{
+            alignItems: "center",
+            justifyContent: "space-between",
+            px: 2,
+            py: 1.75,
+            bgcolor: "#ffffff",
+          }}
+        >
+          <Box>
+            <Typography sx={{ color: "#020617", fontSize: 14, fontWeight: 900 }}>
+              Notificações
+            </Typography>
+            <Typography sx={{ mt: 0.25, color: headerColors.muted, fontSize: 12 }}>
+              {unreadCount} não lida(s)
+            </Typography>
+          </Box>
+
+          <Button
+            type="button"
+            variant="outlined"
+            size="small"
+            startIcon={<DoneAllRoundedIcon fontSize="small" />}
+            onClick={handleMarkAllRead}
+            sx={{
+              borderRadius: "10px",
+              borderColor: "#e2e8f0",
+              color: headerColors.text,
+              fontSize: 12,
+              fontWeight: 800,
+              textTransform: "none",
+              "&:hover": {
+                borderColor: headerColors.orange,
+                bgcolor: "#fff7f2",
+              },
+            }}
+          >
+            Marcar lidas
+          </Button>
+        </Stack>
+
+        <Divider />
+
+        <Box sx={{ maxHeight: 420, overflowY: "auto", bgcolor: "#ffffff" }}>
+          {notifications.map((notification) => {
+            const tone = getNotificationTone(notification);
+
+            return (
+              <ListItemButton
+                key={notification.id}
+                onClick={() => handleNotificationClick(notification)}
+                sx={{
+                  alignItems: "flex-start",
+                  gap: 1.5,
+                  px: 2,
+                  py: 1.5,
+                  borderBottom: "1px solid",
+                  borderColor: tone.borderColor,
+                  bgcolor: tone.bgcolor,
+                  "&:hover": {
+                    bgcolor: tone.hover,
+                  },
+                }}
+              >
+                <Box
+                  sx={{
+                    mt: 0.75,
+                    width: 8,
+                    height: 8,
+                    flexShrink: 0,
+                    borderRadius: 999,
+                    bgcolor: notification.readAt ? "#cbd5e1" : tone.dot,
+                  }}
+                />
+
+                <Box sx={{ minWidth: 0 }}>
+                  <Typography
+                    noWrap
+                    sx={{ color: "#020617", fontSize: 14, fontWeight: 900 }}
+                  >
+                    {notification.title}
+                  </Typography>
+
+                  <Typography
+                    sx={{
+                      mt: 0.5,
+                      color: headerColors.muted,
+                      fontSize: 12,
+                      lineHeight: 1.55,
+                      display: "-webkit-box",
+                      WebkitLineClamp: 2,
+                      WebkitBoxOrient: "vertical",
+                      overflow: "hidden",
+                    }}
+                  >
+                    {notification.message}
+                  </Typography>
+                </Box>
+              </ListItemButton>
+            );
+          })}
+
+          {notifications.length === 0 ? (
+            <Typography
+              sx={{
+                px: 2,
+                py: 4,
+                color: headerColors.muted,
+                fontSize: 14,
+                textAlign: "center",
+              }}
+            >
+              Nenhuma notificação.
+            </Typography>
+          ) : null}
+        </Box>
+      </Popover>
+    </AppBar>
   );
 }

@@ -45,7 +45,6 @@ export type DeliveryRegion = {
 };
 
 export type DeliveryFilters = {
-  dataRef?: string;
   dataInicio: string;
   dataFim: string;
   ufDest: string;
@@ -53,4 +52,16 @@ export type DeliveryFilters = {
   nroCtrc: string;
   statusEntrega: string;
   classificacaoRota: string;
+  cnpjPagador: string;
+  ocorrencia: string;
 };
+
+export type DeliveryOccurrence = {
+  ult_ocor: string | null;
+  ocorrencia: string | null;
+};
+export type DeliveryPayer = {
+  cgc_pag: string;
+  nome_pag: string; 
+
+}

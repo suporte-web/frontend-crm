@@ -55,10 +55,43 @@ export interface LeadSummary {
   name: string;
   email: string;
   company: string;
+  document?: string | null;
+  phone?: string | null;
   segment: string;
   owner: string;
   status: LeadStatus;
   createdAt: string;
+}
+
+export interface ClientDocument {
+  id: string;
+  clientId: string;
+  fileName: string;
+  originalName: string;
+  mimeType?: string | null;
+  size?: number | null;
+  url: string;
+  description?: string | null;
+  createdAt: string;
+  uploadedBy?: {
+    id: string;
+    name: string;
+    email: string;
+    role?: string;
+  } | null;
+}
+
+export interface ClientContact {
+  id: string;
+  clientId: string;
+  name?: string | null;
+  role?: string | null;
+  email?: string | null;
+  phone?: string | null;
+  notes?: string | null;
+  isPrimary?: boolean;
+  createdAt?: string;
+  updatedAt?: string;
 }
 
 export type ClientDeletionRequestStatus =
@@ -106,11 +139,23 @@ export interface LeadDetail extends LeadSummary {
   internalOwnerId?: string | null;
   document?: string | null;
   phone?: string | null;
+  legalName?: string | null;
+  tradeName?: string | null;
+  cnae?: string | null;
+  stateRegistration?: string | null;
+  businessActivity?: string | null;
+  taxRegime?: string | null;
+  address?: string | null;
+  bankDetails?: string | null;
+  modality?: string | null;
+  registrationDate?: string | null;
   source?: string | null;
   notes?: string | null;
   lastContactAt?: string | null;
   timeline: TimelineEvent[];
   opportunities: Opportunity[];
+  documents: ClientDocument[];
+  contacts: ClientContact[];
 }
 
 export interface CrmDashboardSummary {

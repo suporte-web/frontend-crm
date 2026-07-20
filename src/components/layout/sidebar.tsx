@@ -1,227 +1,107 @@
 "use client";
 
-import Badge from "@mui/material/Badge";
+import { useEffect, useState } from "react";
+import { usePathname, useRouter } from "next/navigation";
+
 import Box from "@mui/material/Box";
-import Collapse from "@mui/material/Collapse";
-import List from "@mui/material/List";
+import Divider from "@mui/material/Divider";
+import Drawer from "@mui/material/Drawer";
+import IconButton from "@mui/material/IconButton";
 import ListItemButton from "@mui/material/ListItemButton";
 import ListItemIcon from "@mui/material/ListItemIcon";
 import ListItemText from "@mui/material/ListItemText";
+import Stack from "@mui/material/Stack";
 import Tooltip from "@mui/material/Tooltip";
-import type { LucideIcon } from "lucide-react";
-import {
-  Building2,
-  ChartSpline,
-  ChevronDown,
-  CircleHelp,
-  FileText,
-  Handshake,
-  History,
-  Inbox,
-  LayoutDashboard,
-  LogOut,
-  Megaphone,
-  MessageCircle,
-  PackageSearch,
-  Ticket,
-  Truck,
-  UserPlus,
-  Users,
-} from "lucide-react";
-import Link from "next/link";
-import { usePathname, useRouter } from "next/navigation";
-import { useEffect, useMemo, useState } from "react";
-import { useAuth } from "@/context/auth-context";
+import Typography from "@mui/material/Typography";
+
+import LogoutRoundedIcon from "@mui/icons-material/LogoutRounded";
+import MenuOpenRoundedIcon from "@mui/icons-material/MenuOpenRounded";
+import MenuRoundedIcon from "@mui/icons-material/MenuRounded";
+
 import {
   appScreens,
   isScreenEnabledForRole,
   type AppScreen,
-  type ScreenKey,
 } from "@/config/screens";
+
+import { useAuth } from "@/context/auth-context";
 import { getNotifications } from "@/services/notifications.service";
-import type { CrmNotification } from "@/types/notifications";
+
+import { sidebarSections, type SidebarSectionConfig } from "./sidebar-config";
+
 import {
-  Sidebar,
-  SidebarContent,
-  SidebarFooter,
-  SidebarHeader,
-  useSidebar,
-} from "@/components/ui/sidebar";
+  SidebarNavigation,
+  type SidebarSectionWithItems,
+} from "./sidebar-navigation";
 
-const screenIcons: Record<ScreenKey, LucideIcon> = {
-  dashboard: LayoutDashboard,
-  bi: ChartSpline,
-  entregas: Truck,
-  trackings: PackageSearch,
-  quotes: FileText,
-  clients: Building2,
-  leads: UserPlus,
-  entradas: Inbox,
-  tickets: Ticket,
-  helpCenter: CircleHelp,
-  chat: MessageCircle,
-  suppliers: Handshake,
-  users: Users,
-  marketing: Megaphone,
-  logs: History,
+import { isUnreadChatNotification } from "./sidebar-utils";
+
+const SIDEBAR_OPEN_WIDTH = 264;
+const SIDEBAR_COLLAPSED_WIDTH = 76;
+const SIDEBAR_STORAGE_KEY = "crm-sidebar-collapsed";
+
+const sidebarColors = {
+  orange: "#ff4d00",
+  orangeDark: "#ff6a2a",
+  orangeSoft: "rgba(255, 77, 0, 0.14)",
+  orangeHover: "rgba(255, 77, 0, 0.22)",
+
+  background: "#2f2f2f",
+  backgroundMuted: "#262626",
+
+  text: "#ffffff",
+  muted: "rgba(255, 255, 255, 0.72)",
+  mutedLight: "rgba(255, 255, 255, 0.46)",
+
+  border: "rgba(255, 255, 255, 0.10)",
+
+  danger: "#ff6b6b",
+  dangerSoft: "rgba(255, 107, 107, 0.12)",
 };
 
-const sidebarSections: Array<{
-  id: string;
-  title?: string;
-  icon?: LucideIcon;
-  keys: ScreenKey[];
-}> = [
-  { id: "dashboard", keys: ["dashboard"] },
-  {
-    id: "crm-comercial",
-    title: "CRM Comercial",
-    icon: ChartSpline,
-    keys: ["clients", "leads", "quotes", "bi"],
-  },
-  {
-    id: "operacao",
-    title: "Operação",
-    icon: Truck,
-    keys: ["entregas", "trackings", "suppliers"],
-  },
-  {
-    id: "atendimento",
-    title: "Atendimento",
-    icon: Inbox,
-    keys: ["entradas", "tickets", "chat", "helpCenter"],
-  },
-  {
-    id: "administracao",
-    title: "Administração",
-    icon: Users,
-    keys: ["users", "marketing", "logs"],
-  },
-];
-
-const sidebarFontFamily = '"Inter Variable", Inter, system-ui, sans-serif';
-
-const menuTextSx = {
-  display: "block",
-  overflow: "hidden",
-  textOverflow: "ellipsis",
-  whiteSpace: "nowrap",
-  fontFamily: sidebarFontFamily,
-  fontSize: 14,
-  fontWeight: 700,
-  letterSpacing: 0,
-  color: "inherit",
-};
-
-const subMenuTextSx = {
-  ...menuTextSx,
-  fontWeight: 500,
-};
-
-const itemButtonSx = {
-  minHeight: 55,
-  borderRadius: "10px",
-  px: 2,
-  fontFamily: sidebarFontFamily,
-  fontSize: 14,
-  color: "#fff",
-  transition:
-    "background-color 160ms ease, color 160ms ease, box-shadow 160ms ease",
-  "&:hover": {
-    bgcolor: "rgba(255,255,255,0.08)",
-    color: "#fff",
-  },
-  "&.Mui-selected": {
-    bgcolor: "#ff4d00",
-    color: "#fff",
-    boxShadow: "0 18px 32px rgba(255,77,0,0.24)",
-  },
-  "&.Mui-selected:hover": {
-    bgcolor: "#e64500",
-  },
-  ".MuiListItemIcon-root": {
-    minWidth: 52,
-    color: "#fab519",
-    transition: "color 160ms ease",
-  },
-  "&.Mui-selected .MuiListItemIcon-root": {
-    color: "#fff",
-  },
-};
-
-const subItemButtonSx = {
-  minHeight: 45,
-  borderRadius: "12px",
-  px: 1.5,
-  fontFamily: sidebarFontFamily,
-  fontSize: 14,
-  color: "#fff",
-  transition:
-    "background-color 160ms ease, color 160ms ease, box-shadow 160ms ease",
-  "&:hover": {
-    bgcolor: "rgba(255,255,255,0.08)",
-    color: "#fff",
-  },
-  "&.Mui-selected": {
-    bgcolor: "#ff4d00",
-    color: "#fff",
-    boxShadow: "0 14px 26px rgba(255,77,0,0.22)",
-  },
-  "&.Mui-selected:hover": {
-    bgcolor: "#e64500",
-  },
-  ".MuiListItemIcon-root": {
-    minWidth: 44,
-    color: "inherit",
-  },
-};
-
-function isUnreadChatNotification(notification: CrmNotification) {
-  if (notification.readAt) return false;
-
-  const type = String(notification.metadata?.type ?? "").toUpperCase();
-  const text = `${notification.title} ${notification.message}`.toLowerCase();
-
-  return (
-    type === "CHAT_MESSAGE" ||
-    text.includes("chat") ||
-    text.includes("mensagem")
-  );
-}
-
-function isScreenActive(pathname: string, href: string) {
-  return pathname === href || pathname.startsWith(`${href}/`);
-}
-
-function getScreenLabel(item: AppScreen, role?: string) {
-  return item.href === "/dashboard" && role === "CLIENTE"
-    ? "Canal do Cliente"
-    : item.label;
-}
-
-export function AppSidebar() {
-  const pathname = usePathname();
-  const router = useRouter();
-  const { toggleSidebar } = useSidebar();
-  const { user, token, signOut } = useAuth();
-  const [unreadChatCount, setUnreadChatCount] = useState(0);
-  const [openSections, setOpenSections] = useState<Record<string, boolean>>({});
-
-  const filteredMenu = appScreens.filter((item) =>
-    isScreenEnabledForRole(item, user?.role, user?.screenPermissions),
-  );
-  const filteredSections = sidebarSections
-    .map((section) => ({
+function buildSidebarSections(
+  filteredMenu: AppScreen[],
+): SidebarSectionWithItems[] {
+  return sidebarSections
+    .map((section: SidebarSectionConfig) => ({
       ...section,
+
       items: section.keys
         .map((key) => filteredMenu.find((item) => item.key === key))
         .filter((item): item is AppScreen => Boolean(item)),
     }))
     .filter((section) => section.items.length > 0);
-  const chatBadgeLabel = useMemo(
-    () => (unreadChatCount > 9 ? "9+" : String(unreadChatCount)),
-    [unreadChatCount],
+}
+
+export function AppSidebar() {
+  const pathname = usePathname();
+  const router = useRouter();
+
+  const { user, token, signOut } = useAuth();
+
+  const [collapsed, setCollapsed] = useState(() => {
+    if (typeof window === "undefined") {
+      return true;
+    }
+
+    return window.localStorage.getItem(SIDEBAR_STORAGE_KEY) !== "false";
+  });
+  const [hoverExpanded, setHoverExpanded] = useState(false);
+
+  const [unreadChatCount, setUnreadChatCount] = useState(0);
+
+  const [openSections, setOpenSections] = useState<Record<string, boolean>>({});
+
+  const isSidebarExpanded = !collapsed || hoverExpanded;
+  const sidebarWidth = isSidebarExpanded
+    ? SIDEBAR_OPEN_WIDTH
+    : SIDEBAR_COLLAPSED_WIDTH;
+
+  const filteredMenu = appScreens.filter((item) =>
+    isScreenEnabledForRole(item, user?.role, user?.screenPermissions),
   );
+
+  const filteredSections = buildSidebarSections(filteredMenu);
 
   useEffect(() => {
     if (!token) {
@@ -230,12 +110,21 @@ export function AppSidebar() {
     }
 
     let active = true;
+
     const authToken = token;
 
     async function loadChatNotifications() {
       const notifications = await getNotifications(authToken);
-      if (!active) return;
-      setUnreadChatCount(notifications.filter(isUnreadChatNotification).length);
+
+      if (!active) {
+        return;
+      }
+
+      const unreadNotifications = notifications.filter(
+        isUnreadChatNotification,
+      );
+
+      setUnreadChatCount(unreadNotifications.length);
     }
 
     loadChatNotifications().catch(() => undefined);
@@ -250,244 +139,412 @@ export function AppSidebar() {
     };
   }, [token, pathname]);
 
+  function handleToggleSection(sectionId: string, fallbackOpen: boolean) {
+    setOpenSections((current) => ({
+      ...current,
+
+      [sectionId]: !(current[sectionId] ?? fallbackOpen),
+    }));
+  }
+
+  function handleToggleSidebar() {
+    if (collapsed) {
+      setCollapsed(false);
+      setHoverExpanded(false);
+      window.localStorage.setItem(SIDEBAR_STORAGE_KEY, "false");
+      return;
+    }
+
+    setCollapsed(true);
+    setHoverExpanded(false);
+    window.localStorage.setItem(SIDEBAR_STORAGE_KEY, "true");
+  }
+
+  function handleMouseEnterSidebar() {
+    if (collapsed) {
+      setHoverExpanded(true);
+    }
+  }
+
+  function handleMouseLeaveSidebar() {
+    setHoverExpanded(false);
+  }
+
   function handleSignOut() {
     signOut();
-    router.replace("/login");
+    router.replace("/entrar");
   }
 
   return (
-    <Sidebar
-      collapsible="icon"
-      className="!top-0 z-50 !h-svh border-r border-black/20 bg-[linear-gradient(180deg,#343434_0%,#2f2f2f_52%,#242424_100%)] text-slate-100"
+    <Drawer
+      variant="permanent"
+      open={isSidebarExpanded}
+      onMouseEnter={handleMouseEnterSidebar}
+      onMouseLeave={handleMouseLeaveSidebar}
+      sx={{
+        width: sidebarWidth,
+        flexShrink: 0,
+
+        display: {
+          xs: "none",
+          md: "block",
+        },
+
+        "& .MuiDrawer-paper": {
+          width: sidebarWidth,
+          boxSizing: "border-box",
+          overflowX: "hidden",
+
+          bgcolor: sidebarColors.background,
+          color: sidebarColors.text,
+
+          borderRight: `1px solid ${sidebarColors.border}`,
+
+          boxShadow: "4px 0 24px rgba(0, 0, 0, 0.18)",
+
+          transition: (theme) =>
+            theme.transitions.create("width", {
+              easing: theme.transitions.easing.sharp,
+
+              duration: theme.transitions.duration.shorter,
+            }),
+        },
+      }}
     >
-      <SidebarHeader className="bg-transparent px-6 pb-5 pt-4 group-data-[collapsible=icon]:items-center group-data-[collapsible=icon]:px-0 group-data-[collapsible=icon]:pb-3 group-data-[collapsible=icon]:pt-3">
-        <Box className="flex min-w-0 flex-col items-start justify-start group-data-[collapsible=icon]:items-center">
-          <button
-            type="button"
-            onClick={toggleSidebar}
-            className="flex min-w-0 items-center justify-start rounded-md p-0 transition group-data-[collapsible=icon]:grid group-data-[collapsible=icon]:h-11 group-data-[collapsible=icon]:w-11 group-data-[collapsible=icon]:place-items-center group-data-[collapsible=icon]:overflow-hidden group-data-[collapsible=icon]:rounded-full group-data-[collapsible=icon]:bg-white group-data-[collapsible=icon]:p-2 group-data-[collapsible=icon]:shadow-[0_18px_34px_rgba(236,49,57,0.16)] group-data-[collapsible=icon]:ring-1 group-data-[collapsible=icon]:ring-white/10 group-data-[collapsible=icon]:hover:bg-[#fff7df]"
-            aria-label="Alternar menu lateral"
-            title="Alternar menu lateral"
-          >
-            <img
-              src="/logobranca-transparente.png"
-              alt="Pizzattolog"
-              className="h-auto w-[178px] object-contain object-left drop-shadow-[0_10px_18px_rgba(0,0,0,0.18)] group-data-[collapsible=icon]:hidden"
-            />
-
-            <img
-              src="/logopizzatto.png"
-              alt="Pizzattolog"
-              className="hidden h-full w-full object-contain object-center group-data-[collapsible=icon]:block"
-            />
-          </button>
-
-          <Box
-            component="p"
-            className="mt-3 border-l-2 border-[#ff4d00] pl-3 text-[10px] font-bold uppercase leading-4 tracking-[0.18em] text-white/72 group-data-[collapsible=icon]:hidden"
-            sx={{ fontFamily: sidebarFontFamily }}
-          >
-            Portal CRM
-          </Box>
-        </Box>
-      </SidebarHeader>
-
-      <SidebarContent className="bg-transparent px-4 py-2 group-data-[collapsible=icon]:items-center group-data-[collapsible=icon]:px-0">
+      <Stack
+        sx={{
+          height: "100%",
+          minHeight: 0,
+        }}
+      >
+        {/* Cabeçalho e logo */}
+        {/* Cabeçalho e logo */}
         <Box
-          component="nav"
-          aria-label="Navegação principal"
-          className="flex flex-col gap-2 group-data-[collapsible=icon]:w-full group-data-[collapsible=icon]:items-center group-data-[collapsible=icon]:gap-2"
+          sx={{
+            minHeight: isSidebarExpanded ? 96 : 76,
+            px: isSidebarExpanded ? 2 : 1,
+            py: isSidebarExpanded ? 1.5 : 1.25,
+            display: "flex",
+            flexDirection: "column",
+            justifyContent: "center",
+            gap: 1,
+          }}
         >
-          {filteredSections.map((section) => {
-            const sectionActive = section.items.some((item) =>
-              isScreenActive(pathname, item.href),
-            );
-            const sectionOpen = openSections[section.id] ?? sectionActive;
-
-            if (!section.title) {
-              return (
-                <List
-                  key={section.id}
-                  disablePadding
-                  sx={{ display: "grid", gap: 0.5 }}
-                >
-                  {section.items.map((item) => {
-                    const active = isScreenActive(pathname, item.href);
-                    const Icon = screenIcons[item.key];
-                    const label = getScreenLabel(item, user?.role);
-
-                    return (
-                      <Tooltip
-                        key={item.href}
-                        title={label}
-                        placement="right"
-                        arrow
-                      >
-                        <ListItemButton
-                          component={Link}
-                          href={item.href}
-                          selected={active}
-                          sx={itemButtonSx}
-                          className="relative group-data-[collapsible=icon]:h-11! group-data-[collapsible=icon]:w-11! group-data-[collapsible=icon]:justify-center group-data-[collapsible=icon]:px-0! group-data-[collapsible=icon]:[&_.MuiListItemIcon-root]:flex! group-data-[collapsible=icon]:[&_.MuiListItemIcon-root]:w-full! group-data-[collapsible=icon]:[&_.MuiListItemIcon-root]:min-w-0! group-data-[collapsible=icon]:[&_.MuiListItemIcon-root]:justify-center!"
-                        >
-                          {active ? (
-                            <Box className="absolute -right-2 top-1/2 hidden h-6 w-1 -translate-y-1/2 rounded-l-full bg-[#fab519] group-data-[collapsible=icon]:block" />
-                          ) : null}
-
-                          <ListItemIcon className="group-data-[collapsible=icon]:min-w-0!">
-                            <Icon className="h-4.5 w-4.5" />
-                          </ListItemIcon>
-
-                          <ListItemText
-                            primary={
-                              <Box component="span" sx={menuTextSx}>
-                                {label}
-                              </Box>
-                            }
-                            className="group-data-[collapsible=icon]:hidden"
-                          />
-                        </ListItemButton>
-                      </Tooltip>
-                    );
-                  })}
-                </List>
-              );
-            }
-
-            const SectionIcon = section.icon;
-
-            return (
-              <List
-                key={section.id}
-                disablePadding
-                sx={{ display: "grid", gap: 0.5 }}
+          {isSidebarExpanded ? (
+            <>
+              <Stack
+                direction="row"
+                spacing={1}
+                sx={{
+                  width: "100%",
+                  alignItems: "center",
+                  justifyContent: "flex-end",
+                }}
               >
-                <Tooltip title={section.title} placement="right" arrow>
-                  <ListItemButton
-                    selected={sectionActive}
-                    aria-expanded={sectionOpen}
-                    onClick={() =>
-                      setOpenSections((current) => ({
-                        ...current,
-                        [section.id]: !(current[section.id] ?? sectionActive),
-                      }))
-                    }
-                    sx={itemButtonSx}
-                    className="group-data-[collapsible=icon]:h-11! group-data-[collapsible=icon]:w-11! group-data-[collapsible=icon]:justify-center group-data-[collapsible=icon]:px-0! group-data-[collapsible=icon]:[&_.MuiListItemIcon-root]:flex! group-data-[collapsible=icon]:[&_.MuiListItemIcon-root]:w-full! group-data-[collapsible=icon]:[&_.MuiListItemIcon-root]:min-w-0! group-data-[collapsible=icon]:[&_.MuiListItemIcon-root]:justify-center!"
-                  >
-                    <ListItemIcon className="group-data-[collapsible=icon]:min-w-0!">
-                      {SectionIcon ? (
-                        <SectionIcon className="h-4.5 w-4.5" />
-                      ) : null}
-                    </ListItemIcon>
+                {/* <Box
+                  component="img"
+                  src="/logobranca-transparente.png"
+                  alt="Pizzattolog"
+                  sx={{
+                    display: "block",
+                    width: 145,
+                    maxWidth: "calc(100% - 48px)",
+                    height: 38,
+                    objectFit: "contain",
+                    objectPosition: "left center",
+                  }}
+                /> */}
 
-                    <ListItemText
-                      primary={
-                        <Box component="span" sx={menuTextSx}>
-                          {section.title}
-                        </Box>
-                      }
-                      className="group-data-[collapsible=icon]:hidden"
-                    />
-
-                    <ChevronDown
-                      className={`h-4 w-4 text-white/55 transition-transform group-data-[collapsible=icon]:hidden ${
-                        sectionOpen ? "rotate-180" : ""
-                      }`}
-                    />
-                  </ListItemButton>
-                </Tooltip>
-
-                <Collapse
-                  in={sectionOpen}
-                  timeout={180}
-                  unmountOnExit
-                  className="group-data-[collapsible=icon]:hidden"
+                <Tooltip
+                  title={collapsed ? "Fixar menu aberto" : "Recolher menu"}
+                  placement="right"
+                  arrow
                 >
-                  <List
-                    disablePadding
+                  <IconButton
+                    onClick={handleToggleSidebar}
+                    aria-label={
+                      collapsed
+                        ? "Fixar menu lateral aberto"
+                        : "Recolher menu lateral"
+                    }
+                    size="small"
                     sx={{
-                      mx: 0.5,
-                      my: 0.5,
-                      p: 1.5,
-                      border: "1px solid rgba(255,255,255,0.06)",
-                      borderRadius: "14px",
-                      bgcolor: "rgba(0,0,0,0.12)",
-                      boxShadow: "inset 0 1px 0 rgba(255,255,255,0.04)",
-                      display: "grid",
-                      gap: 0.75,
+                      width: 36,
+                      height: 36,
+                      flexShrink: 0,
+                      borderRadius: "10px",
+                      color: "rgba(255,255,255,0.72)",
+
+                      "&:hover": {
+                        bgcolor: "rgba(255,255,255,0.08)",
+                        color: "#ffffff",
+                      },
                     }}
                   >
-                    {section.items.map((item) => {
-                      const active = isScreenActive(pathname, item.href);
-                      const Icon = screenIcons[item.key];
+                    <MenuOpenRoundedIcon />
+                  </IconButton>
+                </Tooltip>
+              </Stack>
 
-                      return (
-                        <ListItemButton
-                          key={item.href}
-                          component={Link}
-                          href={item.href}
-                          selected={active}
-                          sx={subItemButtonSx}
-                        >
-                          <ListItemIcon>
-                            <Icon className="h-4 w-4" />
-                          </ListItemIcon>
+              <Typography
+                sx={{
+                  mt: -3,
+                  pl: 1.25,
+                  borderLeft: `3px solid ${sidebarColors.orange}`,
+                  color: "rgba(255,255,255,0.68)",
+                  fontSize: 10,
+                  fontWeight: 1000,
+                  lineHeight: 1.3,
+                  letterSpacing: ".14em",
+                  textTransform: "uppercase",
+                }}
+              >
+                Portal CRM
+              </Typography>
+            </>
+          ) : (
+            <Tooltip title="Expandir menu" placement="right" arrow>
+              <IconButton
+                onClick={handleToggleSidebar}
+                aria-label="Expandir menu lateral"
+                sx={{
+                  width: 48,
+                  height: 48,
+                  mx: "auto",
+                  borderRadius: "12px",
+                  bgcolor: "#ffffff",
+                  p: 0.75,
 
-                          <ListItemText
-                            primary={
-                              <Box component="span" sx={subMenuTextSx}>
-                                {item.label}
-                              </Box>
-                            }
-                          />
-
-                          {item.key === "chat" && unreadChatCount > 0 ? (
-                            <Badge
-                              badgeContent={chatBadgeLabel}
-                              sx={{
-                                "& .MuiBadge-badge": {
-                                  bgcolor: "#ec3139",
-                                  color: "#fff",
-                                  fontWeight: 900,
-                                  fontSize: 10,
-                                  height: 16,
-                                  minWidth: 16,
-                                  border: "2px solid #fab519",
-                                },
-                              }}
-                            />
-                          ) : null}
-                        </ListItemButton>
-                      );
-                    })}
-                  </List>
-                </Collapse>
-              </List>
-            );
-          })}
+                  "&:hover": {
+                    bgcolor: "#fff7df",
+                  },
+                }}
+              >
+                <Box
+                  component="img"
+                  src="/logopizzatto.png"
+                  alt="Pizzattolog"
+                  sx={{
+                    width: "100%",
+                    height: "100%",
+                    objectFit: "contain",
+                  }}
+                />
+              </IconButton>
+            </Tooltip>
+          )}
         </Box>
-      </SidebarContent>
 
-      <SidebarFooter className="mt-auto border-t border-white/8 bg-transparent px-4 py-4 group-data-[collapsible=icon]:items-center group-data-[collapsible=icon]:px-0">
-        <button
-          type="button"
-          onClick={handleSignOut}
-          className="flex h-11 w-full items-center gap-3 rounded-md px-2 text-sm font-semibold text-white/78 transition hover:bg-white/[0.08] hover:text-white group-data-[collapsible=icon]:w-11 group-data-[collapsible=icon]:justify-center group-data-[collapsible=icon]:px-0"
-          style={{ fontFamily: sidebarFontFamily, fontSize: 14 }}
-          aria-label="Sair"
-          title="Sair"
+        <Divider
+          sx={{
+            borderColor: sidebarColors.border,
+          }}
+        />
+
+        {/* Botão que aparece quando o menu está recolhido */}
+        {!isSidebarExpanded ? (
+          <Box
+            sx={{
+              px: 1,
+              pt: 1.5,
+            }}
+          >
+            <Tooltip title="Expandir menu" placement="right" arrow>
+              <IconButton
+                onClick={handleToggleSidebar}
+                aria-label="Expandir menu lateral"
+                sx={{
+                  width: 48,
+                  height: 48,
+
+                  display: "flex",
+                  mx: "auto",
+
+                  borderRadius: "12px",
+
+                  color: sidebarColors.orangeDark,
+                  bgcolor: sidebarColors.orangeSoft,
+
+                  "&:hover": {
+                    bgcolor: sidebarColors.orangeHover,
+                  },
+                }}
+              >
+                <MenuRoundedIcon />
+              </IconButton>
+            </Tooltip>
+          </Box>
+        ) : null}
+
+        {/* Área de navegação */}
+        <Box
+          sx={{
+            flex: 1,
+            minHeight: 0,
+
+            px: isSidebarExpanded ? 1.5 : 1.75,
+            pt: 1.5,
+            pb: 2,
+
+            overflowY: "auto",
+            overflowX: "hidden",
+
+            "&::-webkit-scrollbar": {
+              width: 6,
+            },
+
+            "&::-webkit-scrollbar-thumb": {
+              bgcolor: "#cbd5e1",
+              borderRadius: 999,
+            },
+
+            "&::-webkit-scrollbar-track": {
+              bgcolor: "transparent",
+            },
+          }}
         >
-          <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-md text-[#fab519] transition group-hover:text-[#ffd267]">
-            <LogOut className="h-4.5 w-4.5" />
-          </span>
+          {isSidebarExpanded ? (
+            <Typography
+              sx={{
+                px: 1.5,
+                mb: 1.25,
 
-          <span className="truncate group-data-[collapsible=icon]:hidden">
-            Sair
-          </span>
-        </button>
-      </SidebarFooter>
+                color: sidebarColors.mutedLight,
 
-    </Sidebar>
+                fontSize: 10,
+                fontWeight: 1000,
+
+                letterSpacing: ".14em",
+                textTransform: "uppercase",
+              }}
+            >
+              Navegação
+            </Typography>
+          ) : null}
+
+          <SidebarNavigation
+            sections={filteredSections}
+            pathname={pathname}
+            role={user?.role}
+            unreadChatCount={unreadChatCount}
+            openSections={openSections}
+            collapsed={!isSidebarExpanded}
+            onToggleSection={handleToggleSection}
+          />
+        </Box>
+
+        <Divider
+          sx={{
+            borderColor: sidebarColors.border,
+          }}
+        />
+
+        {/* Rodapé */}
+        <Box
+          sx={{
+            p: isSidebarExpanded ? 1.5 : 1,
+          }}
+        >
+          {isSidebarExpanded ? (
+            <Box
+              sx={{
+                mb: 1,
+
+                px: 1.5,
+                py: 1.25,
+
+                borderRadius: "12px",
+
+                bgcolor: sidebarColors.backgroundMuted,
+
+                border: `1px solid ${sidebarColors.border}`,
+              }}
+            >
+              <Typography
+                noWrap
+                sx={{
+                  color: sidebarColors.text,
+
+                  fontSize: 13,
+                  fontWeight: 800,
+                }}
+              >
+                {user?.name || "Usuário conectado"}
+              </Typography>
+
+              <Typography
+                noWrap
+                sx={{
+                  mt: 0.25,
+
+                  color: sidebarColors.muted,
+
+                  fontSize: 11,
+                  fontWeight: 600,
+                }}
+              >
+                {user?.role || "Acesso ao CRM"}
+              </Typography>
+            </Box>
+          ) : null}
+
+          <Tooltip title={isSidebarExpanded ? "" : "Sair"} placement="right" arrow>
+            <ListItemButton
+              onClick={handleSignOut}
+              aria-label="Sair"
+              sx={{
+                minHeight: 46,
+
+                px: isSidebarExpanded ? 1.5 : 0,
+
+                justifyContent: isSidebarExpanded ? "flex-start" : "center",
+
+                borderRadius: "12px",
+
+                color: sidebarColors.danger,
+
+                "&:hover": {
+                  bgcolor: sidebarColors.dangerSoft,
+                },
+              }}
+            >
+              <ListItemIcon
+                sx={{
+                  minWidth: isSidebarExpanded ? 40 : 0,
+
+                  justifyContent: "center",
+
+                  color: "inherit",
+                }}
+              >
+                <LogoutRoundedIcon
+                  sx={{
+                    fontSize: 21,
+                  }}
+                />
+              </ListItemIcon>
+
+              {isSidebarExpanded ? (
+                <ListItemText
+                  disableTypography
+                  primary={
+                    <Box
+                      component="span"
+                      sx={{
+                        fontSize: 14,
+                        fontWeight: 800,
+                        lineHeight: 1.2,
+                      }}
+                    >
+                      Sair
+                    </Box>
+                  }
+                />
+              ) : null}
+            </ListItemButton>
+          </Tooltip>
+        </Box>
+      </Stack>
+    </Drawer>
   );
 }

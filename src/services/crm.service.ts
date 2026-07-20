@@ -1,5 +1,7 @@
-import { apiFetch } from '@/services/api';
+import { API_BASE_URL, apiFetch } from '@/services/api';
 import type {
+  ClientContact,
+  ClientDocument,
   ClientDeletionRequest,
   ClientDeletionRequestStatus,
   CrmDashboardSummary,
@@ -24,14 +26,26 @@ type BackendClient = {
   document?: string | null;
   phone?: string | null;
   companyName?: string | null;
+  legalName?: string | null;
+  tradeName?: string | null;
+  cnae?: string | null;
+  stateRegistration?: string | null;
+  businessActivity?: string | null;
+  taxRegime?: string | null;
+  address?: string | null;
+  bankDetails?: string | null;
+  modality?: string | null;
+  registrationDate?: string | null;
   segment?: string | null;
   notes?: string | null;
   status?: string | null;
   internalOwnerId?: string | null;
   createdAt: string;
   updatedAt: string;
-  user: BackendUser;
+  user?: BackendUser | null;
   opportunities?: BackendOpportunity[];
+  documents?: ClientDocument[];
+  contacts?: ClientContact[];
 };
 
 type BackendOpportunity = {
@@ -115,15 +129,26 @@ function mapOpportunity(opportunity: BackendOpportunity): Opportunity {
 }
 
 function mapClientSummary(client: BackendClient, owners: Map<string, string>): LeadSummary {
+  const clientName =
+    client.tradeName ||
+    client.legalName ||
+    client.companyName ||
+    client.user?.name ||
+    client.document ||
+    'Cliente';
+
   return {
     id: client.id,
-    name: client.user.name,
-    email: client.user.email,
-    company: client.companyName || client.user.name,
-    segment: client.segment || '-',
+    name: clientName,
+    email: client.user?.email ?? '',
+    company:
+      client.tradeName || client.legalName || client.companyName || clientName,
+    document: client.document ?? null,
+    phone: client.phone ?? null,
+    segment: client.businessActivity || client.segment || '-',
     owner: client.internalOwnerId
-      ? owners.get(client.internalOwnerId) ?? 'Responsavel interno'
-      : 'Sem responsavel',
+      ? owners.get(client.internalOwnerId) ?? 'Responsável interno'
+      : 'Sem responsável',
     status: normalizeStatus(client.status),
     createdAt: client.createdAt,
   };
@@ -176,15 +201,27 @@ export async function getCrmLeadById(
 
   return {
     ...summary,
-    userId: detail.client.user.id,
+    userId: detail.client.user?.id ?? detail.client.id,
     internalOwnerId: detail.client.internalOwnerId ?? null,
     document: detail.client.document ?? null,
     phone: detail.client.phone ?? null,
+    legalName: detail.client.legalName ?? null,
+    tradeName: detail.client.tradeName ?? null,
+    cnae: detail.client.cnae ?? null,
+    stateRegistration: detail.client.stateRegistration ?? null,
+    businessActivity: detail.client.businessActivity ?? null,
+    taxRegime: detail.client.taxRegime ?? null,
+    address: detail.client.address ?? null,
+    bankDetails: detail.client.bankDetails ?? null,
+    modality: detail.client.modality ?? null,
+    registrationDate: detail.client.registrationDate ?? null,
     source: 'CRM',
     notes: detail.client.notes ?? null,
     lastContactAt: detail.client.updatedAt,
     timeline: detail.timeline.map((event) => mapTimelineEvent(detail.client.id, event)),
     opportunities: detail.opportunities.map(mapOpportunity),
+    documents: detail.client.documents ?? [],
+    contacts: detail.client.contacts ?? [],
   };
 }
 
@@ -194,12 +231,30 @@ export async function updateClient(
     name?: string;
     email?: string;
     companyName?: string;
+    legalName?: string;
+    tradeName?: string;
+    cnae?: string;
+    stateRegistration?: string;
+    businessActivity?: string;
+    taxRegime?: string;
+    address?: string;
+    bankDetails?: string;
+    modality?: string;
+    registrationDate?: string;
     document?: string;
     phone?: string;
     segment?: string;
     notes?: string;
     status?: LeadStatus;
     internalOwnerId?: string;
+    contacts?: Array<{
+      name?: string;
+      role?: string;
+      email?: string;
+      phone?: string;
+      notes?: string;
+      isPrimary?: boolean;
+    }>;
   },
   token: string,
 ) {
@@ -211,6 +266,92 @@ export async function updateClient(
     },
     token,
   );
+}
+
+type CreatedClientResponse = {
+  id?: string;
+  client?: {
+    id: string;
+  } | null;
+  clientProfile?: {
+    id: string;
+  } | null;
+};
+
+export async function createClient(
+  payload: {
+    name?: string;
+    companyName?: string;
+    legalName?: string;
+    tradeName?: string;
+    cnae?: string;
+    stateRegistration?: string;
+    businessActivity?: string;
+    taxRegime?: string;
+    address?: string;
+    bankDetails?: string;
+    modality?: string;
+    registrationDate?: string;
+    document?: string;
+    phone?: string;
+    segment?: string;
+    notes?: string;
+    status?: LeadStatus;
+    internalOwnerId?: string;
+    contacts?: Array<{
+      name?: string;
+      role?: string;
+      email?: string;
+      phone?: string;
+      notes?: string;
+      isPrimary?: boolean;
+    }>;
+  },
+token: string,
+): Promise<CreatedClientResponse> {
+return apiFetch<CreatedClientResponse>(
+    '/clients',
+    {
+      method: 'POST',
+      body: JSON.stringify(payload),
+    },
+    token,
+  );
+}
+
+export async function uploadClientDocument(
+  clientId: string,
+  file: File,
+  token: string,
+  description?: string,
+): Promise<ClientDocument> {
+  const body = new FormData();
+  body.append('file', file);
+
+  if (description?.trim()) {
+    body.append('description', description.trim());
+  }
+
+  const response = await fetch(
+    `${API_BASE_URL}/clients/${clientId}/documents`,
+    {
+      method: 'POST',
+      headers: {
+        Authorization: `Bearer ${token}`,
+      },
+      body,
+    },
+  );
+
+  const data = await response.json().catch(() => null);
+
+  if (!response.ok) {
+    throw new Error(
+      data?.message || data?.error || 'Erro ao enviar documento do cliente.',
+    );
+  }
+
+  return data as ClientDocument;
 }
 
 export async function createTimelineContact(

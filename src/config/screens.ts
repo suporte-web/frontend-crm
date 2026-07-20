@@ -35,7 +35,7 @@ export type ProfilePermissionItem = {
 export const appScreens: AppScreen[] = [
   {
     key: 'dashboard',
-    href: '/dashboard',
+    href: '/painel',
     label: 'Dashboard',
     roles: ['ADMIN', 'GESTAO', 'COMERCIAL', 'MARKETING', 'CLIENTE'],
   },
@@ -53,19 +53,19 @@ export const appScreens: AppScreen[] = [
   },
   {
     key: 'trackings',
-    href: '/trackings',
+    href: '/rastreamentos',
     label: 'Rastreamento',
     roles: ['ADMIN', 'GESTAO', 'COMERCIAL', 'MARKETING', 'CLIENTE'],
   },
   {
     key: 'quotes',
-    href: '/quotes',
+    href: '/cotacoes',
     label: 'Cotações',
     roles: ['ADMIN', 'GESTAO', 'COMERCIAL', 'CLIENTE'],
   },
   {
     key: 'clients',
-    href: '/clients',
+    href: '/clientes',
     label: 'Clientes',
     roles: ['ADMIN', 'GESTAO', 'COMERCIAL', 'MARKETING'],
   },
@@ -83,13 +83,13 @@ export const appScreens: AppScreen[] = [
   },
   {
     key: 'tickets',
-    href: '/tickets',
-    label: 'Tickets',
+    href: '/chamados',
+    label: 'Chamados',
     roles: ['ADMIN', 'GESTAO', 'COMERCIAL', 'CLIENTE'],
   },
   {
     key: 'helpCenter',
-    href: '/help-center',
+    href: '/central-ajuda',
     label: 'Central de Ajuda',
     roles: ['ADMIN', 'GESTAO', 'COMERCIAL', 'MARKETING'],
   },
@@ -101,13 +101,13 @@ export const appScreens: AppScreen[] = [
   },
   {
     key: 'suppliers',
-    href: '/suppliers',
+    href: '/fornecedores',
     label: 'Fornecedores',
     roles: ['ADMIN', 'GESTAO', 'COMERCIAL'],
   },
   {
     key: 'users',
-    href: '/users',
+    href: '/usuarios',
     label: 'Usuários',
     roles: ['ADMIN', 'GESTAO'],
   },
