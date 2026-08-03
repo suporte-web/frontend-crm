@@ -25,7 +25,6 @@ import { Truck } from "lucide-react";
 import {
   CrmPageHeader,
   CrmPageShell,
-  CrmSection,
 } from "@/components/mui/crm-primitives";
 import { DeliveriesFiltersPanel } from "./DeliveriesFiltersPanel";
 import { DeliverySummaryCards } from "./DeliverySummaryCards";
@@ -166,7 +165,7 @@ function compareValues(a: string | null, b: string | null) {
 
 
 export default function DeliveriesPage() {
-  const { token, user, loading: authLoading } = useAuth();
+  const { token, loading: authLoading } = useAuth();
   const [filters, setFilters] = useState<DeliveryFilters>(DEFAULT_FILTERS);
   const [appliedFilters, setAppliedFilters] =
     useState<DeliveryFilters>(DEFAULT_FILTERS);
@@ -424,12 +423,6 @@ export default function DeliveriesPage() {
     return labels[filter];
   }
 
-  const canViewPage =
-    user?.role &&
-    ["ADMIN", "GESTAO", "COMERCIAL", "MARKETING", "CLIENTE"].includes(
-      user.role,
-    );
-
   useEffect(() => {
     if (!token) {
       return;
@@ -484,17 +477,6 @@ export default function DeliveriesPage() {
     token,
   ]);
 
-  if (!authLoading && !canViewPage) {
-    return (
-      <AppLayout>
-        <CrmSection sx={{ p: 3 }}>
-          <Alert severity="error">
-            Você não tem permissão para acessar o monitoramento de entregas.
-          </Alert>
-        </CrmSection>
-      </AppLayout>
-    );
-  }
 
   return (
     <AppLayout>

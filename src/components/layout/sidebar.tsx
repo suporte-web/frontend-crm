@@ -81,18 +81,17 @@ export function AppSidebar() {
 
   const [collapsed, setCollapsed] = useState(() => {
     if (typeof window === "undefined") {
-      return true;
+      return false;
     }
 
-    return window.localStorage.getItem(SIDEBAR_STORAGE_KEY) !== "false";
+    return window.localStorage.getItem(SIDEBAR_STORAGE_KEY) === "true";
   });
-  const [hoverExpanded, setHoverExpanded] = useState(false);
 
   const [unreadChatCount, setUnreadChatCount] = useState(0);
 
   const [openSections, setOpenSections] = useState<Record<string, boolean>>({});
 
-  const isSidebarExpanded = !collapsed || hoverExpanded;
+  const isSidebarExpanded = !collapsed;
   const sidebarWidth = isSidebarExpanded
     ? SIDEBAR_OPEN_WIDTH
     : SIDEBAR_COLLAPSED_WIDTH;
@@ -150,24 +149,12 @@ export function AppSidebar() {
   function handleToggleSidebar() {
     if (collapsed) {
       setCollapsed(false);
-      setHoverExpanded(false);
       window.localStorage.setItem(SIDEBAR_STORAGE_KEY, "false");
       return;
     }
 
     setCollapsed(true);
-    setHoverExpanded(false);
     window.localStorage.setItem(SIDEBAR_STORAGE_KEY, "true");
-  }
-
-  function handleMouseEnterSidebar() {
-    if (collapsed) {
-      setHoverExpanded(true);
-    }
-  }
-
-  function handleMouseLeaveSidebar() {
-    setHoverExpanded(false);
   }
 
   function handleSignOut() {
@@ -179,8 +166,6 @@ export function AppSidebar() {
     <Drawer
       variant="permanent"
       open={isSidebarExpanded}
-      onMouseEnter={handleMouseEnterSidebar}
-      onMouseLeave={handleMouseLeaveSidebar}
       sx={{
         width: sidebarWidth,
         flexShrink: 0,
@@ -256,7 +241,7 @@ export function AppSidebar() {
                 /> */}
 
                 <Tooltip
-                  title={collapsed ? "Fixar menu aberto" : "Recolher menu"}
+                  title={collapsed ? "Expandir menu" : "Recolher menu"}
                   placement="right"
                   arrow
                 >
@@ -264,7 +249,7 @@ export function AppSidebar() {
                     onClick={handleToggleSidebar}
                     aria-label={
                       collapsed
-                        ? "Fixar menu lateral aberto"
+                        ? "Expandir menu lateral"
                         : "Recolher menu lateral"
                     }
                     size="small"

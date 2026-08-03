@@ -33,9 +33,18 @@ type BackendClient = {
   businessActivity?: string | null;
   taxRegime?: string | null;
   address?: string | null;
+  city?: string | null;
   bankDetails?: string | null;
   modality?: string | null;
   registrationDate?: string | null;
+  paymentMethod?: string | null;
+  paymentTerm?: string | null;
+  contractValidity?: string | null;
+  priceAdjustment?: string | null;
+  invoiceContactName?: string | null;
+  invoiceContactEmail?: string | null;
+  invoiceContactPhone?: string | null;
+  commercialTermsNotes?: string | null;
   segment?: string | null;
   notes?: string | null;
   status?: string | null;
@@ -145,7 +154,8 @@ function mapClientSummary(client: BackendClient, owners: Map<string, string>): L
       client.tradeName || client.legalName || client.companyName || clientName,
     document: client.document ?? null,
     phone: client.phone ?? null,
-    segment: client.businessActivity || client.segment || '-',
+    city: client.city ?? "-",
+    segment: client.segment || "-",
     owner: client.internalOwnerId
       ? owners.get(client.internalOwnerId) ?? 'Responsável interno'
       : 'Sem responsável',
@@ -182,6 +192,26 @@ function mapTimelineEvent(clientId: string, event: BackendTimelineEvent): Timeli
   };
 }
 
+function mapClientContact(
+  contact: ClientContact,
+  index: number,
+): ClientContact {
+  const name = contact.name ?? contact.nomeContato ?? null;
+  const role = contact.role ?? contact.cargo ?? null;
+  const phone = contact.phone ?? contact.telefone ?? null;
+
+  return {
+    ...contact,
+    name,
+    nomeContato: contact.nomeContato ?? name,
+    role,
+    cargo: contact.cargo ?? role,
+    phone,
+    telefone: contact.telefone ?? phone,
+    isPrimary: contact.isPrimary ?? index === 0,
+  };
+}
+
 export async function getCrmClientSummaries(token: string): Promise<LeadSummary[]> {
   const [clients, owners] = await Promise.all([
     apiFetch<BackendClient[]>('/clients', {}, token),
@@ -215,13 +245,23 @@ export async function getCrmLeadById(
     bankDetails: detail.client.bankDetails ?? null,
     modality: detail.client.modality ?? null,
     registrationDate: detail.client.registrationDate ?? null,
+    paymentMethod: detail.client.paymentMethod ?? null,
+    paymentTerm: detail.client.paymentTerm ?? null,
+    contractValidity: detail.client.contractValidity ?? null,
+    priceAdjustment: detail.client.priceAdjustment ?? null,
+    invoiceContactName: detail.client.invoiceContactName ?? null,
+    invoiceContactEmail: detail.client.invoiceContactEmail ?? null,
+    invoiceContactPhone: detail.client.invoiceContactPhone ?? null,
+    commercialTermsNotes: detail.client.commercialTermsNotes ?? null,
     source: 'CRM',
     notes: detail.client.notes ?? null,
     lastContactAt: detail.client.updatedAt,
-    timeline: detail.timeline.map((event) => mapTimelineEvent(detail.client.id, event)),
-    opportunities: detail.opportunities.map(mapOpportunity),
+    timeline: (detail.timeline ?? []).map((event) =>
+      mapTimelineEvent(detail.client.id, event),
+    ),
+    opportunities: (detail.opportunities ?? []).map(mapOpportunity),
     documents: detail.client.documents ?? [],
-    contacts: detail.client.contacts ?? [],
+    contacts: (detail.client.contacts ?? []).map(mapClientContact),
   };
 }
 
@@ -238,9 +278,18 @@ export async function updateClient(
     businessActivity?: string;
     taxRegime?: string;
     address?: string;
+    city?: string;
     bankDetails?: string;
     modality?: string;
     registrationDate?: string;
+    paymentMethod?: string;
+    paymentTerm?: string;
+    contractValidity?: string;
+    priceAdjustment?: string;
+    invoiceContactName?: string;
+    invoiceContactEmail?: string;
+    invoiceContactPhone?: string;
+    commercialTermsNotes?: string;
     document?: string;
     phone?: string;
     segment?: string;
@@ -250,8 +299,10 @@ export async function updateClient(
     contacts?: Array<{
       name?: string;
       role?: string;
+      cargo?: string;
       email?: string;
       phone?: string;
+      telefone?: string;
       notes?: string;
       isPrimary?: boolean;
     }>;
@@ -289,9 +340,18 @@ export async function createClient(
     businessActivity?: string;
     taxRegime?: string;
     address?: string;
+    city?: string;
     bankDetails?: string;
     modality?: string;
     registrationDate?: string;
+    paymentMethod?: string;
+    paymentTerm?: string;
+    contractValidity?: string;
+    priceAdjustment?: string;
+    invoiceContactName?: string;
+    invoiceContactEmail?: string;
+    invoiceContactPhone?: string;
+    commercialTermsNotes?: string;
     document?: string;
     phone?: string;
     segment?: string;
@@ -301,8 +361,10 @@ export async function createClient(
     contacts?: Array<{
       name?: string;
       role?: string;
+      cargo?: string;
       email?: string;
       phone?: string;
+      telefone?: string;
       notes?: string;
       isPrimary?: boolean;
     }>;
@@ -325,8 +387,31 @@ export async function uploadClientDocument(
   token: string,
   description?: string,
 ): Promise<ClientDocument> {
+  const [document] = await uploadClientDocuments(
+    clientId,
+    [file],
+    token,
+    description,
+  );
+
+  if (!document) {
+    throw new Error('Erro ao enviar documento do cliente.');
+  }
+
+  return document;
+}
+
+export async function uploadClientDocuments(
+  clientId: string,
+  files: File[],
+  token: string,
+  description?: string,
+): Promise<ClientDocument[]> {
   const body = new FormData();
-  body.append('file', file);
+
+  files.forEach((file) => {
+    body.append('file', file);
+  });
 
   if (description?.trim()) {
     body.append('description', description.trim());
@@ -351,7 +436,142 @@ export async function uploadClientDocument(
     );
   }
 
-  return data as ClientDocument;
+  return Array.isArray(data) ? data as ClientDocument[] : [data as ClientDocument];
+}
+
+export async function addClientContact(
+  clientId: string,
+  payload: {
+    nomeContato: string;
+    cargo?: string;
+    email?: string;
+    telefone?: string;
+    whatsapp?: string;
+    linkedin?: string;
+  },
+  token: string,
+): Promise<ClientContact> {
+  const data = await apiFetch<{
+    contact?: ClientContact;
+    contacts?: ClientContact[];
+  }>(
+    `/clients/${clientId}/contacts`,
+    {
+      method: 'POST',
+      body: JSON.stringify(payload),
+    },
+    token,
+  );
+
+  const contact = data.contact ?? data.contacts?.at(-1);
+
+  if (!contact) {
+    throw new Error('Contato não foi retornado pelo servidor.');
+  }
+
+  return mapClientContact(contact, 0);
+}
+
+export async function updateClientContactRecord(
+  clientId: string,
+  contactId: string,
+  payload: {
+    nomeContato: string;
+    cargo?: string;
+    email?: string;
+    telefone?: string;
+    whatsapp?: string;
+    linkedin?: string;
+    notes?: string;
+  },
+  token: string,
+): Promise<ClientContact> {
+  const data = await apiFetch<{
+    contact?: ClientContact;
+  }>(
+    `/clients/${clientId}/contacts/${contactId}`,
+    {
+      method: 'PATCH',
+      body: JSON.stringify(payload),
+    },
+    token,
+  );
+
+  if (!data.contact) {
+    throw new Error('Contato não foi retornado pelo servidor.');
+  }
+
+  return mapClientContact(data.contact, 0);
+}
+
+export async function deleteClientContact(
+  clientId: string,
+  contactId: string,
+  token: string,
+) {
+  return apiFetch<{ message: string }>(
+    `/clients/${clientId}/contacts/${contactId}`,
+    {
+      method: 'DELETE',
+    },
+    token,
+  );
+}
+
+export async function uploadOpportunityProposalDocuments(
+  clientId: string,
+  files: File[],
+  token: string,
+  description?: string,
+): Promise<ClientDocument[]> {
+  const body = new FormData();
+
+  files.forEach((file) => {
+    body.append('file', file);
+  });
+
+  if (description?.trim()) {
+    body.append('description', description.trim());
+  }
+
+  body.append('category', 'OPORTUNIDADE_PROPOSTA');
+
+  const response = await fetch(
+    `${API_BASE_URL}/clients/${clientId}/documents`,
+    {
+      method: 'POST',
+      headers: {
+        Authorization: `Bearer ${token}`,
+      },
+      body,
+    },
+  );
+
+  const data = await response.json().catch(() => null);
+
+  if (!response.ok) {
+    throw new Error(
+      data?.message || data?.error || 'Erro ao enviar proposta do cliente.',
+    );
+  }
+
+  return Array.isArray(data) ? data as ClientDocument[] : [data as ClientDocument];
+}
+
+export async function deleteOpportunityProposalDocument(
+  clientId: string,
+  documentId: string,
+  token: string,
+  justification = 'Exclusao de anexo da proposta.',
+) {
+  return apiFetch<{ message: string }>(
+    `/clients/${clientId}/documents/${documentId}`,
+    {
+      method: 'DELETE',
+      body: JSON.stringify({ justification }),
+    },
+    token,
+  );
 }
 
 export async function createTimelineContact(
@@ -470,6 +690,16 @@ export async function updateOpportunity(
   );
 }
 
+export async function deleteOpportunity(opportunityId: string, token: string) {
+  return apiFetch<{ message: string }>(
+    `/opportunities/${opportunityId}`,
+    {
+      method: 'DELETE',
+    },
+    token,
+  );
+}
+
 export async function createOpportunity(
   payload: {
     clientId: string;
@@ -526,4 +756,52 @@ export function getOpportunityStatusFromStage(stage: OpportunityStage) {
   }
 
   return 'OPEN';
+
+}
+
+const OPPORTUNITY_STATUS_LABELS = {
+  OPEN: "ABERTA",
+  WON: "GANHA",
+  LOST: "PERDIDA",
+} satisfies Record<OpportunityStatus, string>;
+
+export function formatOpportunityStatus(
+  status: OpportunityStatus,
+): string {
+  return OPPORTUNITY_STATUS_LABELS[status];
+}
+
+// Status da proposta
+
+export async function updateOpportunityStatus(
+  clientId: string,
+  opportunityId: string,
+  status: OpportunityStatus,
+  token: string,
+) {
+  const response = await fetch(
+    `${API_BASE_URL}/clients/${clientId}/opportunities/${opportunityId}/status`,
+    {
+      method: "PATCH",
+      headers: {
+        Authorization: `Bearer ${token}`,
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({
+        status,
+      }),
+    },
+  );
+
+  const data = await response.json().catch(() => null);
+
+  if (!response.ok) {
+    throw new Error(
+      data?.message ||
+        data?.error ||
+        "Erro ao atualizar o status da oportunidade.",
+    );
+  }
+
+  return data;
 }

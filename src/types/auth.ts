@@ -2,6 +2,7 @@ export type UserRole =
   | 'ADMIN'
   | 'GESTAO'
   | 'COMERCIAL'
+  | 'OPERACAO'
   | 'MARKETING'
   | 'CLIENTE';
 

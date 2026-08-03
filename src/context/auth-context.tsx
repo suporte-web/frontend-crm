@@ -37,6 +37,34 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     setLoading(false);
   }, []);
 
+  useEffect(() => {
+    if (!token) {
+      return;
+    }
+
+    let active = true;
+
+    async function syncStoredUser() {
+      try {
+        const updatedUser = await refreshUser();
+
+        if (!active || !updatedUser) {
+          return;
+        }
+      } catch {
+        if (active) {
+          signOut();
+        }
+      }
+    }
+
+    syncStoredUser();
+
+    return () => {
+      active = false;
+    };
+  }, [token]);
+
   async function refreshUser() {
     const activeToken = token || localStorage.getItem(TOKEN_KEY);
 

@@ -93,18 +93,22 @@ export async function getPayers(
   filters: Partial<DeliveryFilters>,
   token: string,
 ) {
-  const response = await fetch(
-    `${API_BASE_URL}/entregas/find-payers${buildQueryString(filters)}`,
-    {
-      method: 'GET',
-      headers: {
-        Authorization: `Bearer ${token}`,
-      },
+  const url =
+    `${API_BASE_URL}/entregas/find-payers${buildQueryString(filters)}`;
+
+  console.log('URL FIND PAYERS:', url);
+
+  const response = await fetch(url, {
+    method: 'GET',
+    headers: {
+      Authorization: `Bearer ${token}`,
     },
-  );
+  });
 
   return parseResponse<DeliveryPayer[]>(response);
 }
+
+
 
 export async function getOccurrences(
   filters: Partial<DeliveryFilters>,
@@ -121,4 +125,8 @@ export async function getOccurrences(
   );
 
   return parseResponse<DeliveryOccurrence[]>(response);
+
+  
 }
+
+

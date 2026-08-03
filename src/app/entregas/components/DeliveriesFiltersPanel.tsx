@@ -124,6 +124,19 @@ function occurrenceOptionValue(occurrence: DeliveryOccurrence) {
   return String(occurrence.ocorrencia ?? occurrence.ult_ocor ?? "");
 }
 
+function formatCnpj(value: string) {
+  const digits = value.replace(/\D/g, "");
+
+  if (digits.length !== 14) {
+    return value;
+  }
+
+  return digits.replace(
+    /^(\d{2})(\d{3})(\d{3})(\d{4})(\d{2})$/,
+    "$1.$2.$3/$4-$5",
+  );
+}
+
 export function DeliveriesFiltersPanel({
   filters,
   availableUfs,
@@ -259,18 +272,20 @@ export function DeliveriesFiltersPanel({
               placeholder="Digite parte do CTRC"
               sx={textFieldSx}
             />
+
             <Autocomplete
-              freeSolo
               fullWidth
-              options={occurrenceOptions}
-              inputValue={filters.ocorrencia}
-              onInputChange={(_, value) => onUpdateFilter("ocorrencia", value)}
-              getOptionLabel={(option) => String(option ?? "")}
+              options={availablePayers}
+              value={filters.cnpjPagador || null}
+              onChange={(_, value) =>
+                onUpdateFilter("cnpjPagador", value ?? "")
+              }
+              getOptionLabel={(option) => formatCnpj(String(option ?? ""))}
               renderInput={(params) => (
                 <TextField
                   {...params}
-                  label="Última ocorrência"
-                  placeholder="Código ou descrição"
+                  label="CNPJ pagador"
+                  placeholder="Selecione o CNPJ"
                   sx={textFieldSx}
                 />
               )}

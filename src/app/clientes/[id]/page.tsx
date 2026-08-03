@@ -1,1 +1,1 @@
-export { default } from './components/ClientDetailsPage';
+export { default } from "./components/PaginaDetalhesCliente";

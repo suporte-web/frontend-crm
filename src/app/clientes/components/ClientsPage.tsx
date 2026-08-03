@@ -57,7 +57,7 @@ import {
   getCrmClientSummaries,
   createClient,
   requestClientDeletion,
-  uploadClientDocument,
+  uploadClientDocuments,
 } from "@/services/crm.service";
 import { formatLeadStatus } from "@/services/crm.service";
 import type {
@@ -655,7 +655,7 @@ export default function ClientsPage() {
           stateRegistration: form.stateRegistration.trim() || undefined,
           businessActivity: form.businessActivity.trim() || undefined,
           taxRegime: form.taxRegime.trim() || undefined,
-          address: fullAddress || form.address.trim() || undefined,
+          city: form.city.trim() || undefined,
           bankDetails: form.bankDetails.trim() || undefined,
           modality: form.modality.trim() || undefined,
           registrationDate: form.registrationDate || undefined,
@@ -679,20 +679,16 @@ export default function ClientsPage() {
         if (!clientId) {
           documentUploadFailed = true;
         } else {
-          const uploadResults = await Promise.allSettled(
-            documentFiles.map((file) =>
-              uploadClientDocument(
-                clientId,
-                file,
-                token,
-                "Documento cadastral",
-              ),
-            ),
-          );
-
-          documentUploadFailed = uploadResults.some(
-            (result) => result.status === "rejected",
-          );
+          try {
+            await uploadClientDocuments(
+              clientId,
+              documentFiles,
+              token,
+              "Documento cadastral",
+            );
+          } catch {
+            documentUploadFailed = true;
+          }
         }
       }
 
@@ -1291,10 +1287,10 @@ export default function ClientsPage() {
                     }}
                   >
                     {[
-                      "Cliente / Empresa",
+                      "Nome Fantasia",
+                      "CNPJ",
+                      "Cidade",
                       "Segmento",
-                      "Status",
-                      "Responsável / Data",
                       "Ações",
                     ].map((title) => (
                       <TableCell
@@ -1360,6 +1356,7 @@ export default function ClientsPage() {
                           },
                         }}
                       >
+                        {/* Nome Fantasia */}
                         <TableCell
                           sx={{
                             px: 2,
@@ -1376,12 +1373,12 @@ export default function ClientsPage() {
                           >
                             <Avatar
                               sx={{
-                                height: 38,
                                 width: 38,
+                                height: 38,
                                 bgcolor: avatarColor.bgcolor,
                                 color: avatarColor.color,
-                                fontSize: 16,
-                                fontWeight: 900,
+                                fontSize: 15,
+                                fontWeight: 800,
                               }}
                             >
                               {getClientInitial(client)}
@@ -1393,88 +1390,19 @@ export default function ClientsPage() {
                                   color: crmPalette.text,
                                   fontSize: 13,
                                   fontWeight: 900,
-                                  lineHeight: 1.35,
+                                  lineHeight: 1.4,
                                 }}
                               >
-                                {client.company || client.name || "Cliente"}
+                                {client.tradeName ||
+                                  client.company ||
+                                  client.name ||
+                                  "Sem nome fantasia"}
                               </Typography>
-
-                              <Typography
-                                sx={{
-                                  mt: 0.25,
-                                  color: crmPalette.muted,
-                                  fontSize: 13,
-                                }}
-                              >
-                                {client.email}
-                              </Typography>
-
-                              <Typography
-                                sx={{
-                                  mt: 0.25,
-                                  color: "#94a3b8",
-                                  fontSize: 12,
-                                }}
-                              >
-                                {[client.document, client.phone]
-                                  .filter(Boolean)
-                                  .join(" • ") || "Sem CNPJ/telefone"}
-                              </Typography>
-
-                              {pendingDeletion ? (
-                                <Chip
-                                  label="Exclusão aguardando Gestão"
-                                  size="small"
-                                  sx={{
-                                    mt: 1,
-                                    height: 25,
-                                    bgcolor: "#fff7df",
-                                    color: "#9a6500",
-                                    border: "1px solid #fde68a",
-                                    borderRadius: "8px",
-                                    fontSize: 11,
-                                    fontWeight: 800,
-                                  }}
-                                />
-                              ) : null}
                             </Box>
                           </Stack>
                         </TableCell>
 
-                        <TableCell
-                          sx={{
-                            px: 2,
-                            py: 1.5,
-                            color: crmPalette.text,
-                            borderColor: crmPalette.border,
-                            fontSize: 13,
-                            lineHeight: 1.45,
-                          }}
-                        >
-                          {client.segment || "-"}
-                        </TableCell>
-
-                        <TableCell
-                          sx={{
-                            px: 2,
-                            py: 1.5,
-                            borderColor: crmPalette.border,
-                          }}
-                        >
-                          <Chip
-                            label={formatLeadStatus(client.status)}
-                            size="small"
-                            variant="outlined"
-                            sx={{
-                              ...statusStyles[client.status],
-                              height: 28,
-                              borderRadius: "8px",
-                              fontSize: 12,
-                              fontWeight: 800,
-                            }}
-                          />
-                        </TableCell>
-
+                        {/* CNPJ */}
                         <TableCell
                           sx={{
                             px: 2,
@@ -1486,23 +1414,50 @@ export default function ClientsPage() {
                             sx={{
                               color: crmPalette.text,
                               fontSize: 13,
-                              fontWeight: 800,
                             }}
                           >
-                            {client.owner || "Sem responsável"}
-                          </Typography>
-
-                          <Typography
-                            sx={{
-                              mt: 0.25,
-                              color: crmPalette.muted,
-                              fontSize: 12,
-                            }}
-                          >
-                            {formatDate(client.createdAt)}
+                            {client.document || "-"}
                           </Typography>
                         </TableCell>
 
+                        {/* Cidade */}
+                        <TableCell
+                          sx={{
+                            px: 2,
+                            py: 1.5,
+                            borderColor: crmPalette.border,
+                          }}
+                        >
+                          <Typography
+                            sx={{
+                              color: crmPalette.text,
+                              fontSize: 13,
+                            }}
+                          >
+                            {client.city || "-"}
+                          </Typography>
+                        </TableCell>
+
+                        {/* Segmento */}
+                        <TableCell
+                          sx={{
+                            px: 2,
+                            py: 1.5,
+                            borderColor: crmPalette.border,
+                          }}
+                        >
+                          <Typography
+                            sx={{
+                              color: crmPalette.text,
+                              fontSize: 13,
+                              lineHeight: 1.5,
+                            }}
+                          >
+                            {client.segment || "-"}
+                          </Typography>
+                        </TableCell>
+
+                        {/* Ações */}
                         <TableCell
                           align="center"
                           sx={{
@@ -1512,75 +1467,60 @@ export default function ClientsPage() {
                           }}
                         >
                           <Stack
-                            direction="row"
-                            spacing={1}
+                            spacing={0.75}
                             sx={{
                               alignItems: "center",
-                              justifyContent: "center",
-                              flexWrap: "wrap",
                             }}
                           >
-                            <Button
-                              component={Link}
+                            <Link
                               href={`/clientes/${client.id}`}
-                              variant="outlined"
-                              size="small"
-                              startIcon={<Eye size={14} />}
-                              sx={{
-                                width: 92,
-                                minWidth: 92,
-                                height: 32,
-                                minHeight: 32,
-                                px: 1,
-                                borderRadius: "8px",
-                                borderColor: crmPalette.border,
-                                color: crmPalette.text,
-                                fontSize: 11,
-                                fontWeight: 800,
-                                lineHeight: 1,
-
-                                "& .MuiButton-startIcon": {
-                                  marginLeft: 0,
-                                  marginRight: "5px",
-                                },
-
-                                "&:hover": {
-                                  borderColor: crmPalette.orange,
-                                  bgcolor: "#fff7f2",
-                                  color: crmPalette.orangeDark,
-                                },
+                              style={{
+                                textDecoration: "none",
                               }}
                             >
-                              Detalhes
-                            </Button>
+                              <Button
+                                type="button"
+                                size="small"
+                                variant="outlined"
+                                startIcon={<Eye size={15} />}
+                                sx={{
+                                  minWidth: 92,
+                                  borderRadius: "9px",
+                                  borderColor: crmPalette.border,
+                                  color: crmPalette.text,
+                                  fontSize: 11,
+                                  fontWeight: 800,
+
+                                  "&:hover": {
+                                    borderColor: crmPalette.orange,
+                                    bgcolor: "#fff7f2",
+                                  },
+                                }}
+                              >
+                                Detalhes
+                              </Button>
+                            </Link>
 
                             {canManageClients ? (
                               <Button
                                 type="button"
-                                variant="outlined"
                                 size="small"
+                                variant="outlined"
                                 color="error"
-                                startIcon={<Trash2 size={14} />}
+                                startIcon={<Trash2 size={15} />}
                                 disabled={!!pendingDeletion}
-                                onClick={() => setDeletionModalClient(client)}
+                                onClick={() => {
+                                  setDeletionModalClient(client);
+                                  setDeletionReason("");
+                                }}
                                 sx={{
-                                  width: 92,
                                   minWidth: 92,
-                                  height: 32,
-                                  minHeight: 32,
-                                  px: 1,
-                                  borderRadius: "8px",
+                                  borderRadius: "9px",
                                   fontSize: 11,
                                   fontWeight: 800,
-                                  lineHeight: 1,
-
-                                  "& .MuiButton-startIcon": {
-                                    marginLeft: 0,
-                                    marginRight: "5px",
-                                  },
                                 }}
                               >
-                                Excluir
+                                {pendingDeletion ? "Pendente" : "Excluir"}
                               </Button>
                             ) : null}
                           </Stack>
@@ -2100,7 +2040,7 @@ export default function ClientsPage() {
                       ))}
                     </TextField>
 
-                    <TextField
+                    {/* <TextField
                       fullWidth
                       multiline
                       minRows={1}
@@ -2119,9 +2059,9 @@ export default function ClientsPage() {
                           md: "1 / -1",
                         },
                       }}
-                    />
+                    /> */}
 
-                    <TextField
+                    {/* <TextField
                       fullWidth
                       size="small"
                       label="Modalidade"
@@ -2133,7 +2073,7 @@ export default function ClientsPage() {
                         }))
                       }
                       sx={textFieldSx}
-                    />
+                    /> */}
 
                     <TextField
                       fullWidth

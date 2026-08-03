@@ -24,8 +24,8 @@ export const crmPalette = {
 
 export const crmPaperSx: SxProps<Theme> = {
   border: `1px solid ${crmPalette.border}`,
-  borderRadius: "12px",
-  boxShadow: "0 18px 45px rgba(15,23,42,0.06)",
+  borderRadius: "14px",
+  boxShadow: "0 8px 24px rgba(15, 23, 42, 0.05)",
 };
 
 function mergeSx(base: SxProps<Theme>, sx?: SxProps<Theme>): SxProps<Theme> {
@@ -44,14 +44,17 @@ type CrmPageShellProps = {
 export function CrmPageShell({ children, sx }: CrmPageShellProps) {
   return (
     <Box
-      sx={mergeSx({
-        mx: "auto",
-        width: "100%",
-        maxWidth: 1680,
-        display: "flex",
-        flexDirection: "column",
-        gap: 3,
-      }, sx)}
+      sx={mergeSx(
+        {
+          mx: "auto",
+          width: "100%",
+          maxWidth: 1680,
+          display: "flex",
+          flexDirection: "column",
+          gap: 3,
+        },
+        sx,
+      )}
     >
       {children}
     </Box>
@@ -67,11 +70,14 @@ export function CrmSection({ children, sx }: CrmSectionProps) {
   return (
     <Paper
       elevation={0}
-      sx={mergeSx({
-        ...crmPaperSx,
-        overflow: "hidden",
-        bgcolor: crmPalette.surface,
-      }, sx)}
+      sx={mergeSx(
+        {
+          ...crmPaperSx,
+          overflow: "hidden",
+          bgcolor: crmPalette.surface,
+        },
+        sx,
+      )}
     >
       {children}
     </Paper>
@@ -103,15 +109,21 @@ export function CrmPageHeader({
           justifyContent: "space-between",
         }}
       >
-        <Stack direction={{ xs: "column", sm: "row" }} spacing={2.5} sx={{ alignItems: "center" }}>
+        <Stack
+          direction={{ xs: "column", sm: "row" }}
+          spacing={2.5}
+          sx={{ alignItems: "center" }}
+        >
           <Avatar
             variant="rounded"
             sx={{
-              width: 58,
-              height: 58,
-              bgcolor: "#ffe8df",
-              color: crmPalette.orangeDark,
-              borderRadius: "12px",
+              width: 52,
+              height: 52,
+              bgcolor: "#fff1eb",
+              color: crmPalette.orange,
+              border: "1px solid #fed7c3",
+              borderRadius: "14px",
+              boxShadow: "0 8px 20px rgba(255, 77, 0, 0.12)",
             }}
           >
             {icon}
@@ -155,7 +167,9 @@ export function CrmPageHeader({
           </Box>
         </Stack>
 
-        {aside ? <Box sx={{ width: { xs: "100%", sm: "auto" } }}>{aside}</Box> : null}
+        {aside ? (
+          <Box sx={{ width: { xs: "100%", sm: "auto" } }}>{aside}</Box>
+        ) : null}
       </Stack>
     </CrmSection>
   );
@@ -187,26 +201,30 @@ export function CrmKpiCard({
   const card = (
     <Paper
       elevation={0}
-      sx={mergeSx({
-        ...crmPaperSx,
-        position: "relative",
-        minHeight: 160,
-        overflow: "hidden",
-        p: 3,
-        bgcolor: "#fff",
-        boxShadow: active
-          ? `0 18px 34px ${accent}22`
-          : "0 12px 30px rgba(15,23,42,0.05)",
-        outline: active ? `2px solid ${accent}80` : "0 solid transparent",
-        transition: "transform 160ms ease, box-shadow 160ms ease, outline-color 160ms ease",
-        cursor: onClick ? "pointer" : "default",
-        "&:hover": onClick
-          ? {
-              transform: "translateY(-2px)",
-              boxShadow: "0 18px 42px rgba(15,23,42,0.10)",
-            }
-          : undefined,
-      }, sx)}
+      sx={mergeSx(
+        {
+          ...crmPaperSx,
+          position: "relative",
+          minHeight: 160,
+          overflow: "hidden",
+          p: 3,
+          bgcolor: "#fff",
+          boxShadow: active
+            ? `0 18px 34px ${accent}22`
+            : "0 12px 30px rgba(15,23,42,0.05)",
+          outline: active ? `2px solid ${accent}80` : "0 solid transparent",
+          transition:
+            "transform 160ms ease, box-shadow 160ms ease, outline-color 160ms ease",
+          cursor: onClick ? "pointer" : "default",
+          "&:hover": onClick
+            ? {
+                transform: "translateY(-2px)",
+                boxShadow: "0 18px 42px rgba(15,23,42,0.10)",
+              }
+            : undefined,
+        },
+        sx,
+      )}
     >
       <Box
         sx={{
@@ -244,7 +262,10 @@ export function CrmKpiCard({
           </Typography>
 
           {caption ? (
-            <Typography component="div" sx={{ mt: 1.5, color: crmPalette.muted, fontSize: 13 }}>
+            <Typography
+              component="div"
+              sx={{ mt: 1.5, color: crmPalette.muted, fontSize: 13 }}
+            >
               {caption}
             </Typography>
           ) : null}
@@ -253,11 +274,12 @@ export function CrmKpiCard({
         <Avatar
           variant="rounded"
           sx={{
-            width: 52,
-            height: 52,
+            width: 48,
+            height: 48,
             bgcolor: softColor,
             color: accent,
-            borderRadius: "12px",
+            borderRadius: "14px",
+            border: `1px solid ${accent}25`,
           }}
         >
           {icon}
@@ -271,7 +293,12 @@ export function CrmKpiCard({
   }
 
   return (
-    <Box component="button" type="button" onClick={onClick} sx={{ p: 0, border: 0, bgcolor: "transparent", textAlign: "left" }}>
+    <Box
+      component="button"
+      type="button"
+      onClick={onClick}
+      sx={{ p: 0, border: 0, bgcolor: "transparent", textAlign: "left" }}
+    >
       {card}
     </Box>
   );

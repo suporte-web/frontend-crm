@@ -1,6 +1,11 @@
+"use client";
+
+import { useEffect, useMemo, useState } from 'react';
+
 import Avatar from '@mui/material/Avatar';
 import Box from '@mui/material/Box';
 import Chip from '@mui/material/Chip';
+import Pagination from '@mui/material/Pagination';
 import Paper from '@mui/material/Paper';
 import Stack from '@mui/material/Stack';
 import Typography from '@mui/material/Typography';
@@ -106,11 +111,27 @@ export function TimelineSection({
   events: TimelineEvent[];
   darkMode?: boolean;
 }) {
-  const sortedEvents = [...events].sort(
-    (a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime(),
+  const itemsPerPage = 5;
+  const [page, setPage] = useState(1);
+  const sortedEvents = useMemo(
+    () =>
+      [...events].sort(
+        (a, b) =>
+          new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime(),
+      ),
+    [events],
   );
+  const totalPages = Math.max(1, Math.ceil(sortedEvents.length / itemsPerPage));
+  const currentPage = Math.min(page, totalPages);
+  const pageStart = (currentPage - 1) * itemsPerPage;
+  const pageEnd = pageStart + itemsPerPage;
+  const visibleEvents = sortedEvents.slice(pageStart, pageEnd);
   const isDark = darkMode;
   const contactEvents = sortedEvents.filter(isContactEvent).length;
+
+  useEffect(() => {
+    setPage((current) => Math.min(current, totalPages));
+  }, [totalPages]);
 
   return (
     <Paper
@@ -178,7 +199,7 @@ export function TimelineSection({
             },
           }}
         >
-          {sortedEvents.map((event) => {
+          {visibleEvents.map((event) => {
             const isContact = isContactEvent(event);
             const config = isContact
               ? { icon: PhoneCall, color: '#047857', bg: '#d1fae5' }
@@ -336,6 +357,50 @@ export function TimelineSection({
             );
           })}
         </Box>
+
+        {sortedEvents.length > itemsPerPage ? (
+          <Stack
+            direction={{ xs: 'column', sm: 'row' }}
+            spacing={1.5}
+            sx={{
+              alignItems: { xs: 'stretch', sm: 'center' },
+              justifyContent: 'space-between',
+              pt: 0.5,
+            }}
+          >
+            <Typography
+              sx={{
+                color: isDark ? '#94a3b8' : crmPalette.muted,
+                fontSize: 12,
+                fontWeight: 800,
+              }}
+            >
+              Mostrando {pageStart + 1}-
+              {Math.min(pageEnd, sortedEvents.length)} de {sortedEvents.length}
+            </Typography>
+
+            <Pagination
+              page={currentPage}
+              count={totalPages}
+              onChange={(_, nextPage) => setPage(nextPage)}
+              size="small"
+              shape="rounded"
+              sx={{
+                alignSelf: { xs: 'center', sm: 'auto' },
+                '& .MuiPaginationItem-root': {
+                  borderRadius: '8px',
+                  fontSize: 12,
+                  fontWeight: 800,
+                  color: isDark ? '#cbd5e1' : crmPalette.text,
+                },
+                '& .Mui-selected': {
+                  bgcolor: `${crmPalette.orange} !important`,
+                  color: '#ffffff',
+                },
+              }}
+            />
+          </Stack>
+        ) : null}
       </Stack>
     </Paper>
   );

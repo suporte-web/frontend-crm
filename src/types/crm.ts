@@ -19,7 +19,7 @@ export type OpportunityStage =
   | 'GANHO'
   | 'PERDIDO';
 
-export type OpportunityStatus = 'OPEN' | 'WON' | 'LOST';
+export type OpportunityStatus = "OPEN" | "WON" | "LOST";
 
 export interface TimelineEvent {
   id: string;
@@ -61,6 +61,8 @@ export interface LeadSummary {
   owner: string;
   status: LeadStatus;
   createdAt: string;
+  tradeName?: string | null;
+  city: string;
 }
 
 export interface ClientDocument {
@@ -72,6 +74,7 @@ export interface ClientDocument {
   size?: number | null;
   url: string;
   description?: string | null;
+  category?: string | null;
   createdAt: string;
   uploadedBy?: {
     id: string;
@@ -85,9 +88,14 @@ export interface ClientContact {
   id: string;
   clientId: string;
   name?: string | null;
+  nomeContato?: string | null;
   role?: string | null;
+  cargo?: string | null;
   email?: string | null;
   phone?: string | null;
+  telefone?: string | null;
+  whatsapp?: string | null;
+  linkedin?: string | null;
   notes?: string | null;
   isPrimary?: boolean;
   createdAt?: string;
@@ -145,10 +153,19 @@ export interface LeadDetail extends LeadSummary {
   stateRegistration?: string | null;
   businessActivity?: string | null;
   taxRegime?: string | null;
+  taxation?: string | null;
   address?: string | null;
   bankDetails?: string | null;
   modality?: string | null;
   registrationDate?: string | null;
+  paymentMethod?: string | null;
+  paymentTerm?: string | null;
+  contractValidity?: string | null;
+  priceAdjustment?: string | null;
+  invoiceContactName?: string | null;
+  invoiceContactEmail?: string | null;
+  invoiceContactPhone?: string | null;
+  commercialTermsNotes?: string | null;
   source?: string | null;
   notes?: string | null;
   lastContactAt?: string | null;
@@ -156,6 +173,7 @@ export interface LeadDetail extends LeadSummary {
   opportunities: Opportunity[];
   documents: ClientDocument[];
   contacts: ClientContact[];
+  city: string;
 }
 
 export interface CrmDashboardSummary {

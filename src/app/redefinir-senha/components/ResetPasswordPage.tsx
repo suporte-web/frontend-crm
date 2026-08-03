@@ -1,46 +1,82 @@
-'use client';
+"use client";
 
-import { FormEvent, Suspense, useState } from 'react';
-import Link from 'next/link';
-import { ArrowLeft, Eye, EyeOff, LockKeyhole, ShieldCheck } from 'lucide-react';
-import { useRouter, useSearchParams } from 'next/navigation';
-import { resetPassword } from '@/services/auth.service';
+import { FormEvent, Suspense, useState } from "react";
+
+import Alert from "@mui/material/Alert";
+import Avatar from "@mui/material/Avatar";
+import Box from "@mui/material/Box";
+import Button from "@mui/material/Button";
+import CircularProgress from "@mui/material/CircularProgress";
+import IconButton from "@mui/material/IconButton";
+import InputAdornment from "@mui/material/InputAdornment";
+import Link from "@mui/material/Link";
+import Paper from "@mui/material/Paper";
+import Stack from "@mui/material/Stack";
+import TextField from "@mui/material/TextField";
+import Typography from "@mui/material/Typography";
+
+import { ArrowLeft, Eye, EyeOff, LockKeyhole, ShieldCheck } from "lucide-react";
+import NextLink from "next/link";
+import { useRouter, useSearchParams } from "next/navigation";
+
+import { crmPalette, crmPaperSx } from "@/components/mui/crm-primitives";
+import { resetPassword } from "@/services/auth.service";
+
+const passwordFieldSx = {
+  "& .MuiOutlinedInput-root": {
+    minHeight: 36,
+    borderRadius: "8px",
+    bgcolor: "#ffffff",
+  },
+  "& .MuiInputBase-input": {
+    py: "6px",
+    fontSize: 12,
+  },
+  "& .MuiInputLabel-root": {
+    fontSize: 11,
+    fontWeight: 800,
+  },
+  "& .MuiInputAdornment-root svg": {
+    width: 14,
+    height: 14,
+  },
+};
 
 function ResetPasswordContent() {
   const router = useRouter();
   const searchParams = useSearchParams();
 
-  const token = searchParams.get('token') ?? '';
+  const token = searchParams.get("token") ?? "";
 
-  const [newPassword, setNewPassword] = useState('');
-  const [confirmPassword, setConfirmPassword] = useState('');
+  const [newPassword, setNewPassword] = useState("");
+  const [confirmPassword, setConfirmPassword] = useState("");
   const [showNewPassword, setShowNewPassword] = useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
   const [loading, setLoading] = useState(false);
-  const [successMessage, setSuccessMessage] = useState('');
-  const [error, setError] = useState('');
+  const [successMessage, setSuccessMessage] = useState("");
+  const [error, setError] = useState("");
 
-  async function handleSubmit(e: FormEvent) {
-    e.preventDefault();
+  async function handleSubmit(event: FormEvent<HTMLFormElement>) {
+    event.preventDefault();
 
     setLoading(true);
-    setSuccessMessage('');
-    setError('');
+    setSuccessMessage("");
+    setError("");
 
     if (!token) {
-      setError('Link de recuperação inválido ou ausente.');
+      setError("Link de recuperação inválido ou ausente.");
       setLoading(false);
       return;
     }
 
     if (newPassword.trim().length < 6) {
-      setError('A senha deve ter pelo menos 6 caracteres.');
+      setError("A senha deve ter pelo menos 6 caracteres.");
       setLoading(false);
       return;
     }
 
     if (newPassword !== confirmPassword) {
-      setError('As senhas não conferem.');
+      setError("As senhas não conferem.");
       setLoading(false);
       return;
     }
@@ -54,181 +90,222 @@ function ResetPasswordContent() {
       setSuccessMessage(response.message);
 
       setTimeout(() => {
-        router.push('/entrar');
+        router.push("/entrar");
       }, 1800);
     } catch (err) {
-      setError(
-        err instanceof Error ? err.message : 'Erro ao redefinir senha.',
-      );
+      setError(err instanceof Error ? err.message : "Erro ao redefinir senha.");
     } finally {
       setLoading(false);
     }
   }
 
+  function passwordAdornment(
+    visible: boolean,
+    onToggle: () => void,
+    label: string,
+  ) {
+    return {
+      startAdornment: (
+        <InputAdornment position="start">
+          <LockKeyhole size={17} />
+        </InputAdornment>
+      ),
+      endAdornment: (
+        <InputAdornment position="end">
+          <IconButton
+            type="button"
+            aria-label={label}
+            onClick={onToggle}
+            edge="end"
+          >
+            {visible ? <EyeOff size={18} /> : <Eye size={18} />}
+          </IconButton>
+        </InputAdornment>
+      ),
+    };
+  }
+
   return (
-    <main className="min-h-screen bg-[#343434] text-white">
-      <div className="grid min-h-screen lg:grid-cols-[45%_55%]">
-        <section className="flex items-center justify-center px-6 py-12 sm:px-10 lg:px-16">
-          <div className="w-full max-w-[430px]">
-            <div>
-              <img
-                src="/logobranca-transparente.png"
-                alt="Pizzattolog"
-                className="h-auto w-full max-w-[240px] object-contain"
-              />
+    <Box
+      component="main"
+      sx={{
+        minHeight: "100svh",
+        display: "grid",
+        placeItems: "center",
+        px: 2,
+        py: 5,
+        bgcolor: crmPalette.page,
+      }}
+    >
+      <Paper
+        elevation={0}
+        component="form"
+        onSubmit={handleSubmit}
+        sx={{
+          ...crmPaperSx,
+          width: "100%",
+          maxWidth: 250,
+          p: { xs: 2, sm: 2.5 },
+          bgcolor: "#ffffff",
+        }}
+      >
+        <Stack spacing={1.75}>
+          <Box
+            component="img"
+            src="/logopizzatto.png"
+            alt="Pizzattolog"
+            sx={{
+              width: 176,
+              maxWidth: "70%",
+              height: "auto",
+              objectFit: "contain",
+            }}
+          />
 
-              <div className="mt-10 inline-flex items-center gap-2 rounded-full border border-white/10 bg-white/5 px-4 py-2 text-xs font-bold uppercase tracking-[0.22em] text-[#fab519]">
-                <ShieldCheck className="h-4 w-4" />
+          <Stack direction="row" spacing={1.5} sx={{ alignItems: "center" }}>
+            <Avatar
+              variant="rounded"
+              sx={{
+                width: 52,
+                height: 52,
+                borderRadius: "14px",
+                bgcolor: "#fff0e8",
+                color: crmPalette.orange,
+                border: "1px solid #fed7c3",
+              }}
+            >
+                <ShieldCheck size={26} />
+            </Avatar>
+
+            <Box>
+              <Typography
+                sx={{
+                  color: crmPalette.orangeDark,
+                  fontSize: 11,
+                  fontWeight: 900,
+                  letterSpacing: ".16em",
+                  textTransform: "uppercase",
+                }}
+              >
                 Nova senha
-              </div>
+              </Typography>
 
-              <h1 className="mt-8 text-3xl font-bold tracking-[-0.04em] text-white sm:text-4xl">
+              <Typography
+                component="h1"
+                sx={{
+                  mt: 0.5,
+                  color: crmPalette.text,
+                  fontSize: { xs: 26, sm: 32 },
+                  fontWeight: 900,
+                  lineHeight: 1.1,
+                }}
+              >
                 Redefinir senha
-              </h1>
+              </Typography>
+            </Box>
+          </Stack>
 
-              <p className="mt-3 text-sm leading-6 text-white/60">
-                Crie uma nova senha para acessar sua conta no CRM.
-              </p>
-            </div>
+          <Typography sx={{ color: crmPalette.muted, fontSize: 14 }}>
+            Crie uma nova senha para acessar sua conta no CRM.
+          </Typography>
 
-            <form onSubmit={handleSubmit} className="mt-10 space-y-6">
-              <div>
-                <label
-                  htmlFor="newPassword"
-                  className="block text-sm font-semibold text-white"
-                >
-                  Nova senha
-                </label>
+          <TextField
+            fullWidth
+            required
+            label="Nova senha"
+            type={showNewPassword ? "text" : "password"}
+            value={newPassword}
+            onChange={(event) => setNewPassword(event.target.value)}
+            autoComplete="new-password"
+            slotProps={{
+              input: passwordAdornment(
+                showNewPassword,
+                () => setShowNewPassword((current) => !current),
+                showNewPassword ? "Ocultar senha" : "Mostrar senha",
+              ),
+            }}
+            sx={passwordFieldSx}
+          />
 
-                <div className="mt-2 flex h-12 items-center gap-3 rounded-xl border border-white/10 bg-white/5 px-4 transition focus-within:border-[#fab519] focus-within:bg-white/8 focus-within:ring-4 focus-within:ring-[#fab519]/10">
-                  <LockKeyhole className="h-4 w-4 text-white/40" />
+          <TextField
+            fullWidth
+            required
+            label="Confirmar senha"
+            type={showConfirmPassword ? "text" : "password"}
+            value={confirmPassword}
+            onChange={(event) => setConfirmPassword(event.target.value)}
+            autoComplete="new-password"
+            slotProps={{
+              input: passwordAdornment(
+                showConfirmPassword,
+                () => setShowConfirmPassword((current) => !current),
+                showConfirmPassword ? "Ocultar senha" : "Mostrar senha",
+              ),
+            }}
+            sx={passwordFieldSx}
+          />
 
-                  <input
-                    id="newPassword"
-                    name="newPassword"
-                    type={showNewPassword ? 'text' : 'password'}
-                    required
-                    autoComplete="new-password"
-                    value={newPassword}
-                    onChange={(e) => setNewPassword(e.target.value)}
-                    placeholder="Digite a nova senha"
-                    className="w-full bg-transparent text-sm text-white outline-none placeholder:text-white/35"
-                  />
+          {successMessage ? (
+            <Alert severity="success" sx={{ borderRadius: "10px" }}>
+              {successMessage} Redirecionando para o login...
+            </Alert>
+          ) : null}
 
-                  <button
-                    type="button"
-                    onClick={() => setShowNewPassword((current) => !current)}
-                    className="grid h-8 w-8 shrink-0 place-items-center rounded-lg text-white/45 transition hover:bg-white/10 hover:text-white"
-                    aria-label={
-                      showNewPassword ? 'Ocultar senha' : 'Mostrar senha'
-                    }
-                  >
-                    {showNewPassword ? (
-                      <EyeOff className="h-4 w-4" />
-                    ) : (
-                      <Eye className="h-4 w-4" />
-                    )}
-                  </button>
-                </div>
-              </div>
+          {error ? (
+            <Alert severity="error" sx={{ borderRadius: "10px" }}>
+              {error}
+            </Alert>
+          ) : null}
 
-              <div>
-                <label
-                  htmlFor="confirmPassword"
-                  className="block text-sm font-semibold text-white"
-                >
-                  Confirmar senha
-                </label>
+          <Button
+            type="submit"
+            variant="contained"
+            disabled={loading}
+            startIcon={
+              loading ? (
+                <CircularProgress size={16} color="inherit" />
+              ) : (
+                <ShieldCheck size={17} />
+              )
+            }
+            sx={{
+              minHeight: 40,
+              borderRadius: "10px",
+              bgcolor: crmPalette.orange,
+              fontWeight: 900,
+              boxShadow: "none",
+              "&:hover": {
+                bgcolor: crmPalette.orangeDark,
+                boxShadow: "none",
+              },
+            }}
+          >
+            {loading ? "Salvando..." : "Salvar nova senha"}
+          </Button>
 
-                <div className="mt-2 flex h-12 items-center gap-3 rounded-xl border border-white/10 bg-white/5 px-4 transition focus-within:border-[#fab519] focus-within:bg-white/8 focus-within:ring-4 focus-within:ring-[#fab519]/10">
-                  <LockKeyhole className="h-4 w-4 text-white/40" />
-
-                  <input
-                    id="confirmPassword"
-                    name="confirmPassword"
-                    type={showConfirmPassword ? 'text' : 'password'}
-                    required
-                    autoComplete="new-password"
-                    value={confirmPassword}
-                    onChange={(e) => setConfirmPassword(e.target.value)}
-                    placeholder="Confirme a nova senha"
-                    className="w-full bg-transparent text-sm text-white outline-none placeholder:text-white/35"
-                  />
-
-                  <button
-                    type="button"
-                    onClick={() =>
-                      setShowConfirmPassword((current) => !current)
-                    }
-                    className="grid h-8 w-8 shrink-0 place-items-center rounded-lg text-white/45 transition hover:bg-white/10 hover:text-white"
-                    aria-label={
-                      showConfirmPassword ? 'Ocultar senha' : 'Mostrar senha'
-                    }
-                  >
-                    {showConfirmPassword ? (
-                      <EyeOff className="h-4 w-4" />
-                    ) : (
-                      <Eye className="h-4 w-4" />
-                    )}
-                  </button>
-                </div>
-              </div>
-
-              {successMessage ? (
-                <div className="rounded-xl border border-green-400/30 bg-green-500/10 px-4 py-3 text-sm font-medium text-green-100">
-                  {successMessage} Redirecionando para o login...
-                </div>
-              ) : null}
-
-              {error ? (
-                <div className="rounded-xl border border-[#ec3139]/30 bg-[#ec3139]/10 px-4 py-3 text-sm font-medium text-red-100">
-                  {error}
-                </div>
-              ) : null}
-
-              <button
-                type="submit"
-                disabled={loading}
-                className="flex h-12 w-full items-center justify-center rounded-xl bg-[#ec3139] px-4 text-sm font-bold text-white shadow-[0_18px_38px_rgba(236,49,57,0.28)] transition hover:bg-[#d82931] disabled:cursor-not-allowed disabled:opacity-60"
-              >
-                {loading ? 'Salvando...' : 'Salvar nova senha'}
-              </button>
-
-              <Link
-                href="/entrar"
-                className="flex items-center justify-center gap-2 text-sm font-semibold text-white/60 transition hover:text-white"
-              >
-                <ArrowLeft className="h-4 w-4" />
-                Voltar para o login
-              </Link>
-            </form>
-
-            <p className="mt-10 text-center text-xs text-white/35">
-              © Pizzattolog CRM
-            </p>
-          </div>
-        </section>
-
-        <section className="relative hidden overflow-hidden bg-[#f6f0ea] lg:block">
-          <div className="flex h-full items-center justify-center bg-[radial-gradient(circle_at_center,rgba(250,181,25,0.20),transparent_35%),linear-gradient(135deg,#f6f0ea_0%,#fbf7f2_55%,#efe5da_100%)] px-12">
-            <div className="max-w-md text-center">
-              <div className="mx-auto grid h-16 w-16 place-items-center rounded-2xl bg-white shadow-[0_20px_50px_rgba(52,52,52,0.10)]">
-                <ShieldCheck className="h-7 w-7 text-[#ec3139]" />
-              </div>
-
-              <h2 className="mt-6 text-3xl font-bold tracking-[-0.04em] text-[#343434]">
-                Crie uma senha segura.
-              </h2>
-
-              <p className="mt-4 text-sm leading-6 text-[#343434]/60">
-                Depois de redefinir sua senha, você poderá acessar novamente o
-                portal.
-              </p>
-            </div>
-          </div>
-        </section>
-      </div>
-    </main>
+          <Link
+            component={NextLink}
+            href="/entrar"
+            underline="none"
+            sx={{
+              display: "inline-flex",
+              alignItems: "center",
+              justifyContent: "center",
+              gap: 1,
+              color: crmPalette.muted,
+              fontSize: 13,
+              fontWeight: 800,
+              "&:hover": {
+                color: crmPalette.text,
+              },
+            }}
+          >
+            <ArrowLeft size={16} />
+            Voltar para o login
+          </Link>
+        </Stack>
+      </Paper>
+    </Box>
   );
 }
 
@@ -236,9 +313,17 @@ export default function ResetPasswordPage() {
   return (
     <Suspense
       fallback={
-        <main className="flex min-h-screen items-center justify-center bg-[#343434] text-white">
-          Carregando...
-        </main>
+        <Box
+          component="main"
+          sx={{
+            minHeight: "100svh",
+            display: "grid",
+            placeItems: "center",
+            bgcolor: crmPalette.page,
+          }}
+        >
+          <CircularProgress size={26} />
+        </Box>
       }
     >
       <ResetPasswordContent />

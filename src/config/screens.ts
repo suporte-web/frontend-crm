@@ -49,13 +49,13 @@ export const appScreens: AppScreen[] = [
     key: 'entregas',
     href: '/entregas',
     label: 'Entregas',
-    roles: ['ADMIN', 'GESTAO', 'COMERCIAL', 'MARKETING', 'CLIENTE'],
+    roles: ['ADMIN', 'GESTAO', 'COMERCIAL', 'OPERACAO', 'MARKETING', 'CLIENTE'],
   },
   {
     key: 'trackings',
     href: '/rastreamentos',
     label: 'Rastreamento',
-    roles: ['ADMIN', 'GESTAO', 'COMERCIAL', 'MARKETING', 'CLIENTE'],
+    roles: ['ADMIN', 'GESTAO', 'COMERCIAL', 'OPERACAO', 'MARKETING', 'CLIENTE'],
   },
   {
     key: 'quotes',
