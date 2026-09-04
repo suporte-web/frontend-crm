@@ -40,7 +40,7 @@ export default function ForgotPasswordPage() {
           <div className="w-full max-w-[430px]">
             <div>
               <img
-                src="/logobranca-transparente.png"
+                src="/imagem/logobranca-transparente.png"
                 alt="Pizzattolog"
                 className="h-auto w-full max-w-[240px] object-contain"
               />

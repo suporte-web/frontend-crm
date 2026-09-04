@@ -118,6 +118,12 @@ function toNumber(value?: number | string | null) {
   return Number.isFinite(parsed) ? parsed : null;
 }
 
+function isTechnicalNoAccessEmail(email?: string | null) {
+  return Boolean(
+    email?.trim().toLowerCase().endsWith('@sem-acesso.pizzattolog.com'),
+  );
+}
+
 function mapOpportunity(opportunity: BackendOpportunity): Opportunity {
   return {
     id: opportunity.id,
@@ -145,11 +151,12 @@ function mapClientSummary(client: BackendClient, owners: Map<string, string>): L
     client.user?.name ||
     client.document ||
     'Cliente';
+  const clientEmail = client.user?.email ?? '';
 
   return {
     id: client.id,
     name: clientName,
-    email: client.user?.email ?? '',
+    email: isTechnicalNoAccessEmail(clientEmail) ? '' : clientEmail,
     company:
       client.tradeName || client.legalName || client.companyName || clientName,
     document: client.document ?? null,

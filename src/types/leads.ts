@@ -57,6 +57,8 @@ export type Lead = {
   createdBy?: LeadUserReference | null;
   updatedBy?: LeadUserReference | null;
   timeline?: LeadTimelineEvent[];
+  observations?: LeadObservation[];
+  convertidoParaCliente?: boolean;
 };
 
 export type LeadImportRowResult = {
@@ -100,11 +102,22 @@ export type CreateLeadPayload = {
   source?: string;
   status?: string;
   notes?: string;
+  logoUrl?: string;
+  segment?: string;
+  transport?: string;
+  storage?: string;
+  entryDate?: string;
+  lastInteractionDate?: string;
+  monthlyEstimatedValue?: string;
+  responsible?: string;
+  currentStatus?: string;
+  nextAction?: string;
 };
+
+export type UpdateLeadPayload = Partial<CreateLeadPayload>;
 
 export type ConvertLeadToClientPayload = {
   document: string;
-  password: string;
   name?: string;
   email?: string;
   phone?: string;
@@ -173,4 +186,29 @@ export type LeadFilters = {
   q?: string;
   source?: string;
   status?: string;
+  convertidoParaCliente?: boolean;
 };
+
+export type LeadObservation = {
+  id: string;
+  leadId: string;
+  content: string;
+  stage: string;
+  createdById?: string | null;
+  createdAt: string;
+  updatedAt: string;
+  createdBy?: LeadUserReference | null;
+};
+
+export type CreateLeadObservationPayload = {
+  content: string;
+};
+
+export type LeadsResumo = {
+  ativos: number;
+  convertidos: number;
+  total: number;
+};
+
+
+

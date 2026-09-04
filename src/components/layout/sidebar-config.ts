@@ -8,6 +8,7 @@ import {
   History,
   Inbox,
   LayoutDashboard,
+  MapPinned,
   Megaphone,
   MessageCircle,
   PackageSearch,
@@ -16,9 +17,11 @@ import {
   UserPlus,
   Users,
 } from "lucide-react";
+
 import type { ScreenKey } from "@/config/screens";
 
-export const sidebarFontFamily = '"Inter Variable", Inter, system-ui, sans-serif';
+export const sidebarFontFamily =
+  '"Inter Variable", Inter, system-ui, sans-serif';
 
 export const screenIcons: Record<ScreenKey, LucideIcon> = {
   dashboard: LayoutDashboard,
@@ -35,7 +38,10 @@ export const screenIcons: Record<ScreenKey, LucideIcon> = {
   suppliers: Handshake,
   users: Users,
   marketing: Megaphone,
+  siteRequests: Inbox,
   logs: History,
+
+  "entregas-por-placas": MapPinned,
 };
 
 export type SidebarSectionConfig = {
@@ -46,10 +52,13 @@ export type SidebarSectionConfig = {
 };
 
 export const sidebarSections: SidebarSectionConfig[] = [
-  { id: "dashboard", keys: ["dashboard"] },
+  {
+    id: "dashboard",
+    keys: ["dashboard"],
+  },
   {
     id: "crm-comercial",
-    title: "CRM Comercial",
+    title: "Comercial",
     icon: ChartSpline,
     keys: ["clients", "leads", "quotes", "bi"],
   },
@@ -57,19 +66,31 @@ export const sidebarSections: SidebarSectionConfig[] = [
     id: "operacao",
     title: "Operação",
     icon: Truck,
-    keys: ["entregas", "trackings", "suppliers"],
+    keys: [
+      "entregas",
+      "trackings",
+      "entregas-por-placas",
+    ],
   },
+
+  // {
+  //   id: "atendimento",
+  //   title: "Atendimento",
+  //   icon: Inbox,
+  //   keys: ["entradas", "tickets", "chat", "helpCenter"],
+  // },
+
   {
-    id: "atendimento",
-    title: "Atendimento",
-    icon: Inbox,
-    keys: ["entradas", "tickets", "chat", "helpCenter"],
+    id: "marketing",
+    title: "Marketing",
+    icon: Megaphone,
+    keys: ["marketing", "siteRequests"],
   },
   {
     id: "administracao",
     title: "Administração",
     icon: Users,
-    keys: ["users", "marketing", "logs"],
+    keys: ["users", "logs"],
   },
 ];
 
@@ -99,23 +120,28 @@ export const itemButtonSx = {
   color: "#fff",
   transition:
     "background-color 160ms ease, color 160ms ease, box-shadow 160ms ease",
+
   "&:hover": {
     bgcolor: "rgba(255,255,255,0.08)",
     color: "#fff",
   },
+
   "&.Mui-selected": {
     bgcolor: "#ff4d00",
     color: "#fff",
     boxShadow: "0 18px 32px rgba(255,77,0,0.24)",
   },
+
   "&.Mui-selected:hover": {
     bgcolor: "#e64500",
   },
+
   ".MuiListItemIcon-root": {
     minWidth: 52,
     color: "#fab519",
     transition: "color 160ms ease",
   },
+
   "&.Mui-selected .MuiListItemIcon-root": {
     color: "#fff",
   },
@@ -130,18 +156,22 @@ export const subItemButtonSx = {
   color: "#fff",
   transition:
     "background-color 160ms ease, color 160ms ease, box-shadow 160ms ease",
+
   "&:hover": {
     bgcolor: "rgba(255,255,255,0.08)",
     color: "#fff",
   },
+
   "&.Mui-selected": {
     bgcolor: "#ff4d00",
     color: "#fff",
     boxShadow: "0 14px 26px rgba(255,77,0,0.22)",
   },
+
   "&.Mui-selected:hover": {
     bgcolor: "#e64500",
   },
+
   ".MuiListItemIcon-root": {
     minWidth: 44,
     color: "inherit",

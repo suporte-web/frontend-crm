@@ -18,14 +18,9 @@ import FormControlLabel from "@mui/material/FormControlLabel";
 import IconButton from "@mui/material/IconButton";
 import InputAdornment from "@mui/material/InputAdornment";
 import MenuItem from "@mui/material/MenuItem";
+import Pagination from "@mui/material/Pagination";
 import Paper from "@mui/material/Paper";
 import Stack from "@mui/material/Stack";
-import Table from "@mui/material/Table";
-import TableBody from "@mui/material/TableBody";
-import TableCell from "@mui/material/TableCell";
-import TableContainer from "@mui/material/TableContainer";
-import TableHead from "@mui/material/TableHead";
-import TableRow from "@mui/material/TableRow";
 import TextField from "@mui/material/TextField";
 import ToggleButton from "@mui/material/ToggleButton";
 import ToggleButtonGroup from "@mui/material/ToggleButtonGroup";
@@ -37,6 +32,7 @@ import {
   CheckCircle2,
   CircleOff,
   KeyRound,
+  Mail,
   Pencil,
   PlusCircle,
   RefreshCcw,
@@ -44,6 +40,7 @@ import {
   ShieldCheck,
   Trash2,
   UserCog,
+  UserRound,
   UsersRound,
   XCircle,
 } from "lucide-react";
@@ -64,6 +61,7 @@ import {
   deleteUser,
   getScreenPermissions,
   getUsers,
+  resetUserPassword,
   updateRoleScreenPermissions,
   updateUser,
 } from "@/services/users.service";
@@ -83,12 +81,13 @@ const roles: UserRole[] = [
   "MARKETING",
 ];
 
+const PAGE_SIZE_OPTIONS = [10, 25, 50];
+
 type StatusFilter = "TODOS" | "ATIVO" | "INATIVO";
 
 type FormState = {
   name: string;
   email: string;
-  password: string;
   role: UserRole;
   isActive: boolean;
 };
@@ -96,7 +95,6 @@ type FormState = {
 const initialFormState: FormState = {
   name: "",
   email: "",
-  password: "",
   role: "COMERCIAL",
   isActive: true,
 };
@@ -120,7 +118,7 @@ const roleMeta: Record<
       borderColor: "#ddd6fe",
     },
   },
-  GESTAO: {
+  "GESTAO": {
     label: "Gestão",
     accent: crmPalette.blue,
     softColor: "#eaf4ff",
@@ -174,17 +172,32 @@ const roleMeta: Record<
 
 const textFieldSx = {
   "& .MuiOutlinedInput-root": {
-    minHeight: 42,
-    borderRadius: "10px",
+    minHeight: 50,
+    borderRadius: "14px",
     bgcolor: "#ffffff",
   },
   "& .MuiInputBase-input": {
-    fontSize: 13,
+    fontSize: 16,
+    fontWeight: 700,
   },
   "& .MuiInputLabel-root": {
-    fontSize: 13,
+    fontSize: 14,
     fontWeight: 800,
   },
+};
+
+const modalSectionTitleSx = {
+  color: crmPalette.text,
+  fontSize: 18,
+  fontWeight: 900,
+  lineHeight: 1.2,
+};
+
+const modalSectionTextSx = {
+  mt: 0.75,
+  color: crmPalette.muted,
+  fontSize: 15,
+  lineHeight: 1.5,
 };
 
 const filterFieldSx = {
@@ -217,16 +230,6 @@ const filterFieldSx = {
   },
 };
 
-const tableHeadCellSx = {
-  color: "#64748b",
-  fontSize: 12,
-  fontWeight: 900,
-  letterSpacing: ".08em",
-  textTransform: "uppercase",
-  bgcolor: "#f8fafc",
-  borderBottom: `1px solid ${crmPalette.border}`,
-};
-
 function getInitials(name: string) {
   const parts = name.trim().split(" ").filter(Boolean);
 
@@ -241,15 +244,8 @@ function getInitials(name: string) {
   return `${parts[0][0] ?? ""}${parts[1][0] ?? ""}`.toUpperCase();
 }
 
-function formatDate(date: string) {
-  return new Intl.DateTimeFormat("pt-BR", {
-    dateStyle: "short",
-    timeStyle: "short",
-  }).format(new Date(date));
-}
-
 function getRoleLabel(role: UserRole) {
-  return roleMeta[role].label;
+  return roleMeta[role]?.label ?? String(role);
 }
 
 export default function UsersPage() {
@@ -265,6 +261,8 @@ export default function UsersPage() {
   const [search, setSearch] = useState("");
   const [roleFilter, setRoleFilter] = useState<"TODOS" | UserRole>("TODOS");
   const [statusFilter, setStatusFilter] = useState<StatusFilter>("TODOS");
+  const [page, setPage] = useState(1);
+  const [rowsPerPage, setRowsPerPage] = useState(10);
   const [selectedPermissionRole, setSelectedPermissionRole] =
     useState<UserRole>("ADMIN");
 
@@ -369,6 +367,32 @@ export default function UsersPage() {
       return matchesSearch && matchesRole && matchesStatus;
     });
   }, [companyUsers, search, roleFilter, statusFilter]);
+
+  const totalPages = Math.max(
+    1,
+    Math.ceil(filteredUsers.length / rowsPerPage),
+  );
+
+  const paginatedUsers = useMemo(() => {
+    const start = (page - 1) * rowsPerPage;
+
+    return filteredUsers.slice(start, start + rowsPerPage);
+  }, [filteredUsers, page, rowsPerPage]);
+
+  const paginationStart =
+    filteredUsers.length === 0 ? 0 : (page - 1) * rowsPerPage + 1;
+
+  const paginationEnd = Math.min(page * rowsPerPage, filteredUsers.length);
+
+  useEffect(() => {
+    setPage(1);
+  }, [roleFilter, rowsPerPage, search, statusFilter]);
+
+  useEffect(() => {
+    if (page > totalPages) {
+      setPage(totalPages);
+    }
+  }, [page, totalPages]);
 
   const summary = useMemo(() => {
     const total = companyUsers.length;
@@ -499,7 +523,6 @@ export default function UsersPage() {
     setForm({
       name: user.name,
       email: user.email,
-      password: "",
       role: user.role,
       isActive: user.isActive,
     });
@@ -521,10 +544,6 @@ export default function UsersPage() {
 
     if (!form.email.trim()) {
       return "Informe o email do usuário.";
-    }
-
-    if (!editingUser && form.password.trim().length < 6) {
-      return "A senha deve ter pelo menos 6 caracteres.";
     }
 
     return "";
@@ -565,7 +584,6 @@ export default function UsersPage() {
         const payload: CreateUserPayload = {
           name: form.name.trim(),
           email: form.email.trim(),
-          password: form.password.trim(),
           role: form.role,
           isActive: form.isActive,
         };
@@ -633,6 +651,36 @@ export default function UsersPage() {
     }
   }
 
+  async function handleResetPassword(user: User) {
+    if (currentUser?.role !== "ADMIN") {
+      setErrorToastMessage("Somente administradores podem redefinir senhas.");
+      return;
+    }
+
+    const confirmed = window.confirm(
+      `Redefinir a senha de "${user.name}" para a senha padrão do sistema?`,
+    );
+
+    if (!confirmed) return;
+
+    try {
+      const updatedUser = await resetUserPassword(user.id);
+
+      setUsers((prev) =>
+        prev.map((item) => (item.id === updatedUser.id ? updatedUser : item)),
+      );
+
+      setSuccessMessage(
+        "Senha redefinida. O usuário deverá alterar a senha no próximo acesso.",
+      );
+    } catch (error) {
+      const message =
+        error instanceof Error ? error.message : "Erro ao redefinir senha.";
+
+      setErrorToastMessage(message);
+    }
+  }
+
   function renderStatusChip(isActive: boolean) {
     return (
       <Chip
@@ -657,9 +705,11 @@ export default function UsersPage() {
   }
 
   function renderRoleChip(role: UserRole) {
+    const meta = roleMeta[role];
+
     return (
       <Chip
-        label={getRoleLabel(role)}
+        label={meta?.label ?? String(role)}
         size="small"
         variant="outlined"
         sx={{
@@ -667,7 +717,7 @@ export default function UsersPage() {
           borderRadius: "8px",
           fontSize: 12,
           fontWeight: 900,
-          ...roleMeta[role].chipSx,
+          ...(meta?.chipSx ?? {}),
         }}
       />
     );
@@ -718,6 +768,29 @@ export default function UsersPage() {
           </IconButton>
         </Tooltip>
 
+        {currentUser?.role === "ADMIN" ? (
+          <Tooltip title="Redefinir senha">
+            <IconButton
+              type="button"
+              aria-label={`Redefinir senha de ${user.name}`}
+              onClick={() => handleResetPassword(user)}
+              sx={{
+                width: 36,
+                height: 36,
+                border: "1px solid #fed7aa",
+                borderRadius: "10px",
+                color: crmPalette.orangeDark,
+                bgcolor: "#fff7ed",
+                "&:hover": {
+                  bgcolor: "#ffedd5",
+                },
+              }}
+            >
+              <KeyRound size={16} />
+            </IconButton>
+          </Tooltip>
+        ) : null}
+
         <Tooltip title="Excluir usuário">
           <IconButton
             type="button"
@@ -739,6 +812,112 @@ export default function UsersPage() {
           </IconButton>
         </Tooltip>
       </Stack>
+    );
+  }
+
+  function renderUserCard(user: User) {
+    return (
+      <Paper
+        key={user.id}
+        elevation={0}
+        sx={{
+          px: { xs: 2, md: 2.5 },
+          py: 2,
+          border: `1px solid ${crmPalette.border}`,
+          borderRadius: "12px",
+          bgcolor: "#ffffff",
+          transition: "border-color 160ms ease, box-shadow 160ms ease",
+          "&:hover": {
+            borderColor: "#fed7c3",
+            boxShadow: "0 12px 30px rgba(15, 23, 42, 0.07)",
+          },
+        }}
+      >
+        <Stack
+          direction={{ xs: "column", lg: "row" }}
+          spacing={2}
+          sx={{
+            alignItems: { xs: "stretch", lg: "center" },
+            justifyContent: "space-between",
+          }}
+        >
+          <Stack direction="row" spacing={1.75} sx={{ minWidth: 0, flex: 1 }}>
+            <Avatar
+              variant="rounded"
+              sx={{
+                width: 56,
+                height: 56,
+                borderRadius: "999px",
+                bgcolor: "#fff0e8",
+                color: crmPalette.orange,
+                fontSize: 15,
+                fontWeight: 900,
+                flexShrink: 0,
+              }}
+            >
+              {getInitials(user.name)}
+            </Avatar>
+
+            <Box sx={{ minWidth: 0, flex: 1 }}>
+              <Stack
+                direction="row"
+                spacing={1}
+                sx={{ alignItems: "center", flexWrap: "wrap", rowGap: 0.75 }}
+              >
+                <Typography
+                  component="h3"
+                  sx={{
+                    color: "#020617",
+                    fontSize: { xs: 16, md: 18 },
+                    fontWeight: 900,
+                    lineHeight: 1.25,
+                    overflowWrap: "anywhere",
+                  }}
+                >
+                  {user.name}
+                </Typography>
+
+                {renderRoleChip(user.role)}
+                {renderStatusChip(user.isActive)}
+              </Stack>
+
+              <Stack
+                direction={{ xs: "column", sm: "row" }}
+                spacing={{ xs: 0.75, sm: 2 }}
+                sx={{ mt: 1, color: crmPalette.muted }}
+              >
+                <Stack direction="row" spacing={0.75} sx={{ alignItems: "center", minWidth: 0 }}>
+                  <Mail size={17} />
+                  <Typography
+                    sx={{
+                      color: crmPalette.muted,
+                      fontSize: 14,
+                      overflowWrap: "anywhere",
+                    }}
+                  >
+                    {user.email}
+                  </Typography>
+                </Stack>
+
+                <Stack direction="row" spacing={0.75} sx={{ alignItems: "center", minWidth: 0 }}>
+                  <KeyRound size={17} />
+                  <Typography
+                    sx={{
+                      color: crmPalette.muted,
+                      fontSize: 14,
+                      overflowWrap: "anywhere",
+                    }}
+                  >
+                    {user.email.split("@")[0]}
+                  </Typography>
+                </Stack>
+              </Stack>
+            </Box>
+          </Stack>
+
+          <Box sx={{ flexShrink: 0 }}>{renderUserActions(user)}</Box>
+        </Stack>
+      </Paper>
     );
   }
 
@@ -1007,9 +1186,8 @@ export default function UsersPage() {
                       alignItems: "center",
                       justifyContent: "space-between",
                       minHeight: 76,
-                      border: `1px solid ${
-                        checked ? "#fed7c3" : crmPalette.border
-                      }`,
+                      border: `1px solid ${checked ? "#fed7c3" : crmPalette.border
+                        }`,
                       borderRadius: "12px",
                       bgcolor: checked ? "#fffaf7" : "#ffffff",
                       cursor:
@@ -1150,11 +1328,11 @@ export default function UsersPage() {
                   fontWeight: 900,
                 }}
               >
-                Usuários cadastrados
+                Lista de usuários
               </Typography>
 
               <Typography sx={{ mt: 0.4, color: crmPalette.muted, fontSize: 13 }}>
-                Lista filtrável com dados de acesso, perfil e status.
+                Visualize e gerencie os usuários cadastrados.
               </Typography>
             </Box>
 
@@ -1212,198 +1390,77 @@ export default function UsersPage() {
             </Stack>
           ) : (
             <>
-              <TableContainer sx={{ display: { xs: "none", lg: "block" } }}>
-                <Table sx={{ minWidth: 980 }}>
-                  <TableHead>
-                    <TableRow>
-                      <TableCell sx={tableHeadCellSx}>Usuário</TableCell>
-                      <TableCell sx={tableHeadCellSx}>Perfil</TableCell>
-                      <TableCell sx={tableHeadCellSx}>Status</TableCell>
-                      <TableCell sx={tableHeadCellSx}>Criado em</TableCell>
-                      <TableCell align="right" sx={tableHeadCellSx}>
-                        Ações
-                      </TableCell>
-                    </TableRow>
-                  </TableHead>
-
-                  <TableBody>
-                    {filteredUsers.map((user) => (
-                      <TableRow
-                        key={user.id}
-                        hover
-                        sx={{
-                          "& td": {
-                            borderBottom: `1px solid ${crmPalette.border}`,
-                          },
-                        }}
-                      >
-                        <TableCell>
-                          <Stack
-                            direction="row"
-                            spacing={1.5}
-                            sx={{ alignItems: "center", minWidth: 0 }}
-                          >
-                            <Avatar
-                              variant="rounded"
-                              sx={{
-                                width: 42,
-                                height: 42,
-                                borderRadius: "12px",
-                                bgcolor: roleMeta[user.role].softColor,
-                                color: roleMeta[user.role].accent,
-                                fontSize: 13,
-                                fontWeight: 900,
-                              }}
-                            >
-                              {getInitials(user.name)}
-                            </Avatar>
-
-                            <Box sx={{ minWidth: 0 }}>
-                              <Typography
-                                sx={{
-                                  color: crmPalette.text,
-                                  fontSize: 14,
-                                  fontWeight: 900,
-                                }}
-                              >
-                                {user.name}
-                              </Typography>
-                              <Typography
-                                sx={{
-                                  mt: 0.25,
-                                  color: crmPalette.muted,
-                                  fontSize: 12,
-                                }}
-                              >
-                                {user.email}
-                              </Typography>
-                            </Box>
-                          </Stack>
-                        </TableCell>
-
-                        <TableCell>{renderRoleChip(user.role)}</TableCell>
-
-                        <TableCell>{renderStatusChip(user.isActive)}</TableCell>
-
-                        <TableCell>
-                          <Typography
-                            sx={{
-                              color: crmPalette.muted,
-                              fontSize: 13,
-                              fontWeight: 700,
-                            }}
-                          >
-                            {formatDate(user.createdAt)}
-                          </Typography>
-                        </TableCell>
-
-                        <TableCell align="right">
-                          {renderUserActions(user)}
-                        </TableCell>
-                      </TableRow>
-                    ))}
-                  </TableBody>
-                </Table>
-              </TableContainer>
+              <Stack spacing={1.5} sx={{ p: { xs: 2, md: 2.5 } }}>
+                {paginatedUsers.map((user) => renderUserCard(user))}
+              </Stack>
 
               <Stack
-                spacing={1.25}
-                sx={{ display: { xs: "flex", lg: "none" }, p: 2 }}
+                direction={{ xs: "column", md: "row" }}
+                spacing={1.5}
+                sx={{
+                  px: { xs: 2, md: 2.5 },
+                  py: 1.5,
+                  alignItems: { xs: "stretch", md: "center" },
+                  justifyContent: "space-between",
+                  borderTop: `1px solid ${crmPalette.border}`,
+                  bgcolor: "#ffffff",
+                }}
               >
-                {filteredUsers.map((user) => (
-                  <Paper
-                    key={user.id}
-                    elevation={0}
+                <Typography
+                  sx={{
+                    color: crmPalette.muted,
+                    fontSize: 13,
+                    fontWeight: 700,
+                  }}
+                >
+                  Mostrando {paginationStart}-{paginationEnd} de{" "}
+                  {filteredUsers.length}
+                </Typography>
+
+                <Stack
+                  direction={{ xs: "column", sm: "row" }}
+                  spacing={1.25}
+                  sx={{ alignItems: { xs: "stretch", sm: "center" } }}
+                >
+                  <TextField
+                    select
+                    size="small"
+                    label="Por página"
+                    value={rowsPerPage}
+                    onChange={(event) =>
+                      setRowsPerPage(Number(event.target.value))
+                    }
                     sx={{
-                      p: 1.75,
-                      border: `1px solid ${crmPalette.border}`,
-                      borderRadius: "12px",
-                      bgcolor: "#ffffff",
+                      minWidth: 132,
+                      "& .MuiOutlinedInput-root": {
+                        borderRadius: "10px",
+                        fontSize: 13,
+                        fontWeight: 800,
+                      },
+                      "& .MuiInputLabel-root": {
+                        fontSize: 12,
+                        fontWeight: 800,
+                      },
                     }}
                   >
-                    <Stack spacing={1.5}>
-                      <Stack
-                        direction="row"
-                        spacing={1.5}
-                        sx={{ alignItems: "flex-start", minWidth: 0 }}
-                      >
-                        <Avatar
-                          variant="rounded"
-                          sx={{
-                            width: 44,
-                            height: 44,
-                            borderRadius: "12px",
-                            bgcolor: roleMeta[user.role].softColor,
-                            color: roleMeta[user.role].accent,
-                            fontSize: 13,
-                            fontWeight: 900,
-                          }}
-                        >
-                          {getInitials(user.name)}
-                        </Avatar>
+                    {PAGE_SIZE_OPTIONS.map((option) => (
+                      <MenuItem key={option} value={option}>
+                        {option}
+                      </MenuItem>
+                    ))}
+                  </TextField>
 
-                        <Box sx={{ minWidth: 0, flex: 1 }}>
-                          <Typography
-                            sx={{
-                              color: crmPalette.text,
-                              fontSize: 15,
-                              fontWeight: 900,
-                              lineHeight: 1.3,
-                            }}
-                          >
-                            {user.name}
-                          </Typography>
-
-                          <Typography
-                            sx={{
-                              mt: 0.25,
-                              color: crmPalette.muted,
-                              fontSize: 12,
-                              overflowWrap: "anywhere",
-                            }}
-                          >
-                            {user.email}
-                          </Typography>
-                        </Box>
-                      </Stack>
-
-                      <Stack
-                        direction="row"
-                        spacing={1}
-                        sx={{ flexWrap: "wrap", rowGap: 1 }}
-                      >
-                        {renderRoleChip(user.role)}
-                        {renderStatusChip(user.isActive)}
-                      </Stack>
-
-                      <Box>
-                        <Typography
-                          sx={{
-                            color: "#94a3b8",
-                            fontSize: 11,
-                            fontWeight: 900,
-                            textTransform: "uppercase",
-                          }}
-                        >
-                          Criado em
-                        </Typography>
-                        <Typography
-                          sx={{
-                            mt: 0.25,
-                            color: crmPalette.text,
-                            fontSize: 13,
-                            fontWeight: 700,
-                          }}
-                        >
-                          {formatDate(user.createdAt)}
-                        </Typography>
-                      </Box>
-
-                      <Divider />
-                      {renderUserActions(user)}
-                    </Stack>
-                  </Paper>
-                ))}
+                  <Pagination
+                    page={page}
+                    count={totalPages}
+                    onChange={(_, nextPage) => setPage(nextPage)}
+                    color="primary"
+                    shape="rounded"
+                    size="small"
+                    siblingCount={1}
+                    boundaryCount={1}
+                  />
+                </Stack>
               </Stack>
             </>
           )}
@@ -1420,9 +1477,11 @@ export default function UsersPage() {
           maxWidth="md"
           sx={{
             "& .MuiDialog-paper": {
-              borderRadius: "18px",
+              width: "100%",
+              maxWidth: 750,
+              borderRadius: "14px",
               overflow: "hidden",
-              boxShadow: "0 28px 80px rgba(15, 23, 42, 0.20)",
+              boxShadow: "0 28px 80px rgba(15, 23, 42, 0.24)",
             },
           }}
         >
@@ -1432,55 +1491,57 @@ export default function UsersPage() {
               sx={{
                 px: { xs: 2.5, md: 3 },
                 py: 2.5,
+                bgcolor: "#fff7f2",
+                borderBottom: `1px solid ${crmPalette.border}`,
               }}
             >
               <Stack
                 direction="row"
                 spacing={2}
                 sx={{
-                  alignItems: "flex-start",
+                  alignItems: "center",
                   justifyContent: "space-between",
                 }}
               >
-                <Box>
-                  <Typography
+                <Stack direction="row" spacing={2} sx={{ alignItems: "center" }}>
+                  <Avatar
                     sx={{
-                      color: crmPalette.orangeDark,
-                      fontSize: 10,
-                      fontWeight: 900,
-                      letterSpacing: ".16em",
-                      textTransform: "uppercase",
+                      width: 52,
+                      height: 52,
+                      bgcolor: "#ffe4d6",
+                      color: crmPalette.orange,
                     }}
                   >
-                    {editingUser ? "Edição de acesso" : "Novo acesso"}
-                  </Typography>
+                    <UserRound size={25} />
+                  </Avatar>
 
-                  <Typography
-                    component="h2"
-                    sx={{
-                      mt: 0.5,
-                      color: crmPalette.text,
-                      fontSize: { xs: 21, md: 24 },
-                      fontWeight: 900,
-                      lineHeight: 1.2,
-                    }}
-                  >
-                    {editingUser ? "Editar usuário" : "Cadastrar usuário"}
-                  </Typography>
+                  <Box>
+                    <Typography
+                      component="h2"
+                      sx={{
+                        color: crmPalette.text,
+                        fontSize: { xs: 22, md: 25 },
+                        fontWeight: 900,
+                        lineHeight: 1.15,
+                      }}
+                    >
+                      {editingUser ? "Editar usuário" : "Criar novo usuário"}
+                    </Typography>
 
-                  <Typography
-                    sx={{
-                      mt: 0.75,
-                      color: crmPalette.muted,
-                      fontSize: 13,
-                      lineHeight: 1.6,
-                    }}
-                  >
-                    {editingUser
-                      ? "Atualize dados, perfil e status do usuário selecionado."
-                      : "Crie o acesso e defina o perfil inicial no portal."}
-                  </Typography>
-                </Box>
+                    <Typography
+                      sx={{
+                        mt: 0.75,
+                        color: "#666666",
+                        fontSize: { xs: 14, md: 18 },
+                        lineHeight: 1.25,
+                      }}
+                    >
+                      {editingUser
+                        ? "Atualize os dados e permissões deste acesso."
+                        : "Preencha os dados para cadastrar um novo acesso."}
+                    </Typography>
+                  </Box>
+                </Stack>
 
                 <IconButton
                   type="button"
@@ -1489,148 +1550,198 @@ export default function UsersPage() {
                   onClick={closeModal}
                   sx={{
                     flexShrink: 0,
-                    color: crmPalette.muted,
+                    color: "#737373",
                     "&:hover": {
-                      bgcolor: "#f1f5f9",
+                      bgcolor: "#fff0e8",
                       color: crmPalette.text,
                     },
                   }}
                 >
-                  <XCircle size={21} />
+                  <XCircle size={27} />
                 </IconButton>
               </Stack>
             </DialogTitle>
 
-            <Divider />
-
             <DialogContent
               sx={{
                 px: { xs: 2.5, md: 3 },
-                py: 3,
-                bgcolor: "#f8fafc",
+                py: 0,
+                bgcolor: "#ffffff",
               }}
             >
-              <Stack spacing={2}>
-                <Box
-                  sx={{
-                    display: "grid",
-                    gridTemplateColumns: {
-                      xs: "1fr",
-                      md: editingUser
-                        ? "repeat(2, minmax(0, 1fr))"
-                        : "repeat(3, minmax(0, 1fr))",
-                    },
-                    gap: 2,
-                  }}
-                >
-                  <TextField
-                    fullWidth
-                    label="Nome"
-                    value={form.name}
-                    onChange={(event) =>
-                      handleFieldChange("name", event.target.value)
-                    }
-                    placeholder="Digite o nome completo"
-                    sx={textFieldSx}
-                  />
+              <Stack spacing={0}>
+                <Box sx={{ py: 2.5 }}>
+                  <Typography sx={modalSectionTitleSx}>
+                    Dados pessoais
+                  </Typography>
 
-                  <TextField
-                    fullWidth
-                    type="email"
-                    label="Email"
-                    value={form.email}
-                    onChange={(event) =>
-                      handleFieldChange("email", event.target.value)
-                    }
-                    placeholder="nome@empresa.com"
-                    sx={textFieldSx}
-                  />
+                  <Typography sx={modalSectionTextSx}>
+                    Informe o nome e o e-mail do usuário.
+                  </Typography>
 
-                  {!editingUser ? (
+                  <Stack spacing={2.5} sx={{ mt: 3 }}>
                     <TextField
                       fullWidth
-                      type="password"
-                      label="Senha"
-                      value={form.password}
+                      required
+                      label="Nome completo"
+                      value={form.name}
                       onChange={(event) =>
-                        handleFieldChange("password", event.target.value)
+                        handleFieldChange("name", event.target.value)
                       }
-                      placeholder="Mínimo 6 caracteres"
                       slotProps={{
                         input: {
                           startAdornment: (
                             <InputAdornment position="start">
-                              <KeyRound size={16} />
+                              <UserRound size={19} />
                             </InputAdornment>
                           ),
                         },
                       }}
                       sx={textFieldSx}
                     />
-                  ) : null}
 
-                  <TextField
-                    select
-                    fullWidth
-                    label="Perfil"
-                    value={form.role}
-                    onChange={(event) =>
-                      handleFieldChange("role", event.target.value as UserRole)
-                    }
-                    sx={textFieldSx}
-                  >
-                    {roles.map((role) => (
-                      <MenuItem key={role} value={role}>
-                        {getRoleLabel(role)}
-                      </MenuItem>
-                    ))}
-                  </TextField>
+                    <TextField
+                      fullWidth
+                      required
+                      type="email"
+                      label="E-mail"
+                      value={form.email}
+                      onChange={(event) =>
+                        handleFieldChange("email", event.target.value)
+                      }
+                      slotProps={{
+                        input: {
+                          startAdornment: (
+                            <InputAdornment position="start">
+                              <Mail size={20} />
+                            </InputAdornment>
+                          ),
+                        },
+                      }}
+                      sx={textFieldSx}
+                    />
+                  </Stack>
+                </Box>
 
-                  <Paper
-                    elevation={0}
-                    sx={{
-                      px: 1.5,
-                      minHeight: 54,
-                      display: "flex",
-                      alignItems: "center",
-                      border: `1px solid ${crmPalette.border}`,
-                      borderRadius: "10px",
-                      bgcolor: "#ffffff",
-                    }}
-                  >
-                    <FormControlLabel
-                      control={
-                        <Checkbox
-                          checked={form.isActive}
-                          onChange={(event) =>
-                            handleFieldChange("isActive", event.target.checked)
+                <Divider />
+
+                <Box sx={{ py: 3 }}>
+                  <Typography sx={modalSectionTitleSx}>
+                    Permissões de acesso
+                  </Typography>
+
+                  <Typography sx={modalSectionTextSx}>
+                    Selecione o perfil que será atribuído ao usuário.
+                  </Typography>
+
+                  <Stack spacing={2.5} sx={{ mt: 3 }}>
+                    <TextField
+                      select
+                      fullWidth
+                      required
+                      label="Perfil"
+                      value={form.role}
+                      onChange={(event) =>
+                        handleFieldChange("role", event.target.value as UserRole)
+                      }
+                      slotProps={{
+                        input: {
+                          startAdornment: (
+                            <InputAdornment position="start">
+                              <ShieldCheck size={20} />
+                            </InputAdornment>
+                          ),
+                        },
+                      }}
+                      sx={{
+                        ...textFieldSx,
+                        "& .MuiOutlinedInput-root": {
+                          ...textFieldSx["& .MuiOutlinedInput-root"],
+                          "&.Mui-focused fieldset": {
+                            borderColor: crmPalette.orange,
+                            borderWidth: 2,
+                          },
+                        },
+                      }}
+                    >
+                      {roles.map((role) => (
+                        <MenuItem key={role} value={role}>
+                          {role}
+                        </MenuItem>
+                      ))}
+                    </TextField>
+
+                    {editingUser ? (
+                      <Paper
+                        elevation={0}
+                        sx={{
+                          px: 1.5,
+                          minHeight: 52,
+                          display: "flex",
+                          alignItems: "center",
+                          border: `1px solid ${crmPalette.border}`,
+                          borderRadius: "12px",
+                          bgcolor: "#ffffff",
+                        }}
+                      >
+                        <FormControlLabel
+                          control={
+                            <Checkbox
+                              checked={form.isActive}
+                              onChange={(event) =>
+                                handleFieldChange(
+                                  "isActive",
+                                  event.target.checked,
+                                )
+                              }
+                              sx={{
+                                color: crmPalette.border,
+                                "&.Mui-checked": {
+                                  color: crmPalette.green,
+                                },
+                              }}
+                            />
                           }
+                          label={form.isActive ? "Usuário ativo" : "Usuário inativo"}
                           sx={{
-                            color: crmPalette.border,
-                            "&.Mui-checked": {
-                              color: crmPalette.green,
+                            m: 0,
+                            color: crmPalette.text,
+                            "& .MuiFormControlLabel-label": {
+                              fontSize: 14,
+                              fontWeight: 800,
                             },
                           }}
                         />
-                      }
-                      label={form.isActive ? "Usuário ativo" : "Usuário inativo"}
+                      </Paper>
+                    ) : null}
+
+                    <Alert
+                      severity="info"
+                      icon={false}
                       sx={{
-                        m: 0,
-                        color: crmPalette.text,
-                        "& .MuiFormControlLabel-label": {
-                          fontSize: 13,
-                          fontWeight: 800,
+                        border: "1px solid #bae6fd",
+                        borderRadius: "10px",
+                        bgcolor: "#eef8ff",
+                        color: "#666666",
+                        fontSize: 18,
+                        lineHeight: 1.35,
+                        "& .MuiAlert-message": {
+                          py: 0.25,
                         },
                       }}
-                    />
-                  </Paper>
-                </Box>
+                    >
+                      {editingUser
+                        ? "Use a opção de redefinição de senha na lista de usuários quando precisar gerar uma nova senha padrão."
+                        : "O usuário será criado com a senha padrão definida pelo sistema. Ela poderá ser alterada posteriormente pela opção de redefinição de senha."}
+                    </Alert>
+                  </Stack>
 
-                {formError ? (
-                  <Alert severity="error" sx={{ borderRadius: "10px" }}>
-                    {formError}
-                  </Alert>
-                ) : null}
+                  {formError ? (
+                    <Alert severity="error" sx={{ mt: 2, borderRadius: "10px" }}>
+                      {formError}
+                    </Alert>
+                  ) : null}
+                </Box>
               </Stack>
             </DialogContent>
 
@@ -1640,20 +1751,27 @@ export default function UsersPage() {
               sx={{
                 px: { xs: 2.5, md: 3 },
                 py: 2,
-                gap: 1,
+                gap: 1.5,
+                bgcolor: "#fafafa",
               }}
             >
               <Button
                 type="button"
-                variant="outlined"
+                variant="text"
                 disabled={saving}
                 onClick={closeModal}
                 sx={{
-                  minHeight: 42,
-                  borderRadius: "10px",
-                  borderColor: crmPalette.border,
+                  minWidth: 138,
+                  minHeight: 50,
+                  borderRadius: "12px",
+                  bgcolor: "#ffffff",
                   color: crmPalette.text,
-                  fontWeight: 800,
+                  fontSize: 16,
+                  fontWeight: 900,
+                  textTransform: "none",
+                  "&:hover": {
+                    bgcolor: "#f1f5f9",
+                  },
                 }}
               >
                 Cancelar
@@ -1665,21 +1783,24 @@ export default function UsersPage() {
                 disabled={saving}
                 startIcon={
                   saving ? (
-                    <CircularProgress size={16} color="inherit" />
+                    <CircularProgress size={18} color="inherit" />
                   ) : (
-                    <PlusCircle size={16} />
+                    <PlusCircle size={19} />
                   )
                 }
                 sx={{
-                  minHeight: 42,
-                  borderRadius: "10px",
+                  minWidth: 188,
+                  minHeight: 50,
+                  borderRadius: "12px",
                   px: 2.5,
                   bgcolor: crmPalette.orange,
-                  fontWeight: 800,
-                  boxShadow: "none",
+                  fontSize: 16,
+                  fontWeight: 900,
+                  textTransform: "none",
+                  boxShadow: "0 8px 18px rgba(255, 77, 0, 0.26)",
                   "&:hover": {
                     bgcolor: crmPalette.orangeDark,
-                    boxShadow: "none",
+                    boxShadow: "0 10px 22px rgba(255, 77, 0, 0.28)",
                   },
                 }}
               >

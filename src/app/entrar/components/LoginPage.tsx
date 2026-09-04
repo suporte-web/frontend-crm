@@ -1,6 +1,7 @@
 'use client';
 
 import { FormEvent, useState } from 'react';
+
 import {
   Alert,
   Box,
@@ -13,8 +14,14 @@ import {
   TextField,
   Typography,
 } from '@mui/material';
-import { Eye, EyeOff, LockKeyhole, Mail } from 'lucide-react';
+
+import EmailOutlinedIcon from '@mui/icons-material/EmailOutlined';
+import LockOutlinedIcon from '@mui/icons-material/LockOutlined';
+import VisibilityOutlinedIcon from '@mui/icons-material/VisibilityOutlined';
+import VisibilityOffOutlinedIcon from '@mui/icons-material/VisibilityOffOutlined';
+
 import { useRouter } from 'next/navigation';
+
 import { useAuth } from '@/context/auth-context';
 
 export default function LoginPage() {
@@ -50,13 +57,32 @@ export default function LoginPage() {
       component="main"
       sx={{
         minHeight: '100vh',
-        bgcolor: '#fbf7ef',
-        color: '#343434',
+
+        backgroundImage: `
+    linear-gradient(
+      rgba(22, 18, 16, 0.58),
+      rgba(22, 18, 16, 0.70)
+    ),
+    url('/login/login-fundo.png')
+  `,
+
+        backgroundSize: 'cover',
+        backgroundPosition: 'center',
+        backgroundRepeat: 'no-repeat',
+
         display: 'flex',
         alignItems: 'center',
         justifyContent: 'center',
-        px: { xs: 2.5, sm: 4 },
-        py: { xs: 5, md: 7 },
+
+        px: {
+          xs: 2,
+          sm: 4,
+        },
+
+        py: {
+          xs: 4,
+          md: 6,
+        },
       }}
     >
       <Paper
@@ -64,35 +90,59 @@ export default function LoginPage() {
         sx={{
           position: 'relative',
           zIndex: 1,
+
           width: '100%',
-          maxWidth: 464,
-          bgcolor: '#ffa987',
-          border: '1px solid rgba(236,49,57,0.10)',
-          borderRadius: 3,
-          boxShadow: '0 28px 70px rgba(52,52,52,0.28)',
-          p: { xs: 3, sm: 4.25 },
+          maxWidth: 460,
+
+          bgcolor: 'rgba(255,255,255,0.94)',
+
+          border: '1px solid rgba(255,255,255,0.35)',
+
+          borderRadius: {
+            xs: 3,
+            sm: 4,
+          },
+
+          backdropFilter: 'blur(14px)',
+
+          boxShadow: `
+      0 32px 80px rgba(0,0,0,0.32),
+      0 8px 24px rgba(0,0,0,0.12)
+    `,
+
+          p: {
+            xs: 3,
+            sm: 4.5,
+          },
         }}
       >
         <Stack spacing={3.25}>
+          {/* LOGO */}
           <Box
             sx={{
-              mx: 'auto',
-              textAlign: 'center',
+              width: '100%',
+              display: 'flex',
+              justifyContent: 'center',
+              alignItems: 'center',
+              mb: 1,
             }}
           >
-            <Typography
-              component="h1"
+            <Box
+              component="img"
+              src="/imagem/logopizzatto.png"
+              alt="Pizzattolog"
               sx={{
-                color: '#343434',
-                fontSize: { xs: 22, sm: 24 },
-                lineHeight: 1.2,
-                fontWeight: 900,
-                letterSpacing: 0,
-                textAlign: 'center',
+                display: 'block',
+                width: {
+                  xs: 180,
+                  sm: 210,
+                },
+                maxWidth: '100%',
+                height: 'auto',
+                objectFit: 'contain',
+                mx: 'auto',
               }}
-            >
-              Portal CRM
-            </Typography>
+            />
           </Box>
 
           <Box component="form" onSubmit={handleSubmit}>
@@ -114,7 +164,7 @@ export default function LoginPage() {
                   input: {
                     startAdornment: (
                       <InputAdornment position="start">
-                        <Mail size={18} />
+                        <EmailOutlinedIcon />
                       </InputAdornment>
                     ),
                   },
@@ -139,7 +189,7 @@ export default function LoginPage() {
                   input: {
                     startAdornment: (
                       <InputAdornment position="start">
-                        <LockKeyhole size={18} />
+                        <LockOutlinedIcon />
                       </InputAdornment>
                     ),
                     endAdornment: (
@@ -150,7 +200,7 @@ export default function LoginPage() {
                           aria-label={showPassword ? 'Ocultar senha' : 'Mostrar senha'}
                           sx={{ color: 'rgba(52,52,52,0.68)' }}
                         >
-                          {showPassword ? <EyeOff size={18} /> : <Eye size={18} />}
+                          {showPassword ? <VisibilityOffOutlinedIcon /> : <VisibilityOutlinedIcon />}
                         </IconButton>
                       </InputAdornment>
                     ),
@@ -180,27 +230,99 @@ export default function LoginPage() {
                 disabled={loading}
                 fullWidth
                 variant="contained"
-                endIcon={
-                  loading ? <CircularProgress size={18} sx={{ color: '#fff' }} /> : null
-                }
                 sx={{
-                  mt: 1.75,
-                  minHeight: 50,
-                  borderRadius: 2,
-                  bgcolor: '#ff4d00',
-                  boxShadow: '0 10px 20px rgba(236,49,57,0.22)',
-                  fontSize: 14,
-                  fontWeight: 900,
+                  mt: 1,
+
+                  minHeight: 54,
+
+                  borderRadius: 2.5,
+
+                  bgcolor: '#ff5805',
+
+                  color: '#fff',
+
+                  fontSize: 15,
+                  fontWeight: 800,
+
                   textTransform: 'none',
-                  '&:hover': { bgcolor: '#ec3139' },
+
+                  boxShadow: '0 12px 26px rgba(255,88,5,0.30)',
+
+                  transition: 'all 0.2s ease',
+
+                  '&:hover': {
+                    bgcolor: '#e94f00',
+
+                    transform: 'translateY(-1px)',
+
+                    boxShadow: '0 15px 30px rgba(255,88,5,0.38)',
+                  },
+
+                  '&:active': {
+                    transform: 'translateY(0)',
+                  },
+
                   '&.Mui-disabled': {
-                    bgcolor: 'rgba(255,77,0,0.62)',
-                    color: 'rgba(255,255,255,0.78)',
+                    bgcolor: 'rgba(255,88,5,0.55)',
+                    color: 'rgba(255,255,255,0.75)',
                   },
                 }}
               >
-                {loading ? 'Entrando...' : 'Entrar'}
+                {loading ? (
+                  <Stack
+                    direction="row"
+                    spacing={1}
+                    sx={{
+                      alignItems: 'center',
+                    }}
+                  >
+                    <CircularProgress
+                      size={17}
+                      sx={{ color: '#fff' }}
+                    />
+
+                    <span>Entrando...</span>
+                  </Stack>
+                ) : (
+                  'Entrar'
+                )}
               </Button>
+
+              <Stack
+                spacing={0.8}
+                sx={{
+                  alignItems: 'center',
+                  textAlign: 'center',
+                  mt: 0.8,
+                }}
+              >
+                <Typography
+                  component="h1"
+                  sx={{
+                    color: '#343434',
+                    fontSize: {
+                      xs: 17,
+                      sm: 18,
+                    },
+                    lineHeight: 1.2,
+                    fontWeight: 800,
+                    letterSpacing: 0.3,
+                    textAlign: 'center',
+                  }}
+                >
+                  Portal CRM
+                </Typography>
+
+                <Box
+                  sx={{
+                    width: 42,
+                    height: 3,
+                    borderRadius: 999,
+                    bgcolor: '#ff5805',
+                  }}
+                />
+              </Stack>
+
             </Stack>
           </Box>
         </Stack>
@@ -209,39 +331,52 @@ export default function LoginPage() {
   );
 }
 
+
 const loginTextFieldSx = {
-  '& .MuiInputBase-root': {
-    minHeight: 56,
-    borderRadius: 2,
-    bgcolor: 'rgba(255,248,244,0.86)',
+  '& .MuiOutlinedInput-root': {
+    minHeight: 58,
+
+    borderRadius: 2.5,
+
+    bgcolor: 'rgba(248,248,248,0.95)',
+
     color: '#343434',
+
+    transition: 'all 0.2s ease',
+
+    '& fieldset': {
+      borderColor: 'rgba(52,52,52,0.16)',
+    },
+
+    '&:hover fieldset': {
+      borderColor: 'rgba(255,88,5,0.50)',
+    },
+
+    '&.Mui-focused': {
+      bgcolor: '#fff',
+
+      boxShadow: '0 0 0 4px rgba(255,88,5,0.08)',
+    },
+
+    '&.Mui-focused fieldset': {
+      borderColor: '#ff5805',
+      borderWidth: '1.5px',
+    },
   },
+
   '& .MuiInputAdornment-root': {
-    color: 'rgba(52,52,52,0.54)',
+    color: '#858585',
   },
-  '& .MuiInputLabel-root': {
-    color: 'rgba(52,52,52,0.60)',
-    fontWeight: 700,
-  },
-  '& .MuiInputLabel-root.Mui-focused': {
-    color: '#ec3139',
-  },
-  '& .MuiOutlinedInput-notchedOutline': {
-    borderColor: 'rgba(52,52,52,0.18)',
-  },
-  '& .MuiOutlinedInput-root:hover .MuiOutlinedInput-notchedOutline': {
-    borderColor: 'rgba(236,49,57,0.45)',
-  },
-  '& .MuiOutlinedInput-root.Mui-focused .MuiOutlinedInput-notchedOutline': {
-    borderColor: '#ec3139',
-    borderWidth: 1,
-  },
+
   '& input': {
     fontSize: 14,
     fontWeight: 600,
+    color: '#343434',
   },
+
   '& input::placeholder': {
-    color: 'rgba(52,52,52,0.42)',
+    color: '#8c8c8c',
     opacity: 1,
+    fontWeight: 500,
   },
 };

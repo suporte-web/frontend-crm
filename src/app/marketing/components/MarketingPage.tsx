@@ -1,6 +1,34 @@
 'use client';
 
 import { useEffect, useMemo, useState } from 'react';
+
+import Alert from '@mui/material/Alert';
+import AlertTitle from '@mui/material/AlertTitle';
+import Avatar from '@mui/material/Avatar';
+import Box from '@mui/material/Box';
+import Button from '@mui/material/Button';
+import Chip from '@mui/material/Chip';
+import CircularProgress from '@mui/material/CircularProgress';
+import Dialog from '@mui/material/Dialog';
+import DialogActions from '@mui/material/DialogActions';
+import DialogContent from '@mui/material/DialogContent';
+import DialogTitle from '@mui/material/DialogTitle';
+import Divider from '@mui/material/Divider';
+import FormControl from '@mui/material/FormControl';
+import FormControlLabel from '@mui/material/FormControlLabel';
+import FormHelperText from '@mui/material/FormHelperText';
+import InputLabel from '@mui/material/InputLabel';
+import MenuItem from '@mui/material/MenuItem';
+import Paper from '@mui/material/Paper';
+import Select from '@mui/material/Select';
+import Snackbar from '@mui/material/Snackbar';
+import Stack from '@mui/material/Stack';
+import Switch from '@mui/material/Switch';
+import Tab from '@mui/material/Tab';
+import Tabs from '@mui/material/Tabs';
+import TextField from '@mui/material/TextField';
+import Typography from '@mui/material/Typography';
+
 import {
   ArrowRight,
   Film,
@@ -13,10 +41,15 @@ import {
   Sparkles,
   Trash2,
 } from 'lucide-react';
+
 import { AppLayout } from '@/components/layout/app-layout';
-import { ConfirmDialog } from '@/components/ui/confirm-dialog';
-import { FeedbackToast } from '@/components/ui/feedback-toast';
-import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import {
+  CrmKpiCard,
+  CrmPageHeader,
+  CrmPageShell,
+  CrmSection,
+  crmPalette,
+} from '@/components/mui/crm-primitives';
 import { useAuth } from '@/context/auth-context';
 import {
   createPortalContent,
@@ -61,8 +94,17 @@ const initialFormState: FormState = {
 
 const allowedRoles = new Set(['ADMIN', 'GESTAO', 'MARKETING']);
 
+const fieldSx = {
+  '& .MuiOutlinedInput-root': {
+    borderRadius: '10px',
+    bgcolor: '#fff',
+  },
+};
+
 function formatDate(date?: string | null) {
-  if (!date) return '-';
+  if (!date) {
+    return '-';
+  }
 
   return new Intl.DateTimeFormat('pt-BR', {
     dateStyle: 'short',
@@ -72,22 +114,12 @@ function formatDate(date?: string | null) {
 
 function getTypeLabel(type: ContentType) {
   const labels: Record<ContentType, string> = {
-    NOTICIA: 'Noticia',
+    NOTICIA: 'Notícia',
     INFORMACAO: 'Campanha',
     VLOG: 'Vídeo',
   };
 
   return labels[type];
-}
-
-function getTypeClass(type: ContentType) {
-  const classes: Record<ContentType, string> = {
-    NOTICIA: 'bg-[#fab519] text-[#343434]',
-    INFORMACAO: 'bg-[#fab519] text-[#343434]',
-    VLOG: 'bg-[#fab519] text-[#343434]',
-  };
-
-  return classes[type];
 }
 
 function getTypeHelper(type: ContentType) {
@@ -98,6 +130,28 @@ function getTypeHelper(type: ContentType) {
   };
 
   return helpers[type];
+}
+
+function getTypeChipSx(type: ContentType) {
+  const colors: Record<ContentType, object> = {
+    NOTICIA: {
+      bgcolor: '#fff7d6',
+      color: '#8a5a00',
+      borderColor: '#f6d36b',
+    },
+    INFORMACAO: {
+      bgcolor: '#e8f2ff',
+      color: '#175a9e',
+      borderColor: '#a9cff5',
+    },
+    VLOG: {
+      bgcolor: '#f1e8ff',
+      color: '#6d28a8',
+      borderColor: '#d7b8ff',
+    },
+  };
+
+  return colors[type];
 }
 
 function getTemplate(type: ContentType): Pick<
@@ -118,19 +172,20 @@ function getTemplate(type: ContentType): Pick<
   if (type === 'VLOG') {
     return {
       title: 'Novo vídeo da operação',
-      summary: 'Compartilhe bastidores, atualizações e comunicados em formato visual.',
+      summary:
+        'Compartilhe bastidores, atualizações e comunicados em formato visual.',
       body:
-        'Use este espaco para contextualizar o vídeo, reforcar a mensagem e orientar o cliente sobre o que assistir.',
+        'Use este espaço para contextualizar o vídeo, reforçar a mensagem e orientar o cliente sobre o que assistir.',
       campaignName: 'Conteúdo em vídeo',
       ctaLabel: 'Assistir agora',
     };
   }
 
   return {
-    title: 'Nova noticia do portal',
-    summary: 'Comunique uma novidade ',
+    title: 'Nova notícia do portal',
+    summary: 'Comunique uma novidade do portal.',
     body:
-      'Escreva um texto curto, escaneavel e com informações centrais para leitura rápida.',
+      'Escreva um texto curto, escaneável e com informações centrais para leitura rápida.',
     campaignName: 'Atualização do portal',
     ctaLabel: 'Ver detalhe',
   };
@@ -149,18 +204,21 @@ export default function MarketingPage() {
   const [deleteTarget, setDeleteTarget] = useState<PortalContent | null>(null);
   const [uploadingImage, setUploadingImage] = useState(false);
   const [uploadingVideo, setUploadingVideo] = useState(false);
+  const [tab, setTab] = useState('editor');
 
   const isAllowed = user?.role ? allowedRoles.has(user.role) : false;
 
-  async function loadContents() {
+  async function loadData() {
     try {
       setLoading(true);
       setPageError('');
-      const data = await getPortalContents();
-      setContents(data);
+
+      const contentData = await getPortalContents();
+
+      setContents(contentData);
     } catch (error) {
       setPageError(
-        error instanceof Error ? error.message : 'Erro ao carregar conteúdos.',
+        error instanceof Error ? error.message : 'Erro ao carregar marketing.',
       );
     } finally {
       setLoading(false);
@@ -169,7 +227,7 @@ export default function MarketingPage() {
 
   useEffect(() => {
     if (isAllowed) {
-      loadContents();
+      loadData();
     } else {
       setLoading(false);
     }
@@ -177,7 +235,6 @@ export default function MarketingPage() {
 
   const summary = useMemo(() => {
     return {
-      total: contents.length,
       published: contents.filter((item) => item.isPublished).length,
       drafts: contents.filter((item) => !item.isPublished).length,
       highlights: contents.filter((item) => item.highlight).length,
@@ -196,7 +253,7 @@ export default function MarketingPage() {
     summary: form.summary || 'Resumo rápido para chamar a atenção no feed.',
     body:
       form.body ||
-      'Texto principal do post. Aqui entram a historia, a campanha, o comunicado ou o roteiro da publicação.',
+      'Texto principal do post. Aqui entram a história, a campanha, o comunicado ou o roteiro da publicação.',
     campaignName: form.campaignName || 'Campanha ativa',
     ctaLabel: form.ctaLabel || 'Abrir conteúdo',
   };
@@ -223,6 +280,7 @@ export default function MarketingPage() {
       isPublished: item.isPublished,
     });
     setFormError('');
+    setTab('editor');
   }
 
   function validateForm() {
@@ -278,6 +336,7 @@ export default function MarketingPage() {
       }
 
       resetForm();
+      setTab('library');
     } catch (error) {
       setFormError(
         error instanceof Error ? error.message : 'Erro ao salvar conteúdo.',
@@ -365,680 +424,947 @@ export default function MarketingPage() {
   if (!isAllowed) {
     return (
       <AppLayout>
-        <div className="rounded-[28px] border border-amber-200 bg-amber-50 p-6 text-amber-900">
-          Esta área e restrita a marketing, gestão e administração.
-        </div>
+        <Alert severity="warning">
+          Esta área é restrita a marketing, gestão e administração.
+        </Alert>
       </AppLayout>
     );
   }
 
   return (
     <AppLayout>
-      <div className="mx-auto flex w-full max-w-7xl flex-col gap-6">
-        <section className="relative overflow-hidden rounded-[36px] border border-slate-200 bg-[linear-gradient(135deg,#343434_0%,#ec3139_55%,#fab519_100%)] p-6 text-white shadow-[0_28px_80px_rgba(15,23,42,0.18)] lg:p-8">
-          <div className="absolute -right-12 top-0 h-48 w-48 rounded-full bg-white/10 blur-3xl" />
-          <div className="absolute bottom-0 left-10 h-40 w-40 rounded-full bg-cyan-300/20 blur-3xl" />
-          <div className="relative grid gap-6 xl:grid-cols-[1.2fr_.8fr]">
-            <div>
-              <span className="inline-flex items-center gap-2 rounded-full border border-white/15 bg-white/10 px-3 py-1 text-xs font-semibold uppercase tracking-[0.22em] text-sky-100">
-                <Megaphone className="h-3.5 w-3.5" />
-                Marketing Portal
-              </span>
-              <h1 className="mt-5 max-w-3xl text-4xl font-bold leading-tight md:text-5xl">
-                Publicação e gestão de conteúdos para o portal do cliente
-              </h1>
-    
-            </div>
+      <CrmPageShell>
+        <CrmPageHeader
+          eyebrow="Marketing"
+          title="Criação de conteúdo"
+          description="Gerencie conteúdos, campanhas, vídeos e destaques do portal."
+          icon={<Megaphone size={24} />}
+          aside={
+            <Button
+              variant="contained"
+              startIcon={<Plus size={18} />}
+              onClick={() => {
+                resetForm();
+                setTab('editor');
+              }}
+              sx={{
+                borderRadius: '10px',
+                bgcolor: crmPalette.orange,
+                '&:hover': {
+                  bgcolor: crmPalette.orangeDark,
+                },
+              }}
+            >
+              Novo conteúdo
+            </Button>
+          }
+        />
 
-            <div className="grid gap-3 sm:grid-cols-2">
-              <div className="rounded-[24px] border border-white/15 bg-[#343434]/82 p-4 text-white shadow-[0_14px_32px_rgba(0,0,0,0.18)] backdrop-blur">
-                <p className="text-xs font-bold uppercase tracking-[0.18em] text-[#fab519]">
-                  Publicados
-                </p>
-                <p className="mt-2 text-3xl font-bold">{summary.published}</p>
-              </div>
-              <div className="rounded-[24px] border border-white/15 bg-[#343434]/82 p-4 text-white shadow-[0_14px_32px_rgba(0,0,0,0.18)] backdrop-blur">
-                <p className="text-xs font-bold uppercase tracking-[0.18em] text-[#fab519]">
-                  Rascunhos
-                </p>
-                <p className="mt-2 text-3xl font-bold">{summary.drafts}</p>
-              </div>
-              <div className="rounded-[24px] border border-white/15 bg-[#343434]/82 p-4 text-white shadow-[0_14px_32px_rgba(0,0,0,0.18)] backdrop-blur">
-                <p className="text-xs font-bold uppercase tracking-[0.18em] text-[#fab519]">
-                  Destaques
-                </p>
-                <p className="mt-2 text-3xl font-bold">{summary.highlights}</p>
-              </div>
-              <div className="rounded-[24px] border border-white/15 bg-[#343434]/82 p-4 text-white shadow-[0_14px_32px_rgba(0,0,0,0.18)] backdrop-blur">
-                <p className="text-xs font-bold uppercase tracking-[0.18em] text-[#fab519]">
-                  Vídeos
-                </p>
-                <p className="mt-2 text-3xl font-bold">{summary.videos}</p>
-              </div>
-            </div>
-          </div>
-        </section>
+        <Box
+          sx={{
+            display: 'grid',
+            gap: 2,
+            gridTemplateColumns: {
+              xs: '1fr',
+              sm: 'repeat(2, minmax(0, 1fr))',
+              lg: 'repeat(4, minmax(0, 1fr))',
+            },
+          }}
+        >
+          <CrmKpiCard
+            title="Publicados"
+            value={summary.published}
+            icon={<Megaphone size={22} />}
+            accent="#1f8f46"
+            softColor="#ecfdf5"
+            sx={{ minHeight: 130 }}
+          />
+          <CrmKpiCard
+            title="Rascunhos"
+            value={summary.drafts}
+            icon={<LayoutTemplate size={22} />}
+            accent="#64748b"
+            softColor="#f8fafc"
+            sx={{ minHeight: 130 }}
+          />
+          <CrmKpiCard
+            title="Destaques"
+            value={summary.highlights}
+            icon={<Sparkles size={22} />}
+            accent={crmPalette.yellow}
+            softColor="#fff7d6"
+            sx={{ minHeight: 130 }}
+          />
+          <CrmKpiCard
+            title="Vídeos"
+            value={summary.videos}
+            icon={<Film size={22} />}
+            accent="#7c3aed"
+            softColor="#f3e8ff"
+            sx={{ minHeight: 130 }}
+          />
+        </Box>
 
-        <section className="grid gap-6 xl:grid-cols-[1.1fr_.9fr]">
-          <article className="rounded-[32px] border border-slate-200 bg-white p-6 shadow-sm">
-            <div className="flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
-              <div>
-                <p className="text-sm font-semibold uppercase tracking-[0.18em] text-blue-700">
-                  Editor
-                </p>
-                <h2 className="mt-2 text-2xl font-bold text-slate-950">
-                  {editingId ? 'Editar campanha' : 'Criar conteúdo'}
-                </h2>
-                <p className="mt-2 text-sm text-slate-500">
-                  Monte o post com foto, vídeo, CTA e campanha.
-                </p>
-              </div>
+        {pageError ? <Alert severity="error">{pageError}</Alert> : null}
 
-              <button
-                type="button"
-                onClick={resetForm}
-                className="inline-flex items-center justify-center gap-2 rounded-2xl border border-slate-300 bg-white px-4 py-3 text-sm font-semibold text-slate-700 transition hover:bg-slate-100"
-              >
-                <Plus className="h-4 w-4" />
-                Novo conteúdo
-              </button>
-            </div>
-
-            <div className="mt-6 grid gap-3 md:grid-cols-3">
-              {(['NOTICIA', 'INFORMACAO', 'VLOG'] as ContentType[]).map((type) => (
-                <button
-                  key={type}
-                  type="button"
-                  onClick={() => applyTemplate(type)}
-                  className={`rounded-[24px] border p-4 text-left transition ${
-                    form.type === type
-                      ? 'border-blue-300 bg-blue-50'
-                      : 'border-slate-200 bg-slate-50 hover:border-slate-300'
-                  }`}
-                >
-                  <div className="flex items-center gap-2 text-sm font-semibold text-slate-950">
-                    {type === 'NOTICIA' ? (
-                      <LayoutTemplate className="h-4 w-4 text-sky-600" />
-                    ) : type === 'INFORMACAO' ? (
-                      <Rocket className="h-4 w-4 text-amber-600" />
-                    ) : (
-                      <Film className="h-4 w-4 text-violet-600" />
-                    )}
-                    {getTypeLabel(type)}
-                  </div>
-                  <p className="mt-2 text-sm leading-6 text-slate-500">
-                    {getTypeHelper(type)}
-                  </p>
-                </button>
-              ))}
-            </div>
-
-            <form onSubmit={handleSubmit} className="mt-6 space-y-5">
-              <div className="grid gap-4 md:grid-cols-2">
-                <div>
-                  <label className="mb-2 block text-sm font-semibold text-slate-700">
-                    Título
-                  </label>
-                  <input
-                    type="text"
-                    value={form.title}
-                    onChange={(event) =>
-                      setForm((prev) => ({ ...prev, title: event.target.value }))
-                    }
-                    className="w-full rounded-2xl border border-slate-300 bg-slate-50 px-4 py-3 text-sm text-slate-900 outline-none transition focus:border-blue-400 focus:bg-white"
-                    placeholder="Ex: Nova campanha de atendimento"
-                  />
-                </div>
-
-                <div>
-                  <label className="mb-2 block text-sm font-semibold text-slate-700">
-                    Nome da campanha
-                  </label>
-                  <input
-                    type="text"
-                    value={form.campaignName}
-                    onChange={(event) =>
-                      setForm((prev) => ({
-                        ...prev,
-                        campaignName: event.target.value,
-                      }))
-                    }
-                    className="w-full rounded-2xl border border-slate-300 bg-slate-50 px-4 py-3 text-sm text-slate-900 outline-none transition focus:border-blue-400 focus:bg-white"
-                    placeholder="Ex: Maio em movimento"
-                  />
-                </div>
-              </div>
-
-              <div>
-                <label className="mb-2 block text-sm font-semibold text-slate-700">
-                  Resumo
-                </label>
-                <textarea
-                  value={form.summary}
-                  onChange={(event) =>
-                    setForm((prev) => ({ ...prev, summary: event.target.value }))
-                  }
-                  rows={3}
-                  className="w-full rounded-2xl border border-slate-300 bg-slate-50 px-4 py-3 text-sm text-slate-900 outline-none transition focus:border-blue-400 focus:bg-white"
-                  placeholder="Chamada curta que aparece no topo do card."
-                />
-              </div>
-
-              <div>
-                <label className="mb-2 block text-sm font-semibold text-slate-700">
-                  Conteúdo
-                </label>
-                <textarea
-                  value={form.body}
-                  onChange={(event) =>
-                    setForm((prev) => ({ ...prev, body: event.target.value }))
-                  }
-                  rows={8}
-                  className="w-full rounded-2xl border border-slate-300 bg-slate-50 px-4 py-3 text-sm text-slate-900 outline-none transition focus:border-blue-400 focus:bg-white"
-                  placeholder="Texto principal do conteúdo para o portal do cliente."
-                />
-              </div>
-
-              <div className="grid gap-4 md:grid-cols-2">
-                <div>
-                  <label className="mb-2 block text-sm font-semibold text-slate-700">
-                    Tipo
-                  </label>
-                  <select
-                    value={form.type}
-                    onChange={(event) =>
-                      setForm((prev) => ({
-                        ...prev,
-                        type: event.target.value as ContentType,
-                      }))
-                    }
-                    className="w-full rounded-2xl border border-slate-300 bg-slate-50 px-4 py-3 text-sm text-slate-900 outline-none transition focus:border-blue-400 focus:bg-white"
-                  >
-                    <option value="NOTICIA">Noticia</option>
-                    <option value="INFORMACAO">Campanha</option>
-                    <option value="VLOG">Vídeo</option>
-                  </select>
-                </div>
-
-                <div>
-                  <label className="mb-2 block text-sm font-semibold text-slate-700">
-                    Status
-                  </label>
-                  <select
-                    value={form.isPublished ? 'published' : 'draft'}
-                    onChange={(event) =>
-                      setForm((prev) => ({
-                        ...prev,
-                        isPublished: event.target.value === 'published',
-                      }))
-                    }
-                    className="w-full rounded-2xl border border-slate-300 bg-slate-50 px-4 py-3 text-sm text-slate-900 outline-none transition focus:border-blue-400 focus:bg-white"
-                  >
-                    <option value="draft">Rascunho</option>
-                    <option value="published">Publicado</option>
-                  </select>
-                </div>
-              </div>
-
-              <div className="grid gap-4 md:grid-cols-2">
-                <div className="rounded-[24px] border border-dashed border-slate-300 bg-slate-50 p-4">
-                  <label className="block text-sm font-semibold text-slate-700">
-                    Importar imagem do computador
-                  </label>
-                  <p className="mt-2 text-sm leading-6 text-slate-500">
-                    Envie uma foto para preencher automaticamente a capa do post.
-                  </p>
-                  <label className="mt-4 inline-flex cursor-pointer items-center gap-2 rounded-2xl bg-slate-900 px-4 py-3 text-sm font-semibold text-white transition hover:bg-slate-800">
-                    <ImagePlus className="h-4 w-4" />
-                    {uploadingImage ? 'Enviando imagem...' : 'Selecionar imagem'}
-                    <input
-                      type="file"
-                      accept="image/*"
-                      className="hidden"
-                      onChange={(event) =>
-                        handleMediaUpload(
-                          event.target.files?.[0],
-                          'image',
-                        )
-                      }
-                    />
-                  </label>
-                  {form.coverImageUrl ? (
-                    <p className="mt-3 text-xs text-emerald-600">
-                      Imagem pronta para uso no preview.
-                    </p>
-                  ) : null}
-                </div>
-
-                <div className="rounded-[24px] border border-dashed border-slate-300 bg-slate-50 p-4">
-                  <label className="block text-sm font-semibold text-slate-700">
-                    Importar vídeo do computador
-                  </label>
-                  <p className="mt-2 text-sm leading-6 text-slate-500">
-                    Opcional: envie um vídeo para o conteúdo do portal.
-                  </p>
-                  <label className="mt-4 inline-flex cursor-pointer items-center gap-2 rounded-2xl bg-white px-4 py-3 text-sm font-semibold text-slate-700 ring-1 ring-slate-300 transition hover:bg-slate-100">
-                    <Film className="h-4 w-4" />
-                    {uploadingVideo ? 'Enviando vídeo...' : 'Selecionar vídeo'}
-                    <input
-                      type="file"
-                      accept="vídeo/*"
-                      className="hidden"
-                      onChange={(event) =>
-                        handleMediaUpload(
-                          event.target.files?.[0],
-                          'video',
-                        )
-                      }
-                    />
-                  </label>
-                  {form.videoUrl ? (
-                    <p className="mt-3 text-xs text-emerald-600">
-                      Vídeo pronto para uso no feed.
-                    </p>
-                  ) : null}
-                </div>
-              </div>
-
-              <div className="grid gap-4 md:grid-cols-2">
-                <div>
-                  <label className="mb-2 block text-sm font-semibold text-slate-700">
-                    URL da foto/capa
-                  </label>
-                  <input
-                    type="url"
-                    value={form.coverImageUrl}
-                    onChange={(event) =>
-                      setForm((prev) => ({
-                        ...prev,
-                        coverImageUrl: event.target.value,
-                      }))
-                    }
-                    className="w-full rounded-2xl border border-slate-300 bg-slate-50 px-4 py-3 text-sm text-slate-900 outline-none transition focus:border-blue-400 focus:bg-white"
-                    placeholder="Cole a URL da imagem ou use o upload acima"
-                  />
-                </div>
-
-                <div>
-                  <label className="mb-2 block text-sm font-semibold text-slate-700">
-                    URL do vídeo
-                  </label>
-                  <input
-                    type="url"
-                    value={form.videoUrl}
-                    onChange={(event) =>
-                      setForm((prev) => ({ ...prev, videoUrl: event.target.value }))
-                    }
-                    className="w-full rounded-2xl border border-slate-300 bg-slate-50 px-4 py-3 text-sm text-slate-900 outline-none transition focus:border-blue-400 focus:bg-white"
-                    placeholder="Cole a URL do vídeo ou use o upload acima"
-                  />
-                </div>
-              </div>
-
-              <div className="grid gap-4 md:grid-cols-2">
-                <div>
-                  <label className="mb-2 block text-sm font-semibold text-slate-700">
-                    Texto do CTA
-                  </label>
-                  <input
-                    type="text"
-                    value={form.ctaLabel}
-                    onChange={(event) =>
-                      setForm((prev) => ({ ...prev, ctaLabel: event.target.value }))
-                    }
-                    className="w-full rounded-2xl border border-slate-300 bg-slate-50 px-4 py-3 text-sm text-slate-900 outline-none transition focus:border-blue-400 focus:bg-white"
-                    placeholder="Ex: Ver campanha"
-                  />
-                </div>
-
-                <div>
-                  <label className="mb-2 block text-sm font-semibold text-slate-700">
-                    Link do CTA
-                  </label>
-                  <input
-                    type="url"
-                    value={form.ctaUrl}
-                    onChange={(event) =>
-                      setForm((prev) => ({ ...prev, ctaUrl: event.target.value }))
-                    }
-                    className="w-full rounded-2xl border border-slate-300 bg-slate-50 px-4 py-3 text-sm text-slate-900 outline-none transition focus:border-blue-400 focus:bg-white"
-                    placeholder="https://..."
-                  />
-                </div>
-              </div>
-
-              <div className="grid gap-3 md:grid-cols-2">
-                <label className="flex items-center gap-3 rounded-2xl border border-slate-200 bg-slate-50 px-4 py-3 text-sm font-medium text-slate-700">
-                  <input
-                    type="checkbox"
-                    checked={form.highlight}
-                    onChange={(event) =>
-                      setForm((prev) => ({ ...prev, highlight: event.target.checked }))
-                    }
-                    className="h-4 w-4 rounded border-slate-300"
-                  />
-                  Marcar como destaque no portal
-                </label>
-
-                <div className="rounded-2xl border border-slate-200 bg-slate-50 px-4 py-3 text-sm text-slate-500">
-                  Mídia por URL: o projeto atual já publica imagem e vídeo por link
-                  sem precisar trocar storage ou backend de upload.
-                </div>
-              </div>
-
-              {formError ? (
-                <div className="rounded-2xl border border-rose-200 bg-rose-50 px-4 py-3 text-sm text-rose-700">
-                  {formError}
-                </div>
-              ) : null}
-
-              <div className="flex flex-col-reverse gap-3 pt-2 sm:flex-row sm:justify-end">
-                <button
-                  type="button"
-                  onClick={resetForm}
-                  className="rounded-2xl border border-slate-300 bg-white px-4 py-3 text-sm font-semibold text-slate-700 transition hover:bg-slate-100"
-                >
-                  Cancelar
-                </button>
-                <button
-                  type="submit"
-                  disabled={saving}
-                  className="rounded-2xl bg-blue-600 px-5 py-3 text-sm font-semibold text-white transition hover:bg-blue-700 disabled:cursor-not-allowed disabled:opacity-60"
-                >
-                  {saving
-                    ? 'Salvando...'
-                    : editingId
-                      ? 'Salvar alterações'
-                      : 'Publicar conteúdo'}
-                </button>
-              </div>
-            </form>
-          </article>
-
-          <article className="rounded-[32px] border border-slate-200 bg-white p-6 shadow-sm">
-            <div>
-              <p className="text-sm font-semibold uppercase tracking-[0.18em] text-blue-700">
-                Preview
-              </p>
-              <h2 className="mt-2 text-2xl font-bold text-slate-950">
-                Como o cliente vai ver
-              </h2>
-              <p className="mt-2 text-sm text-slate-500">
-                Preview visual do feed com imagem, vídeo, campanha e CTA.
-              </p>
-            </div>
-
-            <div className="mt-6 rounded-[32px] border border-slate-200 bg-white p-4">
-              <div className="mx-auto max-w-md">
-                <div className="mb-5 text-center">
-                  <h3 className="inline bg-[linear-gradient(180deg,transparent_58%,#fab519_58%)] px-2 text-2xl font-black text-[#343434]">
-                    Novidades do Portal
-                  </h3>
-                  <p className="mx-auto mt-3 max-w-sm text-sm leading-6 text-[#343434]/75">
-                    Formato final exibido para o cliente quando o conteúdo for publicado.
-                  </p>
-                </div>
-
-                <article className="group relative min-h-[380px] overflow-hidden rounded-[22px] bg-[#343434] shadow-[0_20px_45px_rgba(52,52,52,0.18)]">
-                  {contentPreview.coverImageUrl ? (
-                    <div
-                      className="absolute inset-0 bg-cover bg-center transition duration-700 group-hover:scale-105"
-                      style={{ backgroundImage: `url(${contentPreview.coverImageUrl})` }}
-                    />
-                  ) : (
-                    <div className="absolute inset-0 flex items-center justify-center bg-[linear-gradient(135deg,#343434_0%,#ec3139_52%,#fab519_100%)] text-white/80">
-                      <div className="text-center">
-                        <ImagePlus className="mx-auto h-10 w-10" />
-                        <p className="mt-3 text-sm font-semibold">Preview de foto/capa</p>
-                      </div>
-                    </div>
-                  )}
-
-                  <div className="absolute inset-0 bg-[linear-gradient(180deg,rgba(52,52,52,0.20)_0%,rgba(52,52,52,0.50)_45%,rgba(0,0,0,0.78)_100%)]" />
-
-                  <div className="relative flex min-h-[380px] flex-col justify-end p-6 text-white">
-                    <div className="mb-5 flex items-center justify-between gap-3">
-                      <span
-                        className={`inline-flex rounded-full px-4 py-2 text-sm font-extrabold shadow-[0_10px_24px_rgba(0,0,0,0.18)] ${getTypeClass(
-                          contentPreview.type,
-                        )}`}
-                      >
-                        {getTypeLabel(contentPreview.type)}
-                      </span>
-
-                      <span className="rounded-full bg-white/18 px-3 py-1 text-xs font-bold text-white backdrop-blur">
-                        {contentPreview.isPublished ? 'Publicado' : 'Rascunho'}
-                      </span>
-                    </div>
-
-                    <h3 className="max-w-[18rem] text-2xl font-black leading-tight drop-shadow md:text-[1.65rem]">
-                      {contentPreview.title}
-                    </h3>
-                    <p className="mt-3 line-clamp-2 max-w-[18rem] text-sm font-semibold leading-6 text-white/88">
-                      {contentPreview.summary}
-                    </p>
-
-                    <div className="mt-6 flex items-center justify-between gap-4">
-                      {contentPreview.ctaUrl || contentPreview.videoUrl ? (
-                        <a
-                          href={contentPreview.ctaUrl || contentPreview.videoUrl}
-                          target="_blank"
-                          rel="noreferrer"
-                          className="inline-flex items-center gap-2 text-base font-extrabold text-white transition hover:text-[#fab519]"
-                        >
-                          Saiba mais
-                          <ArrowRight className="h-5 w-5 -rotate-45" />
-                        </a>
-                      ) : (
-                        <span className="inline-flex items-center gap-2 text-base font-extrabold text-white">
-                          Saiba mais
-                          <ArrowRight className="h-5 w-5 -rotate-45" />
-                        </span>
-                      )}
-
-                      {contentPreview.highlight ? (
-                        <span className="rounded-full bg-white/18 px-3 py-1 text-xs font-bold text-white backdrop-blur">
-                          Destaque
-                        </span>
-                      ) : null}
-                    </div>
-                  </div>
-                </article>
-              </div>
-            </div>
-          </article>
-        </section>
-
-        <section className="rounded-[32px] border border-slate-200 bg-white p-6 shadow-sm">
-          <Tabs defaultValue="library" className="gap-6">
-            <div className="flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
-              <div>
-                <p className="text-sm font-semibold uppercase tracking-[0.18em] text-blue-700">
-                  Biblioteca
-                </p>
-                <h2 className="mt-2 text-2xl font-bold text-slate-950">
-                  Conteúdos do marketing
-                </h2>
-              </div>
-              <TabsList variant="line" className="w-fit">
-                <TabsTrigger value="library">Todos</TabsTrigger>
-                <TabsTrigger value="highlights">Destaques</TabsTrigger>
-              </TabsList>
-            </div>
-
-            <TabsContent value="library">
-              {loading ? (
-                <div className="p-10 text-center text-sm text-slate-500">
-                  Carregando conteúdos...
-                </div>
-              ) : pageError ? (
-                <div className="p-10 text-center text-sm text-rose-600">{pageError}</div>
-              ) : contents.length === 0 ? (
-                <div className="p-10 text-center text-sm text-slate-500">
-                  Nenhum conteúdo cadastrado.
-                </div>
-              ) : (
-                <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-3">
-                  {contents.map((item) => (
-                    <article
-                      key={item.id}
-                      className="overflow-hidden rounded-[28px] border border-slate-200 bg-white shadow-sm"
-                    >
-                      <div className="relative">
-                        {item.coverImageUrl ? (
-                          <div
-                            className="h-52 bg-cover bg-center"
-                            style={{ backgroundImage: `url(${item.coverImageUrl})` }}
-                          />
-                        ) : (
-                          <div className="flex h-52 items-center justify-center bg-[linear-gradient(135deg,#dbeafe_0%,#f8fafc_45%,#e9d5ff_100%)] text-slate-400">
-                            <ImagePlus className="h-8 w-8" />
-                          </div>
-                        )}
-
-                        <div className="absolute left-4 top-4 flex flex-wrap gap-2">
-                          <span
-                            className={`rounded-full px-3 py-1 text-xs font-semibold ${getTypeClass(
-                              item.type,
-                            )}`}
-                          >
-                            {getTypeLabel(item.type)}
-                          </span>
-                          <span
-                            className={`rounded-full px-3 py-1 text-xs font-semibold ${
-                              item.isPublished
-                                ? 'bg-emerald-100 text-emerald-700'
-                                : 'bg-zinc-200 text-zinc-700'
-                            }`}
-                          >
-                            {item.isPublished ? 'Publicado' : 'Rascunho'}
-                          </span>
-                          {item.highlight ? (
-                            <span className="rounded-full bg-amber-100 px-3 py-1 text-xs font-semibold text-amber-700">
-                              Destaque
-                            </span>
-                          ) : null}
-                        </div>
-                      </div>
-
-                      <div className="p-5">
-                        <p className="text-xs uppercase tracking-[0.18em] text-slate-400">
-                          {item.campaignName || 'Portal do cliente'}
-                        </p>
-                        <h3 className="mt-3 text-xl font-bold text-slate-950">
-                          {item.title}
-                        </h3>
-                        <p className="mt-2 text-sm leading-6 text-slate-500">
-                          {item.summary}
-                        </p>
-                        <p className="mt-3 text-xs uppercase tracking-[0.18em] text-slate-400">
-                          Atualizado em {formatDate(item.updatedAt)}
-                        </p>
-
-                        <div className="mt-5 flex flex-wrap gap-2">
-                          {item.videoUrl ? (
-                            <a
-                              href={item.videoUrl}
-                              target="_blank"
-                              rel="noreferrer"
-                              className="inline-flex items-center gap-2 rounded-2xl border border-violet-200 bg-violet-50 px-3 py-2 text-xs font-semibold text-violet-700 transition hover:bg-violet-100"
-                            >
-                              <Film className="h-4 w-4" />
-                              Vídeo
-                            </a>
-                          ) : null}
-                          {item.ctaUrl && item.ctaLabel ? (
-                            <a
-                              href={item.ctaUrl}
-                              target="_blank"
-                              rel="noreferrer"
-                              className="inline-flex items-center gap-2 rounded-2xl border border-blue-200 bg-blue-50 px-3 py-2 text-xs font-semibold text-blue-700 transition hover:bg-blue-100"
-                            >
-                              <Rocket className="h-4 w-4" />
-                              {item.ctaLabel}
-                            </a>
-                          ) : null}
-                        </div>
-
-                        <div className="mt-5 flex flex-wrap gap-2">
-                          <button
-                            type="button"
-                            onClick={() => handleEdit(item)}
-                            className="inline-flex items-center gap-2 rounded-2xl border border-slate-300 bg-white px-3 py-2 text-xs font-semibold text-slate-700 transition hover:bg-slate-100"
-                          >
-                            <Pencil className="h-4 w-4" />
-                            Editar
-                          </button>
-                          <button
-                            type="button"
-                            onClick={() => setDeleteTarget(item)}
-                            className="inline-flex items-center gap-2 rounded-2xl border border-rose-200 bg-rose-50 px-3 py-2 text-xs font-semibold text-rose-700 transition hover:bg-rose-100"
-                          >
-                            <Trash2 className="h-4 w-4" />
-                            Excluir
-                          </button>
-                        </div>
-                      </div>
-                    </article>
-                  ))}
-                </div>
-              )}
-            </TabsContent>
-
-            <TabsContent value="highlights">
-              {highlightedContents.length === 0 ? (
-                <div className="rounded-[24px] border border-slate-200 bg-slate-50 p-10 text-center text-sm text-slate-500">
-                  Nenhum destaque configurado ainda.
-                </div>
-              ) : (
-                <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-3">
-                  {highlightedContents.map((item) => (
-                    <article
-                      key={item.id}
-                      className="rounded-[28px] border border-amber-200 bg-[linear-gradient(180deg,#fffdf5_0%,#ffffff_100%)] p-5 shadow-sm"
-                    >
-                      <div className="flex items-center gap-2 text-amber-700">
-                        <Sparkles className="h-4 w-4" />
-                        <span className="text-xs font-semibold uppercase tracking-[0.18em]">
-                          Destaque do portal
-                        </span>
-                      </div>
-                      <h3 className="mt-3 text-xl font-bold text-slate-950">
-                        {item.title}
-                      </h3>
-                      <p className="mt-2 text-sm leading-6 text-slate-500">
-                        {item.summary}
-                      </p>
-                      <p className="mt-4 text-xs uppercase tracking-[0.18em] text-slate-400">
-                        {item.campaignName || 'Campanha em destaque'}
-                      </p>
-                    </article>
-                  ))}
-                </div>
-              )}
-            </TabsContent>
+        <CrmSection>
+          <Tabs
+            value={tab}
+            onChange={(_, value) => setTab(value)}
+            sx={{
+              px: 3,
+              borderBottom: '1px solid',
+              borderColor: 'divider',
+            }}
+          >
+            <Tab value="editor" label="Editor" />
+            <Tab value="library" label="Biblioteca" />
+            <Tab value="highlights" label="Destaques" />
           </Tabs>
-        </section>
-      </div>
 
-      <ConfirmDialog
-        open={!!deleteTarget}
-        title="Excluir conteúdo"
-        description={`Deseja remover "${deleteTarget?.title ?? ''}"?`}
-        confirmLabel="Excluir"
-        cancelLabel="Cancelar"
-        onCancel={() => setDeleteTarget(null)}
-        onConfirm={handleDeleteConfirmed}
-        tone="danger"
-      />
+          {loading ? (
+            <Box sx={{ minHeight: 320, display: 'grid', placeItems: 'center' }}>
+              <CircularProgress />
+            </Box>
+          ) : null}
 
-      <FeedbackToast
+          {!loading && tab === 'editor' ? (
+            <Box
+              sx={{
+                display: 'grid',
+                gap: 3,
+                p: { xs: 2, md: 3 },
+                gridTemplateColumns: {
+                  xs: '1fr',
+                  xl: '1.1fr .9fr',
+                },
+              }}
+            >
+              <Paper
+                elevation={0}
+                component="form"
+                onSubmit={handleSubmit}
+                sx={{
+                  p: 3,
+                  border: '1px solid',
+                  borderColor: 'divider',
+                  borderRadius: '14px',
+                }}
+              >
+                <Stack spacing={3}>
+                  <Stack
+                    direction={{ xs: 'column', sm: 'row' }}
+                    spacing={2}
+                    sx={{
+                      alignItems: { xs: 'stretch', sm: 'center' },
+                      justifyContent: 'space-between',
+                    }}
+                  >
+                    <Box>
+                      <Typography
+                        sx={{
+                          color: crmPalette.orangeDark,
+                          fontSize: 12,
+                          fontWeight: 900,
+                          textTransform: 'uppercase',
+                          letterSpacing: '.16em',
+                        }}
+                      >
+                        Editor
+                      </Typography>
+                      <Typography
+                        component="h2"
+                        sx={{ mt: 0.5, fontSize: 24, fontWeight: 900 }}
+                      >
+                        {editingId ? 'Editar campanha' : 'Criar conteúdo'}
+                      </Typography>
+                    </Box>
+
+                    <Button
+                      type="button"
+                      variant="outlined"
+                      startIcon={<Plus size={18} />}
+                      onClick={resetForm}
+                      sx={{ borderRadius: '10px' }}
+                    >
+                      Novo conteúdo
+                    </Button>
+                  </Stack>
+
+                  <Box
+                    sx={{
+                      display: 'grid',
+                      gap: 2,
+                      gridTemplateColumns: {
+                        xs: '1fr',
+                        md: 'repeat(3, minmax(0, 1fr))',
+                      },
+                    }}
+                  >
+                    {(['NOTICIA', 'INFORMACAO', 'VLOG'] as ContentType[]).map(
+                      (type) => (
+                        <Paper
+                          key={type}
+                          elevation={0}
+                          component="button"
+                          type="button"
+                          onClick={() => applyTemplate(type)}
+                          sx={{
+                            p: 2,
+                            textAlign: 'left',
+                            border: '1px solid',
+                            borderColor:
+                              form.type === type
+                                ? crmPalette.orange
+                                : 'divider',
+                            borderRadius: '12px',
+                            bgcolor:
+                              form.type === type ? '#fff7ed' : '#f8fafc',
+                            cursor: 'pointer',
+                          }}
+                        >
+                          <Stack direction="row" spacing={1.25}>
+                            {type === 'NOTICIA' ? (
+                              <LayoutTemplate size={18} />
+                            ) : type === 'INFORMACAO' ? (
+                              <Rocket size={18} />
+                            ) : (
+                              <Film size={18} />
+                            )}
+                            <Box>
+                              <Typography sx={{ fontWeight: 800 }}>
+                                {getTypeLabel(type)}
+                              </Typography>
+                              <Typography
+                                sx={{
+                                  mt: 0.5,
+                                  color: 'text.secondary',
+                                  fontSize: 13,
+                                }}
+                              >
+                                {getTypeHelper(type)}
+                              </Typography>
+                            </Box>
+                          </Stack>
+                        </Paper>
+                      ),
+                    )}
+                  </Box>
+
+                  <Box
+                    sx={{
+                      display: 'grid',
+                      gap: 2,
+                      gridTemplateColumns: { xs: '1fr', md: '1fr 1fr' },
+                    }}
+                  >
+                    <TextField
+                      label="Título"
+                      value={form.title}
+                      onChange={(event) =>
+                        setForm((prev) => ({
+                          ...prev,
+                          title: event.target.value,
+                        }))
+                      }
+                      placeholder="Ex: Nova campanha de atendimento"
+                      sx={fieldSx}
+                    />
+                    <TextField
+                      label="Nome da campanha"
+                      value={form.campaignName}
+                      onChange={(event) =>
+                        setForm((prev) => ({
+                          ...prev,
+                          campaignName: event.target.value,
+                        }))
+                      }
+                      placeholder="Ex: Maio em movimento"
+                      sx={fieldSx}
+                    />
+                  </Box>
+
+                  <TextField
+                    label="Resumo"
+                    value={form.summary}
+                    onChange={(event) =>
+                      setForm((prev) => ({
+                        ...prev,
+                        summary: event.target.value,
+                      }))
+                    }
+                    multiline
+                    minRows={3}
+                    sx={fieldSx}
+                  />
+
+                  <TextField
+                    label="Conteúdo"
+                    value={form.body}
+                    onChange={(event) =>
+                      setForm((prev) => ({ ...prev, body: event.target.value }))
+                    }
+                    multiline
+                    minRows={7}
+                    sx={fieldSx}
+                  />
+
+                  <Box
+                    sx={{
+                      display: 'grid',
+                      gap: 2,
+                      gridTemplateColumns: { xs: '1fr', md: '1fr 1fr' },
+                    }}
+                  >
+                    <FormControl sx={fieldSx}>
+                      <InputLabel>Tipo</InputLabel>
+                      <Select
+                        label="Tipo"
+                        value={form.type}
+                        onChange={(event) =>
+                          setForm((prev) => ({
+                            ...prev,
+                            type: event.target.value as ContentType,
+                          }))
+                        }
+                      >
+                        <MenuItem value="NOTICIA">Notícia</MenuItem>
+                        <MenuItem value="INFORMACAO">Campanha</MenuItem>
+                        <MenuItem value="VLOG">Vídeo</MenuItem>
+                      </Select>
+                    </FormControl>
+
+                    <FormControl sx={fieldSx}>
+                      <InputLabel>Status</InputLabel>
+                      <Select
+                        label="Status"
+                        value={form.isPublished ? 'published' : 'draft'}
+                        onChange={(event) =>
+                          setForm((prev) => ({
+                            ...prev,
+                            isPublished: event.target.value === 'published',
+                          }))
+                        }
+                      >
+                        <MenuItem value="draft">Rascunho</MenuItem>
+                        <MenuItem value="published">Publicado</MenuItem>
+                      </Select>
+                    </FormControl>
+                  </Box>
+
+                  <Box
+                    sx={{
+                      display: 'grid',
+                      gap: 2,
+                      gridTemplateColumns: { xs: '1fr', md: '1fr 1fr' },
+                    }}
+                  >
+                    <UploadPanel
+                      title="Importar imagem do computador"
+                      description="A capa será preenchida automaticamente."
+                      loading={uploadingImage}
+                      ready={Boolean(form.coverImageUrl)}
+                      accept="image/*"
+                      buttonLabel="Selecionar imagem"
+                      loadingLabel="Enviando imagem..."
+                      icon={<ImagePlus size={18} />}
+                      onChange={(file) => handleMediaUpload(file, 'image')}
+                    />
+
+                    <UploadPanel
+                      title="Importar vídeo do computador"
+                      description="Opcional para conteúdos em vídeo."
+                      loading={uploadingVideo}
+                      ready={Boolean(form.videoUrl)}
+                      accept="video/*"
+                      buttonLabel="Selecionar vídeo"
+                      loadingLabel="Enviando vídeo..."
+                      icon={<Film size={18} />}
+                      variant="outlined"
+                      onChange={(file) => handleMediaUpload(file, 'video')}
+                    />
+                  </Box>
+
+                  <Box
+                    sx={{
+                      display: 'grid',
+                      gap: 2,
+                      gridTemplateColumns: { xs: '1fr', md: '1fr 1fr' },
+                    }}
+                  >
+                    <TextField
+                      label="URL da foto/capa"
+                      type="url"
+                      value={form.coverImageUrl}
+                      onChange={(event) =>
+                        setForm((prev) => ({
+                          ...prev,
+                          coverImageUrl: event.target.value,
+                        }))
+                      }
+                      sx={fieldSx}
+                    />
+                    <TextField
+                      label="URL do vídeo"
+                      type="url"
+                      value={form.videoUrl}
+                      onChange={(event) =>
+                        setForm((prev) => ({
+                          ...prev,
+                          videoUrl: event.target.value,
+                        }))
+                      }
+                      sx={fieldSx}
+                    />
+                    <TextField
+                      label="Texto do CTA"
+                      value={form.ctaLabel}
+                      onChange={(event) =>
+                        setForm((prev) => ({
+                          ...prev,
+                          ctaLabel: event.target.value,
+                        }))
+                      }
+                      sx={fieldSx}
+                    />
+                    <TextField
+                      label="Link do CTA"
+                      type="url"
+                      value={form.ctaUrl}
+                      onChange={(event) =>
+                        setForm((prev) => ({
+                          ...prev,
+                          ctaUrl: event.target.value,
+                        }))
+                      }
+                      sx={fieldSx}
+                    />
+                  </Box>
+
+                  <FormControlLabel
+                    control={
+                      <Switch
+                        checked={form.highlight}
+                        onChange={(event) =>
+                          setForm((prev) => ({
+                            ...prev,
+                            highlight: event.target.checked,
+                          }))
+                        }
+                      />
+                    }
+                    label="Marcar como destaque no portal"
+                  />
+
+                  {formError ? <Alert severity="error">{formError}</Alert> : null}
+
+                  <Stack
+                    direction={{ xs: 'column-reverse', sm: 'row' }}
+                    spacing={1.5}
+                    sx={{ justifyContent: 'flex-end' }}
+                  >
+                    <Button
+                      type="button"
+                      variant="outlined"
+                      onClick={resetForm}
+                      sx={{ borderRadius: '10px' }}
+                    >
+                      Cancelar
+                    </Button>
+                    <Button
+                      type="submit"
+                      variant="contained"
+                      disabled={saving}
+                      sx={{ borderRadius: '10px' }}
+                    >
+                      {saving
+                        ? 'Salvando...'
+                        : editingId
+                          ? 'Salvar alterações'
+                          : 'Publicar conteúdo'}
+                    </Button>
+                  </Stack>
+                </Stack>
+              </Paper>
+
+              <PreviewPanel contentPreview={contentPreview} />
+            </Box>
+          ) : null}
+
+          {!loading && tab === 'library' ? (
+            <ContentLibrary
+              contents={contents}
+              onEdit={handleEdit}
+              onDelete={setDeleteTarget}
+            />
+          ) : null}
+
+          {!loading && tab === 'highlights' ? (
+            <Highlights contents={highlightedContents} />
+          ) : null}
+        </CrmSection>
+      </CrmPageShell>
+
+      <Dialog open={!!deleteTarget} onClose={() => setDeleteTarget(null)}>
+        <DialogTitle>Excluir conteúdo</DialogTitle>
+        <DialogContent>
+          <Typography>Deseja remover "{deleteTarget?.title ?? ''}"?</Typography>
+        </DialogContent>
+        <DialogActions>
+          <Button onClick={() => setDeleteTarget(null)}>Cancelar</Button>
+          <Button color="error" variant="contained" onClick={handleDeleteConfirmed}>
+            Excluir
+          </Button>
+        </DialogActions>
+      </Dialog>
+
+      <Snackbar
         open={!!successMessage}
-        title="Marketing atualizado"
-        message={successMessage}
+        autoHideDuration={5000}
         onClose={() => setSuccessMessage('')}
-        variant="success"
-      />
+      >
+        <Alert
+          severity="success"
+          variant="filled"
+          onClose={() => setSuccessMessage('')}
+        >
+          <AlertTitle>Marketing atualizado</AlertTitle>
+          {successMessage}
+        </Alert>
+      </Snackbar>
     </AppLayout>
+  );
+}
+
+type UploadPanelProps = {
+  title: string;
+  description: string;
+  loading: boolean;
+  ready: boolean;
+  accept: string;
+  buttonLabel: string;
+  loadingLabel: string;
+  icon: React.ReactNode;
+  variant?: 'contained' | 'outlined';
+  onChange: (file: File | undefined) => void;
+};
+
+function UploadPanel({
+  title,
+  description,
+  loading,
+  ready,
+  accept,
+  buttonLabel,
+  loadingLabel,
+  icon,
+  variant = 'contained',
+  onChange,
+}: UploadPanelProps) {
+  return (
+    <Paper
+      elevation={0}
+      sx={{
+        p: 2,
+        border: '1px dashed',
+        borderColor: 'divider',
+        borderRadius: '12px',
+        bgcolor: '#f8fafc',
+      }}
+    >
+      <Typography sx={{ fontWeight: 800 }}>{title}</Typography>
+      <Typography sx={{ mt: 0.5, color: 'text.secondary' }}>
+        {description}
+      </Typography>
+      <Button
+        component="label"
+        variant={variant}
+        startIcon={icon}
+        sx={{ mt: 2, borderRadius: '10px' }}
+      >
+        {loading ? loadingLabel : buttonLabel}
+        <Box
+          component="input"
+          type="file"
+          accept={accept}
+          sx={{ display: 'none' }}
+          onChange={(event) => onChange(event.target.files?.[0])}
+        />
+      </Button>
+      {ready ? (
+        <FormHelperText sx={{ color: 'success.main' }}>
+          Arquivo pronto para uso.
+        </FormHelperText>
+      ) : null}
+    </Paper>
+  );
+}
+
+function PreviewPanel({
+  contentPreview,
+}: {
+  contentPreview: FormState & {
+    title: string;
+    summary: string;
+    body: string;
+    campaignName: string;
+    ctaLabel: string;
+  };
+}) {
+  const previewHref = contentPreview.ctaUrl || contentPreview.videoUrl;
+
+  return (
+    <Paper
+      elevation={0}
+      sx={{
+        p: 3,
+        border: '1px solid',
+        borderColor: 'divider',
+        borderRadius: '14px',
+      }}
+    >
+      <Typography
+        sx={{
+          color: crmPalette.orangeDark,
+          fontSize: 12,
+          fontWeight: 900,
+          textTransform: 'uppercase',
+          letterSpacing: '.16em',
+        }}
+      >
+        Preview
+      </Typography>
+      <Typography component="h2" sx={{ mt: 0.5, fontSize: 24, fontWeight: 900 }}>
+        Como o cliente vai ver
+      </Typography>
+
+      <Paper
+        elevation={0}
+        sx={{
+          mt: 3,
+          position: 'relative',
+          minHeight: 520,
+          overflow: 'hidden',
+          borderRadius: '14px',
+          bgcolor: '#343434',
+          backgroundImage: contentPreview.coverImageUrl
+            ? `linear-gradient(180deg,rgba(52,52,52,.10),rgba(0,0,0,.78)),url(${contentPreview.coverImageUrl})`
+            : 'linear-gradient(135deg,#343434 0%,#ec3139 52%,#fab519 100%)',
+          backgroundSize: 'cover',
+          backgroundPosition: 'center',
+        }}
+      >
+        <Box
+          sx={{
+            position: 'absolute',
+            inset: 0,
+            display: 'flex',
+            flexDirection: 'column',
+            justifyContent: 'flex-end',
+            p: 3,
+            color: '#fff',
+          }}
+        >
+          <Stack direction="row" spacing={1} sx={{ mb: 2, flexWrap: 'wrap' }}>
+            <Chip
+              label={getTypeLabel(contentPreview.type)}
+              sx={{
+                ...getTypeChipSx(contentPreview.type),
+                fontWeight: 900,
+              }}
+            />
+            <Chip
+              label={contentPreview.isPublished ? 'Publicado' : 'Rascunho'}
+              sx={{ bgcolor: 'rgba(255,255,255,.2)', color: '#fff' }}
+            />
+            {contentPreview.highlight ? (
+              <Chip
+                label="Destaque"
+                sx={{ bgcolor: 'rgba(255,255,255,.2)', color: '#fff' }}
+              />
+            ) : null}
+          </Stack>
+
+          <Typography
+            component="h3"
+            sx={{
+              maxWidth: 420,
+              fontSize: { xs: 28, md: 34 },
+              lineHeight: 1.05,
+              fontWeight: 900,
+            }}
+          >
+            {contentPreview.title}
+          </Typography>
+          <Typography
+            sx={{
+              mt: 1.5,
+              maxWidth: 440,
+              color: 'rgba(255,255,255,.86)',
+              fontWeight: 700,
+            }}
+          >
+            {contentPreview.summary}
+          </Typography>
+
+          {previewHref ? (
+            <Button
+              href={previewHref}
+              target="_blank"
+              rel="noreferrer"
+              endIcon={<ArrowRight size={18} />}
+              sx={{
+                mt: 3,
+                alignSelf: 'flex-start',
+                color: '#fff',
+                fontWeight: 900,
+                '&:hover': {
+                  bgcolor: 'rgba(255,255,255,.12)',
+                },
+              }}
+            >
+              {contentPreview.ctaLabel}
+            </Button>
+          ) : (
+            <Button
+              component="span"
+              endIcon={<ArrowRight size={18} />}
+              sx={{
+                mt: 3,
+                alignSelf: 'flex-start',
+                color: '#fff',
+                fontWeight: 900,
+                '&:hover': {
+                  bgcolor: 'rgba(255,255,255,.12)',
+                },
+              }}
+            >
+              {contentPreview.ctaLabel}
+            </Button>
+          )}
+        </Box>
+      </Paper>
+    </Paper>
+  );
+}
+
+function ContentLibrary({
+  contents,
+  onEdit,
+  onDelete,
+}: {
+  contents: PortalContent[];
+  onEdit: (content: PortalContent) => void;
+  onDelete: (content: PortalContent) => void;
+}) {
+  if (contents.length === 0) {
+    return (
+      <Box sx={{ p: { xs: 2, md: 3 } }}>
+        <Alert severity="info">Nenhum conteúdo cadastrado.</Alert>
+      </Box>
+    );
+  }
+
+  return (
+    <Box sx={{ p: { xs: 2, md: 3 } }}>
+      <Box
+        sx={{
+          display: 'grid',
+          gap: 2,
+          gridTemplateColumns: {
+            xs: '1fr',
+            md: 'repeat(2, minmax(0, 1fr))',
+            xl: 'repeat(3, minmax(0, 1fr))',
+          },
+        }}
+      >
+        {contents.map((item) => (
+          <Paper
+            key={item.id}
+            elevation={0}
+            sx={{
+              overflow: 'hidden',
+              border: '1px solid',
+              borderColor: 'divider',
+              borderRadius: '14px',
+              bgcolor: '#fff',
+            }}
+          >
+            <Box
+              sx={{
+                height: 210,
+                bgcolor: '#f8fafc',
+                backgroundImage: item.coverImageUrl
+                  ? `url(${item.coverImageUrl})`
+                  : 'linear-gradient(135deg,#f8fafc,#fff7d6)',
+                backgroundSize: 'cover',
+                backgroundPosition: 'center',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+              }}
+            >
+              {!item.coverImageUrl ? (
+                <ImagePlus size={36} color="#94a3b8" />
+              ) : null}
+            </Box>
+
+            <Stack spacing={2} sx={{ p: 2.5 }}>
+              <Stack direction="row" spacing={1} sx={{ flexWrap: 'wrap' }}>
+                <Chip
+                  size="small"
+                  label={getTypeLabel(item.type)}
+                  sx={getTypeChipSx(item.type)}
+                />
+                <Chip
+                  size="small"
+                  label={item.isPublished ? 'Publicado' : 'Rascunho'}
+                  color={item.isPublished ? 'success' : 'default'}
+                />
+                {item.highlight ? (
+                  <Chip size="small" label="Destaque" color="warning" />
+                ) : null}
+              </Stack>
+
+              <Box>
+                <Typography
+                  sx={{
+                    color: 'text.secondary',
+                    fontSize: 12,
+                    fontWeight: 800,
+                    textTransform: 'uppercase',
+                  }}
+                >
+                  {item.campaignName || 'Portal do cliente'}
+                </Typography>
+                <Typography
+                  component="h3"
+                  sx={{ mt: 1, fontSize: 20, fontWeight: 900 }}
+                >
+                  {item.title}
+                </Typography>
+                <Typography sx={{ mt: 1, color: 'text.secondary' }}>
+                  {item.summary}
+                </Typography>
+                <Typography sx={{ mt: 1.5, color: 'text.disabled', fontSize: 12 }}>
+                  Atualizado em {formatDate(item.updatedAt)}
+                </Typography>
+              </Box>
+
+              <Divider />
+
+              <Stack direction="row" spacing={1} sx={{ flexWrap: 'wrap' }}>
+                {item.videoUrl ? (
+                  <Button
+                    href={item.videoUrl}
+                    target="_blank"
+                    rel="noreferrer"
+                    size="small"
+                    variant="outlined"
+                    startIcon={<Film size={16} />}
+                    sx={{ borderRadius: '10px' }}
+                  >
+                    Vídeo
+                  </Button>
+                ) : null}
+                {item.ctaUrl && item.ctaLabel ? (
+                  <Button
+                    href={item.ctaUrl}
+                    target="_blank"
+                    rel="noreferrer"
+                    size="small"
+                    variant="outlined"
+                    startIcon={<Rocket size={16} />}
+                    sx={{ borderRadius: '10px' }}
+                  >
+                    {item.ctaLabel}
+                  </Button>
+                ) : null}
+                <Button
+                  size="small"
+                  variant="outlined"
+                  startIcon={<Pencil size={16} />}
+                  onClick={() => onEdit(item)}
+                  sx={{ borderRadius: '10px' }}
+                >
+                  Editar
+                </Button>
+                <Button
+                  size="small"
+                  color="error"
+                  variant="outlined"
+                  startIcon={<Trash2 size={16} />}
+                  onClick={() => onDelete(item)}
+                  sx={{ borderRadius: '10px' }}
+                >
+                  Excluir
+                </Button>
+              </Stack>
+            </Stack>
+          </Paper>
+        ))}
+      </Box>
+    </Box>
+  );
+}
+
+function Highlights({ contents }: { contents: PortalContent[] }) {
+  if (contents.length === 0) {
+    return (
+      <Box sx={{ p: { xs: 2, md: 3 } }}>
+        <Alert severity="info">Nenhum destaque configurado ainda.</Alert>
+      </Box>
+    );
+  }
+
+  return (
+    <Box sx={{ p: { xs: 2, md: 3 } }}>
+      <Box
+        sx={{
+          display: 'grid',
+          gap: 2,
+          gridTemplateColumns: {
+            xs: '1fr',
+            md: 'repeat(2, minmax(0, 1fr))',
+            xl: 'repeat(3, minmax(0, 1fr))',
+          },
+        }}
+      >
+        {contents.map((item) => (
+          <Paper
+            key={item.id}
+            elevation={0}
+            sx={{
+              p: 2.5,
+              border: '1px solid #fde68a',
+              borderRadius: '14px',
+              bgcolor: '#fffdf5',
+            }}
+          >
+            <Stack direction="row" spacing={1.5} sx={{ alignItems: 'center' }}>
+              <Avatar
+                variant="rounded"
+                sx={{
+                  bgcolor: '#fff7d6',
+                  color: '#b45309',
+                  borderRadius: '10px',
+                }}
+              >
+                <Sparkles size={20} />
+              </Avatar>
+              <Box>
+                <Typography sx={{ fontWeight: 900 }}>{item.title}</Typography>
+                <Typography sx={{ color: 'text.secondary', fontSize: 13 }}>
+                  {item.campaignName || 'Campanha em destaque'}
+                </Typography>
+              </Box>
+            </Stack>
+            <Typography sx={{ mt: 2, color: 'text.secondary' }}>
+              {item.summary}
+            </Typography>
+          </Paper>
+        ))}
+      </Box>
+    </Box>
   );
 }

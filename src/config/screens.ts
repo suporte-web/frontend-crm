@@ -15,7 +15,9 @@ export type ScreenKey =
   | 'suppliers'
   | 'users'
   | 'marketing'
-  | 'logs';
+  | 'siteRequests'
+  | 'logs'
+  | 'entregas-por-placas';
 
 export type ProfilePermissionKey = ScreenKey | 'virtualAssistant';
 
@@ -42,7 +44,7 @@ export const appScreens: AppScreen[] = [
   {
     key: 'bi',
     href: '/bi',
-    label: 'BI Comercial',
+    label: 'Funil de Vendas',
     roles: ['ADMIN', 'GESTAO', 'COMERCIAL'],
   },
   {
@@ -50,13 +52,25 @@ export const appScreens: AppScreen[] = [
     href: '/entregas',
     label: 'Entregas',
     roles: ['ADMIN', 'GESTAO', 'COMERCIAL', 'OPERACAO', 'MARKETING', 'CLIENTE'],
+
+
   },
   {
     key: 'trackings',
     href: '/rastreamentos',
     label: 'Rastreamento',
-    roles: ['ADMIN', 'GESTAO', 'COMERCIAL', 'OPERACAO', 'MARKETING', 'CLIENTE'],
+    roles: ['ADMIN', 'GESTAO', 'COMERCIAL', 'OPERACAO','CLIENTE'],
   },
+
+    {
+
+      key: 'entregas-por-placas',
+      href: '/entregas-por-placas',
+      label: 'Entregas por Placas',
+      roles: ['ADMIN', 'GESTAO', 'COMERCIAL', 'OPERACAO','CLIENTE'],
+
+    },
+
   {
     key: 'quotes',
     href: '/cotacoes',
@@ -114,7 +128,13 @@ export const appScreens: AppScreen[] = [
   {
     key: 'marketing',
     href: '/marketing',
-    label: 'Marketing',
+    label: 'Criação de conteúdo',
+    roles: ['ADMIN', 'GESTAO', 'MARKETING'],
+  },
+  {
+    key: 'siteRequests',
+    href: '/solicitacoes-site',
+    label: 'Fila do site',
     roles: ['ADMIN', 'GESTAO', 'MARKETING'],
   },
   {

@@ -152,7 +152,7 @@ function ResetPasswordContent() {
         <Stack spacing={1.75}>
           <Box
             component="img"
-            src="/logopizzatto.png"
+            src="/imagem/logopizzatto.png"
             alt="Pizzattolog"
             sx={{
               width: 176,

@@ -14,6 +14,7 @@ export function getLeadSourceLabel(source?: string | null) {
     manual: 'Manual',
     import_csv: 'Importação CSV',
     whatsapp: 'WhatsApp',
+    site: 'Site',
   };
 
   if (!source) {
@@ -28,6 +29,7 @@ export function getLeadSourceBadgeClass(source?: string | null) {
     manual: 'bg-blue-100 text-blue-700',
     import_csv: 'bg-emerald-100 text-emerald-700',
     whatsapp: 'bg-green-100 text-green-700',
+    site: 'bg-amber-100 text-amber-800',
   };
 
   return classes[source ?? ''] ?? 'bg-slate-100 text-slate-700';

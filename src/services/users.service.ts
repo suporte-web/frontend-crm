@@ -76,6 +76,15 @@ export async function updateUser(
   return handleResponse<User>(response);
 }
 
+export async function resetUserPassword(id: string): Promise<User> {
+  const response = await fetch(`${API_URL}/users/${id}/reset-password`, {
+    method: 'PATCH',
+    headers: getAuthHeaders(),
+  });
+
+  return handleResponse<User>(response);
+}
+
 export async function deleteUser(id: string): Promise<{ message: string }> {
   const response = await fetch(`${API_URL}/users/${id}`, {
     method: 'DELETE',

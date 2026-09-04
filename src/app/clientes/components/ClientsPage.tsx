@@ -4,7 +4,6 @@ import Link from "next/link";
 import { useEffect, useMemo, useState } from "react";
 
 import Alert from "@mui/material/Alert";
-import Avatar from "@mui/material/Avatar";
 import Box from "@mui/material/Box";
 import Button from "@mui/material/Button";
 import Chip from "@mui/material/Chip";
@@ -17,14 +16,9 @@ import Divider from "@mui/material/Divider";
 import IconButton from "@mui/material/IconButton";
 import InputAdornment from "@mui/material/InputAdornment";
 import MenuItem from "@mui/material/MenuItem";
+import Pagination from "@mui/material/Pagination";
 import Paper from "@mui/material/Paper";
 import Stack from "@mui/material/Stack";
-import Table from "@mui/material/Table";
-import TableBody from "@mui/material/TableBody";
-import TableCell from "@mui/material/TableCell";
-import TableContainer from "@mui/material/TableContainer";
-import TableHead from "@mui/material/TableHead";
-import TableRow from "@mui/material/TableRow";
 import TextField from "@mui/material/TextField";
 import Typography from "@mui/material/Typography";
 
@@ -37,9 +31,14 @@ import {
 } from "@/components/mui/crm-primitives";
 
 import {
+  ClientForm,
+  emptyClientContact,
+  type ClientContactForm,
+  type ClientFormData,
+} from "@/components/clientes/client-form";
+import {
   Download,
-  Eye,
-  FileText,
+  ArrowRight,
   PlusCircle,
   RefreshCcw,
   Search,
@@ -89,7 +88,7 @@ function todayDateValue() {
   return new Date().toISOString().slice(0, 10);
 }
 
-const initialClientForm = {
+const initialClientForm: ClientFormData = {
   companyName: "",
   legalName: "",
   tradeName: "",
@@ -132,22 +131,6 @@ type ReceitaCnpjResponse = {
   opcao_pelo_simples?: boolean | null;
   message?: string;
 };
-
-type ClientContactForm = {
-  name: string;
-  role: string;
-  email: string;
-  phone: string;
-  notes: string;
-};
-
-const emptyClientContact = (): ClientContactForm => ({
-  name: "",
-  role: "",
-  email: "",
-  phone: "",
-  notes: "",
-});
 
 const deletionStatusLabels: Record<ClientDeletionRequestStatus, string> = {
   PENDENTE: "Pendente",
@@ -203,37 +186,17 @@ const textFieldSx = {
 
 const filterFieldSx = {
   "& .MuiOutlinedInput-root": {
-    height: 52,
-    minHeight: 52,
+    height: 44,
     borderRadius: "10px",
     bgcolor: "#ffffff",
-    alignItems: "center",
-  },
-
-  "& .MuiInputBase-input": {
-    height: "auto",
-    paddingTop: 0,
-    paddingBottom: 0,
-  },
-
-  "& .MuiSelect-select": {
-    display: "flex",
-    alignItems: "center",
-    height: "100% !important",
-    paddingTop: "0 !important",
-    paddingBottom: "0 !important",
-  },
-
-  "& .MuiInputAdornment-root": {
-    height: 24,
-    maxHeight: 24,
-    alignItems: "center",
   },
 
   "& .MuiInputLabel-root": {
     fontWeight: 700,
   },
 };
+
+const PAGE_SIZE_OPTIONS = [10, 25, 50];
 
 function buildFullAddress(formData: {
   street: string;
@@ -300,6 +263,16 @@ function getClientInitial(client: LeadSummary) {
     .toUpperCase();
 }
 
+function getClientDisplayName(client: LeadSummary) {
+  return (
+    client.tradeName ||
+    client.company ||
+    client.name ||
+    client.email ||
+    "Cliente"
+  ).trim();
+}
+
 function exportClients(clients: LeadSummary[]) {
   const headers = [
     "Cliente",
@@ -351,6 +324,8 @@ export default function ClientsPage() {
   const [statusFilter, setStatusFilter] = useState<"TODOS" | LeadStatus>(
     "TODOS",
   );
+  const [page, setPage] = useState(1);
+  const [rowsPerPage, setRowsPerPage] = useState(10);
   const [deletionRequests, setDeletionRequests] = useState<
     ClientDeletionRequest[]
   >([]);
@@ -411,27 +386,65 @@ export default function ClientsPage() {
   const filteredClients = useMemo(() => {
     const query = search.trim().toLowerCase();
 
-    return clients.filter((client) => {
-      const matchesStatus =
-        statusFilter === "TODOS" || client.status === statusFilter;
-      const matchesSearch =
-        !query ||
-        [
-          client.name,
-          client.email,
-          client.company,
-          client.document,
-          client.phone,
-          client.segment,
-          client.owner,
-        ]
-          .join(" ")
-          .toLowerCase()
-          .includes(query);
+    return clients
+      .filter((client) => {
+        const matchesStatus =
+          statusFilter === "TODOS" || client.status === statusFilter;
+        const matchesSearch =
+          !query ||
+          [
+            client.name,
+            client.email,
+            client.company,
+            client.document,
+            client.phone,
+            client.segment,
+            client.owner,
+            client.city,
+          ]
+            .join(" ")
+            .toLowerCase()
+            .includes(query);
 
-      return matchesStatus && matchesSearch;
-    });
+        return matchesStatus && matchesSearch;
+      })
+      .sort((first, second) =>
+        getClientDisplayName(first).localeCompare(
+          getClientDisplayName(second),
+          "pt-BR",
+          { sensitivity: "base" },
+        ),
+      );
   }, [clients, search, statusFilter]);
+
+  const totalPages = Math.max(
+    1,
+    Math.ceil(filteredClients.length / rowsPerPage),
+  );
+
+  const paginatedClients = useMemo(() => {
+    const start = (page - 1) * rowsPerPage;
+
+    return filteredClients.slice(start, start + rowsPerPage);
+  }, [filteredClients, page, rowsPerPage]);
+
+  const paginationStart =
+    filteredClients.length === 0 ? 0 : (page - 1) * rowsPerPage + 1;
+
+  const paginationEnd = Math.min(
+    page * rowsPerPage,
+    filteredClients.length,
+  );
+
+  useEffect(() => {
+    setPage(1);
+  }, [rowsPerPage, search, statusFilter]);
+
+  useEffect(() => {
+    if (page > totalPages) {
+      setPage(totalPages);
+    }
+  }, [page, totalPages]);
 
   const summary = useMemo(() => {
     const active = clients.filter((client) => client.status === "ATIVO").length;
@@ -467,30 +480,6 @@ export default function ClientsPage() {
       ),
     [deletionRequests],
   );
-
-  function updateContact(
-    index: number,
-    field: keyof ClientContactForm,
-    value: string,
-  ) {
-    setContacts((current) =>
-      current.map((contact, currentIndex) =>
-        currentIndex === index ? { ...contact, [field]: value } : contact,
-      ),
-    );
-  }
-
-  function addContact() {
-    setContacts((current) => [...current, emptyClientContact()]);
-  }
-
-  function removeContact(index: number) {
-    setContacts((current) =>
-      current.length === 1
-        ? [emptyClientContact()]
-        : current.filter((_, currentIndex) => currentIndex !== index),
-    );
-  }
 
   async function handleSearchCnpj() {
     const cnpj = onlyDigits(form.document);
@@ -811,6 +800,7 @@ export default function ClientsPage() {
         <CrmPageHeader
           eyebrow="CRM"
           title="Gestão de clientes"
+          description="Base de clientes do sistema."
           icon={<UsersRound size={30} />}
           aside={
             <Stack
@@ -883,40 +873,56 @@ export default function ClientsPage() {
             },
             gap: 2,
             alignItems: "stretch",
-          }}
-        >
-          <CrmKpiCard
-            title="Total de clientes"
-            value={summary.total}
-            icon={<UsersRound size={22} />}
-            accent={crmPalette.blue}
-            softColor="#eaf4ff"
-          />
+            }}
+          >
+            <CrmKpiCard
+              title="Total de clientes"
+              value={summary.total}
+              icon={<UsersRound size={22} />}
+              accent="#ff5805"
+              softColor="#ff58051a"
+              sx={{
+                minHeight: 140,
+                height: "100%",
+              }}
+            />
 
-          <CrmKpiCard
-            title="Clientes ativos"
-            value={summary.active}
-            icon={<UsersRound size={22} />}
-            accent="#22a55a"
-            softColor="#ecfdf5"
-          />
+            <CrmKpiCard
+              title="Clientes ativos"
+              value={summary.active}
+              icon={<UsersRound size={22} />}
+              accent="#f59e0b"
+              softColor="#f59e0b1a"
+              sx={{
+                minHeight: 140,
+                height: "100%",
+              }}
+            />
 
-          <CrmKpiCard
-            title="Pendentes"
-            value={summary.pending}
-            icon={<UsersRound size={22} />}
-            accent="#f4b000"
-            softColor="#fff7df"
-          />
+            <CrmKpiCard
+              title="Pendentes"
+              value={summary.pending}
+              icon={<UsersRound size={22} />}
+              accent="#f97316"
+              softColor="#f973161a"
+              sx={{
+                minHeight: 140,
+                height: "100%",
+              }}
+            />
 
-          <CrmKpiCard
-            title="Novos no mês"
-            value={summary.newThisMonth}
-            icon={<PlusCircle size={22} />}
-            accent={crmPalette.orange}
-            softColor="#fff0e8"
-          />
-        </Box>
+            <CrmKpiCard
+              title="Novos no mês"
+              value={summary.newThisMonth}
+              icon={<PlusCircle size={22} />}
+              accent="#ef4444"
+              softColor="#ef44441a"
+              sx={{
+                minHeight: 140,
+                height: "100%",
+              }}
+            />
+          </Box>
 
         {isManagement && pendingDeletionRequests.length > 0 ? (
           <CrmSection
@@ -1136,55 +1142,87 @@ export default function ClientsPage() {
 
         <CrmSection
           sx={{
-            p: { xs: 2, md: 2.5 },
+            p: {
+              xs: 2,
+              md: 3,
+            },
+            bgcolor: "#fffaf7",
+            border: "1px solid rgba(255,88,5,0.10)",
+            borderRadius: "18px",
+            boxShadow: "0 10px 35px rgba(15,23,42,0.05)",
           }}
         >
-          <Box
-            sx={{
-              display: "grid",
-              gridTemplateColumns: {
-                xs: "1fr",
-                lg: "minmax(0, 1fr) 320px",
-              },
-              gap: 2,
-            }}
-          >
-            <TextField
-              size="small"
-              fullWidth
-              label="Buscar cliente"
-              value={search}
-              onChange={(event) => setSearch(event.target.value)}
-              placeholder="Nome, e-mail, empresa, CNPJ ou segmento"
-              sx={filterFieldSx}
-              slotProps={{
-                input: {
-                  startAdornment: (
-                    <InputAdornment position="start">
-                      <Search size={18} color={crmPalette.muted} />
-                    </InputAdornment>
-                  ),
-                },
-              }}
-            />
+          <Stack spacing={2.5} sx={{ width: "100%" }}>
+            <Box>
+              <Typography
+                sx={{
+                  color: crmPalette.orangeDark,
+                  fontSize: 12,
+                  fontWeight: 900,
+                  letterSpacing: ".16em",
+                  textTransform: "uppercase",
+                }}
+              >
+                Base comercial
+              </Typography>
+              <Typography component="h2" sx={{ mt: 0.5, fontSize: 26, fontWeight: 900 }}>
+                Buscar clientes
+              </Typography>
+              <Typography sx={{ mt: 0.75, color: "text.secondary" }}>
+                Localize clientes por nome, e-mail, empresa, CNPJ ou segmento.
+              </Typography>
+            </Box>
 
-            <TextField
-              select
-              size="small"
-              fullWidth
-              label="Status"
-              value={statusFilter}
-              onChange={(event) =>
-                setStatusFilter(event.target.value as "TODOS" | LeadStatus)
-              }
-              sx={filterFieldSx}
+            <Box
+              sx={{
+                width: "100%",
+                display: "grid",
+                gap: 1.5,
+                gridTemplateColumns: {
+                  xs: "1fr",
+                  sm: "repeat(2, minmax(0, 1fr))",
+                  lg: "minmax(260px, 2fr) minmax(170px, 1fr)",
+                },
+                alignItems: "end",
+              }}
             >
-              <MenuItem value="TODOS">Todos</MenuItem>
-              <MenuItem value="ATIVO">Ativo</MenuItem>
-              <MenuItem value="PENDENTE">Pendente</MenuItem>
-              <MenuItem value="INATIVO">Inativo</MenuItem>
-            </TextField>
-          </Box>
+              <TextField
+                size="small"
+                fullWidth
+                label="Buscar cliente"
+                value={search}
+                onChange={(event) => setSearch(event.target.value)}
+                placeholder="Nome, e-mail, empresa, CNPJ ou segmento"
+                sx={filterFieldSx}
+                slotProps={{
+                  input: {
+                    startAdornment: (
+                      <InputAdornment position="start">
+                        <Search size={18} color={crmPalette.muted} />
+                      </InputAdornment>
+                    ),
+                  },
+                }}
+              />
+
+              <TextField
+                select
+                size="small"
+                fullWidth
+                label="Status"
+                value={statusFilter}
+                onChange={(event) =>
+                  setStatusFilter(event.target.value as "TODOS" | LeadStatus)
+                }
+                sx={filterFieldSx}
+              >
+                <MenuItem value="TODOS">Todos</MenuItem>
+                <MenuItem value="ATIVO">Ativo</MenuItem>
+                <MenuItem value="PENDENTE">Pendente</MenuItem>
+                <MenuItem value="INATIVO">Inativo</MenuItem>
+              </TextField>
+            </Box>
+          </Stack>
         </CrmSection>
 
         <CrmSection
@@ -1269,291 +1307,200 @@ export default function ClientsPage() {
               <Alert severity="error">{pageError}</Alert>
             </Box>
           ) : (
-            <TableContainer
-              sx={{
-                width: "100%",
-                overflowX: "auto",
-              }}
-            >
-              <Table
-                sx={{
-                  minWidth: 820,
-                }}
-              >
-                <TableHead>
-                  <TableRow
-                    sx={{
-                      bgcolor: "#f8fafc",
-                    }}
-                  >
-                    {[
-                      "Nome Fantasia",
-                      "CNPJ",
-                      "Cidade",
-                      "Segmento",
-                      "Ações",
-                    ].map((title) => (
-                      <TableCell
-                        key={title}
-                        align={title === "Ações" ? "center" : "left"}
+            <>
+            {filteredClients.length === 0 ? (
+              <Box sx={{ p: { xs: 2, md: 3 } }}>
+                <Alert severity="info">
+                  Nenhum cliente encontrado com os filtros atuais.
+                </Alert>
+              </Box>
+            ) : (
+              <Stack spacing={1.5} sx={{ p: { xs: 2, md: 2.5 } }}>
+                {paginatedClients.map((client) => {
+                  return (
+                    <Paper
+                      key={client.id}
+                      elevation={0}
+                      sx={{
+                        p: { xs: 2, md: 2.25 },
+                        border: `1px solid ${crmPalette.border}`,
+                        borderRadius: "14px",
+                        bgcolor: "#ffffff",
+                        transition:
+                          "border-color 160ms ease, box-shadow 160ms ease, transform 160ms ease",
+
+                        "&:hover": {
+                          transform: "translateY(-1px)",
+                          borderColor: "rgba(255,77,0,0.35)",
+                          boxShadow: "0 16px 36px rgba(15,23,42,0.08)",
+                        },
+                      }}
+                    >
+                      <Box
                         sx={{
-                          py: 1.75,
-                          px: 2,
-                          color: crmPalette.muted,
-                          borderColor: crmPalette.border,
-                          fontSize: 12,
-                          fontWeight: 900,
-                          letterSpacing: ".04em",
-                          textTransform: "uppercase",
-                          whiteSpace: "nowrap",
+                          display: "grid",
+                          gap: 2,
+                          gridTemplateColumns: {
+                            xs: "1fr",
+                            lg: "1.6fr .8fr .8fr 1fr auto",
+                          },
+                          alignItems: "center",
                         }}
                       >
-                        {title}
-                      </TableCell>
-                    ))}
-                  </TableRow>
-                </TableHead>
-
-                <TableBody>
-                  {filteredClients.map((client, index) => {
-                    const pendingDeletion = pendingDeletionByClientId.get(
-                      client.id,
-                    );
-
-                    const avatarColors = [
-                      {
-                        bgcolor: "#ffe6e8",
-                        color: "#ec3139",
-                      },
-                      {
-                        bgcolor: "#fff4d7",
-                        color: "#b97900",
-                      },
-                      {
-                        bgcolor: "#eee7ff",
-                        color: "#6544ff",
-                      },
-                      {
-                        bgcolor: "#eef1f5",
-                        color: "#475569",
-                      },
-                    ];
-
-                    const avatarColor =
-                      avatarColors[index % avatarColors.length];
-
-                    return (
-                      <TableRow
-                        key={client.id}
-                        hover
-                        sx={{
-                          "&:last-child td": {
-                            borderBottom: 0,
-                          },
-
-                          "&:hover": {
-                            bgcolor: "#fafafa",
-                          },
-                        }}
-                      >
-                        {/* Nome Fantasia */}
-                        <TableCell
-                          sx={{
-                            px: 2,
-                            py: 1.5,
-                            borderColor: crmPalette.border,
-                          }}
-                        >
-                          <Stack
-                            direction="row"
-                            spacing={1.5}
-                            sx={{
-                              alignItems: "center",
-                            }}
-                          >
-                            <Avatar
+                        <Box sx={{ minWidth: 0 }}>
+                          <Typography sx={{ color: "#020617", fontSize: 16, fontWeight: 900 }}>
+                            {getClientDisplayName(client)}
+                          </Typography>
+                          {client.email ? (
+                            <Typography
                               sx={{
-                                width: 38,
-                                height: 38,
-                                bgcolor: avatarColor.bgcolor,
-                                color: avatarColor.color,
-                                fontSize: 15,
-                                fontWeight: 800,
+                                mt: 0.5,
+                                color: "text.secondary",
+                                fontSize: 13,
+                                overflowWrap: "anywhere",
                               }}
                             >
-                              {getClientInitial(client)}
-                            </Avatar>
+                              {client.email}
+                            </Typography>
+                          ) : null}
+                          {client.company && client.company !== getClientDisplayName(client) ? (
+                            <Typography sx={{ mt: 0.25, color: "text.disabled", fontSize: 13 }}>
+                              {client.company}
+                            </Typography>
+                          ) : null}
+                        </Box>
 
-                            <Box sx={{ minWidth: 0 }}>
-                              <Typography
-                                sx={{
-                                  color: crmPalette.text,
-                                  fontSize: 13,
-                                  fontWeight: 900,
-                                  lineHeight: 1.4,
-                                }}
-                              >
-                                {client.tradeName ||
-                                  client.company ||
-                                  client.name ||
-                                  "Sem nome fantasia"}
-                              </Typography>
-                            </Box>
-                          </Stack>
-                        </TableCell>
-
-                        {/* CNPJ */}
-                        <TableCell
-                          sx={{
-                            px: 2,
-                            py: 1.5,
-                            borderColor: crmPalette.border,
-                          }}
-                        >
-                          <Typography
-                            sx={{
-                              color: crmPalette.text,
-                              fontSize: 13,
-                            }}
-                          >
+                        <Box>
+                          <Typography sx={{ color: crmPalette.muted, fontSize: 11, fontWeight: 900, letterSpacing: ".12em", textTransform: "uppercase" }}>
+                            CNPJ
+                          </Typography>
+                          <Typography sx={{ mt: 0.75, color: crmPalette.text, fontSize: 13, fontWeight: 800 }}>
                             {client.document || "-"}
                           </Typography>
-                        </TableCell>
+                        </Box>
 
-                        {/* Cidade */}
-                        <TableCell
-                          sx={{
-                            px: 2,
-                            py: 1.5,
-                            borderColor: crmPalette.border,
-                          }}
-                        >
-                          <Typography
-                            sx={{
-                              color: crmPalette.text,
-                              fontSize: 13,
-                            }}
-                          >
+                        <Box>
+                          <Typography sx={{ color: crmPalette.muted, fontSize: 11, fontWeight: 900, letterSpacing: ".12em", textTransform: "uppercase" }}>
+                            Cidade
+                          </Typography>
+                          <Typography sx={{ mt: 0.75, color: crmPalette.text, fontSize: 13, fontWeight: 800 }}>
                             {client.city || "-"}
                           </Typography>
-                        </TableCell>
+                        </Box>
 
-                        {/* Segmento */}
-                        <TableCell
-                          sx={{
-                            px: 2,
-                            py: 1.5,
-                            borderColor: crmPalette.border,
-                          }}
-                        >
+                        <Box sx={{ minWidth: 0 }}>
+                          <Typography sx={{ color: crmPalette.muted, fontSize: 11, fontWeight: 900, letterSpacing: ".12em", textTransform: "uppercase" }}>
+                            Segmento
+                          </Typography>
                           <Typography
                             sx={{
+                              mt: 0.75,
                               color: crmPalette.text,
                               fontSize: 13,
                               lineHeight: 1.5,
+                              display: "-webkit-box",
+                              WebkitLineClamp: 2,
+                              WebkitBoxOrient: "vertical",
+                              overflow: "hidden",
                             }}
                           >
                             {client.segment || "-"}
                           </Typography>
-                        </TableCell>
+                        </Box>
 
-                        {/* Ações */}
-                        <TableCell
-                          align="center"
-                          sx={{
-                            px: 2,
-                            py: 1.5,
-                            borderColor: crmPalette.border,
-                          }}
-                        >
-                          <Stack
-                            spacing={0.75}
+                        <Stack direction="row" spacing={1} sx={{ justifyContent: "flex-end" }}>
+                          <Button
+                            component={Link}
+                            href={`/clientes/${client.id}`}
+                            type="button"
+                            variant="outlined"
+                            endIcon={<ArrowRight size={16} />}
                             sx={{
-                              alignItems: "center",
+                              borderRadius: "10px",
+                              fontWeight: 800,
+                              textTransform: "none",
                             }}
                           >
-                            <Link
-                              href={`/clientes/${client.id}`}
-                              style={{
-                                textDecoration: "none",
-                              }}
-                            >
-                              <Button
-                                type="button"
-                                size="small"
-                                variant="outlined"
-                                startIcon={<Eye size={15} />}
-                                sx={{
-                                  minWidth: 92,
-                                  borderRadius: "9px",
-                                  borderColor: crmPalette.border,
-                                  color: crmPalette.text,
-                                  fontSize: 11,
-                                  fontWeight: 800,
+                            Detalhes
+                          </Button>
+                        </Stack>
+                      </Box>
+                    </Paper>
+                  );
+                })}
+              </Stack>
+            )}
+            {filteredClients.length > 0 ? (
+              <Stack
+                direction={{ xs: "column", md: "row" }}
+                spacing={1.5}
+                sx={{
+                  px: 2,
+                  py: 1.5,
+                  alignItems: { xs: "stretch", md: "center" },
+                  justifyContent: "space-between",
+                  borderTop: `1px solid ${crmPalette.border}`,
+                  bgcolor: "#ffffff",
+                }}
+              >
+                <Typography
+                  sx={{
+                    color: crmPalette.muted,
+                    fontSize: 13,
+                    fontWeight: 700,
+                  }}
+                >
+                  Mostrando {paginationStart}-{paginationEnd} de{" "}
+                  {filteredClients.length}
+                </Typography>
 
-                                  "&:hover": {
-                                    borderColor: crmPalette.orange,
-                                    bgcolor: "#fff7f2",
-                                  },
-                                }}
-                              >
-                                Detalhes
-                              </Button>
-                            </Link>
+                <Stack
+                  direction={{ xs: "column", sm: "row" }}
+                  spacing={1.25}
+                  sx={{ alignItems: { xs: "stretch", sm: "center" } }}
+                >
+                  <TextField
+                    select
+                    size="small"
+                    label="Por página"
+                    value={rowsPerPage}
+                    onChange={(event) =>
+                      setRowsPerPage(Number(event.target.value))
+                    }
+                    sx={{
+                      minWidth: 132,
+                      "& .MuiOutlinedInput-root": {
+                        borderRadius: "10px",
+                        fontSize: 13,
+                        fontWeight: 800,
+                      },
+                      "& .MuiInputLabel-root": {
+                        fontSize: 12,
+                        fontWeight: 800,
+                      },
+                    }}
+                  >
+                    {PAGE_SIZE_OPTIONS.map((option) => (
+                      <MenuItem key={option} value={option}>
+                        {option}
+                      </MenuItem>
+                    ))}
+                  </TextField>
 
-                            {canManageClients ? (
-                              <Button
-                                type="button"
-                                size="small"
-                                variant="outlined"
-                                color="error"
-                                startIcon={<Trash2 size={15} />}
-                                disabled={!!pendingDeletion}
-                                onClick={() => {
-                                  setDeletionModalClient(client);
-                                  setDeletionReason("");
-                                }}
-                                sx={{
-                                  minWidth: 92,
-                                  borderRadius: "9px",
-                                  fontSize: 11,
-                                  fontWeight: 800,
-                                }}
-                              >
-                                {pendingDeletion ? "Pendente" : "Excluir"}
-                              </Button>
-                            ) : null}
-                          </Stack>
-                        </TableCell>
-                      </TableRow>
-                    );
-                  })}
-
-                  {filteredClients.length === 0 ? (
-                    <TableRow>
-                      <TableCell
-                        colSpan={5}
-                        sx={{
-                          py: 6,
-                          borderBottom: 0,
-                          textAlign: "center",
-                        }}
-                      >
-                        <Typography
-                          sx={{
-                            color: crmPalette.muted,
-                            fontSize: 14,
-                            fontWeight: 700,
-                          }}
-                        >
-                          Nenhum cliente encontrado com os filtros atuais.
-                        </Typography>
-                      </TableCell>
-                    </TableRow>
-                  ) : null}
-                </TableBody>
-              </Table>
-            </TableContainer>
+                  <Pagination
+                    page={page}
+                    count={totalPages}
+                    onChange={(_, nextPage) => setPage(nextPage)}
+                    color="primary"
+                    shape="rounded"
+                    size="small"
+                    siblingCount={1}
+                    boundaryCount={1}
+                  />
+                </Stack>
+              </Stack>
+            ) : null}
+            </>
           )}
         </CrmSection>
 
@@ -1575,971 +1522,101 @@ export default function ClientsPage() {
             },
           }}
         >
-          <Box
-            component="form"
-            onSubmit={handleCreateClient}
+          <DialogTitle
+            component="div"
             sx={{
-              display: "flex",
-              minHeight: 0,
-              flexDirection: "column",
+              px: { xs: 2.5, md: 3 },
+              py: 2.5,
             }}
           >
-            <DialogTitle
-              component="div"
+            <Stack
+              direction="row"
+              spacing={2}
               sx={{
-                px: { xs: 2.5, md: 3 },
-                py: 2.5,
+                alignItems: "flex-start",
+                justifyContent: "space-between",
               }}
             >
-              <Stack
-                direction="row"
-                spacing={2}
-                sx={{
-                  alignItems: "flex-start",
-                  justifyContent: "space-between",
-                }}
-              >
-                <Box>
-                  <Typography
-                    sx={{
-                      color: crmPalette.orangeDark,
-                      fontSize: 10,
-                      fontWeight: 900,
-                      letterSpacing: ".16em",
-                      textTransform: "uppercase",
-                    }}
-                  >
-                    Novo cliente
-                  </Typography>
-
-                  <Typography
-                    component="h2"
-                    sx={{
-                      mt: 0.5,
-                      color: crmPalette.text,
-                      fontSize: { xs: 21, md: 25 },
-                      fontWeight: 900,
-                      lineHeight: 1.2,
-                    }}
-                  >
-                    Cadastro completo do cliente
-                  </Typography>
-
-                  <Typography
-                    sx={{
-                      mt: 0.75,
-                      color: crmPalette.muted,
-                      fontSize: 13,
-                    }}
-                  >
-                    Informe os dados fiscais, cadastrais, contatos e documentos.
-                  </Typography>
-                </Box>
-
-                <IconButton
-                  type="button"
-                  aria-label="Fechar cadastro"
-                  disabled={saving || searchingCnpj}
-                  onClick={() => setIsModalOpen(false)}
+              <Box>
+                <Typography
                   sx={{
-                    flexShrink: 0,
+                    color: crmPalette.orangeDark,
+                    fontSize: 10,
+                    fontWeight: 900,
+                    letterSpacing: ".16em",
+                    textTransform: "uppercase",
+                  }}
+                >
+                  Novo cliente
+                </Typography>
+
+                <Typography
+                  component="h2"
+                  sx={{
+                    mt: 0.5,
+                    color: crmPalette.text,
+                    fontSize: { xs: 21, md: 25 },
+                    fontWeight: 900,
+                    lineHeight: 1.2,
+                  }}
+                >
+                  Cadastro completo do cliente
+                </Typography>
+
+                <Typography
+                  sx={{
+                    mt: 0.75,
                     color: crmPalette.muted,
-
-                    "&:hover": {
-                      bgcolor: "#f1f5f9",
-                      color: crmPalette.text,
-                    },
+                    fontSize: 13,
                   }}
                 >
-                  <XCircle size={21} />
-                </IconButton>
-              </Stack>
-            </DialogTitle>
+                  Dados fiscais, cadastrais, contatos e documentos.
+                </Typography>
+              </Box>
 
-            <Divider />
-
-            <DialogContent
-              sx={{
-                px: { xs: 2.5, md: 3 },
-                py: 3,
-                bgcolor: "#f8fafc",
-              }}
-            >
-              <Stack spacing={3}>
-                {/* Dados fiscais */}
-                <Paper
-                  variant="outlined"
-                  sx={{
-                    p: { xs: 2, md: 2.5 },
-                    borderRadius: "16px",
-                    borderColor: crmPalette.border,
-                    bgcolor: "#ffffff",
-                  }}
-                >
-                  <Typography
-                    sx={{
-                      color: crmPalette.text,
-                      fontSize: 13,
-                      fontWeight: 900,
-                      letterSpacing: ".08em",
-                      textTransform: "uppercase",
-                    }}
-                  >
-                    Dados fiscais e cadastrais
-                  </Typography>
-
-                  <Typography
-                    sx={{
-                      mt: 0.5,
-                      mb: 2.25,
-                      color: crmPalette.muted,
-                      fontSize: 12,
-                    }}
-                  >
-                    Preencha os dados da empresa para compor a base cadastral.
-                  </Typography>
-
-                  <Box
-                    sx={{
-                      display: "grid",
-                      gridTemplateColumns: {
-                        xs: "1fr",
-                        md: "repeat(2, minmax(0, 1fr))",
-                      },
-                      gap: 2,
-                    }}
-                  >
-                    <Box
-                      sx={{
-                        display: "grid",
-                        gridTemplateColumns: {
-                          xs: "1fr",
-                          sm: "minmax(0, 1fr) auto",
-                        },
-                        gap: 1,
-                        gridColumn: {
-                          xs: "auto",
-                          md: "1 / -1",
-                        },
-                        alignItems: "flex-start",
-                      }}
-                    >
-                      <TextField
-                        fullWidth
-                        size="small"
-                        label="CNPJ"
-                        value={form.document}
-                        onChange={(event) =>
-                          setForm((current) => ({
-                            ...current,
-                            document: formatCnpj(event.target.value),
-                          }))
-                        }
-                        placeholder="00.000.000/0000-00"
-                        sx={textFieldSx}
-                      />
-
-                      <Button
-                        type="button"
-                        variant="contained"
-                        disabled={saving || searchingCnpj}
-                        startIcon={
-                          searchingCnpj ? (
-                            <CircularProgress size={16} color="inherit" />
-                          ) : (
-                            <Search size={16} />
-                          )
-                        }
-                        onClick={handleSearchCnpj}
-                        sx={{
-                          minHeight: 42,
-                          px: 2.25,
-                          borderRadius: "10px",
-                          bgcolor: crmPalette.orange,
-                          fontWeight: 900,
-                          whiteSpace: "nowrap",
-                          boxShadow: "none",
-
-                          "&:hover": {
-                            bgcolor: crmPalette.orangeDark,
-                            boxShadow: "none",
-                          },
-                        }}
-                      >
-                        {searchingCnpj ? "Buscando..." : "Buscar CNPJ"}
-                      </Button>
-                    </Box>
-
-                    <TextField
-                      fullWidth
-                      size="small"
-                      label="Razão social"
-                      value={form.legalName}
-                      onChange={(event) =>
-                        setForm((current) => ({
-                          ...current,
-                          legalName: event.target.value,
-                        }))
-                      }
-                      sx={textFieldSx}
-                    />
-
-                    <TextField
-                      fullWidth
-                      size="small"
-                      label="Nome fantasia"
-                      value={form.tradeName}
-                      onChange={(event) =>
-                        setForm((current) => ({
-                          ...current,
-                          tradeName: event.target.value,
-                        }))
-                      }
-                      sx={textFieldSx}
-                    />
-
-                    <TextField
-                      fullWidth
-                      size="small"
-                      label="Empresa / Grupo"
-                      value={form.companyName}
-                      onChange={(event) =>
-                        setForm((current) => ({
-                          ...current,
-                          companyName: event.target.value,
-                        }))
-                      }
-                      sx={textFieldSx}
-                    />
-
-                    <TextField
-                      fullWidth
-                      size="small"
-                      label="CNAE"
-                      value={form.cnae}
-                      onChange={(event) =>
-                        setForm((current) => ({
-                          ...current,
-                          cnae: event.target.value,
-                        }))
-                      }
-                      sx={textFieldSx}
-                    />
-
-                    <TextField
-                      fullWidth
-                      size="small"
-                      label="Inscrição estadual"
-                      value={form.stateRegistration}
-                      onChange={(event) =>
-                        setForm((current) => ({
-                          ...current,
-                          stateRegistration: event.target.value,
-                        }))
-                      }
-                      sx={textFieldSx}
-                    />
-
-                    <TextField
-                      fullWidth
-                      size="small"
-                      label="Atividade comercial"
-                      value={form.businessActivity}
-                      onChange={(event) =>
-                        setForm((current) => ({
-                          ...current,
-                          businessActivity: event.target.value,
-                        }))
-                      }
-                      sx={textFieldSx}
-                    />
-
-                    <TextField
-                      fullWidth
-                      size="small"
-                      label="Segmento"
-                      value={form.segment}
-                      onChange={(event) =>
-                        setForm((current) => ({
-                          ...current,
-                          segment: event.target.value,
-                        }))
-                      }
-                      sx={textFieldSx}
-                    />
-
-                    <TextField
-                      fullWidth
-                      size="small"
-                      label="Regime tributário"
-                      value={form.taxRegime}
-                      onChange={(event) =>
-                        setForm((current) => ({
-                          ...current,
-                          taxRegime: event.target.value,
-                        }))
-                      }
-                      sx={textFieldSx}
-                    />
-
-                    <Box
-                      sx={{
-                        gridColumn: {
-                          xs: "auto",
-                          md: "1 / -1",
-                        },
-                        mt: 0.25,
-                        pt: 1.5,
-                        borderTop: `1px solid ${crmPalette.border}`,
-                      }}
-                    >
-                      <Typography
-                        sx={{
-                          color: crmPalette.text,
-                          fontSize: 13,
-                          fontWeight: 900,
-                        }}
-                      >
-                        Endereço
-                      </Typography>
-                    </Box>
-
-                    <TextField
-                      fullWidth
-                      size="small"
-                      label="CEP"
-                      value={form.zipCode}
-                      onChange={(event) =>
-                        setForm((current) => ({
-                          ...current,
-                          zipCode: event.target.value,
-                        }))
-                      }
-                      placeholder="00000-000"
-                      sx={textFieldSx}
-                    />
-
-                    <TextField
-                      fullWidth
-                      size="small"
-                      label="Rua / Logradouro"
-                      value={form.street}
-                      onChange={(event) =>
-                        setForm((current) => ({
-                          ...current,
-                          street: event.target.value,
-                        }))
-                      }
-                      sx={textFieldSx}
-                    />
-
-                    <TextField
-                      fullWidth
-                      size="small"
-                      label="Número"
-                      value={form.number}
-                      onChange={(event) =>
-                        setForm((current) => ({
-                          ...current,
-                          number: event.target.value,
-                        }))
-                      }
-                      placeholder="Número ou S/N"
-                      sx={textFieldSx}
-                    />
-
-                    <TextField
-                      fullWidth
-                      size="small"
-                      label="Complemento"
-                      value={form.complement}
-                      onChange={(event) =>
-                        setForm((current) => ({
-                          ...current,
-                          complement: event.target.value,
-                        }))
-                      }
-                      placeholder="Sala, bloco, galpão..."
-                      sx={textFieldSx}
-                    />
-
-                    <TextField
-                      fullWidth
-                      size="small"
-                      label="Bairro"
-                      value={form.neighborhood}
-                      onChange={(event) =>
-                        setForm((current) => ({
-                          ...current,
-                          neighborhood: event.target.value,
-                        }))
-                      }
-                      sx={textFieldSx}
-                    />
-
-                    <TextField
-                      fullWidth
-                      size="small"
-                      label="Cidade"
-                      value={form.city}
-                      onChange={(event) =>
-                        setForm((current) => ({
-                          ...current,
-                          city: event.target.value,
-                        }))
-                      }
-                      sx={textFieldSx}
-                    />
-
-                    <TextField
-                      select
-                      fullWidth
-                      size="small"
-                      label="Estado"
-                      value={form.state}
-                      onChange={(event) =>
-                        setForm((current) => ({
-                          ...current,
-                          state: event.target.value,
-                        }))
-                      }
-                      sx={textFieldSx}
-                    >
-                      {[
-                        "AC",
-                        "AL",
-                        "AP",
-                        "AM",
-                        "BA",
-                        "CE",
-                        "DF",
-                        "ES",
-                        "GO",
-                        "MA",
-                        "MT",
-                        "MS",
-                        "MG",
-                        "PA",
-                        "PB",
-                        "PR",
-                        "PE",
-                        "PI",
-                        "RJ",
-                        "RN",
-                        "RS",
-                        "RO",
-                        "RR",
-                        "SC",
-                        "SP",
-                        "SE",
-                        "TO",
-                      ].map((uf) => (
-                        <MenuItem key={uf} value={uf}>
-                          {uf}
-                        </MenuItem>
-                      ))}
-                    </TextField>
-
-                    {/* <TextField
-                      fullWidth
-                      multiline
-                      minRows={1}
-                      label="Dados bancários"
-                      value={form.bankDetails}
-                      onChange={(event) =>
-                        setForm((current) => ({
-                          ...current,
-                          bankDetails: event.target.value,
-                        }))
-                      }
-                      sx={{
-                        ...textFieldSx,
-                        gridColumn: {
-                          xs: "auto",
-                          md: "1 / -1",
-                        },
-                      }}
-                    /> */}
-
-                    {/* <TextField
-                      fullWidth
-                      size="small"
-                      label="Modalidade"
-                      value={form.modality}
-                      onChange={(event) =>
-                        setForm((current) => ({
-                          ...current,
-                          modality: event.target.value,
-                        }))
-                      }
-                      sx={textFieldSx}
-                    /> */}
-
-                    <TextField
-                      fullWidth
-                      size="small"
-                      type="date"
-                      label="Data de cadastro"
-                      value={form.registrationDate}
-                      onChange={(event) =>
-                        setForm((current) => ({
-                          ...current,
-                          registrationDate: event.target.value,
-                        }))
-                      }
-                      slotProps={{
-                        inputLabel: {
-                          shrink: true,
-                        },
-                      }}
-                      sx={textFieldSx}
-                    />
-
-                    <TextField
-                      select
-                      size="small"
-                      fullWidth
-                      label="Status"
-                      value={form.status}
-                      onChange={(event) =>
-                        setForm((current) => ({
-                          ...current,
-                          status: event.target.value as LeadStatus,
-                        }))
-                      }
-                      sx={textFieldSx}
-                    >
-                      <MenuItem value="PENDENTE">Pendente</MenuItem>
-                      <MenuItem value="ATIVO">Ativo</MenuItem>
-                      <MenuItem value="INATIVO">Inativo</MenuItem>
-                    </TextField>
-                  </Box>
-                </Paper>
-
-                {/* Contatos */}
-                <Paper
-                  variant="outlined"
-                  sx={{
-                    p: { xs: 2, md: 2.5 },
-                    borderRadius: "16px",
-                    borderColor: crmPalette.border,
-                    bgcolor: "#ffffff",
-                  }}
-                >
-                  <Stack
-                    direction={{ xs: "column", sm: "row" }}
-                    spacing={1.5}
-                    sx={{
-                      alignItems: { xs: "stretch", sm: "flex-start" },
-                      justifyContent: "space-between",
-                      mb: 2.25,
-                    }}
-                  >
-                    <Box>
-                      <Typography
-                        sx={{
-                          color: crmPalette.text,
-                          fontSize: 13,
-                          fontWeight: 900,
-                          letterSpacing: ".08em",
-                          textTransform: "uppercase",
-                        }}
-                      >
-                        Contatos
-                      </Typography>
-
-                      <Typography
-                        sx={{
-                          mt: 0.5,
-                          color: crmPalette.muted,
-                          fontSize: 12,
-                        }}
-                      >
-                        Cadastre um ou mais contatos do cliente. O primeiro
-                        contato será tratado como principal.
-                      </Typography>
-                    </Box>
-
-                    <Button
-                      type="button"
-                      variant="outlined"
-                      startIcon={<PlusCircle size={16} />}
-                      onClick={addContact}
-                      sx={{
-                        minHeight: 40,
-                        borderRadius: "10px",
-                        borderColor: crmPalette.border,
-                        color: crmPalette.text,
-                        fontWeight: 800,
-                        whiteSpace: "nowrap",
-
-                        "&:hover": {
-                          borderColor: crmPalette.orange,
-                          bgcolor: "#fff7f2",
-                        },
-                      }}
-                    >
-                      Adicionar contato
-                    </Button>
-                  </Stack>
-
-                  <Stack spacing={2}>
-                    {contacts.map((contact, index) => (
-                      <Paper
-                        key={index}
-                        variant="outlined"
-                        sx={{
-                          p: 2,
-                          borderRadius: "14px",
-                          borderColor:
-                            index === 0 ? "#fed7aa" : crmPalette.border,
-                          bgcolor: index === 0 ? "#fff7f2" : "#ffffff",
-                        }}
-                      >
-                        <Stack
-                          direction={{ xs: "column", sm: "row" }}
-                          spacing={1.5}
-                          sx={{
-                            alignItems: { xs: "stretch", sm: "center" },
-                            justifyContent: "space-between",
-                            mb: 1.75,
-                          }}
-                        >
-                          <Stack
-                            direction="row"
-                            spacing={1}
-                            sx={{ alignItems: "center" }}
-                          >
-                            <Chip
-                              label={
-                                index === 0
-                                  ? "Contato principal"
-                                  : `Contato ${index + 1}`
-                              }
-                              size="small"
-                              sx={{
-                                borderRadius: "8px",
-                                bgcolor: index === 0 ? "#ffedd5" : "#f1f5f9",
-                                color:
-                                  index === 0
-                                    ? crmPalette.orangeDark
-                                    : crmPalette.text,
-                                fontWeight: 900,
-                              }}
-                            />
-                          </Stack>
-
-                          <IconButton
-                            type="button"
-                            aria-label="Remover contato"
-                            onClick={() => removeContact(index)}
-                            disabled={
-                              contacts.length === 1 &&
-                              !Object.values(contact).some(Boolean)
-                            }
-                            sx={{
-                              alignSelf: { xs: "flex-end", sm: "center" },
-                              color: "#b91c1c",
-                              bgcolor: "#fef2f2",
-
-                              "&:hover": {
-                                bgcolor: "#fee2e2",
-                              },
-                            }}
-                          >
-                            <Trash2 size={17} />
-                          </IconButton>
-                        </Stack>
-
-                        <Box
-                          sx={{
-                            display: "grid",
-                            gridTemplateColumns: {
-                              xs: "1fr",
-                              md: "repeat(2, minmax(0, 1fr))",
-                            },
-                            gap: 2,
-                          }}
-                        >
-                          <TextField
-                            fullWidth
-                            size="small"
-                            label="Nome do contato"
-                            value={contact.name}
-                            onChange={(event) =>
-                              updateContact(index, "name", event.target.value)
-                            }
-                            sx={textFieldSx}
-                          />
-
-                          <TextField
-                            fullWidth
-                            size="small"
-                            label="Cargo / Função"
-                            value={contact.role}
-                            onChange={(event) =>
-                              updateContact(index, "role", event.target.value)
-                            }
-                            sx={textFieldSx}
-                          />
-
-                          <TextField
-                            fullWidth
-                            size="small"
-                            type="email"
-                            label="E-mail"
-                            value={contact.email}
-                            onChange={(event) =>
-                              updateContact(index, "email", event.target.value)
-                            }
-                            sx={textFieldSx}
-                          />
-
-                          <TextField
-                            fullWidth
-                            size="small"
-                            label="Telefone"
-                            value={contact.phone}
-                            onChange={(event) =>
-                              updateContact(index, "phone", event.target.value)
-                            }
-                            sx={textFieldSx}
-                          />
-
-                          <TextField
-                            fullWidth
-                            multiline
-                            minRows={1}
-                            label="Observações do contato"
-                            value={contact.notes}
-                            onChange={(event) =>
-                              updateContact(index, "notes", event.target.value)
-                            }
-                            sx={{
-                              ...textFieldSx,
-                              gridColumn: {
-                                xs: "auto",
-                                md: "1 / -1",
-                              },
-                            }}
-                          />
-                        </Box>
-                      </Paper>
-                    ))}
-                  </Stack>
-                </Paper>
-
-                {/* Documentos */}
-                <Paper
-                  variant="outlined"
-                  sx={{
-                    p: { xs: 2, md: 2.5 },
-                    borderRadius: "16px",
-                    borderStyle: "dashed",
-                    borderColor: "#cbd5e1",
-                    bgcolor: "#ffffff",
-                  }}
-                >
-                  <Stack
-                    direction={{ xs: "column", sm: "row" }}
-                    spacing={2}
-                    sx={{
-                      alignItems: { xs: "stretch", sm: "flex-start" },
-                    }}
-                  >
-                    <Box
-                      sx={{
-                        width: 42,
-                        height: 42,
-                        display: "grid",
-                        placeItems: "center",
-                        flexShrink: 0,
-                        borderRadius: "12px",
-                        bgcolor: "#fff0e8",
-                        color: crmPalette.orangeDark,
-                      }}
-                    >
-                      <FileText size={19} />
-                    </Box>
-
-                    <Box sx={{ flex: 1, minWidth: 0 }}>
-                      <Typography
-                        sx={{
-                          color: crmPalette.text,
-                          fontSize: 14,
-                          fontWeight: 900,
-                        }}
-                      >
-                        Inserir documentos
-                      </Typography>
-
-                      <Typography
-                        sx={{
-                          mt: 0.5,
-                          color: crmPalette.muted,
-                          fontSize: 12,
-                          lineHeight: 1.6,
-                        }}
-                      >
-                        Anexe contratos, cartões CNPJ, comprovantes, planilhas
-                        ou documentos do histórico.
-                      </Typography>
-
-                      <Button
-                        component="label"
-                        variant="outlined"
-                        startIcon={<FileText size={16} />}
-                        sx={{
-                          mt: 1.5,
-                          minHeight: 40,
-                          borderRadius: "10px",
-                          borderColor: crmPalette.border,
-                          color: crmPalette.text,
-                          fontWeight: 800,
-
-                          "&:hover": {
-                            borderColor: crmPalette.orange,
-                            bgcolor: "#fff7f2",
-                          },
-                        }}
-                      >
-                        Selecionar arquivos
-                        <Box
-                          component="input"
-                          type="file"
-                          multiple
-                          onChange={(
-                            event: React.ChangeEvent<HTMLInputElement>,
-                          ) =>
-                            setDocumentFiles(
-                              Array.from(event.target.files ?? []),
-                            )
-                          }
-                          sx={{
-                            position: "absolute",
-                            width: 1,
-                            height: 1,
-                            p: 0,
-                            m: -1,
-                            overflow: "hidden",
-                            clip: "rect(0 0 0 0)",
-                            whiteSpace: "nowrap",
-                            border: 0,
-                          }}
-                        />
-                      </Button>
-
-                      {documentFiles.length > 0 ? (
-                        <Stack
-                          spacing={0.75}
-                          sx={{
-                            mt: 1.5,
-                          }}
-                        >
-                          {documentFiles.map((file) => (
-                            <Chip
-                              key={`${file.name}-${file.size}`}
-                              label={file.name}
-                              size="small"
-                              onDelete={() =>
-                                setDocumentFiles((current) =>
-                                  current.filter(
-                                    (currentFile) =>
-                                      !(
-                                        currentFile.name === file.name &&
-                                        currentFile.size === file.size
-                                      ),
-                                  ),
-                                )
-                              }
-                              sx={{
-                                width: "fit-content",
-                                maxWidth: "100%",
-                                borderRadius: "8px",
-                                bgcolor: "#f1f5f9",
-                                color: crmPalette.text,
-                                fontSize: 12,
-                                fontWeight: 700,
-
-                                "& .MuiChip-label": {
-                                  overflow: "hidden",
-                                  textOverflow: "ellipsis",
-                                },
-                              }}
-                            />
-                          ))}
-                        </Stack>
-                      ) : (
-                        <Typography
-                          sx={{
-                            mt: 1.25,
-                            color: "#94a3b8",
-                            fontSize: 12,
-                          }}
-                        >
-                          Nenhum arquivo selecionado.
-                        </Typography>
-                      )}
-                    </Box>
-                  </Stack>
-                </Paper>
-              </Stack>
-            </DialogContent>
-
-            <Divider />
-
-            <DialogActions
-              sx={{
-                px: { xs: 2.5, md: 3 },
-                py: 2,
-                gap: 1,
-              }}
-            >
-              <Button
+              <IconButton
                 type="button"
-                variant="outlined"
+                aria-label="Fechar cadastro"
                 disabled={saving || searchingCnpj}
                 onClick={() => setIsModalOpen(false)}
                 sx={{
-                  minHeight: 42,
-                  borderRadius: "10px",
-                  borderColor: crmPalette.border,
-                  color: crmPalette.text,
-                  fontWeight: 800,
-                }}
-              >
-                Cancelar
-              </Button>
-
-              <Button
-                type="submit"
-                variant="contained"
-                disabled={saving || searchingCnpj}
-                startIcon={
-                  saving ? (
-                    <CircularProgress size={16} color="inherit" />
-                  ) : (
-                    <PlusCircle size={16} />
-                  )
-                }
-                sx={{
-                  minHeight: 42,
-                  borderRadius: "10px",
-                  px: 2.5,
-                  bgcolor: crmPalette.orange,
-                  fontWeight: 800,
-                  boxShadow: "none",
+                  flexShrink: 0,
+                  color: crmPalette.muted,
 
                   "&:hover": {
-                    bgcolor: crmPalette.orangeDark,
-                    boxShadow: "none",
+                    bgcolor: "#f1f5f9",
+                    color: crmPalette.text,
                   },
                 }}
               >
-                {saving ? "Salvando..." : "Salvar cliente"}
-              </Button>
-            </DialogActions>
-          </Box>
+                <XCircle size={21} />
+              </IconButton>
+            </Stack>
+          </DialogTitle>
+
+          <Divider />
+
+          <DialogContent
+            sx={{
+              px: { xs: 2.5, md: 3 },
+              py: 3,
+              bgcolor: "#f8fafc",
+            }}
+          >
+            <ClientForm
+              form={form}
+              setForm={setForm}
+              contacts={contacts}
+              setContacts={setContacts}
+              documentFiles={documentFiles}
+              setDocumentFiles={setDocumentFiles}
+              loading={saving}
+              searchingCnpj={searchingCnpj}
+              onSearchCnpj={handleSearchCnpj}
+              onCancel={() => setIsModalOpen(false)}
+              onSubmit={handleCreateClient}
+            />
+          </DialogContent>
         </Dialog>
 
         <Dialog

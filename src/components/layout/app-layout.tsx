@@ -17,9 +17,9 @@ export function AppLayout({ children }: { children: React.ReactNode }) {
           <div className="flex w-full flex-1">
             <AppSidebar />
 
-            <SidebarInset className="relative min-h-[calc(100svh-72px)] bg-transparent">
+            <SidebarInset className="relative min-h-[calc(100svh-72px)] bg-[#f6f7f9]">
               <main className="relative flex-1 overflow-x-hidden overflow-y-auto">
-                <div className="crm-app-surface mx-auto w-full max-w-[1580px] px-4 py-5 md:px-6 md:py-6 xl:px-7">
+                <div className="crm-app-surface mx-auto w-full max-w-395 px-4 py-5 md:px-6 md:py-6 xl:px-7">
                   {children}
                 </div>
                 <FloatingHelpAssistant />

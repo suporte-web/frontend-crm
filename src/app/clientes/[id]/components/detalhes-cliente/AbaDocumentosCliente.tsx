@@ -29,7 +29,15 @@ import type { PropriedadesAbaDetalhesCliente } from "./detalhes-cliente-comparti
 export function AbaDocumentosCliente(props: PropriedadesAbaDetalhesCliente) {
   const { canEditCommercialData, documentFiles, setDocumentFiles, uploadingDocuments, handleUploadDocuments, handleOpenDocument, openDeleteDocumentDialog, cadastralDocuments } = props;
     return (
-      <CrmSection sx={{ p: { xs: 2.5, md: 3 } }}>
+      <CrmSection
+        sx={{
+          p: { xs: 2, md: 2.5 },
+          borderRadius: "14px",
+          border: `1px solid ${crmPalette.border}`,
+          bgcolor: "#ffffff",
+          boxShadow: "0 8px 24px rgba(15, 23, 42, 0.04)",
+        }}
+      >
         <Stack spacing={2.5}>
           <CabecalhoSecao
             eyebrow="Documentos"

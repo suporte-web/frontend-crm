@@ -2,27 +2,53 @@
 
 import Link from 'next/link';
 import { useEffect, useMemo, useState } from 'react';
-import { MessageCircleMore, UserPlus } from 'lucide-react';
+
+import Alert from '@mui/material/Alert';
+import Box from '@mui/material/Box';
+import Button from '@mui/material/Button';
+import Chip from '@mui/material/Chip';
+import CircularProgress from '@mui/material/CircularProgress';
+import Dialog from '@mui/material/Dialog';
+import DialogContent from '@mui/material/DialogContent';
+import IconButton from '@mui/material/IconButton';
+import MenuItem from '@mui/material/MenuItem';
+import Paper from '@mui/material/Paper';
+import Stack from '@mui/material/Stack';
+import TextField from '@mui/material/TextField';
+import Typography from '@mui/material/Typography';
+
+import { ArrowRight, Globe2, UserPlus, Users, X } from 'lucide-react';
+
 import { AppLayout } from '@/components/layout/app-layout';
 import { LeadForm } from '@/components/leads/lead-form';
+import { getLeadSourceLabel } from '@/components/leads/lead-timeline';
 import {
-  getLeadSourceBadgeClass,
-  getLeadSourceLabel,
-} from '@/components/leads/lead-timeline';
-import { LeadImportPanel } from '@/components/leads/lead-import-panel';
+  LEAD_FUNNEL_STAGES,
+  getLeadFunnelStageLabel,
+  normalizeLeadFunnelStage,
+} from '@/constants/lead-funnel';
+import {
+  CrmKpiCard,
+  CrmPageHeader,
+  CrmPageShell,
+  CrmSection,
+  crmPalette,
+} from '@/components/mui/crm-primitives';
 import { FeedbackToast } from '@/components/ui/feedback-toast';
-import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { useAuth } from '@/context/auth-context';
-import {
-  createLead,
-  getLeadImportJobs,
-  getLeads,
-  importLeadsCsv,
-  simulateWhatsAppLead,
-} from '@/services/leads.service';
-import type { Lead, LeadImportJob, ReceiveWhatsAppLeadPayload } from '@/types/leads';
+import { createLead, getLeads, getLeadsResumo } from '@/services/leads.service';
+import type { CreateLeadPayload, Lead, LeadsResumo } from '@/types/leads';
 
 const internalRoles = new Set(['ADMIN', 'GESTAO', 'COMERCIAL', 'MARKETING']);
+
+
+const fieldSx = {
+  '& .MuiOutlinedInput-root': {
+    height: 44,
+    borderRadius: '10px',
+    bgcolor: '#fff',
+  },
+};
 
 function formatDate(date: string) {
   return new Intl.DateTimeFormat('pt-BR', {
@@ -32,24 +58,54 @@ function formatDate(date: string) {
 }
 
 function getLeadStatusLabel(status?: string | null) {
-  const labels: Record<string, string> = {
-    new: 'Novo',
-    qualified: 'Qualificado',
-    converted: 'Convertido em cliente',
-    converted_to_prospect: 'Convertido',
-  };
-
-  return status ? labels[status] ?? status : '-';
+  return status ? getLeadFunnelStageLabel(status) : '-';
 }
+
+function getLeadSourceChipSx(source?: string | null) {
+  if (source === 'site') {
+    return {
+      bgcolor: '#fff7d6',
+      color: '#8a5a00',
+      borderColor: '#f6d36b',
+    };
+  }
+
+  return {
+    bgcolor: '#e8f2ff',
+    color: '#175a9e',
+    borderColor: '#a9cff5',
+  };
+}
+
+function getClientIdFromLead(lead: Lead) {
+  const metadata = lead.metadata;
+
+  if (
+    !metadata ||
+    Array.isArray(metadata) ||
+    typeof metadata !== 'object'
+  ) {
+    return '';
+  }
+
+  return typeof metadata.clientId === 'string'
+    ? metadata.clientId
+    : '';
+}
+
 
 export default function LeadsPage() {
   const { user, token } = useAuth();
   const [leads, setLeads] = useState<Lead[]>([]);
-  const [jobs, setJobs] = useState<LeadImportJob[]>([]);
+  const [visao, setVisao] = useState<'ativos' | 'convertidos'>('ativos');
+  const [resumoLeads, setResumoLeads] = useState<LeadsResumo>({
+    ativos: 0,
+    convertidos: 0,
+    total: 0,
+  });
   const [loading, setLoading] = useState(true);
   const [manualLoading, setManualLoading] = useState(false);
-  const [importLoading, setImportLoading] = useState(false);
-  const [whatsLoading, setWhatsLoading] = useState(false);
+  const [createOpen, setCreateOpen] = useState(false);
   const [pageError, setPageError] = useState('');
   const [toast, setToast] = useState<{
     title: string;
@@ -61,18 +117,37 @@ export default function LeadsPage() {
     source: '',
     status: '',
   });
-  const [whatsForm, setWhatsForm] = useState({
-    integrationToken: '',
-    phone: '',
-    name: '',
-    company: '',
-    sourcePhone: '',
-    externalMessageId: '',
-    externalContactId: '',
-    notes: '',
-  });
 
-  const isAllowed = user?.role ? internalRoles.has(user.role) : false;
+  const isAllowed = user?.role
+    ? internalRoles.has(user.role)
+    : false;
+
+  const visibleLeads = leads;
+
+  const summary = useMemo(() => {
+    const total = visibleLeads.length;
+
+    const manual = visibleLeads.filter(
+      (lead) => lead.source === 'manual',
+    ).length;
+
+    const site = visibleLeads.filter(
+      (lead) => lead.source === 'site',
+    ).length;
+
+    const fresh = visibleLeads.filter(
+      (lead) =>
+        normalizeLeadFunnelStage(lead.status) === 'entrada_leads',
+    ).length;
+
+    return {
+      total,
+      manual,
+      site,
+      fresh,
+    };
+  }, [visibleLeads]);
+
 
   async function loadData() {
     if (!token) {
@@ -82,17 +157,24 @@ export default function LeadsPage() {
     try {
       setLoading(true);
       setPageError('');
-      const leadData = await getLeads(token, filters);
-      setLeads(leadData);
 
-      try {
-        const jobData = await getLeadImportJobs(token);
-        setJobs(jobData);
-      } catch {
-        setJobs([]);
-      }
+      const [leadData, resumoData] = await Promise.all([
+        getLeads(token, {
+          ...filters,
+          convertidoParaCliente: visao === 'convertidos',
+        }),
+
+        getLeadsResumo(token),
+      ]);
+
+      setLeads(leadData);
+      setResumoLeads(resumoData);
     } catch (error) {
-      setPageError(error instanceof Error ? error.message : 'Erro ao carregar os leads.');
+      setPageError(
+        error instanceof Error
+          ? error.message
+          : 'Erro ao carregar os leads.',
+      );
     } finally {
       setLoading(false);
     }
@@ -104,35 +186,28 @@ export default function LeadsPage() {
     } else {
       setLoading(false);
     }
-  }, [isAllowed, token]);
+  }, [isAllowed, token, visao]);
 
   async function handleSearch(event: React.FormEvent<HTMLFormElement>) {
     event.preventDefault();
     await loadData();
   }
 
-  async function handleManualCreate(payload: {
-    name: string;
-    email?: string;
-    phone?: string;
-    company?: string;
-    source?: string;
-    status?: string;
-    notes?: string;
-  }): Promise<boolean> {
+  async function handleManualCreate(payload: CreateLeadPayload): Promise<boolean> {
     if (!token) {
       return false;
     }
 
     try {
       setManualLoading(true);
-      const created = await createLead(payload, token);
-      setLeads((prev) => [created, ...prev]);
+      await createLead(payload, token);
+      await loadData();
       setToast({
         title: 'Lead criado',
-        message: 'Cadastro manual concluido com sucesso.',
+        message: 'Cadastro manual concluído com sucesso.',
         variant: 'success',
       });
+      setCreateOpen(false);
       return true;
     } catch (error) {
       setToast({
@@ -146,485 +221,653 @@ export default function LeadsPage() {
     }
   }
 
-  async function handleImport(payload: {
-    file: File;
-    defaultSource?: string;
-    defaultStatus?: string;
-  }): Promise<boolean> {
-    if (!token) {
-      return false;
-    }
-
-    try {
-      setImportLoading(true);
-      const job = await importLeadsCsv(payload, token);
-      setJobs((prev) => [job, ...prev.filter((item) => item.id !== job.id)]);
-      await loadData();
-      setToast({
-        title: 'Importação concluída',
-        message: `${job.successCount} lead(s) importado(s), ${job.ignoredCount} ignorado(s).`,
-        variant: 'success',
-      });
-      return true;
-    } catch (error) {
-      setToast({
-        title: 'Falha na importação',
-        message: error instanceof Error ? error.message : 'Erro ao importar arquivo.',
-        variant: 'error',
-      });
-      return false;
-    } finally {
-      setImportLoading(false);
-    }
-  }
-
-  async function handleWhatsAppSubmit(event: React.FormEvent<HTMLFormElement>) {
-    event.preventDefault();
-
-    if (!whatsForm.integrationToken.trim()) {
-      setToast({
-        title: 'Token obrigatório',
-        message: 'Informe o token de integracao do endpoint de WhatsApp.',
-        variant: 'error',
-      });
-      return;
-    }
-
-    const payload: ReceiveWhatsAppLeadPayload = {
-      phone: whatsForm.phone.trim(),
-      name: whatsForm.name.trim() || undefined,
-      company: whatsForm.company.trim() || undefined,
-      sourcePhone: whatsForm.sourcePhone.trim() || undefined,
-      externalMessageId: whatsForm.externalMessageId.trim() || undefined,
-      externalContactId: whatsForm.externalContactId.trim() || undefined,
-      notes: whatsForm.notes.trim() || undefined,
-      channel: 'whatsapp',
-      metadata: {
-        simulatedBy: user?.email ?? 'interno',
-      },
-      rawPayload: {
-        kind: 'manual_simulation',
-      },
-    };
-
-    try {
-      setWhatsLoading(true);
-      const response = await simulateWhatsAppLead(
-        payload,
-        whatsForm.integrationToken.trim(),
-      );
-      await loadData();
-      setToast({
-        title: response.created ? 'Lead criado via WhatsApp' : 'Interação registrada',
-        message: response.message,
-        variant: 'success',
-      });
-    } catch (error) {
-      setToast({
-        title: 'Falha no WhatsApp',
-        message: error instanceof Error ? error.message : 'Erro ao simular WhatsApp.',
-        variant: 'error',
-      });
-    } finally {
-      setWhatsLoading(false);
-    }
-  }
-
-  const summary = useMemo(() => {
-    const total = leads.length;
-    const manual = leads.filter((lead) => lead.source === 'manual').length;
-    const imported = leads.filter((lead) => lead.source === 'import_csv').length;
-    const whatsapp = leads.filter((lead) => lead.source === 'whatsapp').length;
-    const fresh = leads.filter((lead) => lead.status === 'new').length;
-
-    return { total, manual, imported, whatsapp, fresh };
-  }, [leads]);
-
   if (!isAllowed) {
     return (
       <AppLayout>
-        <div className="rounded-[28px] border border-amber-200 bg-amber-50 p-6 text-amber-900">
-          Esta área e restrita aos perfis internos do CRM.
-        </div>
+        <Alert severity="warning">
+          Esta área é restrita aos perfis internos do CRM.
+        </Alert>
       </AppLayout>
     );
   }
 
   return (
     <AppLayout>
-      <div className="mx-auto flex w-full max-w-7xl flex-col gap-6">
-        <section className="crm-shell-card p-6">
-          <div className="flex flex-col gap-6 lg:flex-row lg:items-end lg:justify-between">
-            <div>
-              <p className="crm-eyebrow">Captação</p>
-              <h1 className="crm-page-title">Leads por cadastro manual, CSV e WhatsApp</h1>
-              <p className="crm-page-copy">
-                Falta fazer o fluxo"
-              </p>
-            </div>
+      <CrmPageShell>
+        <CrmPageHeader
+          eyebrow="Comercial"
+          title="Leads"
+          description="Entrada manual e cotações recebidas pelo site em uma base única para o comercial."
+          icon={<Users size={24} />}
+          aside={
+            <Button
+              type="button"
+              variant="contained"
+              startIcon={<UserPlus size={18} />}
+              onClick={() => setCreateOpen(true)}
+              sx={{
+                minHeight: 44,
+                borderRadius: '12px',
+                bgcolor: crmPalette.orange,
+                fontWeight: 900,
+                textTransform: 'none',
+                '&:hover': { bgcolor: crmPalette.orangeDark },
+              }}
+            >
+              Novo lead
+            </Button>
+          }
+        />
 
-            <div className="grid gap-3 sm:grid-cols-2 xl:grid-cols-5">
-              <article className="crm-soft-panel px-4 py-3">
-                <p className="text-xs uppercase tracking-[0.18em] text-slate-400">Total</p>
-                <p className="mt-2 text-2xl font-bold text-slate-950">{summary.total}</p>
-              </article>
-              <article className="crm-soft-panel px-4 py-3">
-                <p className="text-xs uppercase tracking-[0.18em] text-slate-400">Manual</p>
-                <p className="mt-2 text-2xl font-bold text-blue-700">{summary.manual}</p>
-              </article>
-              <article className="crm-soft-panel px-4 py-3">
-                <p className="text-xs uppercase tracking-[0.18em] text-slate-400">CSV</p>
-                <p className="mt-2 text-2xl font-bold text-emerald-700">{summary.imported}</p>
-              </article>
-              <article className="crm-soft-panel px-4 py-3">
-                <p className="text-xs uppercase tracking-[0.18em] text-slate-400">WhatsApp</p>
-                <p className="mt-2 text-2xl font-bold text-green-700">{summary.whatsapp}</p>
-              </article>
-              <article className="crm-soft-panel px-4 py-3">
-                <p className="text-xs uppercase tracking-[0.18em] text-slate-400">Status novo</p>
-                <p className="mt-2 text-2xl font-bold text-violet-700">{summary.fresh}</p>
-              </article>
-            </div>
-          </div>
-        </section>
+        <Box
+          sx={{
+            display: 'grid',
 
-        <section className="crm-shell-card p-6">
-          <Tabs defaultValue="manual" className="gap-6">
-            <div className="flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between">
-              <div>
-                <h2 className="text-2xl font-bold text-slate-950">Entradas de lead</h2>
-              </div>
-              <TabsList variant="line" className="w-fit">
-                <TabsTrigger value="manual">Manual</TabsTrigger>
-                <TabsTrigger value="csv">CSV</TabsTrigger>
-                <TabsTrigger value="whatsapp">WhatsApp</TabsTrigger>
-              </TabsList>
-            </div>
+            gap: {
+              xs: 1.5,
+              md: 2,
+            },
 
-            <TabsContent value="manual">
-              <div className="grid gap-6">
-                <article className="crm-soft-panel p-5">
-                  <div className="mb-5 flex items-center gap-3">
-                    <div className="flex h-11 w-11 items-center justify-center rounded-2xl bg-blue-100 text-blue-700">
-                      <UserPlus className="h-5 w-5" />
-                    </div>
-                    <div>
-                      <h3 className="text-lg font-semibold text-slate-950">Cadastro manual</h3>
-                      <p className="text-sm text-slate-500">
-                        Entrada rápida.
-                      </p>
-                    </div>
-                  </div>
-                  <LeadForm loading={manualLoading} onSubmit={handleManualCreate} />
-                </article>
+            gridTemplateColumns: {
+              xs: '1fr',
+              sm: 'repeat(2, minmax(0, 1fr))',
+              lg: 'repeat(4, minmax(0, 1fr))',
+            },
 
-                <article className="hidden">
-                  <div className="mb-5 flex items-center gap-3">
-                    <div className="flex h-11 w-11 items-center justify-center rounded-2xl bg-violet-100 text-violet-700">
-                    </div>
-                    <div>
-                      <h3 className="text-lg font-semibold text-slate-950">Regras da captação</h3>
-                      <p className="text-sm text-slate-500">
-                        Parametros atuais do CRM para manter a base limpa.
-                      </p>
-                    </div>
-                  </div>
+            alignItems: 'stretch',
+            gridAutoRows: '1fr',
+          }}
+        >
+          <CrmKpiCard
+            title="Total"
+            value={summary.total}
+            icon={<Users size={22} />}
+            accent="#ff5805"
+            softColor="#ff58051a"
+            sx={{
+              minHeight: 140,
+              height: '100%',
+            }}
+          />
 
-                  <div className="space-y-3 text-sm leading-6 text-slate-600">
-                    <div className="rounded-2xl border border-slate-200 bg-white px-4 py-3">
-                      Origem padrao: <strong>manual</strong>
-                    </div>
-                    <div className="rounded-2xl border border-slate-200 bg-white px-4 py-3">
-                      Status padrao: <strong>novo</strong>
-                    </div>
-                    <div className="rounded-2xl border border-slate-200 bg-white px-4 py-3">
-                      Duplicidade por e-mail; sem e-mail, por telefone.
-                    </div>
-                    <div className="rounded-2xl border border-slate-200 bg-white px-4 py-3">
-                      Timeline inicial criada automaticamente no backend.
-                    </div>
-                  </div>
-                </article>
-              </div>
-            </TabsContent>
+          <CrmKpiCard
+            title="Manual"
+            value={summary.manual}
+            icon={<UserPlus size={22} />}
+            accent="#f59e0b"
+            softColor="#f59e0b1a"
+            sx={{
+              minHeight: 140,
+              height: '100%',
+            }}
+          />
 
-            <TabsContent value="csv">
-              <LeadImportPanel loading={importLoading} jobs={jobs} onImport={handleImport} />
-            </TabsContent>
+          <CrmKpiCard
+            title="Site"
+            value={summary.site}
+            icon={<Globe2 size={22} />}
+            accent="#f97316"
+            softColor="#f973161a"
+            sx={{
+              minHeight: 140,
+              height: '100%',
+            }}
+          />
 
-            <TabsContent value="whatsapp">
-              <div className="grid gap-6 xl:grid-cols-[1fr_.88fr]">
-                <article className="crm-soft-panel p-5">
-                  <div className="mb-5 flex items-center gap-3">
-                    <div className="flex h-11 w-11 items-center justify-center rounded-2xl bg-green-100 text-green-700">
-                      <MessageCircleMore className="h-5 w-5" />
-                    </div>
-                    <div>
-                      <h3 className="text-lg font-semibold text-slate-950">
-                        Entrada via WhatsApp
-                      </h3>
-                      <p className="text-sm text-slate-500">
-                        Teste o endpoint e valide o fluxo mínimo de captação por telefone.
-                      </p>
-                    </div>
-                  </div>
+          <CrmKpiCard
+            title="Entrada"
+            value={summary.fresh}
+            icon={<ArrowRight size={22} />}
+            accent="#ef4444"
+            softColor="#ef44441a"
+            sx={{
+              minHeight: 140,
+              height: '100%',
+            }}
+          />
+        </Box>
 
-                  <form onSubmit={handleWhatsAppSubmit} className="space-y-4">
-                    <div>
-                      <label className="mb-2 block text-sm font-semibold text-slate-700">
-                        Token de integracao
-                      </label>
-                      <input
-                        type="text"
-                        value={whatsForm.integrationToken}
-                        onChange={(event) =>
-                          setWhatsForm((prev) => ({
-                            ...prev,
-                            integrationToken: event.target.value,
-                          }))
-                        }
-                        className="crm-input"
-                        placeholder="Mesmo token configurado no backend"
-                      />
-                    </div>
+        {pageError ? <Alert severity="error">{pageError}</Alert> : null}
 
-                    <div className="grid gap-4 md:grid-cols-2">
-                      <div>
-                        <label className="mb-2 block text-sm font-semibold text-slate-700">
-                          Telefone
-                        </label>
-                        <input
-                          type="text"
-                          value={whatsForm.phone}
-                          onChange={(event) =>
-                            setWhatsForm((prev) => ({ ...prev, phone: event.target.value }))
-                          }
-                          className="crm-input"
-                          placeholder="5511999999999"
-                        />
-                      </div>
-                      <div>
-                        <label className="mb-2 block text-sm font-semibold text-slate-700">
-                          Nome
-                        </label>
-                        <input
-                          type="text"
-                          value={whatsForm.name}
-                          onChange={(event) =>
-                            setWhatsForm((prev) => ({ ...prev, name: event.target.value }))
-                          }
-                          className="crm-input"
-                          placeholder="Contato via WhatsApp"
-                        />
-                      </div>
-                    </div>
+        <CrmSection
+          sx={{
+            p: {
+              xs: 2,
+              md: 3,
+            },
 
-                    <div className="grid gap-4 md:grid-cols-2">
-                      <input
-                        type="text"
-                        value={whatsForm.company}
-                        onChange={(event) =>
-                          setWhatsForm((prev) => ({ ...prev, company: event.target.value }))
-                        }
-                        className="crm-input"
-                        placeholder="Empresa"
-                      />
-                      <input
-                        type="text"
-                        value={whatsForm.sourcePhone}
-                        onChange={(event) =>
-                          setWhatsForm((prev) => ({
-                            ...prev,
-                            sourcePhone: event.target.value,
-                          }))
-                        }
-                        className="crm-input"
-                        placeholder="Número de origem"
-                      />
-                    </div>
+            bgcolor: '#fffaf7',
 
-                    <div className="grid gap-4 md:grid-cols-2">
-                      <input
-                        type="text"
-                        value={whatsForm.externalMessageId}
-                        onChange={(event) =>
-                          setWhatsForm((prev) => ({
-                            ...prev,
-                            externalMessageId: event.target.value,
-                          }))
-                        }
-                        className="crm-input"
-                        placeholder="externalMessageId"
-                      />
-                      <input
-                        type="text"
-                        value={whatsForm.externalContactId}
-                        onChange={(event) =>
-                          setWhatsForm((prev) => ({
-                            ...prev,
-                            externalContactId: event.target.value,
-                          }))
-                        }
-                        className="crm-input"
-                        placeholder="externalContactId"
-                      />
-                    </div>
+            border: '1px solid rgba(255,88,5,0.10)',
 
-                    <textarea
-                      rows={4}
-                      value={whatsForm.notes}
-                      onChange={(event) =>
-                        setWhatsForm((prev) => ({ ...prev, notes: event.target.value }))
-                      }
-                      className="crm-textarea"
-                      placeholder="Mensagem ou contexto recebido."
-                    />
+            borderRadius: '18px',
 
-                    <div className="flex justify-end">
-                      <button
-                        type="submit"
-                        disabled={whatsLoading}
-                        className="inline-flex items-center justify-center gap-2 rounded-2xl bg-green-600 px-5 py-3 text-sm font-semibold text-white transition hover:bg-green-700 disabled:opacity-60"
-                      >
-                        {whatsLoading ? 'Processando...' : 'Simular webhook'}
-                      </button>
-                    </div>
-                  </form>
-                </article>
+            boxShadow: '0 10px 35px rgba(15,23,42,0.05)',
+          }}
+        >
+          <Stack
+            spacing={2.5}
+            sx={{
+              width: '100%',
+            }}
+          >
+            <Box>
+              <Typography
+                sx={{
+                  color: crmPalette.orangeDark,
+                  fontSize: 12,
+                  fontWeight: 900,
+                  letterSpacing: '.16em',
+                  textTransform: 'uppercase',
+                }}
+              >
+                Pipeline de entrada
+              </Typography>
+              <Typography
+                component="h2"
+                sx={{
+                  mt: 0.5,
+                  fontSize: 26,
+                  fontWeight: 900,
+                }}
+              >
+                {visao === 'ativos'
+                  ? 'Base de leads'
+                  : 'Convertidos em clientes'}
+              </Typography>
 
-                <article className="crm-soft-panel p-5">
-                  <h3 className="text-lg font-semibold text-slate-950">Escopo desta fase</h3>
-                  <div className="mt-4 space-y-3 text-sm leading-6 text-slate-600">
-                    <div className="rounded-2xl border border-slate-200 bg-white px-4 py-3">
-                      Recebimento de lead via webhook, sem inbox e sem envio de mensagem.
-                    </div>
-                    <div className="rounded-2xl border border-slate-200 bg-white px-4 py-3">
-                      Deduplicação por telefone antes de abrir um novo cadastro.
-                    </div>
-                    <div className="rounded-2xl border border-slate-200 bg-white px-4 py-3">
-                      Timeline registra criação ou nova interação do mesmo contato.
-                    </div>
-                    <div className="rounded-2xl border border-slate-200 bg-white px-4 py-3">
-                      Estrutura pronta para encaixar Cloud API de forma oficial depois.
-                    </div>
-                  </div>
-                </article>
-              </div>
-            </TabsContent>
-          </Tabs>
-        </section>
+              <Typography
+                sx={{
+                  mt: 0.75,
+                  color: 'text.secondary',
+                }}
+              >
+                {visao === 'ativos'
+                  ? 'Lista operacional para acompanhar leads manuais e do site.'
+                  : 'Histórico de leads que foram convertidos em clientes.'}
+              </Typography>
 
-        <section className="crm-shell-card p-6">
-          <div className="flex flex-col gap-4 lg:flex-row lg:items-end lg:justify-between">
-            <div>
-              <p className="crm-eyebrow">Pipeline de entrada</p>
-              <h2 className="mt-2 text-2xl font-bold text-slate-950">Base de leads</h2>
-              <p className="mt-2 text-sm text-slate-500">
-                Visão de lista para comercial.
-              </p>
-            </div>
+            </Box>
 
-            <form onSubmit={handleSearch} className="grid gap-3 md:grid-cols-4">
-              <input
-                type="text"
+            <Box
+              sx={{
+                display: 'grid',
+                gridTemplateColumns: {
+                  xs: '1fr',
+                  md: 'repeat(2, minmax(0, 1fr))',
+                },
+                gap: 1.5,
+              }}
+            >
+              {/* LEADS ATIVOS */}
+              <Paper
+                component="button"
+                type="button"
+                elevation={0}
+                onClick={() => setVisao('ativos')}
+                sx={{
+                  p: 2,
+                  width: '100%',
+                  textAlign: 'left',
+                  cursor: 'pointer',
+                  borderRadius: '14px',
+
+                  border: '1px solid',
+                  borderColor:
+                    visao === 'ativos'
+                      ? crmPalette.orange
+                      : 'rgba(15,23,42,0.10)',
+
+                  bgcolor:
+                    visao === 'ativos'
+                      ? '#fff7ed'
+                      : '#ffffff',
+
+                  transition: 'all 0.2s ease',
+
+                  '&:hover': {
+                    borderColor: crmPalette.orange,
+                    transform: 'translateY(-2px)',
+                    boxShadow: '0 8px 24px rgba(15,23,42,0.08)',
+                  },
+                }}
+              >
+                <Stack
+                  direction="row"
+                  sx={{
+                    alignItems: 'center',
+                    justifyContent: 'space-between',
+                    gap: 2,
+                  }}
+                >
+                  <Box>
+                    <Typography
+                      sx={{
+                        color: '#64748b',
+                        fontSize: 12,
+                        fontWeight: 900,
+                        textTransform: 'uppercase',
+                        letterSpacing: '.08em',
+                      }}
+                    >
+                      Leads ativos
+                    </Typography>
+
+                    <Typography
+                      sx={{
+                        mt: 0.5,
+                        color: '#0f172a',
+                        fontSize: 28,
+                        fontWeight: 950,
+                      }}
+                    >
+                      {resumoLeads.ativos}
+                    </Typography>
+
+                    <Typography
+                      sx={{
+                        mt: 0.25,
+                        color: '#64748b',
+                        fontSize: 13,
+                      }}
+                    >
+                      Em acompanhamento comercial
+                    </Typography>
+                  </Box>
+
+                  <Box
+                    sx={{
+                      width: 44,
+                      height: 44,
+                      display: 'grid',
+                      placeItems: 'center',
+                      borderRadius: '12px',
+                      bgcolor:
+                        visao === 'ativos'
+                          ? '#ffedd5'
+                          : '#f8fafc',
+                      color: crmPalette.orange,
+                    }}
+                  >
+                    <Users size={21} />
+                  </Box>
+                </Stack>
+              </Paper>
+
+              {/* CONVERTIDOS EM CLIENTES */}
+              <Paper
+                component="button"
+                type="button"
+                elevation={0}
+                onClick={() => setVisao('convertidos')}
+                sx={{
+                  p: 2,
+                  width: '100%',
+                  textAlign: 'left',
+                  cursor: 'pointer',
+                  borderRadius: '14px',
+
+                  border: '1px solid',
+                  borderColor:
+                    visao === 'convertidos'
+                      ? '#16a34a'
+                      : 'rgba(15,23,42,0.10)',
+
+                  bgcolor:
+                    visao === 'convertidos'
+                      ? '#f0fdf4'
+                      : '#ffffff',
+
+                  transition: 'all 0.2s ease',
+
+                  '&:hover': {
+                    borderColor: '#16a34a',
+                    transform: 'translateY(-2px)',
+                    boxShadow: '0 8px 24px rgba(15,23,42,0.08)',
+                  },
+                }}
+              >
+                <Stack
+                  direction="row"
+                  sx={{
+                    alignItems: 'center',
+                    justifyContent: 'space-between',
+                    gap: 2,
+                  }}
+                >
+                  <Box>
+                    <Typography
+                      sx={{
+                        color: '#64748b',
+                        fontSize: 12,
+                        fontWeight: 900,
+                        textTransform: 'uppercase',
+                        letterSpacing: '.08em',
+                      }}
+                    >
+                      Convertidos em clientes
+                    </Typography>
+
+                    <Typography
+                      sx={{
+                        mt: 0.5,
+                        color: '#0f172a',
+                        fontSize: 28,
+                        fontWeight: 950,
+                      }}
+                    >
+                      {resumoLeads.convertidos}
+                    </Typography>
+
+                    <Typography
+                      sx={{
+                        mt: 0.25,
+                        color: '#64748b',
+                        fontSize: 13,
+                      }}
+                    >
+                      Leads que já viraram clientes
+                    </Typography>
+                  </Box>
+
+                  <Box
+                    sx={{
+                      width: 44,
+                      height: 44,
+                      display: 'grid',
+                      placeItems: 'center',
+                      borderRadius: '12px',
+                      bgcolor:
+                        visao === 'convertidos'
+                          ? '#dcfce7'
+                          : '#f8fafc',
+                      color: '#16a34a',
+                    }}
+                  >
+                    <UserPlus size={21} />
+                  </Box>
+                </Stack>
+              </Paper>
+            </Box>
+
+            <Box
+              component="form"
+              onSubmit={handleSearch}
+              sx={{
+                width: '100%',
+
+                display: 'grid',
+
+                gap: 1.5,
+
+                gridTemplateColumns: {
+                  xs: '1fr',
+                  sm: 'repeat(2, minmax(0, 1fr))',
+                  lg: 'minmax(260px, 2fr) minmax(160px, 1fr) minmax(170px, 1fr) 120px',
+                },
+
+                alignItems: 'end',
+              }}
+            >
+              <TextField
+                label="Buscar"
+                size="small"
                 value={filters.q}
-                onChange={(event) => setFilters((prev) => ({ ...prev, q: event.target.value }))}
-                className="crm-input"
-                placeholder="Buscar por nome, e-mail ou empresa"
+                onChange={(event) =>
+                  setFilters((prev) => ({ ...prev, q: event.target.value }))
+                }
+                placeholder="Nome, e-mail ou empresa"
+                sx={fieldSx}
               />
-              <input
-                type="text"
+              <TextField
+                select
+                label="Origem"
+                size="small"
                 value={filters.source}
                 onChange={(event) =>
                   setFilters((prev) => ({ ...prev, source: event.target.value }))
                 }
-                className="crm-input"
-                placeholder="source"
-              />
-              <input
-                type="text"
+                sx={fieldSx}
+              >
+                <MenuItem value="">Manual e site</MenuItem>
+                <MenuItem value="manual">Manual</MenuItem>
+                <MenuItem value="site">Site</MenuItem>
+              </TextField>
+              <TextField
+                select
+                label="Etapa"
+                size="small"
                 value={filters.status}
                 onChange={(event) =>
                   setFilters((prev) => ({ ...prev, status: event.target.value }))
                 }
-                className="crm-input"
-                placeholder="status"
-              />
-              <button
+                sx={fieldSx}
+              >
+                <MenuItem value="">Todas</MenuItem>
+                {LEAD_FUNNEL_STAGES.map((stage) => (
+                  <MenuItem key={stage.value} value={stage.value}>
+                    {stage.label}
+                  </MenuItem>
+                ))}
+              </TextField>
+              <Button
                 type="submit"
-                className="rounded-2xl bg-slate-950 px-4 py-3 text-sm font-semibold text-white transition hover:bg-slate-800"
+                variant="contained"
+                sx={{
+                  minHeight: 40,
+                  borderRadius: '10px',
+                  fontWeight: 900,
+                  textTransform: 'none',
+                }}
               >
                 Filtrar
-              </button>
-            </form>
-          </div>
+              </Button>
+            </Box>
+          </Stack>
 
           {loading ? (
-            <div className="p-10 text-center text-sm text-slate-500">Carregando leads...</div>
-          ) : pageError ? (
-            <div className="mt-6 rounded-2xl border border-rose-200 bg-rose-50 px-4 py-3 text-sm text-rose-700">
-              {pageError}
-            </div>
-          ) : leads.length === 0 ? (
-            <div className="mt-6 rounded-2xl border border-slate-200 bg-slate-50 px-4 py-6 text-center text-sm text-slate-500">
-              Nenhum lead encontrado.
-            </div>
+            <Box sx={{ minHeight: 260, display: 'grid', placeItems: 'center' }}>
+              <CircularProgress />
+            </Box>
+          ) : visibleLeads.length === 0 ? (
+            <Alert severity="info" sx={{ mt: 3 }}>
+              {visao === 'ativos'
+                ? 'Nenhum lead ativo encontrado.'
+                : 'Nenhum lead convertido em cliente encontrado.'}
+            </Alert>
           ) : (
-            <div className="mt-6 space-y-3">
-              {leads.map((lead) => (
-                <article
+            <Stack spacing={1.5} sx={{ mt: 3 }}>
+              {visibleLeads.map((lead) => (
+                <Paper
                   key={lead.id}
-                  className="grid gap-4 rounded-[26px] border border-slate-200/80 bg-[linear-gradient(180deg,#ffffff_0%,#f8fafc_100%)] px-4 py-4 shadow-sm lg:grid-cols-[1.6fr_1fr_.8fr_1.1fr_auto]"
+                  elevation={0}
+                  sx={{
+                    p: 2,
+                    border: '1px solid',
+                    borderColor: 'divider',
+                    borderRadius: '14px',
+                    bgcolor: '#fff',
+                  }}
                 >
-                  <div>
-                    <p className="text-base font-semibold text-slate-950">{lead.name}</p>
-                    <p className="mt-1 text-sm text-slate-500">
-                      {lead.email || lead.phone || 'Sem contato principal'}
-                    </p>
-                    {lead.company ? (
-                      <p className="mt-1 text-sm text-slate-400">{lead.company}</p>
-                    ) : null}
-                  </div>
+                  <Box
+                    sx={{
+                      display: 'grid',
+                      gap: 2,
+                      gridTemplateColumns: {
+                        xs: '1fr',
+                        lg: '1.6fr .8fr .8fr 1fr auto',
+                      },
+                      alignItems: 'center',
+                    }}
+                  >
+                    <Box sx={{ minWidth: 0 }}>
+                      <Typography sx={{ fontSize: 16, fontWeight: 900 }}>
+                        {lead.name}
+                      </Typography>
+                      <Typography
+                        sx={{
+                          mt: 0.5,
+                          color: 'text.secondary',
+                          fontSize: 13,
+                          overflowWrap: 'anywhere',
+                        }}
+                      >
+                        {lead.email || lead.phone || 'Sem contato principal'}
+                      </Typography>
+                      {lead.company ? (
+                        <Typography sx={{ mt: 0.25, color: 'text.disabled', fontSize: 13 }}>
+                          {lead.company}
+                        </Typography>
+                      ) : null}
+                    </Box>
 
-                  <div>
-                    <p className="text-xs uppercase tracking-[0.18em] text-slate-400">Origem</p>
-                    <span
-                      className={`mt-2 inline-flex rounded-full px-3 py-1 text-xs font-semibold ${getLeadSourceBadgeClass(
-                        lead.source,
-                      )}`}
+                    <Box>
+                      <Typography sx={{ color: 'text.secondary', fontSize: 12, fontWeight: 800 }}>
+                        Origem
+                      </Typography>
+                      <Chip
+                        size="small"
+                        variant="outlined"
+                        label={getLeadSourceLabel(lead.source)}
+                        sx={{ mt: 1, fontWeight: 800, ...getLeadSourceChipSx(lead.source) }}
+                      />
+                    </Box>
+
+                    <Box>
+                      <Typography sx={{ color: 'text.secondary', fontSize: 12, fontWeight: 800 }}>
+                        Etapa
+                      </Typography>
+                      <Typography sx={{ mt: 1, fontSize: 14, fontWeight: 900 }}>
+                        {getLeadStatusLabel(lead.status)}
+                      </Typography>
+                    </Box>
+
+                    <Box>
+                      <Typography sx={{ color: 'text.secondary', fontSize: 12, fontWeight: 800 }}>
+                        Criado em
+                      </Typography>
+                      <Typography sx={{ mt: 1, color: 'text.secondary', fontSize: 14 }}>
+                        {formatDate(lead.createdAt)}
+                      </Typography>
+                    </Box>
+
+                    <Stack
+                      direction="row"
+                      spacing={1}
+                      sx={{ justifyContent: 'flex-end' }}
                     >
-                      {getLeadSourceLabel(lead.source)}
-                    </span>
-                  </div>
+                      {visao === 'convertidos' && getClientIdFromLead(lead) ? (
+                        <Button
+                          component={Link}
+                          href={`/clientes/${getClientIdFromLead(lead)}`}
+                          variant="outlined"
+                          endIcon={<ArrowRight size={16} />}
+                          sx={{
+                            borderRadius: '10px',
+                            borderColor: '#16a34a',
+                            color: '#15803d',
+                            fontWeight: 800,
+                            textTransform: 'none',
 
-                  <div>
-                    <p className="text-xs uppercase tracking-[0.18em] text-slate-400">Status</p>
-                    <p className="mt-2 text-sm font-semibold text-slate-900">
-                      {getLeadStatusLabel(lead.status)}
-                    </p>
-                  </div>
-
-                  <div>
-                    <p className="text-xs uppercase tracking-[0.18em] text-slate-400">
-                      Criado em
-                    </p>
-                    <p className="mt-2 text-sm text-slate-600">{formatDate(lead.createdAt)}</p>
-                  </div>
-
-                  <div className="flex items-center justify-end">
-                    <Link
-                      href={`/leads/${lead.id}`}
-                      className="rounded-2xl border border-slate-300 bg-white px-4 py-2 text-sm font-semibold text-slate-700 transition hover:bg-slate-100"
-                    >
-                      Ver detalhes
-                    </Link>
-                  </div>
-                </article>
+                            '&:hover': {
+                              borderColor: '#15803d',
+                              bgcolor: '#f0fdf4',
+                            },
+                          }}
+                        >
+                          Ver cliente
+                        </Button>
+                      ) : (
+                        <Button
+                          component={Link}
+                          href={`/leads/${lead.id}`}
+                          variant="outlined"
+                          endIcon={<ArrowRight size={16} />}
+                          sx={{
+                            borderRadius: '10px',
+                            fontWeight: 800,
+                            textTransform: 'none',
+                          }}
+                        >
+                          Detalhes
+                        </Button>
+                      )}
+                    </Stack>
+                  </Box>
+                </Paper>
               ))}
-            </div>
+            </Stack>
           )}
-        </section>
-      </div>
+        </CrmSection>
+      </CrmPageShell>
+
+      <Dialog
+        open={createOpen}
+        onClose={() => setCreateOpen(false)}
+        fullWidth
+        maxWidth="md"
+        slotProps={{
+          paper: {
+            sx: {
+              borderRadius: '18px',
+              overflow: 'hidden',
+              boxShadow: '0 26px 80px rgba(15,23,42,0.22)',
+            },
+          },
+        }}
+      >
+        <Box
+          sx={{
+            px: { xs: 2.25, md: 3 },
+            py: 2.5,
+            borderBottom: '1px solid',
+            borderColor: 'divider',
+            bgcolor: '#fff7ed',
+          }}
+        >
+          <Stack direction="row" spacing={2} sx={{ alignItems: 'flex-start' }}>
+            <Box
+              sx={{
+                width: 54,
+                height: 54,
+                display: 'grid',
+                placeItems: 'center',
+                flex: '0 0 auto',
+                borderRadius: '16px',
+                bgcolor: '#ffedd5',
+                color: crmPalette.orange,
+              }}
+            >
+              <UserPlus size={25} />
+            </Box>
+            <Box sx={{ minWidth: 0, flex: 1 }}>
+              <Typography component="h2" sx={{ color: '#1f2937', fontSize: 26, fontWeight: 950, lineHeight: 1.1 }}>
+                Novo lead
+              </Typography>
+              <Typography sx={{ mt: 0.75, color: '#64748b', fontSize: 15 }}>
+                Inclua os dados comerciais, logo/foto e informações do funil.
+              </Typography>
+            </Box>
+            <IconButton
+              aria-label="Fechar"
+              onClick={() => setCreateOpen(false)}
+              sx={{
+                color: '#64748b',
+                border: '1px solid',
+                borderColor: 'divider',
+                bgcolor: '#fff',
+                '&:hover': { bgcolor: '#f8fafc' },
+              }}
+            >
+              <X size={20} />
+            </IconButton>
+          </Stack>
+        </Box>
+
+        <DialogContent sx={{ p: { xs: 2.25, md: 3 }, bgcolor: '#ffffff' }}>
+          <LeadForm loading={manualLoading} onSubmit={handleManualCreate} />
+        </DialogContent>
+      </Dialog>
 
       <FeedbackToast
         open={!!toast}

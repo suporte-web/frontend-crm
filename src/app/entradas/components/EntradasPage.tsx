@@ -74,7 +74,7 @@ export default function EntradasPage() {
   } | null>(null);
 
   const canUsePage = useMemo(
-    () => Boolean(user?.role && ["ADMIN", "GESTAO", "COMERCIAL"].includes(user.role)),
+    () => Boolean(user?.role && ["ADMIN", "GESTÃO", "COMERCIAL"].includes(user.role)),
     [user?.role],
   );
 

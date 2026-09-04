@@ -139,7 +139,7 @@ export default function PaginaDetalhePropostaCliente({
   const proposalId = proposalIdParam;
 
   const canEditCommercialData = user?.role
-    ? ["ADMIN", "GESTAO", "COMERCIAL"].includes(user.role)
+    ? ["ADMIN", "GESTÃO", "COMERCIAL"].includes(user.role)
     : false;
 
   const opportunity = useMemo(
@@ -389,391 +389,63 @@ export default function PaginaDetalhePropostaCliente({
     }
   }
 
- 
+
 
   return (
-      <AppLayout>
-        <CrmPageShell>
-          <Stack spacing={2.5}>
-            <Button
-              component={Link}
-              href={`/clientes/${clientId}?aba=propostas`}
-              variant="outlined"
-              startIcon={<ArrowLeft size={16} />}
-              sx={{
-                ...secondaryButtonSx,
-                width: "fit-content",
-                minHeight: 34,
-                px: 1.6,
-                borderRadius: "999px",
-                fontSize: 12,
-              }}
-            >
-              Voltar para propostas
-            </Button>
+    <AppLayout>
+      <CrmPageShell>
+        <Stack spacing={2.5}>
+          <Button
+            component={Link}
+            href={`/clientes/${clientId}?aba=propostas`}
+            variant="outlined"
+            startIcon={<ArrowLeft size={16} />}
+            sx={{
+              ...secondaryButtonSx,
+              width: "fit-content",
+              minHeight: 34,
+              px: 1.6,
+              borderRadius: "999px",
+              fontSize: 12,
+            }}
+          >
+            Voltar para propostas
+          </Button>
 
-            {loading ? (
-              <CrmSection sx={{ p: 4 }}>
-                <Stack direction="row" spacing={1.5} sx={{ alignItems: "center" }}>
-                  <CircularProgress size={22} sx={{ color: crmPalette.orange }} />
-                  <Typography sx={{ color: crmPalette.muted, fontWeight: 700 }}>
-                    Carregando proposta...
-                  </Typography>
-                </Stack>
-              </CrmSection>
-            ) : error ? (
-              <Alert severity="error" sx={{ borderRadius: "12px" }}>
-                {error}
-              </Alert>
-            ) : !lead || !opportunity ? (
-              <Alert severity="warning" sx={{ borderRadius: "12px" }}>
-                Proposta não encontrada.
-              </Alert>
-            ) : (
-              <>
-                <CrmSection
+          {loading ? (
+            <CrmSection sx={{ p: 4 }}>
+              <Stack direction="row" spacing={1.5} sx={{ alignItems: "center" }}>
+                <CircularProgress size={22} sx={{ color: crmPalette.orange }} />
+                <Typography sx={{ color: crmPalette.muted, fontWeight: 700 }}>
+                  Carregando proposta...
+                </Typography>
+              </Stack>
+            </CrmSection>
+          ) : error ? (
+            <Alert severity="error" sx={{ borderRadius: "12px" }}>
+              {error}
+            </Alert>
+          ) : !lead || !opportunity ? (
+            <Alert severity="warning" sx={{ borderRadius: "12px" }}>
+              Proposta não encontrada.
+            </Alert>
+          ) : (
+            <>
+              <CrmSection
+                sx={{
+                  p: 0,
+                  overflow: "hidden",
+                }}
+              >
+                {/* Faixa superior que muda de cor conforme o status */}
+                <Box
                   sx={{
-                    p: 0,
-                    overflow: "hidden",
+                    height: 5,
+                    bgcolor: statusVisual.color,
                   }}
-                >
-                  {/* Faixa superior que muda de cor conforme o status */}
-                  <Box
-                    sx={{
-                      height: 5,
-                      bgcolor: statusVisual.color,
-                    }}
-                  />
+                />
 
-                  <Box
-                    sx={{
-                      p: {
-                        xs: 2.5,
-                        md: 3,
-                      },
-                    }}
-                  >
-                    <Stack spacing={2}>
-                      {/* Cabeçalho principal */}
-                      <Stack
-                        direction={{
-                          xs: "column",
-                          md: "row",
-                        }}
-                        spacing={2}
-                        sx={{
-                          alignItems: {
-                            xs: "stretch",
-                            md: "center",
-                          },
-                          justifyContent: "space-between",
-                        }}
-                      >
-                        {/* Título e cliente */}
-                        <Stack
-                          direction="row"
-                          spacing={1.5}
-                          sx={{
-                            alignItems: "flex-start",
-                            minWidth: 0,
-                          }}
-                        >
-                          <Box
-                            sx={{
-                              width: 48,
-                              height: 48,
-                              display: "grid",
-                              placeItems: "center",
-                              flexShrink: 0,
-                              borderRadius: "14px",
-                              bgcolor: statusVisual.background,
-                              color: statusVisual.color,
-                              border: `1px solid ${statusVisual.border}`,
-                            }}
-                          >
-                            <FileText size={23} />
-                          </Box>
-
-                          <Box sx={{ minWidth: 0 }}>
-                            <Typography
-                              sx={{
-                                color: crmPalette.orangeDark,
-                                fontSize: 11,
-                                fontWeight: 900,
-                                letterSpacing: ".14em",
-                                textTransform: "uppercase",
-                              }}
-                            >
-                              Detalhes da proposta
-                            </Typography>
-
-                            <Typography
-                              component="h1"
-                              sx={{
-                                mt: 0.4,
-                                color: crmPalette.text,
-                                fontSize: {
-                                  xs: 21,
-                                  md: 27,
-                                },
-                                fontWeight: 950,
-                                lineHeight: 1.2,
-                                overflowWrap: "anywhere",
-                              }}
-                            >
-                              {opportunity.title}
-                            </Typography>
-
-                            <Stack
-                              direction="row"
-                              spacing={0.75}
-                              sx={{
-                                mt: 0.8,
-                                alignItems: "center",
-                              }}
-                            >
-                              <Building2
-                                size={15}
-                                color={crmPalette.muted}
-                              />
-
-                              <Typography
-                                sx={{
-                                  color: crmPalette.muted,
-                                  fontSize: 13,
-                                  fontWeight: 700,
-                                  overflowWrap: "anywhere",
-                                }}
-                              >
-                                {lead.company}
-                              </Typography>
-                            </Stack>
-                          </Box>
-                        </Stack>
-
-                        {/* Chips de etapa e status */}
-                        <Stack
-                          direction="row"
-                          spacing={0.8}
-                          useFlexGap
-                          sx={{
-                            flexWrap: "wrap",
-                            justifyContent: {
-                              xs: "flex-start",
-                              md: "flex-end",
-                            },
-                          }}
-                        >
-                          <Chip
-                            label={formatOpportunityStage(opportunity.stage)}
-                            sx={{
-                              height: 32,
-                              borderRadius: "9px",
-                              bgcolor: "#fff7ed",
-                              color: crmPalette.orangeDark,
-                              border: "1px solid #fed7aa",
-                              fontSize: 12,
-                              fontWeight: 900,
-                            }}
-                          />
-
-                          <Chip
-                            label={statusVisual.label}
-                            sx={{
-                              height: 32,
-                              borderRadius: "9px",
-                              bgcolor: statusVisual.background,
-                              color: statusVisual.color,
-                              border: `1px solid ${statusVisual.border}`,
-                              fontSize: 12,
-                              fontWeight: 900,
-                            }}
-                          />
-                        </Stack>
-                      </Stack>
-
-                      <Divider sx={{ borderColor: crmPalette.border }} />
-
-                      {/* Cards de resumo */}
-                      <Box
-                        sx={{
-                          display: "grid",
-                          gridTemplateColumns: {
-                            xs: "1fr",
-                            sm: "repeat(2, minmax(0, 1fr))",
-                            xl: "repeat(4, minmax(0, 1fr))",
-                          },
-                          gap: 1.25,
-                        }}
-                      >
-                        {[
-                          {
-                            label: "Criada em",
-                            value: formatarData(opportunity.createdAt),
-                            icon: <CalendarDays size={17} />,
-                          },
-                          {
-                            label: "Atualizada em",
-                            value: formatarData(opportunity.updatedAt),
-                            icon: <Clock3 size={17} />,
-                          },
-                          {
-                            label: "Anexos",
-                            value: `${proposalDocuments.length} arquivo${proposalDocuments.length === 1 ? "" : "s"
-                              }`,
-                            icon: <Paperclip size={17} />,
-                          },
-                        ].map((item) => (
-                          <Paper
-                            key={item.label}
-                            variant="outlined"
-                            sx={{
-                              p: 1.5,
-                              minHeight: 84,
-                              display: "flex",
-                              alignItems: "center",
-                              gap: 1.2,
-                              borderRadius: "12px",
-                              borderColor: crmPalette.border,
-                              bgcolor: "#f8fafc",
-                              boxShadow: "none",
-                            }}
-                          >
-                            <Box
-                              sx={{
-                                width: 36,
-                                height: 36,
-                                display: "grid",
-                                placeItems: "center",
-                                flexShrink: 0,
-                                borderRadius: "10px",
-                                bgcolor: "#ffffff",
-                                color: crmPalette.orangeDark,
-                                border: `1px solid ${crmPalette.border}`,
-                              }}
-                            >
-                              {item.icon}
-                            </Box>
-
-                            <Box sx={{ minWidth: 0 }}>
-                              <Typography
-                                sx={{
-                                  color: crmPalette.muted,
-                                  fontSize: 10.5,
-                                  fontWeight: 900,
-                                  letterSpacing: 0.4,
-                                  textTransform: "uppercase",
-                                }}
-                              >
-                                {item.label}
-                              </Typography>
-
-                              <Typography
-                                sx={{
-                                  mt: 0.4,
-                                  color: crmPalette.text,
-                                  fontSize: 13.5,
-                                  fontWeight: 900,
-                                  overflowWrap: "anywhere",
-                                }}
-                              >
-                                {item.value}
-                              </Typography>
-                            </Box>
-                          </Paper>
-                        ))}
-
-                        {/* Card de status editável */}
-                        <Paper
-                          variant="outlined"
-                          sx={{
-                            p: 1.5,
-                            minHeight: 84,
-                            borderRadius: "12px",
-                            borderColor: statusVisual.border,
-                            bgcolor: statusVisual.background,
-                            boxShadow: "none",
-                          }}
-                        >
-                          <Typography
-                            sx={{
-                              mb: 0.75,
-                              color: statusVisual.color,
-                              fontSize: 10.5,
-                              fontWeight: 900,
-                              letterSpacing: 0.4,
-                              textTransform: "uppercase",
-                            }}
-                          >
-                            Status da oportunidade
-                          </Typography>
-
-                          {canEditCommercialData ? (
-                            <TextField
-                              select
-                              fullWidth
-                              size="small"
-                              value={opportunity.status}
-                              disabled={savingStatus}
-                              onChange={(event) =>
-                                handleChangeOpportunityStatus(
-                                  event.target.value as OpportunityStatus,
-                                )
-                              }
-                              sx={{
-                                "& .MuiOutlinedInput-root": {
-                                  minHeight: 38,
-                                  borderRadius: "9px",
-                                  bgcolor: "#ffffff",
-
-                                  "& fieldset": {
-                                    borderColor: statusVisual.border,
-                                  },
-
-                                  "&:hover fieldset": {
-                                    borderColor: statusVisual.color,
-                                  },
-                                },
-
-                                "& .MuiSelect-select": {
-                                  py: 1,
-                                  color: statusVisual.color,
-                                  fontSize: 13,
-                                  fontWeight: 900,
-                                },
-                              }}
-                            >
-                              <MenuItem value="OPEN">
-                                Aberta
-                              </MenuItem>
-
-                              <MenuItem value="WON">
-                                Ganha
-                              </MenuItem>
-
-                              <MenuItem value="LOST">
-                                Perdida
-                              </MenuItem>
-                            </TextField>
-                          ) : (
-                            <Typography
-                              sx={{
-                                mt: 1,
-                                color: statusVisual.color,
-                                fontSize: 14,
-                                fontWeight: 900,
-                              }}
-                            >
-                              {formatOpportunityStatus(opportunity.status)}
-                            </Typography>
-                          )}
-                        </Paper>
-                      </Box>
-                    </Stack>
-                  </Box>
-                </CrmSection>
-
-                <CrmSection
+                <Box
                   sx={{
                     p: {
                       xs: 2.5,
@@ -782,466 +454,833 @@ export default function PaginaDetalhePropostaCliente({
                   }}
                 >
                   <Stack spacing={2}>
-                    {/* Cabeçalho da seção */}
+                    {/* Cabeçalho principal */}
                     <Stack
                       direction={{
                         xs: "column",
-                        sm: "row",
+                        md: "row",
                       }}
-                      spacing={1.5}
+                      spacing={2}
                       sx={{
                         alignItems: {
                           xs: "stretch",
-                          sm: "center",
+                          md: "center",
                         },
                         justifyContent: "space-between",
                       }}
                     >
+                      {/* Título e cliente */}
                       <Stack
                         direction="row"
-                        spacing={1.2}
+                        spacing={1.5}
                         sx={{
-                          alignItems: "center",
+                          alignItems: "flex-start",
+                          minWidth: 0,
                         }}
                       >
                         <Box
                           sx={{
-                            width: 40,
-                            height: 40,
+                            width: 48,
+                            height: 48,
                             display: "grid",
                             placeItems: "center",
                             flexShrink: 0,
-                            borderRadius: "11px",
-                            bgcolor: "#fff7ed",
-                            color: crmPalette.orangeDark,
-                            border: "1px solid #fed7aa",
+                            borderRadius: "14px",
+                            bgcolor: statusVisual.background,
+                            color: statusVisual.color,
+                            border: `1px solid ${statusVisual.border}`,
                           }}
                         >
-                          <FileText size={18} />
+                          <FileText size={23} />
                         </Box>
 
-                        <Box>
+                        <Box sx={{ minWidth: 0 }}>
                           <Typography
                             sx={{
-                              color: crmPalette.text,
-                              fontSize: 16,
+                              color: crmPalette.orangeDark,
+                              fontSize: 11,
                               fontWeight: 900,
-                              lineHeight: 1.25,
+                              letterSpacing: ".14em",
+                              textTransform: "uppercase",
                             }}
                           >
-                            Informações da proposta
+                            Detalhes da proposta
                           </Typography>
 
                           <Typography
+                            component="h1"
                             sx={{
-                              mt: 0.25,
-                              color: crmPalette.muted,
-                              fontSize: 12,
-                              fontWeight: 700,
+                              mt: 0.4,
+                              color: crmPalette.text,
+                              fontSize: {
+                                xs: 21,
+                                md: 27,
+                              },
+                              fontWeight: 950,
+                              lineHeight: 1.2,
+                              overflowWrap: "anywhere",
                             }}
                           >
-                            Dados comerciais e operacionais registrados.
+                            {opportunity.title}
                           </Typography>
+
+                          <Stack
+                            direction="row"
+                            spacing={0.75}
+                            sx={{
+                              mt: 0.8,
+                              alignItems: "center",
+                            }}
+                          >
+                            <Building2
+                              size={15}
+                              color={crmPalette.muted}
+                            />
+
+                            <Typography
+                              sx={{
+                                color: crmPalette.muted,
+                                fontSize: 13,
+                                fontWeight: 700,
+                                overflowWrap: "anywhere",
+                              }}
+                            >
+                              {lead.company}
+                            </Typography>
+                          </Stack>
                         </Box>
                       </Stack>
 
-                      <Chip
-                        label={`${parsedDetails.length} ${parsedDetails.length === 1 ? "informação" : "informações"
-                          }`}
-                        size="small"
+                      {/* Chips de etapa e status */}
+                      <Stack
+                        direction="row"
+                        spacing={0.8}
+                        useFlexGap
                         sx={{
-                          width: "fit-content",
-                          borderRadius: "8px",
-                          bgcolor: "#f1f5f9",
-                          color: "#475569",
-                          fontSize: 11,
-                          fontWeight: 900,
-                        }}
-                      />
-                    </Stack>
-
-                    {parsedDetails.length > 0 ? (
-                      <Box
-                        sx={{
-                          display: "grid",
-                          gridTemplateColumns: {
-                            xs: "1fr",
-                            md: "repeat(2, minmax(0, 1fr))",
+                          flexWrap: "wrap",
+                          justifyContent: {
+                            xs: "flex-start",
+                            md: "flex-end",
                           },
-                          gap: 1.25,
                         }}
                       >
-                        {parsedDetails.map((detail, index) => (
-                          <Paper
-                            key={`${detail.label}-${index}`}
-                            variant="outlined"
-                            sx={{
-                              position: "relative",
-                              p: 1.6,
-                              minHeight: 90,
-                              overflow: "hidden",
-                              borderRadius: "12px",
-                              borderColor: crmPalette.border,
-                              bgcolor: "#ffffff",
-                              boxShadow: "none",
-                              transition:
-                                "border-color 160ms ease, background-color 160ms ease, transform 160ms ease",
+                        <Chip
+                          label={formatOpportunityStage(opportunity.stage)}
+                          sx={{
+                            height: 32,
+                            borderRadius: "9px",
+                            bgcolor: "#fff7ed",
+                            color: crmPalette.orangeDark,
+                            border: "1px solid #fed7aa",
+                            fontSize: 12,
+                            fontWeight: 900,
+                          }}
+                        />
 
-                              "&:hover": {
-                                borderColor: "#fed7aa",
-                                bgcolor: "#fffdfb",
-                                transform: "translateY(-1px)",
-                              },
+                        <Chip
+                          label={statusVisual.label}
+                          sx={{
+                            height: 32,
+                            borderRadius: "9px",
+                            bgcolor: statusVisual.background,
+                            color: statusVisual.color,
+                            border: `1px solid ${statusVisual.border}`,
+                            fontSize: 12,
+                            fontWeight: 900,
+                          }}
+                        />
+                      </Stack>
+                    </Stack>
+
+                    <Divider sx={{ borderColor: crmPalette.border }} />
+
+                    {/* Cards de resumo */}
+                    <Box
+                      sx={{
+                        display: "grid",
+                        gridTemplateColumns: {
+                          xs: "1fr",
+                          sm: "repeat(2, minmax(0, 1fr))",
+                          xl: "repeat(4, minmax(0, 1fr))",
+                        },
+                        gap: 1.25,
+                      }}
+                    >
+                      {[
+                        {
+                          label: "Criada em",
+                          value: formatarData(opportunity.createdAt),
+                          icon: <CalendarDays size={17} />,
+                        },
+                        {
+                          label: "Atualizada em",
+                          value: formatarData(opportunity.updatedAt),
+                          icon: <Clock3 size={17} />,
+                        },
+                        {
+                          label: "Anexos",
+                          value: `${proposalDocuments.length} arquivo${proposalDocuments.length === 1 ? "" : "s"
+                            }`,
+                          icon: <Paperclip size={17} />,
+                        },
+                      ].map((item) => (
+                        <Paper
+                          key={item.label}
+                          variant="outlined"
+                          sx={{
+                            p: 1.5,
+                            minHeight: 84,
+                            display: "flex",
+                            alignItems: "center",
+                            gap: 1.2,
+                            borderRadius: "12px",
+                            borderColor: crmPalette.border,
+                            bgcolor: "#f8fafc",
+                            boxShadow: "none",
+                          }}
+                        >
+                          <Box
+                            sx={{
+                              width: 36,
+                              height: 36,
+                              display: "grid",
+                              placeItems: "center",
+                              flexShrink: 0,
+                              borderRadius: "10px",
+                              bgcolor: "#ffffff",
+                              color: crmPalette.orangeDark,
+                              border: `1px solid ${crmPalette.border}`,
                             }}
                           >
-                            {/* Barra lateral laranja */}
-                            <Box
-                              sx={{
-                                position: "absolute",
-                                top: 0,
-                                bottom: 0,
-                                left: 0,
-                                width: 4,
-                                bgcolor: crmPalette.orange,
-                              }}
-                            />
+                            {item.icon}
+                          </Box>
 
-                            <Stack
-                              direction="row"
-                              spacing={1}
+                          <Box sx={{ minWidth: 0 }}>
+                            <Typography
                               sx={{
-                                alignItems: "flex-start",
-                                justifyContent: "space-between",
+                                color: crmPalette.muted,
+                                fontSize: 10.5,
+                                fontWeight: 900,
+                                letterSpacing: 0.4,
+                                textTransform: "uppercase",
                               }}
                             >
-                              <Box
-                                sx={{
-                                  minWidth: 0,
-                                  pl: 0.5,
-                                }}
-                              >
-                                <Typography
-                                  sx={{
-                                    color: crmPalette.muted,
-                                    fontSize: 10.5,
-                                    fontWeight: 900,
-                                    letterSpacing: 0.45,
-                                    textTransform: "uppercase",
-                                  }}
-                                >
-                                  {detail.label}
-                                </Typography>
+                              {item.label}
+                            </Typography>
 
-                                <Typography
-                                  sx={{
-                                    mt: 0.8,
-                                    color: crmPalette.text,
-                                    fontSize: 14,
-                                    fontWeight: 800,
-                                    lineHeight: 1.55,
-                                    whiteSpace: "pre-wrap",
-                                    overflowWrap: "anywhere",
-                                  }}
-                                >
-                                  {detail.value}
-                                </Typography>
-                              </Box>
-                            </Stack>
-                          </Paper>
-                        ))}
-                      </Box>
-                    ) : (
+                            <Typography
+                              sx={{
+                                mt: 0.4,
+                                color: crmPalette.text,
+                                fontSize: 13.5,
+                                fontWeight: 900,
+                                overflowWrap: "anywhere",
+                              }}
+                            >
+                              {item.value}
+                            </Typography>
+                          </Box>
+                        </Paper>
+                      ))}
+
+                      {/* Card de status editável */}
                       <Paper
                         variant="outlined"
                         sx={{
-                          p: 3,
+                          p: 1.5,
+                          minHeight: 84,
                           borderRadius: "12px",
-                          borderStyle: "dashed",
-                          borderColor: crmPalette.border,
-                          bgcolor: "#f8fafc",
-                          textAlign: "center",
+                          borderColor: statusVisual.border,
+                          bgcolor: statusVisual.background,
+                          boxShadow: "none",
                         }}
                       >
-                        <Box
-                          sx={{
-                            width: 44,
-                            height: 44,
-                            display: "grid",
-                            placeItems: "center",
-                            mx: "auto",
-                            mb: 1.25,
-                            borderRadius: "12px",
-                            bgcolor: "#ffffff",
-                            color: crmPalette.muted,
-                            border: `1px solid ${crmPalette.border}`,
-                          }}
-                        >
-                          <FileText size={20} />
-                        </Box>
-
                         <Typography
                           sx={{
-                            color: crmPalette.text,
-                            fontSize: 14,
+                            mb: 0.75,
+                            color: statusVisual.color,
+                            fontSize: 10.5,
                             fontWeight: 900,
+                            letterSpacing: 0.4,
+                            textTransform: "uppercase",
                           }}
                         >
-                          Nenhuma informação cadastrada
+                          Status da oportunidade
                         </Typography>
 
-                        <Typography
-                          sx={{
-                            mt: 0.5,
-                            color: crmPalette.muted,
-                            fontSize: 12,
-                            fontWeight: 700,
-                          }}
-                        >
-                          Os dados comerciais e operacionais aparecerão aqui.
-                        </Typography>
+                        {canEditCommercialData ? (
+                          <TextField
+                            select
+                            fullWidth
+                            size="small"
+                            value={opportunity.status}
+                            disabled={savingStatus}
+                            onChange={(event) =>
+                              handleChangeOpportunityStatus(
+                                event.target.value as OpportunityStatus,
+                              )
+                            }
+                            sx={{
+                              "& .MuiOutlinedInput-root": {
+                                minHeight: 38,
+                                borderRadius: "9px",
+                                bgcolor: "#ffffff",
+
+                                "& fieldset": {
+                                  borderColor: statusVisual.border,
+                                },
+
+                                "&:hover fieldset": {
+                                  borderColor: statusVisual.color,
+                                },
+                              },
+
+                              "& .MuiSelect-select": {
+                                py: 1,
+                                color: statusVisual.color,
+                                fontSize: 13,
+                                fontWeight: 900,
+                              },
+                            }}
+                          >
+                            <MenuItem value="OPEN">
+                              Aberta
+                            </MenuItem>
+
+                            <MenuItem value="WON">
+                              Ganha
+                            </MenuItem>
+
+                            <MenuItem value="LOST">
+                              Perdida
+                            </MenuItem>
+                          </TextField>
+                        ) : (
+                          <Typography
+                            sx={{
+                              mt: 1,
+                              color: statusVisual.color,
+                              fontSize: 14,
+                              fontWeight: 900,
+                            }}
+                          >
+                            {formatOpportunityStatus(opportunity.status)}
+                          </Typography>
+                        )}
                       </Paper>
-                    )}
+                    </Box>
                   </Stack>
-                </CrmSection>
+                </Box>
+              </CrmSection>
 
-                <CrmSection sx={{ p: { xs: 2.5, md: 3 } }}>
-                  <Stack spacing={1.5}>
+              <CrmSection
+                sx={{
+                  p: {
+                    xs: 2.5,
+                    md: 3,
+                  },
+                }}
+              >
+                <Stack spacing={2}>
+                  {/* Cabeçalho da seção */}
+                  <Stack
+                    direction={{
+                      xs: "column",
+                      sm: "row",
+                    }}
+                    spacing={1.5}
+                    sx={{
+                      alignItems: {
+                        xs: "stretch",
+                        sm: "center",
+                      },
+                      justifyContent: "space-between",
+                    }}
+                  >
                     <Stack
-                      direction={{ xs: "column", md: "row" }}
-                      spacing={1.5}
+                      direction="row"
+                      spacing={1.2}
                       sx={{
-                        alignItems: { xs: "stretch", md: "center" },
-                        justifyContent: "space-between",
+                        alignItems: "center",
                       }}
                     >
+                      <Box
+                        sx={{
+                          width: 38,
+                          height: 38,
+
+                          display: "grid",
+                          placeItems: "center",
+
+                          flexShrink: 0,
+
+                          borderRadius: "10px",
+
+                          bgcolor: "#fff7ed",
+
+                          color: crmPalette.orangeDark,
+                        }}
+                      >
+                        <FileText size={18} />
+                      </Box>
+
                       <Box>
                         <Typography
                           sx={{
                             color: crmPalette.text,
                             fontSize: 16,
                             fontWeight: 900,
+                            lineHeight: 1.25,
                           }}
                         >
-                          Anexos
+                          Informações da proposta
                         </Typography>
+
                         <Typography
                           sx={{
-                            mt: 0.35,
+                            mt: 0.25,
                             color: crmPalette.muted,
                             fontSize: 12,
                             fontWeight: 700,
                           }}
                         >
-                          Arquivos vinculados a esta proposta.
+                          Dados comerciais e operacionais registrados.
                         </Typography>
                       </Box>
-
-                      {canEditCommercialData ? (
-                        <Stack
-                          direction={{ xs: "column", sm: "row" }}
-                          spacing={1}
-                          sx={{ alignItems: { xs: "stretch", sm: "center" } }}
-                        >
-                          <Button
-                            component="label"
-                            variant="outlined"
-                            startIcon={<FileText size={15} />}
-                            disabled={uploading}
-                            sx={secondaryButtonSx}
-                          >
-                            Selecionar arquivos
-                            <Box
-                              component="input"
-                              type="file"
-                              multiple
-                              onChange={(
-                                event: React.ChangeEvent<HTMLInputElement>,
-                              ) => {
-                                setSelectedFiles(
-                                  Array.from(event.target.files ?? []),
-                                );
-                                event.target.value = "";
-                              }}
-                              sx={{
-                                position: "absolute",
-                                width: 1,
-                                height: 1,
-                                p: 0,
-                                m: -1,
-                                overflow: "hidden",
-                                clip: "rect(0 0 0 0)",
-                                whiteSpace: "nowrap",
-                                border: 0,
-                              }}
-                            />
-                          </Button>
-
-                          <Button
-                            type="button"
-                            variant="contained"
-                            disabled={uploading || selectedFiles.length === 0}
-                            startIcon={
-                              uploading ? (
-                                <CircularProgress size={16} color="inherit" />
-                              ) : (
-                                <PlusCircle size={15} />
-                              )
-                            }
-                            onClick={handleUploadDocuments}
-                            sx={{
-                              minHeight: 40,
-                              borderRadius: "10px",
-                              bgcolor: crmPalette.orange,
-                              fontSize: 13,
-                              fontWeight: 900,
-                              textTransform: "none",
-                              boxShadow: "none",
-                              "&:hover": {
-                                bgcolor: crmPalette.orangeDark,
-                                boxShadow: "none",
-                              },
-                            }}
-                          >
-                            {uploading ? "Anexando..." : "Anexar"}
-                          </Button>
-                        </Stack>
-                      ) : null}
                     </Stack>
 
-                    {selectedFiles.length > 0 ? (
-                      <Stack direction="row" spacing={0.75} useFlexGap sx={{ flexWrap: "wrap" }}>
-                        {selectedFiles.map((file) => (
-                          <Chip
-                            key={`${file.name}-${file.size}-${file.lastModified}`}
-                            label={file.name}
-                            onDelete={() =>
-                              setSelectedFiles((current) =>
-                                current.filter(
-                                  (currentFile) =>
-                                    !(
-                                      currentFile.name === file.name &&
-                                      currentFile.size === file.size &&
-                                      currentFile.lastModified ===
-                                      file.lastModified
-                                    ),
-                                ),
-                              )
-                            }
-                            sx={{
-                              borderRadius: "8px",
-                              bgcolor: "#fff7ed",
-                              color: crmPalette.orangeDark,
-                              fontWeight: 800,
-                            }}
-                          />
-                        ))}
-                      </Stack>
-                    ) : null}
+                    <Chip
+                      label={`${parsedDetails.length} ${parsedDetails.length === 1 ? "informação" : "informações"
+                        }`}
+                      size="small"
+                      sx={{
+                        width: "fit-content",
+                        borderRadius: "8px",
+                        bgcolor: "#f1f5f9",
+                        color: "#475569",
+                        fontSize: 11,
+                        fontWeight: 900,
+                      }}
+                    />
+                  </Stack>
 
-                    {proposalDocuments.length > 0 ? (
-                      <Stack spacing={1}>
-                        {proposalDocuments.map((document) => (
-                          <Paper
-                            key={document.id}
-                            variant="outlined"
-                            sx={{
-                              p: 1.4,
-                              borderRadius: "10px",
-                              borderColor: crmPalette.border,
-                              bgcolor: "#ffffff",
-                            }}
-                          >
-                            <Stack
-                              direction={{ xs: "column", sm: "row" }}
-                              spacing={1}
+                  {parsedDetails.length > 0 ? (
+                    <Paper
+                      variant="outlined"
+                      sx={{
+                        overflow: "hidden",
+
+                        borderRadius: "14px",
+
+                        borderColor: "#e2e8f0",
+
+                        bgcolor: "#ffffff",
+
+                        boxShadow: "none",
+                      }}
+                    >
+                      <Box
+                        sx={{
+                          display: "grid",
+
+                          gridTemplateColumns: {
+                            xs: "1fr",
+
+                            md: "repeat(2, minmax(0, 1fr))",
+                          },
+                        }}
+                      >
+                        {parsedDetails.map((detail, index) => {
+                          const isLeftColumn = index % 2 === 0;
+
+                          return (
+                            <Box
+                              key={`${detail.label}-${index}`}
                               sx={{
-                                alignItems: { xs: "stretch", sm: "center" },
-                                justifyContent: "space-between",
+                                minWidth: 0,
+
+                                minHeight: 82,
+
+                                px: {
+                                  xs: 1.75,
+                                  md: 2,
+                                },
+
+                                py: 1.5,
+
+                                borderBottom:
+                                  `1px solid ${crmPalette.border}`,
+
+                                borderRight: {
+                                  xs: "none",
+
+                                  md: isLeftColumn
+                                    ? `1px solid ${crmPalette.border}`
+                                    : "none",
+                                },
+
+                                bgcolor: "#ffffff",
+
+                                transition:
+                                  "background-color 160ms ease",
+
+                                "&:hover": {
+                                  bgcolor: "#f8fafc",
+                                },
                               }}
                             >
-                              <Stack direction="row" spacing={1} sx={{ alignItems: "center", minWidth: 0 }}>
-                                <FileText size={18} color={crmPalette.orangeDark} />
-                                <Box sx={{ minWidth: 0 }}>
-                                  <Typography
-                                    sx={{
-                                      color: crmPalette.text,
-                                      fontSize: 14,
-                                      fontWeight: 900,
-                                      overflowWrap: "anywhere",
-                                    }}
-                                  >
-                                    {document.originalName}
-                                  </Typography>
-                                  <Typography
-                                    sx={{
-                                      mt: 0.3,
-                                      color: crmPalette.muted,
-                                      fontSize: 12,
-                                      fontWeight: 700,
-                                    }}
-                                  >
-                                    {formatarData(document.createdAt)}
-                                  </Typography>
-                                </Box>
-                              </Stack>
+                              <Typography
+                                sx={{
+                                  color: "#94a3b8",
 
-                              <Stack direction="row" spacing={0.75} sx={{ justifyContent: "flex-end" }}>
-                                <Button
-                                  type="button"
-                                  variant="outlined"
-                                  onClick={() => handleOpenDocument(document)}
-                                  sx={secondaryButtonSx}
-                                >
-                                  Abrir
-                                </Button>
+                                  fontSize: 10,
 
-                                {canEditCommercialData ? (
-                                  <IconButton
-                                    type="button"
-                                    aria-label={`Excluir ${document.originalName}`}
-                                    title="Excluir anexo"
-                                    disabled={deletingDocumentId === document.id}
-                                    onClick={() => handleDeleteDocument(document)}
-                                    sx={{
-                                      width: 38,
-                                      height: 38,
-                                      color: "#b91c1c",
-                                      bgcolor: "#fef2f2",
-                                      border: "1px solid #fecaca",
-                                      "&:hover": { bgcolor: "#fee2e2" },
-                                    }}
-                                  >
-                                    {deletingDocumentId === document.id ? (
-                                      <CircularProgress size={15} color="inherit" />
-                                    ) : (
-                                      <Trash2 size={16} />
-                                    )}
-                                  </IconButton>
-                                ) : null}
-                              </Stack>
-                            </Stack>
-                          </Paper>
-                        ))}
+                                  fontWeight: 900,
+
+                                  letterSpacing: ".06em",
+
+                                  textTransform: "uppercase",
+
+                                  lineHeight: 1.3,
+                                }}
+                              >
+                                {detail.label}
+                              </Typography>
+
+                              <Typography
+                                sx={{
+                                  mt: 0.65,
+
+                                  color: "#0f172a",
+
+                                  fontSize: 13.5,
+
+                                  fontWeight: 800,
+
+                                  lineHeight: 1.5,
+
+                                  whiteSpace: "pre-wrap",
+
+                                  overflowWrap: "anywhere",
+                                }}
+                              >
+                                {detail.value}
+                              </Typography>
+                            </Box>
+                          );
+                        })}
+                      </Box>
+                    </Paper>
+                  ) : (
+                    <Paper
+                      variant="outlined"
+                      sx={{
+                        p: 3,
+
+                        borderRadius: "14px",
+
+                        borderStyle: "dashed",
+
+                        borderColor: crmPalette.border,
+
+                        bgcolor: "#f8fafc",
+
+                        textAlign: "center",
+
+                        boxShadow: "none",
+                      }}
+                    >
+                      <Box
+                        sx={{
+                          width: 44,
+                          height: 44,
+
+                          display: "grid",
+                          placeItems: "center",
+
+                          mx: "auto",
+                          mb: 1.25,
+
+                          borderRadius: "11px",
+
+                          bgcolor: "#ffffff",
+
+                          color: crmPalette.muted,
+
+                          border: `1px solid ${crmPalette.border}`,
+                        }}
+                      >
+                        <FileText size={20} />
+                      </Box>
+
+                      <Typography
+                        sx={{
+                          color: crmPalette.text,
+
+                          fontSize: 14,
+
+                          fontWeight: 900,
+                        }}
+                      >
+                        Nenhuma informação cadastrada
+                      </Typography>
+
+                      <Typography
+                        sx={{
+                          mt: 0.5,
+
+                          color: crmPalette.muted,
+
+                          fontSize: 12,
+
+                          fontWeight: 600,
+                        }}
+                      >
+                        Os dados comerciais e operacionais aparecerão aqui.
+                      </Typography>
+                    </Paper>
+                  )}
+                </Stack>
+              </CrmSection>
+
+              <CrmSection sx={{ p: { xs: 2.5, md: 3 } }}>
+                <Stack spacing={1.5}>
+                  <Stack
+                    direction={{ xs: "column", md: "row" }}
+                    spacing={1.5}
+                    sx={{
+                      alignItems: { xs: "stretch", md: "center" },
+                      justifyContent: "space-between",
+                    }}
+                  >
+                    <Box>
+                      <Typography
+                        sx={{
+                          color: crmPalette.text,
+                          fontSize: 16,
+                          fontWeight: 900,
+                        }}
+                      >
+                        Anexos
+                      </Typography>
+                      <Typography
+                        sx={{
+                          mt: 0.35,
+                          color: crmPalette.muted,
+                          fontSize: 12,
+                          fontWeight: 700,
+                        }}
+                      >
+                        Arquivos vinculados a esta proposta.
+                      </Typography>
+                    </Box>
+
+                    {canEditCommercialData ? (
+                      <Stack
+                        direction={{ xs: "column", sm: "row" }}
+                        spacing={1}
+                        sx={{ alignItems: { xs: "stretch", sm: "center" } }}
+                      >
+                        <Button
+                          component="label"
+                          variant="outlined"
+                          startIcon={<FileText size={15} />}
+                          disabled={uploading}
+                          sx={secondaryButtonSx}
+                        >
+                          Selecionar arquivos
+                          <Box
+                            component="input"
+                            type="file"
+                            multiple
+                            onChange={(
+                              event: React.ChangeEvent<HTMLInputElement>,
+                            ) => {
+                              setSelectedFiles(
+                                Array.from(event.target.files ?? []),
+                              );
+                              event.target.value = "";
+                            }}
+                            sx={{
+                              position: "absolute",
+                              width: 1,
+                              height: 1,
+                              p: 0,
+                              m: -1,
+                              overflow: "hidden",
+                              clip: "rect(0 0 0 0)",
+                              whiteSpace: "nowrap",
+                              border: 0,
+                            }}
+                          />
+                        </Button>
+
+                        <Button
+                          type="button"
+                          variant="contained"
+                          disabled={uploading || selectedFiles.length === 0}
+                          startIcon={
+                            uploading ? (
+                              <CircularProgress size={16} color="inherit" />
+                            ) : (
+                              <PlusCircle size={15} />
+                            )
+                          }
+                          onClick={handleUploadDocuments}
+                          sx={{
+                            minHeight: 40,
+                            borderRadius: "10px",
+                            bgcolor: crmPalette.orange,
+                            fontSize: 13,
+                            fontWeight: 900,
+                            textTransform: "none",
+                            boxShadow: "none",
+                            "&:hover": {
+                              bgcolor: crmPalette.orangeDark,
+                              boxShadow: "none",
+                            },
+                          }}
+                        >
+                          {uploading ? "Anexando..." : "Anexar"}
+                        </Button>
                       </Stack>
-                    ) : (
-                      <Alert severity="info" sx={{ borderRadius: "12px" }}>
-                        Nenhum anexo vinculado a esta proposta.
-                      </Alert>
-                    )}
+                    ) : null}
                   </Stack>
-                </CrmSection>
-              </>
-            )}
-          </Stack>
-        </CrmPageShell>
 
-        <FeedbackToast
-          open={Boolean(toast)}
-          title={toast?.title ?? ""}
-          message={toast?.message ?? ""}
-          variant={toast?.variant ?? "success"}
-          onClose={() => setToast(null)}
-        />
-      </AppLayout>
-      );
+                  {selectedFiles.length > 0 ? (
+                    <Stack direction="row" spacing={0.75} useFlexGap sx={{ flexWrap: "wrap" }}>
+                      {selectedFiles.map((file) => (
+                        <Chip
+                          key={`${file.name}-${file.size}-${file.lastModified}`}
+                          label={file.name}
+                          onDelete={() =>
+                            setSelectedFiles((current) =>
+                              current.filter(
+                                (currentFile) =>
+                                  !(
+                                    currentFile.name === file.name &&
+                                    currentFile.size === file.size &&
+                                    currentFile.lastModified ===
+                                    file.lastModified
+                                  ),
+                              ),
+                            )
+                          }
+                          sx={{
+                            borderRadius: "8px",
+                            bgcolor: "#fff7ed",
+                            color: crmPalette.orangeDark,
+                            fontWeight: 800,
+                          }}
+                        />
+                      ))}
+                    </Stack>
+                  ) : null}
+
+                  {proposalDocuments.length > 0 ? (
+                    <Stack spacing={1}>
+                      {proposalDocuments.map((document) => (
+                        <Paper
+                          key={document.id}
+                          variant="outlined"
+                          sx={{
+                            p: 1.4,
+                            borderRadius: "10px",
+                            borderColor: crmPalette.border,
+                            bgcolor: "#ffffff",
+                          }}
+                        >
+                          <Stack
+                            direction={{ xs: "column", sm: "row" }}
+                            spacing={1}
+                            sx={{
+                              alignItems: { xs: "stretch", sm: "center" },
+                              justifyContent: "space-between",
+                            }}
+                          >
+                            <Stack direction="row" spacing={1} sx={{ alignItems: "center", minWidth: 0 }}>
+                              <FileText size={18} color={crmPalette.orangeDark} />
+                              <Box sx={{ minWidth: 0 }}>
+                                <Typography
+                                  sx={{
+                                    color: crmPalette.text,
+                                    fontSize: 14,
+                                    fontWeight: 900,
+                                    overflowWrap: "anywhere",
+                                  }}
+                                >
+                                  {document.originalName}
+                                </Typography>
+                                <Typography
+                                  sx={{
+                                    mt: 0.3,
+                                    color: crmPalette.muted,
+                                    fontSize: 12,
+                                    fontWeight: 700,
+                                  }}
+                                >
+                                  {formatarData(document.createdAt)}
+                                </Typography>
+                              </Box>
+                            </Stack>
+
+                            <Stack direction="row" spacing={0.75} sx={{ justifyContent: "flex-end" }}>
+                              <Button
+                                type="button"
+                                variant="outlined"
+                                onClick={() => handleOpenDocument(document)}
+                                sx={secondaryButtonSx}
+                              >
+                                Abrir
+                              </Button>
+
+                              {canEditCommercialData ? (
+                                <IconButton
+                                  type="button"
+                                  aria-label={`Excluir ${document.originalName}`}
+                                  title="Excluir anexo"
+                                  disabled={deletingDocumentId === document.id}
+                                  onClick={() => handleDeleteDocument(document)}
+                                  sx={{
+                                    width: 38,
+                                    height: 38,
+                                    color: "#b91c1c",
+                                    bgcolor: "#fef2f2",
+                                    border: "1px solid #fecaca",
+                                    "&:hover": { bgcolor: "#fee2e2" },
+                                  }}
+                                >
+                                  {deletingDocumentId === document.id ? (
+                                    <CircularProgress size={15} color="inherit" />
+                                  ) : (
+                                    <Trash2 size={16} />
+                                  )}
+                                </IconButton>
+                              ) : null}
+                            </Stack>
+                          </Stack>
+                        </Paper>
+                      ))}
+                    </Stack>
+                  ) : (
+                    <Alert severity="info" sx={{ borderRadius: "12px" }}>
+                      Nenhum anexo vinculado a esta proposta.
+                    </Alert>
+                  )}
+                </Stack>
+              </CrmSection>
+            </>
+          )}
+        </Stack>
+      </CrmPageShell>
+
+      <FeedbackToast
+        open={Boolean(toast)}
+        title={toast?.title ?? ""}
+        message={toast?.message ?? ""}
+        variant={toast?.variant ?? "success"}
+        onClose={() => setToast(null)}
+      />
+    </AppLayout>
+  );
 }

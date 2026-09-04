@@ -1,8 +1,43 @@
 'use client';
 
 import { useEffect, useMemo, useState } from 'react';
-import { Download, History, ShieldAlert } from 'lucide-react';
+
+import Alert from '@mui/material/Alert';
+import Avatar from '@mui/material/Avatar';
+import Box from '@mui/material/Box';
+import Button from '@mui/material/Button';
+import Chip from '@mui/material/Chip';
+import CircularProgress from '@mui/material/CircularProgress';
+import InputAdornment from '@mui/material/InputAdornment';
+import MenuItem from '@mui/material/MenuItem';
+import Pagination from '@mui/material/Pagination';
+import Paper from '@mui/material/Paper';
+import Stack from '@mui/material/Stack';
+import TextField from '@mui/material/TextField';
+import Typography from '@mui/material/Typography';
+
+import {
+  Activity,
+  AlertTriangle,
+  CheckCircle2,
+  Clock3,
+  Download,
+  History,
+  RefreshCcw,
+  Search,
+  ShieldAlert,
+  ShieldCheck,
+  Tags,
+} from 'lucide-react';
+
 import { AppLayout } from '@/components/layout/app-layout';
+import {
+  CrmKpiCard,
+  CrmPageHeader,
+  CrmPageShell,
+  CrmSection,
+  crmPalette,
+} from '@/components/mui/crm-primitives';
 import { useAuth } from '@/context/auth-context';
 import {
   exportAuditLogs,
@@ -10,13 +45,18 @@ import {
   getAuditLogs,
 } from '@/services/audit-logs.service';
 import { getUsers } from '@/services/users.service';
-import type { AuditLog, AuditLogCategory, AuditLogSummary } from '@/types/audit-logs';
+import type {
+  AuditLog,
+  AuditLogCategory,
+  AuditLogSummary,
+} from '@/types/audit-logs';
 import type { User } from '@/types/user';
 
 const allowedRoles = new Set(['ADMIN', 'GESTAO']);
 
 const categories: Array<'TODOS' | AuditLogCategory> = [
   'TODOS',
+  'ACCESS',
   'AUTH',
   'USER',
   'CLIENT',
@@ -26,11 +66,317 @@ const categories: Array<'TODOS' | AuditLogCategory> = [
   'SYSTEM',
 ];
 
+const PAGE_SIZE_OPTIONS = [10, 25, 50];
+
+const categoryLabels: Record<'TODOS' | AuditLogCategory, string> = {
+  TODOS: 'Todas',
+  ACCESS: 'Acessos',
+  AUTH: 'Autenticação',
+  USER: 'Usuários',
+  CLIENT: 'Clientes',
+  QUOTE: 'Cotações',
+  TICKET: 'Chamados',
+  TRACKING: 'Rastreamentos',
+  SYSTEM: 'Sistema',
+};
+
+const categoryMeta: Record<
+  AuditLogCategory,
+  {
+    accent: string;
+    softColor: string;
+  }
+> = {
+  ACCESS: { accent: '#7c3aed', softColor: '#f3e8ff' },
+  AUTH: { accent: crmPalette.orange, softColor: '#fff0e8' },
+  USER: { accent: crmPalette.blue, softColor: '#eaf4ff' },
+  CLIENT: { accent: crmPalette.green, softColor: '#ecfdf5' },
+  QUOTE: { accent: crmPalette.yellow, softColor: '#fff7df' },
+  TICKET: { accent: '#db2777', softColor: '#fce7f3' },
+  TRACKING: { accent: '#0f766e', softColor: '#ccfbf1' },
+  SYSTEM: { accent: crmPalette.text, softColor: '#f1f5f9' },
+};
+
+const textCorrections: Array<[RegExp, string]> = [
+  [/\bVeiculo\b/g, 'Veículo'],
+  [/\bveiculo\b/g, 'veículo'],
+  [/\bVeiculos\b/g, 'Veículos'],
+  [/\bveiculos\b/g, 'veículos'],
+  [/\bUsuario\b/g, 'Usuário'],
+  [/\busuario\b/g, 'usuário'],
+  [/\bUsuarios\b/g, 'Usuários'],
+  [/\busuarios\b/g, 'usuários'],
+  [/\bAutenticacao\b/g, 'Autenticação'],
+  [/\bautenticacao\b/g, 'autenticação'],
+  [/\bCotacao\b/g, 'Cotação'],
+  [/\bcotacao\b/g, 'cotação'],
+  [/\bCotacoes\b/g, 'Cotações'],
+  [/\bcotacoes\b/g, 'cotações'],
+  [/\bGestao\b/g, 'Gestão'],
+  [/\bgestao\b/g, 'gestão'],
+  [/\bAcao\b/g, 'Ação'],
+  [/\bacao\b/g, 'ação'],
+  [/\bAcoes\b/g, 'Ações'],
+  [/\bacoes\b/g, 'ações'],
+  [/\bPermissao\b/g, 'Permissão'],
+  [/\bpermissao\b/g, 'permissão'],
+  [/\bPermissoes\b/g, 'Permissões'],
+  [/\bpermissoes\b/g, 'permissões'],
+  [/\bexcluida\b/g, 'excluída'],
+  [/\binvalida\b/g, 'inválida'],
+  [/\brecuperacao\b/g, 'recuperação'],
+  [/\binformacao\b/g, 'informação'],
+  [/\binformacoes\b/g, 'informações'],
+  [/\bintegracao\b/g, 'integração'],
+  [/\bnegociacao\b/g, 'negociação'],
+];
+
+const textFieldSx = {
+  '& .MuiOutlinedInput-root': {
+    height: 52,
+    minHeight: 52,
+    borderRadius: '10px',
+    bgcolor: '#ffffff',
+    alignItems: 'center',
+  },
+  '& .MuiInputBase-input': {
+    height: 'auto',
+    paddingTop: 0,
+    paddingBottom: 0,
+    fontSize: 13,
+  },
+  '& .MuiInputLabel-root': {
+    fontSize: 13,
+    fontWeight: 800,
+  },
+  '& .MuiSelect-select': {
+    display: 'flex',
+    alignItems: 'center',
+    height: '100% !important',
+    paddingTop: '0 !important',
+    paddingBottom: '0 !important',
+  },
+};
+
 function formatDateTime(value: string) {
   return new Intl.DateTimeFormat('pt-BR', {
     dateStyle: 'short',
     timeStyle: 'short',
   }).format(new Date(value));
+}
+
+function getCategoryLabel(category: AuditLogCategory) {
+  return categoryLabels[category] ?? category;
+}
+
+function getCategoryMeta(category: AuditLogCategory) {
+  return categoryMeta[category] ?? categoryMeta.SYSTEM;
+}
+
+function getSuccessRate(summary: AuditLogSummary) {
+  if (!summary.total) {
+    return '0%';
+  }
+
+  return `${Math.round((summary.successCount / summary.total) * 100)}%`;
+}
+
+function getUserLabel(log: AuditLog) {
+  return log.user?.name ?? 'Sistema';
+}
+
+function getUserBadgeLabel(log: AuditLog) {
+  if (log.user?.email) {
+    return log.user.email.split('@')[0];
+  }
+
+  return getUserLabel(log);
+}
+
+function getDisplayText(value?: string | null) {
+  if (!value) {
+    return '';
+  }
+
+  return textCorrections.reduce(
+    (text, [pattern, replacement]) => text.replace(pattern, replacement),
+    value,
+  );
+}
+
+function ActivityLogCard({ log }: { log: AuditLog }) {
+  const meta = getCategoryMeta(log.category);
+  const title = getDisplayText(log.message) || getDisplayText(log.action);
+  const action = getDisplayText(log.action);
+  const target = [log.targetType, log.targetId].filter(Boolean).join(' - ');
+  const accent = log.success ? meta.accent : crmPalette.red;
+
+  return (
+    <Paper
+      elevation={0}
+      sx={{
+        minHeight: 166,
+        p: { xs: 2, md: 2.5 },
+        border: `1px solid ${log.success ? crmPalette.border : '#fecaca'}`,
+        borderRadius: '12px',
+        bgcolor: '#ffffff',
+        boxShadow: log.success
+          ? '0 10px 26px rgba(15, 23, 42, 0.04)'
+          : '0 12px 28px rgba(220, 38, 38, 0.10)',
+        transition: 'border-color 160ms ease, box-shadow 160ms ease, transform 160ms ease',
+        '&:hover': {
+          borderColor: `${accent}70`,
+          boxShadow: `0 16px 34px ${accent}1f`,
+          transform: 'translateY(-1px)',
+        },
+      }}
+    >
+      <Stack
+        direction={{ xs: 'column', sm: 'row' }}
+        spacing={2}
+        sx={{
+          height: '100%',
+          alignItems: { xs: 'stretch', sm: 'flex-start' },
+          justifyContent: 'space-between',
+        }}
+      >
+        <Stack direction="row" spacing={1.5} sx={{ minWidth: 0, flex: 1 }}>
+          <Avatar
+            variant="rounded"
+            sx={{
+              width: 52,
+              height: 52,
+              borderRadius: '12px',
+              bgcolor: meta.softColor,
+              color: accent,
+              border: `1px solid ${accent}25`,
+              flexShrink: 0,
+            }}
+          >
+            {log.success ? <ShieldCheck size={24} /> : <ShieldAlert size={24} />}
+          </Avatar>
+
+          <Box sx={{ minWidth: 0, flex: 1 }}>
+            <Typography
+              component="h3"
+              sx={{
+                color: '#020617',
+                fontSize: { xs: 15, md: 16 },
+                fontWeight: 900,
+                lineHeight: 1.35,
+                overflowWrap: 'anywhere',
+              }}
+            >
+              {title}
+            </Typography>
+
+            <Stack
+              direction="row"
+              spacing={0.75}
+              sx={{ mt: 1.1, flexWrap: 'wrap', rowGap: 0.75 }}
+            >
+              <Chip
+                label={getUserBadgeLabel(log)}
+                size="small"
+                variant="outlined"
+                sx={{
+                  height: 28,
+                  borderRadius: '8px',
+                  bgcolor: '#fff7ed',
+                  color: crmPalette.orangeDark,
+                  borderColor: '#fdba74',
+                  fontSize: 12,
+                  fontWeight: 900,
+                }}
+              />
+
+              <Chip
+                label={action || getCategoryLabel(log.category)}
+                size="small"
+                variant="outlined"
+                sx={{
+                  maxWidth: '100%',
+                  height: 28,
+                  borderRadius: '8px',
+                  bgcolor: '#f8fafc',
+                  color: crmPalette.text,
+                  borderColor: crmPalette.border,
+                  fontSize: 12,
+                  fontWeight: 900,
+                  '& .MuiChip-label': {
+                    overflow: 'hidden',
+                    textOverflow: 'ellipsis',
+                  },
+                }}
+              />
+
+              <Chip
+                label={getCategoryLabel(log.category)}
+                size="small"
+                sx={{
+                  height: 28,
+                  borderRadius: '8px',
+                  bgcolor: meta.softColor,
+                  color: meta.accent,
+                  fontSize: 12,
+                  fontWeight: 900,
+                }}
+              />
+            </Stack>
+
+            {target ? (
+              <Typography
+                sx={{
+                  mt: 1,
+                  color: crmPalette.muted,
+                  fontSize: 12,
+                  fontWeight: 700,
+                  overflowWrap: 'anywhere',
+                }}
+              >
+                Alvo: {getDisplayText(target)}
+              </Typography>
+            ) : null}
+          </Box>
+        </Stack>
+
+        <Box
+          sx={{
+            minWidth: { xs: 'auto', sm: 150 },
+            textAlign: { xs: 'left', sm: 'right' },
+          }}
+        >
+          <Typography sx={{ color: crmPalette.text, fontSize: 13, fontWeight: 800 }}>
+            {formatDateTime(log.createdAt)}
+          </Typography>
+
+          {log.ipAddress ? (
+            <Typography sx={{ mt: 0.6, color: '#94a3b8', fontSize: 12, fontWeight: 700 }}>
+              IP: {log.ipAddress}
+            </Typography>
+          ) : null}
+
+          <Chip
+            icon={log.success ? <CheckCircle2 size={14} /> : <AlertTriangle size={14} />}
+            label={log.success ? 'Sucesso' : 'Falha'}
+            size="small"
+            sx={{
+              mt: 1.2,
+              height: 26,
+              borderRadius: '8px',
+              bgcolor: log.success ? '#ecfdf5' : '#fef2f2',
+              color: log.success ? '#047857' : '#b91c1c',
+              fontSize: 12,
+              fontWeight: 900,
+              '& .MuiChip-icon': {
+                color: 'inherit',
+              },
+            }}
+          />
+        </Box>
+      </Stack>
+    </Paper>
+  );
 }
 
 export default function LogsPage() {
@@ -52,16 +398,44 @@ export default function LogsPage() {
     userId: '',
     q: '',
   });
+  const [page, setPage] = useState(1);
+  const [rowsPerPage, setRowsPerPage] = useState(10);
 
   const isAllowed = user ? allowedRoles.has(user.role) : false;
 
-  const apiFilters = useMemo(() => ({
-    dateFrom: filters.dateFrom,
-    dateTo: filters.dateTo,
-    category: filters.category === 'TODOS' ? '' : filters.category,
-    userId: filters.userId,
-    q: filters.q,
-  }), [filters]);
+  const apiFilters = useMemo(
+    () => ({
+      dateFrom: filters.dateFrom,
+      dateTo: filters.dateTo,
+      category: filters.category === 'TODOS' ? '' : filters.category,
+      userId: filters.userId,
+      q: filters.q,
+    }),
+    [filters],
+  );
+
+  const totalPages = Math.max(1, Math.ceil(logs.length / rowsPerPage));
+
+  const paginatedLogs = useMemo(() => {
+    const start = (page - 1) * rowsPerPage;
+
+    return logs.slice(start, start + rowsPerPage);
+  }, [logs, page, rowsPerPage]);
+
+  const paginationStart =
+    logs.length === 0 ? 0 : (page - 1) * rowsPerPage + 1;
+
+  const paginationEnd = Math.min(page * rowsPerPage, logs.length);
+
+  useEffect(() => {
+    setPage(1);
+  }, [filters, rowsPerPage]);
+
+  useEffect(() => {
+    if (page > totalPages) {
+      setPage(totalPages);
+    }
+  }, [page, totalPages]);
 
   async function loadLogs() {
     if (!token || !isAllowed) {
@@ -96,191 +470,446 @@ export default function LogsPage() {
   if (!authLoading && !isAllowed) {
     return (
       <AppLayout>
-        <div className="rounded-[28px] border border-amber-200 bg-amber-50 p-6 text-amber-900">
-          <div className="flex items-start gap-3">
-            <ShieldAlert className="mt-0.5 h-5 w-5" />
-            <div>
-              <h1 className="text-xl font-semibold">Acesso restrito</h1>
-              <p className="mt-2 text-sm leading-6">
-                Esta tela está disponível apenas para ADMIN e GESTÃO.
-              </p>
-            </div>
-          </div>
-        </div>
+        <CrmPageShell>
+          <Alert
+            severity="warning"
+            icon={<ShieldAlert size={22} />}
+            sx={{
+              border: '1px solid #fed7aa',
+              borderRadius: '14px',
+              bgcolor: '#fff7ed',
+              color: '#7c2d12',
+              '& .MuiAlert-message': {
+                width: '100%',
+              },
+            }}
+          >
+            <Typography sx={{ fontSize: 18, fontWeight: 900 }}>
+              Acesso restrito
+            </Typography>
+            <Typography sx={{ mt: 0.5, fontSize: 14 }}>
+              Esta tela está disponível apenas para Admin e Gestão.
+            </Typography>
+          </Alert>
+        </CrmPageShell>
       </AppLayout>
     );
   }
 
   return (
     <AppLayout>
-      <div className="mx-auto flex w-full max-w-7xl flex-col gap-6">
-        <section className="crm-shell-card p-6">
-          <div className="flex flex-col gap-5 lg:flex-row lg:items-end lg:justify-between">
-            <div>
-              <p className="crm-eyebrow">Auditoria</p>
-              <h1 className="crm-page-title">Logs operacionais</h1>
-              <p className="crm-page-copy">
-                Ações de usuários, autenticação, clientes, cotações e tickets com filtro por data de referência.
-              </p>
-            </div>
-            <button
-              type="button"
-              onClick={() => token && exportAuditLogs(token, apiFilters)}
-              className="inline-flex items-center gap-2 rounded-2xl bg-slate-950 px-4 py-3 text-sm font-semibold text-white transition hover:bg-slate-800"
+      <CrmPageShell>
+        <CrmPageHeader
+          eyebrow="Auditoria"
+          title="Logs operacionais"
+          description="Acompanhe ações de usuários e autenticação."
+          icon={<History size={30} />}
+          aside={
+            <Stack
+              direction={{ xs: 'column', sm: 'row' }}
+              spacing={1.25}
+              sx={{ alignItems: 'stretch' }}
             >
-              <Download className="h-4 w-4" />
-              Extrair relatorio
-            </button>
-          </div>
-        </section>
+              <Button
+                variant="outlined"
+                startIcon={
+                  loading ? (
+                    <CircularProgress size={16} color="inherit" />
+                  ) : (
+                    <RefreshCcw size={17} />
+                  )
+                }
+                onClick={loadLogs}
+                disabled={loading}
+                sx={{
+                  minHeight: 44,
+                  borderRadius: '10px',
+                  borderColor: crmPalette.border,
+                  color: crmPalette.text,
+                  fontWeight: 800,
+                }}
+              >
+                Atualizar
+              </Button>
 
-        <section className="grid grid-cols-1 gap-4 md:grid-cols-2 xl:grid-cols-4">
-          {[
-            ['Eventos filtrados', summary.total, 'text-slate-950'],
-            ['Sucesso', summary.successCount, 'text-emerald-600'],
-            ['Alertas/erros', summary.errorCount, 'text-rose-600'],
-            ['Categorias', summary.byCategory.length, 'text-blue-600'],
-          ].map(([label, value, color]) => (
-            <article key={label} className="crm-kpi-card">
-              <div className="flex items-start justify-between gap-3">
-                <div>
-                  <p className="text-sm text-slate-500">{label}</p>
-                  <h2 className={`mt-2 text-3xl font-bold ${color}`}>{value}</h2>
-                </div>
-                <div className="flex h-11 w-11 items-center justify-center rounded-2xl bg-blue-50 text-blue-700">
-                  <History className="h-5 w-5" />
-                </div>
-              </div>
-            </article>
-          ))}
-        </section>
+              <Button
+                variant="contained"
+                startIcon={<Download size={17} />}
+                onClick={() => token && exportAuditLogs(token, apiFilters)}
+                sx={{
+                  minHeight: 44,
+                  borderRadius: '10px',
+                  px: 2.5,
+                  bgcolor: crmPalette.orange,
+                  fontWeight: 900,
+                  boxShadow: 'none',
+                  '&:hover': {
+                    bgcolor: crmPalette.orangeDark,
+                    boxShadow: 'none',
+                  },
+                }}
+              >
+                Exportar relatório
+              </Button>
+            </Stack>
+          }
+        />
 
-        <section className="crm-shell-card p-5">
-          <div className="grid gap-4 lg:grid-cols-5">
-            <div>
-              <label className="mb-2 block text-sm font-semibold text-slate-700">
-                Data inicial
-              </label>
-              <input
+        <Box
+          sx={{
+            display: 'grid',
+            gridTemplateColumns: {
+              xs: '1fr',
+              md: 'repeat(2, minmax(0, 1fr))',
+              xl: 'repeat(4, minmax(0, 1fr))',
+            },
+            gap: 2,
+          }}
+        >
+          <CrmKpiCard
+            title="Eventos filtrados"
+            value={summary.total}
+            caption="Total no período selecionado"
+            icon={<Activity size={24} />}
+            accent={crmPalette.orange}
+            softColor="#fff0e8"
+          />
+          <CrmKpiCard
+            title="Taxa de sucesso"
+            value={getSuccessRate(summary)}
+            caption={`${summary.successCount} evento(s) concluído(s)`}
+            icon={<CheckCircle2 size={24} />}
+            accent={crmPalette.green}
+            softColor="#ecfdf5"
+          />
+          <CrmKpiCard
+            title="Alertas e erros"
+            value={summary.errorCount}
+            caption="Falhas registradas no filtro"
+            icon={<AlertTriangle size={24} />}
+            accent={crmPalette.red}
+            softColor="#fef2f2"
+          />
+          <CrmKpiCard
+            title="Categorias"
+            value={summary.byCategory.length}
+            caption="Frentes com movimentação"
+            icon={<Tags size={24} />}
+            accent={crmPalette.blue}
+            softColor="#eaf4ff"
+          />
+        </Box>
+
+        <CrmSection sx={{ p: { xs: 2, md: 2.5 } }}>
+          <Stack spacing={2}>
+            <Stack
+              direction={{ xs: 'column', md: 'row' }}
+              spacing={1}
+              sx={{
+                alignItems: { xs: 'flex-start', md: 'center' },
+                justifyContent: 'space-between',
+              }}
+            >
+              <Box>
+                <Typography sx={{ color: crmPalette.text, fontSize: 18, fontWeight: 900 }}>
+                  Filtros de auditoria
+                </Typography>
+                <Typography sx={{ mt: 0.4, color: crmPalette.muted, fontSize: 13 }}>
+                  Refine a atividade recente por período, categoria, usuário ou termo.
+                </Typography>
+              </Box>
+
+              <Chip
+                icon={<Clock3 size={14} />}
+                label={`${logs.length} registro(s) exibido(s)`}
+                size="small"
+                sx={{
+                  height: 30,
+                  borderRadius: '8px',
+                  bgcolor: '#f1f5f9',
+                  color: crmPalette.text,
+                  fontSize: 12,
+                  fontWeight: 900,
+                  '& .MuiChip-icon': {
+                    color: crmPalette.muted,
+                  },
+                }}
+              />
+            </Stack>
+
+            <Box
+              sx={{
+                display: 'grid',
+                gridTemplateColumns: {
+                  xs: '1fr',
+                  sm: 'repeat(2, minmax(0, 1fr))',
+                  lg: 'repeat(5, minmax(0, 1fr))',
+                },
+                gap: 1.5,
+              }}
+            >
+              <TextField
+                fullWidth
                 type="date"
+                label="Data inicial"
                 value={filters.dateFrom}
                 onChange={(event) =>
-                  setFilters((current) => ({ ...current, dateFrom: event.target.value }))
+                  setFilters((current) => ({
+                    ...current,
+                    dateFrom: event.target.value,
+                  }))
                 }
-                className="crm-input"
+                slotProps={{ inputLabel: { shrink: true } }}
+                sx={textFieldSx}
               />
-            </div>
-            <div>
-              <label className="mb-2 block text-sm font-semibold text-slate-700">
-                Data final
-              </label>
-              <input
+
+              <TextField
+                fullWidth
                 type="date"
+                label="Data final"
                 value={filters.dateTo}
                 onChange={(event) =>
-                  setFilters((current) => ({ ...current, dateTo: event.target.value }))
+                  setFilters((current) => ({
+                    ...current,
+                    dateTo: event.target.value,
+                  }))
                 }
-                className="crm-input"
+                slotProps={{ inputLabel: { shrink: true } }}
+                sx={textFieldSx}
               />
-            </div>
-            <div>
-              <label className="mb-2 block text-sm font-semibold text-slate-700">
-                Categoria
-              </label>
-              <select
+
+              <TextField
+                select
+                fullWidth
+                label="Categoria"
                 value={filters.category}
                 onChange={(event) =>
-                  setFilters((current) => ({ ...current, category: event.target.value }))
+                  setFilters((current) => ({
+                    ...current,
+                    category: event.target.value,
+                  }))
                 }
-                className="crm-input"
+                sx={textFieldSx}
               >
                 {categories.map((category) => (
-                  <option key={category} value={category}>
-                    {category}
-                  </option>
+                  <MenuItem key={category} value={category}>
+                    {categoryLabels[category]}
+                  </MenuItem>
                 ))}
-              </select>
-            </div>
-            <div>
-              <label className="mb-2 block text-sm font-semibold text-slate-700">
-                Usuário
-              </label>
-              <select
+              </TextField>
+
+              <TextField
+                select
+                fullWidth
+                label="Usuário"
                 value={filters.userId}
                 onChange={(event) =>
-                  setFilters((current) => ({ ...current, userId: event.target.value }))
+                  setFilters((current) => ({
+                    ...current,
+                    userId: event.target.value,
+                  }))
                 }
-                className="crm-input"
+                sx={textFieldSx}
               >
-                <option value="">Todos</option>
+                <MenuItem value="">Todos os usuários</MenuItem>
                 {users.map((item) => (
-                  <option key={item.id} value={item.id}>
+                  <MenuItem key={item.id} value={item.id}>
                     {item.name}
-                  </option>
+                  </MenuItem>
                 ))}
-              </select>
-            </div>
-            <div>
-              <label className="mb-2 block text-sm font-semibold text-slate-700">
-                Busca
-              </label>
-              <input
+              </TextField>
+
+              <TextField
+                fullWidth
+                label="Busca"
                 value={filters.q}
                 onChange={(event) =>
                   setFilters((current) => ({ ...current, q: event.target.value }))
                 }
-                className="crm-input"
-                placeholder="Mensagem ou alvo"
+                placeholder="Mensagem, rota ou alvo"
+                slotProps={{
+                  input: {
+                    startAdornment: (
+                      <InputAdornment position="start">
+                        <Search size={16} />
+                      </InputAdornment>
+                    ),
+                  },
+                }}
+                sx={textFieldSx}
               />
-            </div>
-          </div>
-        </section>
+            </Box>
+          </Stack>
+        </CrmSection>
 
-        <section className="crm-shell-card overflow-hidden">
-          <div className="border-b border-slate-200 px-5 py-4">
-            <h2 className="text-lg font-semibold text-slate-900">Linha do tempo</h2>
-            <p className="mt-1 text-sm text-slate-500">Eventos mais recentes no filtro aplicado.</p>
-          </div>
+        <CrmSection>
+          <Stack
+            direction={{ xs: 'column', sm: 'row' }}
+            spacing={1.5}
+            sx={{
+              px: { xs: 2, md: 2.5 },
+              py: 2,
+              alignItems: { xs: 'flex-start', sm: 'center' },
+              justifyContent: 'space-between',
+              borderBottom: `1px solid ${crmPalette.border}`,
+            }}
+          >
+            <Box>
+              <Typography component="h2" sx={{ color: crmPalette.text, fontSize: 24, fontWeight: 900 }}>
+                Atividade recente
+              </Typography>
+              <Typography sx={{ mt: 0.4, color: crmPalette.muted, fontSize: 15 }}>
+                Últimas ações registradas no sistema.
+              </Typography>
+            </Box>
+
+            <Chip
+              icon={<Clock3 size={14} />}
+              label={`${logs.length} registro(s) exibido(s)`}
+              size="small"
+              variant="outlined"
+              sx={{
+                height: 30,
+                borderRadius: '8px',
+                bgcolor: '#ffffff',
+                color: crmPalette.text,
+                borderColor: crmPalette.border,
+                fontSize: 12,
+                fontWeight: 900,
+                '& .MuiChip-icon': {
+                  color: crmPalette.muted,
+                },
+              }}
+            />
+          </Stack>
 
           {loading ? (
-            <div className="p-10 text-center text-sm text-slate-500">Carregando logs...</div>
+            <Stack
+              spacing={1.5}
+              sx={{
+                minHeight: 260,
+                alignItems: 'center',
+                justifyContent: 'center',
+                color: crmPalette.muted,
+              }}
+            >
+              <CircularProgress size={28} />
+              <Typography sx={{ fontSize: 13, fontWeight: 800 }}>
+                Carregando logs operacionais...
+              </Typography>
+            </Stack>
           ) : pageError ? (
-            <div className="p-10 text-center text-sm text-rose-600">{pageError}</div>
+            <Box sx={{ p: { xs: 2, md: 2.5 } }}>
+              <Alert severity="error" sx={{ borderRadius: '10px' }}>
+                {pageError}
+              </Alert>
+            </Box>
           ) : logs.length === 0 ? (
-            <div className="p-10 text-center text-sm text-slate-500">Nenhum log encontrado.</div>
+            <Stack
+              spacing={1}
+              sx={{
+                minHeight: 260,
+                alignItems: 'center',
+                justifyContent: 'center',
+                color: crmPalette.muted,
+                px: 2,
+                textAlign: 'center',
+              }}
+            >
+              <History size={30} />
+              <Typography sx={{ fontSize: 14, fontWeight: 900 }}>
+                Nenhum log encontrado com os filtros aplicados.
+              </Typography>
+            </Stack>
           ) : (
-            <div className="divide-y divide-slate-200">
-              {logs.map((log) => (
-                <div key={log.id} className="grid gap-4 px-5 py-5 lg:grid-cols-[180px_1fr_180px]">
-                  <div>
-                    <span className="rounded-full bg-slate-100 px-3 py-1 text-xs font-semibold text-slate-700">
-                      {log.category}
-                    </span>
-                    <p className="mt-2 text-xs text-slate-400">{log.action}</p>
-                  </div>
-                  <div>
-                    <p className="text-base font-semibold text-slate-950">{log.message}</p>
-                    <p className="mt-2 text-sm text-slate-500">
-                      {log.user?.name ?? 'Sistema'} {log.user?.email ? `(${log.user.email})` : ''}
-                    </p>
-                    {log.targetType || log.targetId ? (
-                      <p className="mt-1 text-xs text-slate-400">
-                        Alvo: {[log.targetType, log.targetId].filter(Boolean).join(' - ')}
-                      </p>
-                    ) : null}
-                  </div>
-                  <div className="text-sm text-slate-500 lg:text-right">
-                    <p>{formatDateTime(log.createdAt)}</p>
-                    <p className={log.success ? 'mt-2 text-emerald-600' : 'mt-2 text-rose-600'}>
-                      {log.success ? 'Sucesso' : 'Falha'}
-                    </p>
-                  </div>
-                </div>
-              ))}
-            </div>
+            <>
+              <Box
+                sx={{
+                  display: 'grid',
+                  gridTemplateColumns: {
+                    xs: '1fr',
+                    xl: 'repeat(2, minmax(0, 1fr))',
+                  },
+                  gap: 2,
+                  p: { xs: 2, md: 2.5 },
+                }}
+              >
+                {paginatedLogs.map((log) => (
+                  <ActivityLogCard key={log.id} log={log} />
+                ))}
+              </Box>
+
+              <Stack
+                direction={{ xs: 'column', md: 'row' }}
+                spacing={1.5}
+                sx={{
+                  px: { xs: 2, md: 2.5 },
+                  py: 1.5,
+                  alignItems: { xs: 'stretch', md: 'center' },
+                  justifyContent: 'space-between',
+                  borderTop: `1px solid ${crmPalette.border}`,
+                  bgcolor: '#ffffff',
+                }}
+              >
+                <Typography
+                  sx={{
+                    color: crmPalette.muted,
+                    fontSize: 13,
+                    fontWeight: 700,
+                  }}
+                >
+                  Mostrando {paginationStart}-{paginationEnd} de {logs.length}
+                </Typography>
+
+                <Stack
+                  direction={{ xs: 'column', sm: 'row' }}
+                  spacing={1.25}
+                  sx={{ alignItems: { xs: 'stretch', sm: 'center' } }}
+                >
+                  <TextField
+                    select
+                    size="small"
+                    label="Por página"
+                    value={rowsPerPage}
+                    onChange={(event) =>
+                      setRowsPerPage(Number(event.target.value))
+                    }
+                    sx={{
+                      minWidth: 132,
+                      '& .MuiOutlinedInput-root': {
+                        borderRadius: '10px',
+                        fontSize: 13,
+                        fontWeight: 800,
+                      },
+                      '& .MuiInputLabel-root': {
+                        fontSize: 12,
+                        fontWeight: 800,
+                      },
+                    }}
+                  >
+                    {PAGE_SIZE_OPTIONS.map((option) => (
+                      <MenuItem key={option} value={option}>
+                        {option}
+                      </MenuItem>
+                    ))}
+                  </TextField>
+
+                  <Pagination
+                    page={page}
+                    count={totalPages}
+                    onChange={(_, nextPage) => setPage(nextPage)}
+                    color="primary"
+                    shape="rounded"
+                    size="small"
+                    siblingCount={1}
+                    boundaryCount={1}
+                  />
+                </Stack>
+              </Stack>
+            </>
           )}
-        </section>
-      </div>
+        </CrmSection>
+      </CrmPageShell>
     </AppLayout>
   );
 }

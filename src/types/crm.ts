@@ -198,4 +198,10 @@ export interface CrmDashboardSummary {
     count: number;
     value: number;
   }>;
+  leadsByStage?: Array<{
+    stage: string;
+    label: string;
+    count: number;
+    monthlyEstimatedValue?: number;
+  }>;
 }

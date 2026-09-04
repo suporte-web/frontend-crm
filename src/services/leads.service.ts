@@ -1,13 +1,17 @@
 import { API_BASE_URL, apiFetch } from '@/services/api';
 import type {
   CreateLeadPayload,
+  CreateLeadObservationPayload,
   ConvertLeadToClientPayload,
   ConvertLeadToClientResponse,
   ImportLeadsCsvPayload,
   Lead,
   LeadFilters,
   LeadImportJob,
+  LeadObservation,
   ReceiveWhatsAppLeadPayload,
+  UpdateLeadPayload,
+  LeadsResumo,
 } from '@/types/leads';
 
 function buildQuery(filters: LeadFilters = {}) {
@@ -25,16 +29,70 @@ function buildQuery(filters: LeadFilters = {}) {
     searchParams.set('status', filters.status.trim());
   }
 
+  if (filters.convertidoParaCliente !== undefined) {
+  searchParams.set(
+    'convertidoParaCliente',
+    String(filters.convertidoParaCliente),
+  );
+}
+
+
   const query = searchParams.toString();
   return query ? `?${query}` : '';
 }
 
-export function getLeads(token: string, filters: LeadFilters = {}) {
-  return apiFetch<Lead[]>(`/leads${buildQuery(filters)}`, {}, token);
+// Lead convertido para cliente
+
+export function getLeads(
+  token: string,
+  filters: LeadFilters = {},
+) {
+  return apiFetch<Lead[]>(
+    `/leads${buildQuery(filters)}`,
+    {},
+    token,
+  );
 }
+
+// resumo leads
+
+export function getLeadsResumo(token: string) {
+  return apiFetch<LeadsResumo>(
+    '/leads/resumo',
+    {},
+    token,
+  );
+}
+
 
 export function getLeadById(id: string, token: string) {
   return apiFetch<Lead>(`/leads/${id}`, {}, token);
+}
+
+export function createLeadObservation(
+  id: string,
+  payload: CreateLeadObservationPayload,
+  token: string,
+) {
+  return apiFetch<LeadObservation>(
+    `/leads/${id}/observacoes`,
+    {
+      method: 'POST',
+      body: JSON.stringify(payload),
+    },
+    token,
+  );
+}
+
+export function getLeadObservations(
+  id: string,
+  token: string,
+) {
+  return apiFetch<LeadObservation[]>(
+    `/leads/${id}/observacoes`,
+    {},
+    token,
+  );
 }
 
 export function createLead(payload: CreateLeadPayload, token: string) {
@@ -43,6 +101,39 @@ export function createLead(payload: CreateLeadPayload, token: string) {
     {
       method: 'POST',
       body: JSON.stringify(payload),
+    },
+    token,
+  );
+}
+
+export function updateLeadStatus(id: string, status: string, token: string) {
+  return apiFetch<Lead>(
+    `/leads/${id}/status`,
+    {
+      method: 'PATCH',
+      body: JSON.stringify({ status }),
+    },
+    token,
+  );
+}
+
+export function updateLead(id: string, payload: UpdateLeadPayload, token: string) {
+  return apiFetch<Lead>(
+    `/leads/${id}`,
+    {
+      method: 'PATCH',
+      body: JSON.stringify(payload),
+    },
+    token,
+  );
+}
+
+// exlcuir lead
+export function excluirLead(id: string, token: string) {
+  return apiFetch<{ message: string }>(
+    `/leads/${id}`,
+    {
+      method: 'DELETE',
     },
     token,
   );
@@ -127,4 +218,6 @@ export async function simulateWhatsAppLead(
     lead: Lead;
     message: string;
   };
+
+  
 }

@@ -641,35 +641,34 @@ export function montarObservacoesProposta(
   const transportDetails =
     form.proposalType === "TRANSPORTE_RODOVIARIO"
       ? [
-          `Origem: ${form.origin.trim()}`,
-          `Destino: ${form.destination.trim()}`,
-          `Tipo de veículo: ${form.vehicleType}`,
-          `Tipo de carga: ${form.cargoType.trim()}`,
-          `Peso médio: ${form.averageWeight.trim()}`,
-          `Valor agregado: ${form.aggregateValue.trim()}`,
+        `Origem: ${form.origin.trim()}`,
+        `Destino: ${form.destination.trim()}`,
+        `Tipo de veículo: ${form.vehicleType}`,
+        `Tipo de carga: ${form.cargoType.trim()}`,
+        `Peso médio: ${form.averageWeight.trim()}`,
+        `Valor agregado: ${form.aggregateValue.trim()}`,
 
-          form.cubage.trim()
-            ? `Cubagem: ${form.cubage.trim()}`
-            : null,
+        form.cubage.trim()
+          ? `Cubagem: ${form.cubage.trim()}`
+          : null,
 
-          form.monthlyShipments.trim()
-            ? `Quantidade de embarques/mês: ${form.monthlyShipments.trim()}`
-            : null,
+        form.monthlyShipments.trim()
+          ? `Quantidade de embarques/mês: ${form.monthlyShipments.trim()}`
+          : null,
 
-          `Produto perigoso: ${
-            form.dangerousGoods === "SIM"
-              ? "Sim"
-              : "Não"
-          }`,
+        `Produto perigoso: ${form.dangerousGoods === "SIM"
+          ? "Sim"
+          : "Não"
+        }`,
 
-          form.dangerousGoods === "SIM"
-            ? `FDS/Ficha de Emergência: ${form.dangerousGoodsInfo.trim()}`
-            : null,
+        form.dangerousGoods === "SIM"
+          ? `FDS/Ficha de Emergência: ${form.dangerousGoodsInfo.trim()}`
+          : null,
 
-          transportValueNotes.length > 0
-            ? `Valores: ${transportValueNotes.join(" | ")}`
-            : null,
-        ]
+        transportValueNotes.length > 0
+          ? `Valores: ${transportValueNotes.join(" | ")}`
+          : null,
+      ]
       : [];
 
   return [
@@ -1161,48 +1160,230 @@ export function CartaoInformacao({ label, value }: { label: string; value: React
   );
 }
 
-export function ListaInformacoes({ items }: { items: Array<[string, React.ReactNode]> }) {
-  return (
-    <List component="div" disablePadding sx={modernListSx}>
-      {items.map(([label, value], index) => (
-        <ListItem component="div" key={`${label}-${index}`} sx={listItemSx}>
-          <ListItemText
-            sx={{
-              m: 0,
-              minWidth: 0,
-            }}
-            primary={label}
-            secondary={value ?? "-"}
-            slotProps={{
-              primary: {
-                component: "p",
-                sx: {
-                  m: 0,
-                  color: "#94a3b8",
-                  fontSize: 10,
-                  fontWeight: 900,
-                  lineHeight: 1.3,
-                  letterSpacing: ".08em",
-                  textTransform: "uppercase",
-                },
-              },
+export function ListaInformacoes({
+  icon,
+  items,
+  title,
 
-              secondary: {
-                component: "div",
-                sx: {
-                  mt: 0.8,
-                  color: "#0f172a",
-                  fontSize: 14,
-                  fontWeight: 800,
-                  lineHeight: 1.5,
-                  overflowWrap: "anywhere",
+  headerBg = "#f8fafc",
+  headerColor = crmPalette.text,
+  iconBg = "#fff3ed",
+  iconColor = crmPalette.orangeDark,
+}: {
+  icon?: React.ReactNode;
+
+  items: Array<
+    [string, React.ReactNode, React.ReactNode?]
+  >;
+
+  title?: string;
+
+  /*
+   * Cores opcionais do cabeçalho.
+   *
+   * Se não informarmos nada na chamada do componente,
+   * ele continua usando as cores antigas.
+   */
+  headerBg?: string;
+  headerColor?: string;
+  iconBg?: string;
+  iconColor?: string;
+}) {
+  return (
+    <Box sx={modernListSx}>
+      {/* =====================================
+          CABEÇALHO DA LISTA
+      ====================================== */}
+      {title ? (
+        <Stack
+          direction="row"
+          spacing={1}
+          sx={{
+            px: {
+              xs: 1.75,
+              md: 2,
+            },
+
+            py: 1.45,
+
+            alignItems: "center",
+
+            minWidth: 0,
+
+            borderBottom: `1px solid ${crmPalette.border}`,
+
+            // COR PERSONALIZÁVEL
+            bgcolor: headerBg,
+          }}
+        >
+          {icon ? (
+            <Box
+              sx={{
+                width: 36,
+                height: 36,
+
+                display: "grid",
+                placeItems: "center",
+
+                flexShrink: 0,
+
+                borderRadius: "10px",
+
+                // CORES PERSONALIZÁVEIS DO ÍCONE
+                bgcolor: iconBg,
+                color: iconColor,
+
+                "& svg": {
+                  width: 18,
+                  height: 18,
+                  strokeWidth: 2.2,
                 },
-              },
+              }}
+            >
+              {icon}
+            </Box>
+          ) : null}
+
+          <Typography
+            sx={{
+              // COR PERSONALIZÁVEL DO TÍTULO
+              color: headerColor,
+
+              fontSize: 13,
+
+              fontWeight: 900,
+
+              lineHeight: 1.3,
+
+              overflowWrap: "anywhere",
             }}
-          />
-        </ListItem>
-      ))}
-    </List>
+          >
+            {title}
+          </Typography>
+        </Stack>
+      ) : null}
+
+      {/* =====================================
+          CONTEÚDO DA LISTA
+      ====================================== */}
+      <List
+        component="div"
+        disablePadding
+      >
+        {items.map(
+          ([label, value, itemIcon], index) => (
+            <ListItem
+              component="div"
+              key={`${label}-${index}`}
+              sx={{
+                ...listItemSx,
+
+                py: {
+                  xs: 1.35,
+                  md: 1.5,
+                },
+
+                alignItems: "flex-start",
+              }}
+            >
+              <Stack
+                direction="row"
+                spacing={1.25}
+                sx={{
+                  alignItems: "flex-start",
+
+                  width: "100%",
+
+                  minWidth: 0,
+                }}
+              >
+                {/* ÍCONE DA LINHA */}
+                {itemIcon ? (
+                  <Box
+                    sx={{
+                      width: 34,
+                      height: 34,
+
+                      display: "grid",
+                      placeItems: "center",
+
+                      flexShrink: 0,
+
+                      borderRadius: "9px",
+
+                      /*
+                       * Aqui mantemos os ícones
+                       * internos iguais.
+                       *
+                       * Só o cabeçalho muda de cor.
+                       */
+                      bgcolor: "#fff3ed",
+
+                      color:
+                        crmPalette.orangeDark,
+
+                      "& svg": {
+                        width: 17,
+                        height: 17,
+                        strokeWidth: 2.2,
+                      },
+                    }}
+                  >
+                    {itemIcon}
+                  </Box>
+                ) : null}
+
+                <ListItemText
+                  sx={{
+                    m: 0,
+
+                    minWidth: 0,
+                  }}
+                  primary={label}
+                  secondary={value ?? "-"}
+                  slotProps={{
+                    primary: {
+                      component: "p",
+
+                      sx: {
+                        m: 0,
+
+                        color: "#64748b",
+
+                        fontSize: 11,
+
+                        fontWeight: 900,
+
+                        lineHeight: 1.3,
+                      },
+                    },
+
+                    secondary: {
+                      component: "div",
+
+                      sx: {
+                        mt: 0.35,
+
+                        color: "#0f172a",
+
+                        fontSize: 13.5,
+
+                        fontWeight: 850,
+
+                        lineHeight: 1.45,
+
+                        overflowWrap:
+                          "anywhere",
+                      },
+                    },
+                  }}
+                />
+              </Stack>
+            </ListItem>
+          ),
+        )}
+      </List>
+    </Box>
   );
 }
 
@@ -1213,7 +1394,7 @@ export type PropriedadesCabecalhoSecao = {
   icon?: React.ReactNode;
 };
 
-export function CabecalhoSecao({ eyebrow, title, description }: PropriedadesCabecalhoSecao) {
+export function CabecalhoSecao({ eyebrow, title, description, icon }: PropriedadesCabecalhoSecao) {
   return (
     <Stack
       spacing={0.75}
@@ -1243,24 +1424,54 @@ export function CabecalhoSecao({ eyebrow, title, description }: PropriedadesCabe
         </Typography>
       ) : null}
 
-      <Typography
-        component="h2"
-        sx={{
-          m: 0,
-          color: crmPalette.text,
-          fontSize: {
-            xs: 20,
-            sm: 21,
-            md: 23,
-          },
-          fontWeight: 900,
-          lineHeight: 1.2,
-          letterSpacing: "-0.02em",
-          overflowWrap: "anywhere",
-        }}
+      <Stack
+        direction="row"
+        spacing={1}
+        sx={{ alignItems: "center", minWidth: 0 }}
       >
-        {title}
-      </Typography>
+        {icon ? (
+          <Box
+            sx={{
+              width: 36,
+              height: 36,
+              display: "grid",
+              placeItems: "center",
+              flexShrink: 0,
+              borderRadius: "10px",
+              bgcolor: "#fff3ed",
+              color: crmPalette.orangeDark,
+              border: "1px solid #fed7c3",
+
+              "& svg": {
+                width: 19,
+                height: 19,
+                strokeWidth: 2.2,
+              },
+            }}
+          >
+            {icon}
+          </Box>
+        ) : null}
+
+        <Typography
+          component="h2"
+          sx={{
+            m: 0,
+            color: crmPalette.text,
+            fontSize: {
+              xs: 20,
+              sm: 21,
+              md: 23,
+            },
+            fontWeight: 900,
+            lineHeight: 1.2,
+            letterSpacing: "-0.02em",
+            overflowWrap: "anywhere",
+          }}
+        >
+          {title}
+        </Typography>
+      </Stack>
 
       {description ? (
         <Typography
@@ -1468,113 +1679,204 @@ export function CartaoContatoCliente({
   const displayName = contactName || "Contato " + (index + 1);
   const actionsDisabled = deleting || saving;
 
-  if (editing && editForm) {
-    return (
-      <ListItem
-        disablePadding
+if (editing && editForm) {
+  return (
+    <ListItem
+      disablePadding
+      sx={{
+        display: "block",
+        border: 0,
+        bgcolor: "transparent",
+      }}
+    >
+      <Paper
+        component="form"
+        variant="outlined"
+        onSubmit={(event) => {
+          event.preventDefault();
+          onSaveEdit?.();
+        }}
         sx={{
-          display: "block",
-          border: 0,
-          bgcolor: "transparent",
+          width: "100%",
+          overflow: "hidden",
+
+          borderRadius: "14px",
+
+          borderColor: "#bfdbfe",
+
+          bgcolor: "#ffffff",
+
+          boxShadow:
+            "0 8px 24px rgba(15, 23, 42, 0.05)",
         }}
       >
-        <Paper
-          component="form"
-          variant="outlined"
-          onSubmit={(event) => {
-            event.preventDefault();
-            onSaveEdit?.();
-          }}
+        {/* =====================================
+            CABEÇALHO
+        ====================================== */}
+        <Box
           sx={{
-            width: "100%",
-            p: { xs: 1.75, md: 2 },
-            borderRadius: "14px",
-            borderColor: "#f59e0b",
-            bgcolor: "#ffffff",
-            boxShadow: "0 10px 26px rgba(15, 23, 42, 0.07)",
+            px: {
+              xs: 1.75,
+              md: 2,
+            },
+
+            py: 1.4,
+
+            bgcolor: "#eff6ff",
+
+            borderBottom:
+              `1px solid ${crmPalette.border}`,
           }}
         >
           <Stack
-            direction={{ xs: "column", sm: "row" }}
-            spacing={1.5}
+            direction={{
+              xs: "column",
+              sm: "row",
+            }}
+            spacing={1.25}
             sx={{
-              alignItems: { xs: "stretch", sm: "center" },
+              alignItems: {
+                xs: "stretch",
+                sm: "center",
+              },
+
               justifyContent: "space-between",
             }}
           >
             <Stack
               direction="row"
               spacing={1.25}
-              sx={{ minWidth: 0, alignItems: "center" }}
+              sx={{
+                minWidth: 0,
+                alignItems: "center",
+              }}
             >
+              {/* ÍCONE */}
               <Box
                 sx={{
-                  width: 42,
-                  height: 42,
+                  width: 36,
+                  height: 36,
+
                   flexShrink: 0,
+
                   display: "grid",
                   placeItems: "center",
-                  borderRadius: "12px",
-                  bgcolor: "#fff7ed",
-                  color: crmPalette.orangeDark,
-                  border: "1px solid #fed7c3",
+
+                  borderRadius: "10px",
+
+                  bgcolor: "#dbeafe",
+
+                  color: "#2563eb",
                 }}
               >
-                <EditOutlinedIcon sx={{ fontSize: 20 }} />
+                <EditOutlinedIcon
+                  sx={{
+                    fontSize: 19,
+                  }}
+                />
               </Box>
 
+              {/* TÍTULO */}
               <Box sx={{ minWidth: 0 }}>
                 <Typography
                   sx={{
-                    color: crmPalette.text,
-                    fontSize: 15,
+                    color: "#1d4ed8",
+
+                    fontSize: 13.5,
+
                     fontWeight: 900,
+
                     lineHeight: 1.3,
+
                     overflowWrap: "anywhere",
                   }}
                 >
-                  Editando {displayName}
+                  Editar contato
                 </Typography>
 
                 <Typography
                   sx={{
-                    mt: 0.35,
-                    color: crmPalette.muted,
-                    fontSize: 12.5,
-                    lineHeight: 1.5,
+                    mt: 0.2,
+
+                    color: "#64748b",
+
+                    fontSize: 11.5,
+
+                    lineHeight: 1.4,
                   }}
                 >
-                  Atualize os dados do contato e salve as alterações.
+                  Atualize os dados de{" "}
+                  <Box
+                    component="span"
+                    sx={{
+                      fontWeight: 800,
+                      color: "#475569",
+                    }}
+                  >
+                    {displayName}
+                  </Box>
                 </Typography>
               </Box>
             </Stack>
 
+            {/* CONTATO PRINCIPAL */}
             {contact.isPrimary ? (
               <Chip
                 label="Principal"
                 size="small"
                 sx={{
-                  alignSelf: { xs: "flex-start", sm: "center" },
-                  borderRadius: "8px",
+                  alignSelf: {
+                    xs: "flex-start",
+                    sm: "center",
+                  },
+
+                  height: 23,
+
+                  borderRadius: "7px",
+
                   bgcolor: "#ffedd5",
-                  color: crmPalette.orangeDark,
+
+                  color:
+                    crmPalette.orangeDark,
+
+                  fontSize: 10,
+
                   fontWeight: 900,
                 }}
               />
             ) : null}
           </Stack>
+        </Box>
 
+        {/* =====================================
+            CAMPOS
+        ====================================== */}
+        <Box
+          sx={{
+            p: {
+              xs: 1.75,
+              md: 2,
+            },
+          }}
+        >
           <Box
             sx={{
-              mt: 1.75,
               display: "grid",
+
               gridTemplateColumns: {
                 xs: "1fr",
-                md: "repeat(2, minmax(0, 1fr))",
+
+                md:
+                  "repeat(2, minmax(0, 1fr))",
+
+                xl:
+                  "repeat(3, minmax(0, 1fr))",
               },
+
               gap: 1.25,
             }}
           >
+            {/* NOME */}
             <TextField
               required
               fullWidth
@@ -1582,18 +1884,32 @@ export function CartaoContatoCliente({
               label="Nome do contato"
               value={editForm.name}
               disabled={actionsDisabled}
-              onChange={(event) => onEditFormChange?.("name", event.target.value)}
+              onChange={(event) =>
+                onEditFormChange?.(
+                  "name",
+                  event.target.value,
+                )
+              }
               sx={textFieldSx}
             />
+
+            {/* CARGO */}
             <TextField
               fullWidth
               size="small"
               label="Cargo"
               value={editForm.role}
               disabled={actionsDisabled}
-              onChange={(event) => onEditFormChange?.("role", event.target.value)}
+              onChange={(event) =>
+                onEditFormChange?.(
+                  "role",
+                  event.target.value,
+                )
+              }
               sx={textFieldSx}
             />
+
+            {/* EMAIL */}
             <TextField
               fullWidth
               size="small"
@@ -1601,18 +1917,32 @@ export function CartaoContatoCliente({
               label="E-mail"
               value={editForm.email}
               disabled={actionsDisabled}
-              onChange={(event) => onEditFormChange?.("email", event.target.value)}
+              onChange={(event) =>
+                onEditFormChange?.(
+                  "email",
+                  event.target.value,
+                )
+              }
               sx={textFieldSx}
             />
+
+            {/* TELEFONE */}
             <TextField
               fullWidth
               size="small"
               label="Telefone"
               value={editForm.phone}
               disabled={actionsDisabled}
-              onChange={(event) => onEditFormChange?.("phone", event.target.value)}
+              onChange={(event) =>
+                onEditFormChange?.(
+                  "phone",
+                  event.target.value,
+                )
+              }
               sx={textFieldSx}
             />
+
+            {/* WHATSAPP */}
             <TextField
               fullWidth
               size="small"
@@ -1620,10 +1950,15 @@ export function CartaoContatoCliente({
               value={editForm.whatsapp}
               disabled={actionsDisabled}
               onChange={(event) =>
-                onEditFormChange?.("whatsapp", event.target.value)
+                onEditFormChange?.(
+                  "whatsapp",
+                  event.target.value,
+                )
               }
               sx={textFieldSx}
             />
+
+            {/* LINKEDIN */}
             <TextField
               fullWidth
               size="small"
@@ -1631,10 +1966,15 @@ export function CartaoContatoCliente({
               value={editForm.linkedin}
               disabled={actionsDisabled}
               onChange={(event) =>
-                onEditFormChange?.("linkedin", event.target.value)
+                onEditFormChange?.(
+                  "linkedin",
+                  event.target.value,
+                )
               }
               sx={textFieldSx}
             />
+
+            {/* OBSERVAÇÕES */}
             <TextField
               fullWidth
               multiline
@@ -1642,24 +1982,58 @@ export function CartaoContatoCliente({
               label="Observações"
               value={editForm.notes}
               disabled={actionsDisabled}
-              onChange={(event) => onEditFormChange?.("notes", event.target.value)}
+              onChange={(event) =>
+                onEditFormChange?.(
+                  "notes",
+                  event.target.value,
+                )
+              }
               sx={{
                 ...textFieldSx,
-                gridColumn: { xs: "auto", md: "1 / -1" },
+
+                gridColumn: {
+                  xs: "auto",
+                  md: "1 / -1",
+                },
               }}
             />
           </Box>
+        </Box>
 
-          <Divider sx={{ my: 1.75 }} />
+        {/* =====================================
+            RODAPÉ / AÇÕES
+        ====================================== */}
+        <Box
+          sx={{
+            px: {
+              xs: 1.75,
+              md: 2,
+            },
 
+            py: 1.4,
+
+            borderTop:
+              `1px solid ${crmPalette.border}`,
+
+            bgcolor: "#f8fafc",
+          }}
+        >
           <Stack
-            direction={{ xs: "column", sm: "row" }}
+            direction={{
+              xs: "column",
+              sm: "row",
+            }}
             spacing={1}
             sx={{
-              alignItems: { xs: "stretch", sm: "center" },
+              alignItems: {
+                xs: "stretch",
+                sm: "center",
+              },
+
               justifyContent: "space-between",
             }}
           >
+            {/* EXCLUIR */}
             {canDelete ? (
               <Button
                 type="button"
@@ -1667,7 +2041,10 @@ export function CartaoContatoCliente({
                 disabled={actionsDisabled}
                 startIcon={
                   deleting ? (
-                    <CircularProgress size={15} color="inherit" />
+                    <CircularProgress
+                      size={15}
+                      color="inherit"
+                    />
                   ) : (
                     <Trash2 size={15} />
                   )
@@ -1675,26 +2052,50 @@ export function CartaoContatoCliente({
                 onClick={onDelete}
                 sx={{
                   minHeight: 38,
-                  borderRadius: "10px",
+
+                  px: 1.5,
+
+                  borderRadius: "9px",
+
                   borderColor: "#fecaca",
+
                   color: "#b91c1c",
-                  fontSize: 13,
+
+                  fontSize: 12.5,
+
                   fontWeight: 900,
+
                   textTransform: "none",
+
                   bgcolor: "#fffafa",
+
+                  boxShadow: "none",
+
                   "&:hover": {
                     borderColor: "#fca5a5",
+
                     bgcolor: "#fef2f2",
+
+                    boxShadow: "none",
                   },
                 }}
               >
-                {deleting ? "Excluindo..." : "Excluir contato"}
+                {deleting
+                  ? "Excluindo..."
+                  : "Excluir contato"}
               </Button>
             ) : (
               <Box />
             )}
 
-            <Stack direction={{ xs: "column", sm: "row" }} spacing={1}>
+            {/* CANCELAR / SALVAR */}
+            <Stack
+              direction={{
+                xs: "column",
+                sm: "row",
+              }}
+              spacing={1}
+            >
               <Button
                 type="button"
                 variant="outlined"
@@ -1709,36 +2110,59 @@ export function CartaoContatoCliente({
               <Button
                 type="submit"
                 variant="contained"
-                disabled={actionsDisabled || !editForm.name.trim()}
+                disabled={
+                  actionsDisabled ||
+                  !editForm.name.trim()
+                }
                 startIcon={
                   saving ? (
-                    <CircularProgress size={15} color="inherit" />
+                    <CircularProgress
+                      size={15}
+                      color="inherit"
+                    />
                   ) : (
                     <Save size={15} />
                   )
                 }
                 sx={{
                   minHeight: 40,
-                  borderRadius: "10px",
-                  bgcolor: crmPalette.orange,
-                  fontSize: 13,
+
+                  px: 2,
+
+                  borderRadius: "9px",
+
+                  bgcolor:
+                    crmPalette.orange,
+
+                  color: "#ffffff",
+
+                  fontSize: 12.5,
+
                   fontWeight: 900,
+
                   textTransform: "none",
+
                   boxShadow: "none",
+
                   "&:hover": {
-                    bgcolor: crmPalette.orangeDark,
+                    bgcolor:
+                      crmPalette.orangeDark,
+
                     boxShadow: "none",
                   },
                 }}
               >
-                {saving ? "Salvando..." : "Salvar alterações"}
+                {saving
+                  ? "Salvando..."
+                  : "Salvar alterações"}
               </Button>
             </Stack>
           </Stack>
-        </Paper>
-      </ListItem>
-    );
-  }
+        </Box>
+      </Paper>
+    </ListItem>
+  );
+}
 
   return (
     <ListItem

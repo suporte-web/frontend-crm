@@ -1,20 +1,16 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { usePathname, useRouter } from "next/navigation";
+import { usePathname } from "next/navigation";
 
 import Box from "@mui/material/Box";
 import Divider from "@mui/material/Divider";
 import Drawer from "@mui/material/Drawer";
 import IconButton from "@mui/material/IconButton";
-import ListItemButton from "@mui/material/ListItemButton";
-import ListItemIcon from "@mui/material/ListItemIcon";
-import ListItemText from "@mui/material/ListItemText";
 import Stack from "@mui/material/Stack";
 import Tooltip from "@mui/material/Tooltip";
 import Typography from "@mui/material/Typography";
 
-import LogoutRoundedIcon from "@mui/icons-material/LogoutRounded";
 import MenuOpenRoundedIcon from "@mui/icons-material/MenuOpenRounded";
 import MenuRoundedIcon from "@mui/icons-material/MenuRounded";
 
@@ -75,9 +71,9 @@ function buildSidebarSections(
 
 export function AppSidebar() {
   const pathname = usePathname();
-  const router = useRouter();
 
-  const { user, token, signOut } = useAuth();
+
+  const { user, token } = useAuth();
 
   const [collapsed, setCollapsed] = useState(() => {
     if (typeof window === "undefined") {
@@ -157,10 +153,7 @@ export function AppSidebar() {
     window.localStorage.setItem(SIDEBAR_STORAGE_KEY, "true");
   }
 
-  function handleSignOut() {
-    signOut();
-    router.replace("/entrar");
-  }
+
 
   return (
     <Drawer
@@ -203,16 +196,16 @@ export function AppSidebar() {
         }}
       >
         {/* Cabeçalho e logo */}
-        {/* Cabeçalho e logo */}
         <Box
           sx={{
-            minHeight: isSidebarExpanded ? 96 : 76,
+            minHeight: isSidebarExpanded ? 120 : 76,
             px: isSidebarExpanded ? 2 : 1,
-            py: isSidebarExpanded ? 1.5 : 1.25,
+            pt: isSidebarExpanded ? 2.75 : 1.25,
+            pb: isSidebarExpanded ? 2 : 1.25,
             display: "flex",
             flexDirection: "column",
-            justifyContent: "center",
-            gap: 1,
+            justifyContent: "flex-start",
+            gap: 1.75,
           }}
         >
           {isSidebarExpanded ? (
@@ -226,19 +219,19 @@ export function AppSidebar() {
                   justifyContent: "flex-end",
                 }}
               >
-                {/* <Box
+                <Box
                   component="img"
-                  src="/logobranca-transparente.png"
+                  src="/imagem/logopizzattolog.png"
                   alt="Pizzattolog"
                   sx={{
                     display: "block",
-                    width: 145,
+                    width: 200,
                     maxWidth: "calc(100% - 48px)",
-                    height: 38,
+                    height: 60,
                     objectFit: "contain",
-                    objectPosition: "left center",
+                    objectPosition: "center",
                   }}
-                /> */}
+                />
 
                 <Tooltip
                   title={collapsed ? "Expandir menu" : "Recolher menu"}
@@ -273,7 +266,7 @@ export function AppSidebar() {
 
               <Typography
                 sx={{
-                  mt: -3,
+                  mt: 0.5,
                   pl: 1.25,
                   borderLeft: `3px solid ${sidebarColors.orange}`,
                   color: "rgba(255,255,255,0.68)",
@@ -284,7 +277,7 @@ export function AppSidebar() {
                   textTransform: "uppercase",
                 }}
               >
-                Portal CRM
+                {/* Portal CRM */}
               </Typography>
             </>
           ) : (
@@ -307,7 +300,7 @@ export function AppSidebar() {
               >
                 <Box
                   component="img"
-                  src="/logopizzatto.png"
+                  src="/imagem/logopizzatto.png"
                   alt="Pizzattolog"
                   sx={{
                     width: "100%",
@@ -403,7 +396,7 @@ export function AppSidebar() {
                 textTransform: "uppercase",
               }}
             >
-              Navegação
+              {/* Navegação */}
             </Typography>
           ) : null}
 
@@ -425,109 +418,70 @@ export function AppSidebar() {
         />
 
         {/* Rodapé */}
+        {/* Rodapé */}
         <Box
           sx={{
-            p: isSidebarExpanded ? 1.5 : 1,
+            px: isSidebarExpanded ? 2 : 1,
+            py: 2,
           }}
         >
           {isSidebarExpanded ? (
-            <Box
+            <Stack
+              direction="row"
               sx={{
-                mb: 1,
-
-                px: 1.5,
-                py: 1.25,
-
-                borderRadius: "12px",
-
-                bgcolor: sidebarColors.backgroundMuted,
-
-                border: `1px solid ${sidebarColors.border}`,
+                alignItems: "center",
+                justifyContent: "center",
+                gap: 1,
               }}
             >
               <Typography
-                noWrap
                 sx={{
-                  color: sidebarColors.text,
-
-                  fontSize: 13,
-                  fontWeight: 800,
-                }}
-              >
-                {user?.name || "Usuário conectado"}
-              </Typography>
-
-              <Typography
-                noWrap
-                sx={{
-                  mt: 0.25,
-
-                  color: sidebarColors.muted,
-
+                  color: sidebarColors.mutedLight,
                   fontSize: 11,
                   fontWeight: 600,
+                  letterSpacing: ".03em",
                 }}
               >
-                {user?.role || "Acesso ao CRM"}
+                Versão 1.0.0
               </Typography>
-            </Box>
-          ) : null}
 
-          <Tooltip title={isSidebarExpanded ? "" : "Sair"} placement="right" arrow>
-            <ListItemButton
-              onClick={handleSignOut}
-              aria-label="Sair"
-              sx={{
-                minHeight: 46,
-
-                px: isSidebarExpanded ? 1.5 : 0,
-
-                justifyContent: isSidebarExpanded ? "flex-start" : "center",
-
-                borderRadius: "12px",
-
-                color: sidebarColors.danger,
-
-                "&:hover": {
-                  bgcolor: sidebarColors.dangerSoft,
-                },
-              }}
-            >
-              <ListItemIcon
+              <Box
                 sx={{
-                  minWidth: isSidebarExpanded ? 40 : 0,
+                  width: 4,
+                  height: 4,
+                  borderRadius: "50%",
+                  bgcolor: sidebarColors.orange,
+                  opacity: 0.8,
+                }}
+              />
 
-                  justifyContent: "center",
-
-                  color: "inherit",
+              <Typography
+                sx={{
+                  color: sidebarColors.mutedLight,
+                  fontSize: 11,
+                  fontWeight: 700,
                 }}
               >
-                <LogoutRoundedIcon
-                  sx={{
-                    fontSize: 21,
-                  }}
-                />
-              </ListItemIcon>
-
-              {isSidebarExpanded ? (
-                <ListItemText
-                  disableTypography
-                  primary={
-                    <Box
-                      component="span"
-                      sx={{
-                        fontSize: 14,
-                        fontWeight: 800,
-                        lineHeight: 1.2,
-                      }}
-                    >
-                      Sair
-                    </Box>
-                  }
-                />
-              ) : null}
-            </ListItemButton>
-          </Tooltip>
+                CRM
+              </Typography>
+            </Stack>
+          ) : (
+            <Tooltip
+              title="CRM • Versão 1.0.0"
+              placement="right"
+              arrow
+            >
+              <Box
+                sx={{
+                  width: 8,
+                  height: 8,
+                  mx: "auto",
+                  borderRadius: "50%",
+                  bgcolor: sidebarColors.orange,
+                }}
+              />
+            </Tooltip>
+          )}
         </Box>
       </Stack>
     </Drawer>

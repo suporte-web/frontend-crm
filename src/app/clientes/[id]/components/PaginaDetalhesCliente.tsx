@@ -11,6 +11,7 @@ import Dialog from "@mui/material/Dialog";
 import DialogActions from "@mui/material/DialogActions";
 import DialogContent from "@mui/material/DialogContent";
 import DialogTitle from "@mui/material/DialogTitle";
+import Stack from "@mui/material/Stack";
 import Typography from "@mui/material/Typography";
 import TextField from "@mui/material/TextField";
 
@@ -20,7 +21,7 @@ import {
   crmPalette,
 } from "@/components/mui/crm-primitives";
 
-import { ArrowLeft, Trash2 } from "lucide-react";
+import { ArrowLeft, History, Trash2 } from "lucide-react";
 import { AppLayout } from "@/components/layout/app-layout";
 import { TimelineSection } from "@/components/crm/timeline-section";
 import { FeedbackToast } from "@/components/ui/feedback-toast";
@@ -38,12 +39,15 @@ import {
   updateOpportunity,
   uploadClientDocuments,
   uploadOpportunityProposalDocuments,
+  requestClientDeletion,
+
 } from "@/services/crm.service";
 import type { LeadDetail, LeadStatus } from "@/types/crm";
 import { AbaCadastroCliente } from "./detalhes-cliente/AbaCadastroCliente";
 import { AbaCondicoesComerciaisCliente } from "./detalhes-cliente/AbaCondicoesComerciaisCliente";
 import { AbaContatosCliente } from "./detalhes-cliente/AbaContatosCliente";
 import { CabecalhoDetalhesCliente } from "./detalhes-cliente/CabecalhoDetalhesCliente";
+import { CabecalhoSecao } from "./detalhes-cliente/detalhes-cliente-compartilhado";
 import { AbasDetalhesCliente } from "./detalhes-cliente/AbasDetalhesCliente";
 import { AbaDocumentosCliente } from "./detalhes-cliente/AbaDocumentosCliente";
 import { AbaOportunidadePropostaCliente } from "./detalhes-cliente/AbaOportunidadePropostaCliente";
@@ -88,6 +92,9 @@ export default function PaginaDetalhesCliente({
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
   const [clientId, setClientId] = useState("");
+  const [deletionDialogOpen, setDeletionDialogOpen] = useState(false);
+  const [deletionReason, setDeletionReason] = useState("");
+  const [requestingDeletion, setRequestingDeletion] = useState(false);
   const [isEditingClient, setIsEditingClient] = useState(false);
   const [activeTab, setActiveTab] = useState(0);
   const [savingClient, setSavingClient] = useState(false);
@@ -173,6 +180,8 @@ export default function PaginaDetalhesCliente({
   const [deletingDocument, setDeletingDocument] = useState(false);
 
   const [documentDeleteError, setDocumentDeleteError] = useState("");
+
+
   const [uploadingDocuments, setUploadingDocuments] = useState(false);
   const [uploadingProposalOpportunityId, setUploadingProposalOpportunityId] =
     useState<string | null>(null);
@@ -185,7 +194,9 @@ export default function PaginaDetalhesCliente({
   const canEditCommercialData = user?.role
     ? ["ADMIN", "GESTAO", "COMERCIAL"].includes(user.role)
     : false;
+
   const canEditClient = canEditCommercialData;
+  const canRequestDeletion = canEditCommercialData;
   const cadastralDocuments = useMemo(
     () =>
       lead?.documents.filter(
@@ -1222,14 +1233,61 @@ export default function PaginaDetalhesCliente({
       setDeletingDocument(false);
     }
   }
+  async function handleRequestClientDeletion() {
+    if (!token || !lead) {
+      return;
+    }
 
-  // function startEditingClient(nextLead: LeadDetail) {
-  //   setActiveTab(1);
-  //   setIsEditingClient(true);
-  //   setFormularioCliente(clienteParaFormularioCliente(nextLead));
-  //   setClientContacts(contatosClienteParaFormulario(nextLead));
-  //   setFormularioClienteError("");
-  // }
+    if (!deletionReason.trim()) {
+      setToast({
+        title: "Motivo obrigatório",
+        message: "Informe o motivo da exclusão do cliente.",
+        variant: "error",
+      });
+      return;
+    }
+
+    try {
+      setRequestingDeletion(true);
+
+      await requestClientDeletion(
+        lead.id,
+        {
+          reason: deletionReason.trim(),
+        },
+        token,
+      );
+
+      setDeletionDialogOpen(false);
+      setDeletionReason("");
+
+      setToast({
+        title: "Solicitação enviada",
+        message:
+          "A exclusão do cliente foi enviada para aprovação da Gestão.",
+        variant: "success",
+      });
+    } catch (deleteError) {
+      setToast({
+        title: "Falha ao solicitar exclusão",
+        message:
+          deleteError instanceof Error
+            ? deleteError.message
+            : "Não foi possível solicitar a exclusão do cliente.",
+        variant: "error",
+      });
+    } finally {
+      setRequestingDeletion(false);
+    }
+  }
+
+  function startEditingClient(nextLead: LeadDetail) {
+    setActiveTab(1);
+    setIsEditingClient(true);
+    setFormularioCliente(clienteParaFormularioCliente(nextLead));
+    setClientContacts(contatosClienteParaFormulario(nextLead));
+    setFormularioClienteError("");
+  }
 
   function startEditingCommercialTerms(nextLead: LeadDetail) {
     setActiveTab(3);
@@ -1237,6 +1295,7 @@ export default function PaginaDetalhesCliente({
     setFormularioCondicoesComerciais(clienteParaFormularioCondicoesComerciais(nextLead));
     setFormularioCondicoesComerciaisError("");
   }
+
 
   function renderActiveTab(currentLead: LeadDetail) {
     const tabProps: PropriedadesAbaDetalhesCliente = {
@@ -1332,13 +1391,48 @@ export default function PaginaDetalhesCliente({
       return <AbaDocumentosCliente {...tabProps} />;
     }
 
-    return <TimelineSection events={currentLead.timeline} darkMode={false} />;
+    return (
+      <CrmSection
+        sx={{
+          p: { xs: 2, md: 2.5 },
+          borderRadius: "14px",
+          border: `1px solid ${crmPalette.border}`,
+          bgcolor: "#ffffff",
+          boxShadow: "0 8px 24px rgba(15, 23, 42, 0.04)",
+        }}
+      >
+        <Stack spacing={2}>
+          <CabecalhoSecao
+            eyebrow="Histórico"
+            title="Histórico do cliente"
+            description="Linha do tempo com eventos, alterações e interações registradas."
+            icon={<History size={20} />}
+          />
+          <TimelineSection events={currentLead.timeline} darkMode={false} />
+        </Stack>
+      </CrmSection>
+    );
   }
 
   return (
     <AppLayout>
       <CrmPageShell>
-        <CabecalhoDetalhesCliente lead={lead} loading={loading} error={error} />
+        <CabecalhoDetalhesCliente
+          lead={lead}
+          loading={loading}
+          error={error}
+          canEditClient={canEditClient}
+          onEditClient={() => {
+            if (lead) {
+              startEditingClient(lead);
+            }
+          }}
+          canRequestDeletion={canRequestDeletion}
+          onRequestDeletion={() => {
+            setDeletionReason("");
+            setDeletionDialogOpen(true);
+          }}
+        />
         <AbasDetalhesCliente lead={lead} activeTab={activeTab} setActiveTab={setActiveTab} />
 
         {lead ? (
@@ -1499,6 +1593,314 @@ export default function PaginaDetalhesCliente({
             }}
           >
             {deletingDocument ? "Excluindo..." : "Confirmar exclusão"}
+          </Button>
+        </DialogActions>
+      </Dialog>
+
+      <Dialog
+        open={deletionDialogOpen}
+        onClose={() => {
+          if (!requestingDeletion) {
+            setDeletionDialogOpen(false);
+            setDeletionReason("");
+          }
+        }}
+        fullWidth
+        maxWidth="sm"
+        slotProps={{
+          paper: {
+            sx: {
+              borderRadius: "20px",
+              overflow: "hidden",
+              border: "1px solid #e2e8f0",
+              boxShadow: "0 28px 80px rgba(15, 23, 42, 0.22)",
+            },
+          },
+        }}
+      >
+        {/* CABEÇALHO */}
+        <DialogTitle
+          component="div"
+          sx={{
+            px: 3,
+            pt: 3,
+            pb: 1.5,
+          }}
+        >
+          <Stack
+            direction="row"
+            spacing={1.5}
+            sx={{
+              alignItems: "center",
+            }}
+          >
+            <Stack
+              sx={{
+                width: 48,
+                height: 48,
+                flexShrink: 0,
+
+                alignItems: "center",
+                justifyContent: "center",
+
+                borderRadius: "14px",
+
+                bgcolor: "#fef2f2",
+                color: "#dc2626",
+
+                border: "1px solid #fecaca",
+              }}
+            >
+              <Trash2 size={22} />
+            </Stack>
+
+            <Stack spacing={0.3}>
+              <Typography
+                sx={{
+                  color: "#0f172a",
+                  fontSize: 19,
+                  fontWeight: 900,
+                  lineHeight: 1.2,
+                }}
+              >
+                Excluir cliente
+              </Typography>
+
+              <Typography
+                sx={{
+                  color: "#64748b",
+                  fontSize: 12,
+                  lineHeight: 1.4,
+                }}
+              >
+                A solicitação será enviada para aprovação da Gestão.
+              </Typography>
+            </Stack>
+          </Stack>
+        </DialogTitle>
+
+        {/* CONTEÚDO */}
+        <DialogContent
+          sx={{
+            px: 3,
+            pt: "12px !important",
+          }}
+        >
+          {/* Cliente selecionado */}
+          <Stack
+            spacing={0.5}
+            sx={{
+              mb: 2.5,
+              p: 2,
+
+              borderRadius: "14px",
+
+              bgcolor: "#f8fafc",
+              border: "1px solid #e2e8f0",
+            }}
+          >
+            <Typography
+              sx={{
+                color: "#94a3b8",
+                fontSize: 10,
+                fontWeight: 900,
+                letterSpacing: ".08em",
+                textTransform: "uppercase",
+              }}
+            >
+              Cliente selecionado
+            </Typography>
+
+            <Typography
+              sx={{
+                color: "#0f172a",
+                fontSize: 15,
+                fontWeight: 900,
+              }}
+            >
+              {lead?.company || lead?.name || "Cliente"}
+            </Typography>
+
+            {lead?.document ? (
+              <Typography
+                sx={{
+                  color: "#64748b",
+                  fontSize: 12,
+                }}
+              >
+                {lead.document}
+              </Typography>
+            ) : null}
+          </Stack>
+
+          {/* Campo motivo */}
+          <TextField
+            autoFocus
+            fullWidth
+            required
+            multiline
+            minRows={3}
+            maxRows={5}
+            label="Motivo da exclusão"
+            placeholder="Ex.: cliente cadastrado em duplicidade."
+            value={deletionReason}
+            onChange={(event) =>
+              setDeletionReason(event.target.value)
+            }
+            disabled={requestingDeletion}
+            slotProps={{
+              htmlInput: {
+                maxLength: 500,
+              },
+            }}
+            helperText={`${deletionReason.length}/500 caracteres`}
+            sx={{
+              "& .MuiOutlinedInput-root": {
+                borderRadius: "12px",
+                bgcolor: "#ffffff",
+
+                "&:hover fieldset": {
+                  borderColor: "#94a3b8",
+                },
+
+                "&.Mui-focused fieldset": {
+                  borderColor: "#dc2626",
+                },
+              },
+
+              "& .MuiInputLabel-root.Mui-focused": {
+                color: "#dc2626",
+              },
+
+              "& .MuiFormHelperText-root": {
+                mx: 0,
+                mt: 0.75,
+                color: "#94a3b8",
+                textAlign: "right",
+                fontSize: 11,
+              },
+            }}
+          />
+
+          {/* Aviso */}
+          <Stack
+            direction="row"
+            spacing={1}
+            sx={{
+              mt: 2,
+
+              p: 1.5,
+
+              alignItems: "flex-start",
+
+              borderRadius: "12px",
+
+              bgcolor: "#fff7ed",
+              border: "1px solid #fed7aa",
+            }}
+          >
+            <Typography
+              sx={{
+                color: "#c2410c",
+                fontSize: 12,
+                lineHeight: 1.6,
+              }}
+            >
+              O cliente continuará disponível no CRM até que a solicitação
+              seja analisada e aprovada.
+            </Typography>
+          </Stack>
+        </DialogContent>
+
+        {/* AÇÕES */}
+        <DialogActions
+          sx={{
+            px: 3,
+            pt: 2,
+            pb: 3,
+            gap: 1,
+
+            borderTop: "1px solid #f1f5f9",
+          }}
+        >
+          <Button
+            type="button"
+            variant="outlined"
+            disabled={requestingDeletion}
+            onClick={() => {
+              setDeletionDialogOpen(false);
+              setDeletionReason("");
+            }}
+            sx={{
+              minHeight: 42,
+              px: 2.25,
+
+              borderRadius: "11px",
+
+              borderColor: "#cbd5e1",
+              color: "#475569",
+
+              fontSize: 13,
+              fontWeight: 800,
+              textTransform: "none",
+
+              "&:hover": {
+                borderColor: "#94a3b8",
+                bgcolor: "#f8fafc",
+              },
+            }}
+          >
+            Cancelar
+          </Button>
+
+          <Button
+            type="button"
+            variant="contained"
+            disabled={
+              requestingDeletion ||
+              !deletionReason.trim()
+            }
+            onClick={handleRequestClientDeletion}
+            startIcon={
+              requestingDeletion ? (
+                <CircularProgress
+                  size={16}
+                  color="inherit"
+                />
+              ) : (
+                <Trash2 size={16} />
+              )
+            }
+            sx={{
+              minHeight: 42,
+              px: 2.25,
+
+              borderRadius: "11px",
+
+              bgcolor: "#dc2626",
+              color: "#ffffff",
+
+              fontSize: 13,
+              fontWeight: 900,
+              textTransform: "none",
+
+              boxShadow: "0 8px 18px rgba(220,38,38,0.18)",
+
+              "&:hover": {
+                bgcolor: "#b91c1c",
+                boxShadow: "0 10px 22px rgba(220,38,38,0.24)",
+              },
+
+              "&.Mui-disabled": {
+                bgcolor: "#fecaca",
+                color: "#ffffff",
+                boxShadow: "none",
+              },
+            }}
+          >
+            {requestingDeletion
+              ? "Enviando..."
+              : "Solicitar exclusão"}
           </Button>
         </DialogActions>
       </Dialog>

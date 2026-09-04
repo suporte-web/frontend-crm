@@ -1,5 +1,7 @@
 'use client';
 
+import { AppRouterCacheProvider } from '@mui/material-nextjs/v16-appRouter';
+
 import { AuthProvider } from '@/context/auth-context';
 import { ThemeProvider } from '@/context/theme-context';
 
@@ -9,8 +11,10 @@ type ProvidersProps = {
 
 export function Providers({ children }: ProvidersProps) {
   return (
-    <ThemeProvider>
-      <AuthProvider>{children}</AuthProvider>
-    </ThemeProvider>
+    <AppRouterCacheProvider>
+      <ThemeProvider>
+        <AuthProvider>{children}</AuthProvider>
+      </ThemeProvider>
+    </AppRouterCacheProvider>
   );
 }

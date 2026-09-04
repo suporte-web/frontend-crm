@@ -183,7 +183,10 @@ type CrmKpiCardProps = {
   accent?: string;
   softColor?: string;
   active?: boolean;
+  hideAccentBar?: boolean;
   onClick?: () => void;
+  ariaLabel?: string;
+  ariaPressed?: boolean;
   sx?: SxProps<Theme>;
 };
 
@@ -195,7 +198,10 @@ export function CrmKpiCard({
   accent = crmPalette.orange,
   softColor = "#fff0e8",
   active,
+  hideAccentBar,
   onClick,
+  ariaLabel,
+  ariaPressed,
   sx,
 }: CrmKpiCardProps) {
   const card = (
@@ -226,17 +232,19 @@ export function CrmKpiCard({
         sx,
       )}
     >
-      <Box
-        sx={{
-          position: "absolute",
-          insetInline: 24,
-          top: 0,
-          height: 4,
-          bgcolor: accent,
-          borderBottomLeftRadius: 8,
-          borderBottomRightRadius: 8,
-        }}
-      />
+      {!hideAccentBar ? (
+        <Box
+          sx={{
+            position: "absolute",
+            insetInline: 24,
+            top: 0,
+            height: 4,
+            bgcolor: accent,
+            borderBottomLeftRadius: 8,
+            borderBottomRightRadius: 8,
+          }}
+        />
+      ) : null}
 
       <Stack
         direction="row"
@@ -297,7 +305,16 @@ export function CrmKpiCard({
       component="button"
       type="button"
       onClick={onClick}
-      sx={{ p: 0, border: 0, bgcolor: "transparent", textAlign: "left" }}
+      aria-label={ariaLabel}
+      aria-pressed={ariaPressed}
+      sx={{
+        width: "100%",
+        height: "100%",
+        p: 0,
+        border: 0,
+        bgcolor: "transparent",
+        textAlign: "left",
+      }}
     >
       {card}
     </Box>

@@ -33,7 +33,7 @@ type SidebarNavigationProps = {
 
 const sidebarColors = {
   orange: "#ff4d00",
-  orangeDark: "#d94100",
+  orangeDark: "#ff5805",
   orangeSoft: "#fff0e8",
   orangeHover: "#ffe4d6",
 

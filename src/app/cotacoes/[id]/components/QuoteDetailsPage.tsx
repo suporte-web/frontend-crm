@@ -225,12 +225,12 @@ export default function QuoteDetailsPage({
   const [actionMessage, setActionMessage] = useState("");
 
   const canRespond =
-    !!user?.role && ["ADMIN", "GESTAO", "COMERCIAL"].includes(user.role);
+    !!user?.role && ["ADMIN", "GESTÃO", "COMERCIAL"].includes(user.role);
   const isClient = user?.role === "CLIENTE";
   const isProspectQuote = Boolean(quote?.prospectId && !quote.clientId);
   const canEdit = useMemo(() => {
     if (!quote || !user?.role) return false;
-    if (["ADMIN", "GESTAO", "COMERCIAL"].includes(user.role)) return true;
+    if (["ADMIN", "GESTÃO", "COMERCIAL"].includes(user.role)) return true;
     if (user.role === "CLIENTE") {
       return ["RECEIVED", "IN_ANALYSIS"].includes(quote.status);
     }

@@ -11,120 +11,211 @@ import AutoGraphOutlinedIcon from "@mui/icons-material/AutoGraphOutlined";
 import DescriptionOutlinedIcon from "@mui/icons-material/DescriptionOutlined";
 import ManageHistoryOutlinedIcon from "@mui/icons-material/ManageHistoryOutlined";
 
-import { CrmSection, crmPalette } from "@/components/mui/crm-primitives";
+import {
+  CrmSection,
+  crmPalette,
+} from "@/components/mui/crm-primitives";
+
 import type { LeadDetail } from "@/types/crm";
 
 type PropriedadesAbasDetalhesCliente = {
   lead: LeadDetail | null;
+
   activeTab: number;
+
   setActiveTab: (nextTab: number) => void;
 };
 
-export function AbasDetalhesCliente({ lead, activeTab, setActiveTab }: PropriedadesAbasDetalhesCliente) {
-    if (!lead) {
-      return null;
-    }
+const tabsDetalhesCliente = [
+  {
+    label: "Visão geral",
+    icon: <GridViewRoundedIcon />,
+  },
+  {
+    label: "Cadastro",
+    icon: <BusinessOutlinedIcon />,
+  },
+  {
+    label: "Contatos",
+    icon: <GroupsOutlinedIcon />,
+  },
+  {
+    label: "Condições comerciais",
+    icon: <AccountBalanceWalletOutlinedIcon />,
+  },
+  {
+    label: "Oportunidade/Proposta",
+    icon: <AutoGraphOutlinedIcon />,
+  },
+  {
+    label: "Documentos",
+    icon: <DescriptionOutlinedIcon />,
+  },
+  {
+    label: "Histórico",
+    icon: <ManageHistoryOutlinedIcon />,
+  },
+];
 
-    return (
-      <CrmSection
+export function AbasDetalhesCliente({
+  lead,
+  activeTab,
+  setActiveTab,
+}: PropriedadesAbasDetalhesCliente) {
+  if (!lead) {
+    return null;
+  }
+
+  return (
+    <CrmSection
+      sx={{
+        p: 1,
+
+        overflow: "hidden",
+
+        borderRadius: "16px",
+
+        border: `1px solid ${crmPalette.border}`,
+
+        bgcolor: "#ffffff",
+
+        boxShadow:
+          "0 4px 14px rgba(15, 23, 42, 0.03)",
+      }}
+    >
+      <Tabs
+        value={activeTab}
+        onChange={(_, newValue: number) =>
+          setActiveTab(newValue)
+        }
+        variant="scrollable"
+        scrollButtons="auto"
+        allowScrollButtonsMobile
+        slotProps={{
+          indicator: {
+            sx: {
+              display: "none",
+            },
+          },
+        }}
         sx={{
-          p: 0,
-          overflow: "hidden",
-          borderRadius: "12px",
-          border: `1px solid ${crmPalette.border}`,
-          bgcolor: "#ffffff",
-          boxShadow: "none",
+          minHeight: 0,
+
+          "& .MuiTabs-flexContainer": {
+            gap: 0.75,
+          },
+
+          "& .MuiTabs-scrollButtons": {
+            width: 32,
+
+            color: "#64748b",
+
+            borderRadius: "8px",
+
+            "&:hover": {
+              bgcolor: "#f8fafc",
+            },
+          },
+
+          /* =====================================
+             ABA NORMAL
+          ====================================== */
+          "& .MuiTab-root": {
+            minHeight: 44,
+
+            minWidth: "auto",
+
+            px: {
+              xs: 1.25,
+              md: 1.5,
+            },
+
+            py: 1,
+
+            borderRadius: "10px",
+
+            border: "1px solid transparent",
+
+            color: "#64748b",
+
+            bgcolor: "transparent",
+
+            fontSize: {
+              xs: 11.5,
+              md: 12.5,
+            },
+
+            fontWeight: 800,
+
+            lineHeight: 1.2,
+
+            textTransform: "none",
+
+            whiteSpace: "nowrap",
+
+            transition: [
+              "background-color 160ms ease",
+              "border-color 160ms ease",
+              "color 160ms ease",
+              "box-shadow 160ms ease",
+              "transform 160ms ease",
+            ].join(", "),
+          },
+
+          /* ÍCONE */
+          "& .MuiTab-iconWrapper, & .MuiTab-icon": {
+            width: 19,
+
+            height: 19,
+
+            marginRight: "7px !important",
+
+            marginBottom: "0 !important",
+
+            color: "inherit",
+          },
+
+          /* =====================================
+             HOVER
+          ====================================== */
+          "& .MuiTab-root:hover": {
+            bgcolor: "#f8fafc",
+
+            color: "#334155",
+          },
+
+          /* =====================================
+             ABA ATIVA
+          ====================================== */
+          "& .MuiTab-root.Mui-selected": {
+            bgcolor: "#fff7ed",
+
+            color: `${crmPalette.orangeDark} !important`,
+
+            borderColor: "#fed7aa",
+
+            boxShadow:
+              "0 2px 6px rgba(234, 88, 12, 0.06)",
+          },
+
+          "& .MuiTab-root.Mui-selected:hover": {
+            bgcolor: "#ffedd5",
+
+            borderColor: "#fdba74",
+          },
         }}
       >
-        <Tabs
-          value={activeTab}
-          onChange={(_, newValue: number) => setActiveTab(newValue)}
-          variant="scrollable"
-          scrollButtons="auto"
-          allowScrollButtonsMobile
-          sx={{
-            px: { xs: 1, md: 1.5 },
-            bgcolor: "#ffffff",
-
-            "& .MuiTab-root": {
-              minHeight: 54,
-              minWidth: "auto",
-              px: { xs: 1.25, md: 1.8 },
-              gap: 0.7,
-              borderRadius: "10px 10px 0 0",
-              color: crmPalette.muted,
-              fontSize: 12,
-              fontWeight: 800,
-              textTransform: "none",
-              transition: "all 180ms ease",
-            },
-
-            "& .MuiTab-iconWrapper": {
-              fontSize: 19,
-              marginRight: "8px",
-              marginBottom: "0 !important",
-              transition: "color 180ms ease, transform 180ms ease",
-            },
-
-            "& .MuiTab-root:hover": {
-              color: crmPalette.orangeDark,
-              bgcolor: "#fffaf7",
-            },
-
-            "& .Mui-selected": {
-              color: `${crmPalette.orangeDark} !important`,
-              bgcolor: "#fff7f2",
-            },
-
-            "& .MuiTabs-indicator": {
-              height: 3,
-              borderRadius: "3px 3px 0 0",
-              bgcolor: crmPalette.orange,
-            },
-          }}
-        >
+        {tabsDetalhesCliente.map((tab, index) => (
           <Tab
-            icon={<GridViewRoundedIcon />}
+            key={tab.label}
+            value={index}
+            disableRipple
+            icon={tab.icon}
             iconPosition="start"
-            label="Visão geral"
+            label={tab.label}
           />
-
-          <Tab
-            icon={<BusinessOutlinedIcon />}
-            iconPosition="start"
-            label="Cadastro"
-          />
-
-          <Tab
-            icon={<GroupsOutlinedIcon />}
-            iconPosition="start"
-            label="Contatos"
-          />
-
-          <Tab
-            icon={<AccountBalanceWalletOutlinedIcon />}
-            iconPosition="start"
-            label="Condições comerciais"
-          />
-
-          <Tab
-            icon={<AutoGraphOutlinedIcon />}
-            iconPosition="start"
-            label="Oportunidade/Proposta"
-          />
-
-          <Tab
-            icon={<DescriptionOutlinedIcon />}
-            iconPosition="start"
-            label="Documentos"
-          />
-
-          <Tab
-            icon={<ManageHistoryOutlinedIcon />}
-            iconPosition="start"
-            label="Histórico"
-          />
-        </Tabs>
-      </CrmSection>
-    );
-  }
+        ))}
+      </Tabs>
+    </CrmSection>
+  );
+}

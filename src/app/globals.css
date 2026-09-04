@@ -568,7 +568,7 @@ body {
   border-radius: 16px !important;
   background-color: rgb(255 255 255 / 0.95) !important;
   color: var(--brand-graphite) !important;
-  box-shadow: inset 0 1px 0 rgb(255 255 255 / 0.72);
+  box-shadow: none !important;
 }
 
 .crm-app-surface
@@ -578,7 +578,17 @@ body {
     textarea
   ):focus {
   border-color: var(--brand-red) !important;
-  box-shadow: 0 0 0 3px rgb(236 49 57 / 0.12);
+  box-shadow: none !important;
+}
+
+.crm-app-surface
+  :where(.MuiOutlinedInput-root, .MuiInputBase-root, .MuiFormControl-root) {
+  box-shadow: none !important;
+}
+
+.crm-app-surface
+  :where(.MuiOutlinedInput-root.Mui-focused, .MuiInputBase-root.Mui-focused) {
+  box-shadow: none !important;
 }
 
 .crm-app-surface :where(button, a)[class*="rounded-md"] {

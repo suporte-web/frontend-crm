@@ -172,103 +172,1050 @@ export function AbaOportunidadePropostaCliente(props: PropriedadesAbaDetalhesCli
 
 
   return (
-    <CrmSection sx={{ p: { xs: 2.5, md: 3 } }}>
+    <CrmSection
+      sx={{
+        p: { xs: 2, md: 2.5 },
+        borderRadius: "14px",
+        border: `1px solid ${crmPalette.border}`,
+        bgcolor: "#ffffff",
+        boxShadow: "0 8px 24px rgba(15, 23, 42, 0.04)",
+      }}
+    >
       <Stack spacing={2.5}>
         <CabecalhoSecao
-          eyebrow="Oportunidade/Proposta"
-          title="Cadastro de oportunidade e proposta"
-          // description="Registre o título, tipo de proposta, serviços envolvidos e anexos relacionados."
-          icon={<FileText size={20} />}
+          title="Oportunidades e propostas"
+          description="Cadastre, acompanhe e gerencie as propostas comerciais deste cliente."
         />
 
         {canEditCommercialData ? (
-          <Paper
+          <Box
             component="form"
-            variant="outlined"
             onSubmit={handleCreateOpportunityProposal}
-            sx={{
-              p: { xs: 1.75, md: 2 },
-              borderRadius: "12px",
-              borderColor: crmPalette.border,
-              bgcolor: "#ffffff",
-            }}
           >
             <Stack spacing={2}>
-              <Box
+              {/* =========================================
+          1. DADOS PRINCIPAIS DA NOVA PROPOSTA
+      ========================================== */}
+              <Paper
+                variant="outlined"
                 sx={{
-                  display: "grid",
-                  gridTemplateColumns: {
-                    xs: "1fr",
-                    md: "minmax(260px, 1fr) minmax(220px, 320px) auto",
-                  },
-                  gap: 1.25,
-                  alignItems: "center",
+                  overflow: "hidden",
+                  borderRadius: "16px",
+                  borderColor: "#e2e8f0",
+                  bgcolor: "#ffffff",
+                  boxShadow: "none",
                 }}
               >
-                <TextField
-                  required
-                  fullWidth
-                  size="small"
-                  label="Título da proposta"
-                  value={opportunityProposalForm.title}
-                  onChange={(event) =>
-                    setFormularioPropostaOportunidade((current) => ({
-                      ...current,
-                      title: event.target.value,
-                    }))
-                  }
-                  sx={textFieldSx}
-                />
+                {/* CABEÇALHO */}
+                <Box
+                  sx={{
+                    px: {
+                      xs: 1.75,
+                      md: 2,
+                    },
 
-                <TextField
-                  required
-                  select
-                  fullWidth
-                  size="small"
-                  label="Tipo de proposta"
-                  value={opportunityProposalForm.proposalType}
-                  onChange={(event) =>
-                    setFormularioPropostaOportunidade((current) => ({
-                      ...current,
-                      proposalType:
-                        event.target
-                          .value as FormularioPropostaOportunidade["proposalType"],
-                      origin: "",
-                      destination: "",
-                      vehicleType: "",
-                      cargoType: "",
-                      averageWeight: "",
-                      aggregateValue: "",
-                      cubage: "",
-                      monthlyShipments: "",
-                      dangerousGoods: "",
-                      dangerousGoodsInfo: "",
-                      transportValues: Object.fromEntries(
-                        TRANSPORT_PRICE_ITEMS.map((item) => [item, ""]),
-                      ) as Record<string, string>,
-                      customOption: "",
-                    }))
-                  }
-                  sx={textFieldSx}
+                    py: 1.5,
+
+                    borderBottom:
+                      `1px solid ${crmPalette.border}`,
+
+                    bgcolor: "#ffffff",
+                  }}
                 >
-                  <MenuItem value="">Selecione</MenuItem>
+                  <Stack
+                    direction="row"
+                    spacing={1.25}
+                    sx={{
+                      alignItems: "center",
+                    }}
+                  >
+                    <Box
+                      sx={{
+                        width: 38,
+                        height: 38,
 
-                  <MenuItem value="TRANSPORTE_RODOVIARIO">
-                    Transporte rodoviário
-                  </MenuItem>
+                        display: "grid",
+                        placeItems: "center",
 
-                  <MenuItem value="ARMAZENAGEM">
-                    Armazenagem
-                  </MenuItem>
-                </TextField>
+                        flexShrink: 0,
 
+                        borderRadius: "10px",
+
+                        bgcolor: "#fff7ed",
+
+                        color: crmPalette.orangeDark,
+                      }}
+                    >
+                      <PlusCircle size={19} />
+                    </Box>
+
+                    <Box sx={{ minWidth: 0 }}>
+                      <Typography
+                        sx={{
+                          color: crmPalette.text,
+
+                          fontSize: 15,
+
+                          fontWeight: 900,
+
+                          lineHeight: 1.3,
+                        }}
+                      >
+                        Nova proposta
+                      </Typography>
+
+                      <Typography
+                        sx={{
+                          mt: 0.25,
+
+                          color: crmPalette.muted,
+
+                          fontSize: 11.5,
+
+                          lineHeight: 1.45,
+                        }}
+                      >
+                        Informe os dados principais da oportunidade comercial.
+                      </Typography>
+                    </Box>
+                  </Stack>
+                </Box>
+
+                {/* CAMPOS */}
+                <Box
+                  sx={{
+                    p: {
+                      xs: 1.75,
+                      md: 2,
+                    },
+                  }}
+                >
+                  <Box
+                    sx={{
+                      display: "grid",
+
+                      gridTemplateColumns: {
+                        xs: "1fr",
+
+                        md:
+                          "repeat(2, minmax(0, 1fr))",
+                      },
+
+                      gap: 1.5,
+                    }}
+                  >
+                    <TextField
+                      required
+                      fullWidth
+                      size="small"
+                      label="Título da proposta"
+                      placeholder="Ex.: Operação Curitiba"
+                      value={
+                        opportunityProposalForm.title
+                      }
+                      onChange={(event) =>
+                        setFormularioPropostaOportunidade(
+                          (current) => ({
+                            ...current,
+
+                            title:
+                              event.target.value,
+                          }),
+                        )
+                      }
+                      sx={textFieldSx}
+                    />
+
+                    <TextField
+                      required
+                      select
+                      fullWidth
+                      size="small"
+                      label="Tipo de proposta"
+                      value={
+                        opportunityProposalForm.proposalType
+                      }
+                      onChange={(event) =>
+                        setFormularioPropostaOportunidade(
+                          (current) => ({
+                            ...current,
+
+                            proposalType:
+                              event.target
+                                .value as FormularioPropostaOportunidade["proposalType"],
+
+                            origin: "",
+                            destination: "",
+                            vehicleType: "",
+                            cargoType: "",
+                            averageWeight: "",
+                            aggregateValue: "",
+                            cubage: "",
+                            monthlyShipments: "",
+                            dangerousGoods: "",
+                            dangerousGoodsInfo: "",
+
+                            transportValues:
+                              Object.fromEntries(
+                                TRANSPORT_PRICE_ITEMS.map(
+                                  (item) => [
+                                    item,
+                                    "",
+                                  ],
+                                ),
+                              ) as Record<
+                                string,
+                                string
+                              >,
+
+                            customOption: "",
+                          }),
+                        )
+                      }
+                      sx={textFieldSx}
+                    >
+                      <MenuItem value="">
+                        Selecione
+                      </MenuItem>
+
+                      <MenuItem value="TRANSPORTE_RODOVIARIO">
+                        Transporte rodoviário
+                      </MenuItem>
+
+                      <MenuItem value="ARMAZENAGEM">
+                        Armazenagem
+                      </MenuItem>
+                    </TextField>
+                  </Box>
+                </Box>
+              </Paper>
+
+              {/* =========================================
+          2. SERVIÇOS
+      ========================================== */}
+              {opportunityProposalForm.proposalType ? (
+                <Paper
+                  variant="outlined"
+                  sx={{
+                    overflow: "hidden",
+
+                    borderRadius: "16px",
+
+                    borderColor: "#e2e8f0",
+
+                    bgcolor: "#ffffff",
+
+                    boxShadow: "none",
+                  }}
+                >
+                  {/* CABEÇALHO */}
+                  <Box
+                    sx={{
+                      px: {
+                        xs: 1.75,
+                        md: 2,
+                      },
+
+                      py: 1.5,
+
+                      borderBottom:
+                        `1px solid ${crmPalette.border}`,
+
+                      bgcolor: "#ffffff",
+                    }}
+                  >
+                    <Stack
+                      direction="row"
+                      spacing={1.25}
+                      sx={{
+                        alignItems: "center",
+                      }}
+                    >
+                      <Box
+                        sx={{
+                          width: 38,
+                          height: 38,
+
+                          display: "grid",
+                          placeItems: "center",
+
+                          flexShrink: 0,
+
+                          borderRadius: "10px",
+
+                          bgcolor: "#fff7ed",
+
+                          color:
+                            crmPalette.orangeDark,
+                        }}
+                      >
+                        <FileText size={18} />
+                      </Box>
+
+                      <Box sx={{ minWidth: 0 }}>
+                        <Typography
+                          sx={{
+                            color:
+                              crmPalette.text,
+
+                            fontSize: 15,
+
+                            fontWeight: 900,
+
+                            lineHeight: 1.3,
+                          }}
+                        >
+                          {opportunityProposalForm
+                            .proposalType ===
+                            "ARMAZENAGEM"
+                            ? "Serviços de armazenagem"
+                            : "Serviços de transporte rodoviário"}
+                        </Typography>
+
+                        <Typography
+                          sx={{
+                            mt: 0.25,
+
+                            color:
+                              crmPalette.muted,
+
+                            fontSize: 11.5,
+
+                            lineHeight: 1.45,
+                          }}
+                        >
+                          Selecione os serviços que farão parte desta proposta.
+                        </Typography>
+                      </Box>
+                    </Stack>
+                  </Box>
+
+                  {/* CONTEÚDO */}
+                  <Box
+                    sx={{
+                      p: {
+                        xs: 1.75,
+                        md: 2,
+                      },
+                    }}
+                  >
+                    <Box
+                      sx={{
+                        display: "grid",
+
+                        gridTemplateColumns: {
+                          xs: "1fr",
+
+                          sm:
+                            "repeat(2, minmax(0, 1fr))",
+
+                          lg:
+                            "repeat(3, minmax(0, 1fr))",
+                        },
+
+                        columnGap: 2,
+
+                        rowGap: 0.5,
+                      }}
+                    >
+                      {[
+                        ...proposalOptions,
+                        ...customSelectedOptions,
+                      ].map((option) => (
+                        <FormControlLabel
+                          key={option}
+                          control={
+                            <Checkbox
+                              checked={selectedProposalOptions.includes(
+                                option,
+                              )}
+                              onChange={() =>
+                                toggleProposalOption(
+                                  option,
+                                )
+                              }
+                              size="small"
+                              sx={{
+                                color: "#94a3b8",
+
+                                "&.Mui-checked": {
+                                  color:
+                                    crmPalette.orange,
+                                },
+                              }}
+                            />
+                          }
+                          label={option}
+                          sx={{
+                            m: 0,
+
+                            minHeight: 38,
+
+                            color:
+                              crmPalette.text,
+
+                            "& .MuiFormControlLabel-label":
+                            {
+                              fontSize: 13,
+
+                              fontWeight: 700,
+                            },
+                          }}
+                        />
+                      ))}
+                    </Box>
+
+                    {/* OUTRO SERVIÇO */}
+                    <Stack
+                      direction={{
+                        xs: "column",
+                        sm: "row",
+                      }}
+                      spacing={1}
+                      sx={{
+                        mt: 1.75,
+
+                        pt: 1.75,
+
+                        borderTop:
+                          `1px solid ${crmPalette.border}`,
+
+                        alignItems: {
+                          xs: "stretch",
+                          sm: "center",
+                        },
+                      }}
+                    >
+                      <TextField
+                        fullWidth
+                        size="small"
+                        label="Outro serviço"
+                        placeholder="Digite uma opção que não está na lista"
+                        value={
+                          opportunityProposalForm.customOption
+                        }
+                        onChange={(event) =>
+                          setFormularioPropostaOportunidade(
+                            (current) => ({
+                              ...current,
+
+                              customOption:
+                                event.target.value,
+                            }),
+                          )
+                        }
+                        sx={textFieldSx}
+                      />
+
+                      <Button
+                        type="button"
+                        variant="outlined"
+                        startIcon={
+                          <PlusCircle size={15} />
+                        }
+                        disabled={
+                          !opportunityProposalForm.customOption.trim()
+                        }
+                        onClick={
+                          addCustomProposalOption
+                        }
+                        sx={{
+                          ...secondaryButtonSx,
+
+                          minHeight: 40,
+
+                          px: 2,
+
+                          whiteSpace: "nowrap",
+                        }}
+                      >
+                        Adicionar
+                      </Button>
+                    </Stack>
+                  </Box>
+                </Paper>
+              ) : null}
+
+              {/* =========================================
+          3. INFORMAÇÕES OPERACIONAIS
+      ========================================== */}
+              {opportunityProposalForm.proposalType ===
+                "TRANSPORTE_RODOVIARIO" ? (
+                <Paper
+                  variant="outlined"
+                  sx={{
+                    overflow: "hidden",
+
+                    borderRadius: "16px",
+
+                    borderColor: "#e2e8f0",
+
+                    bgcolor: "#ffffff",
+
+                    boxShadow: "none",
+                  }}
+                >
+                  {/* CABEÇALHO */}
+                  <Box
+                    sx={{
+                      px: {
+                        xs: 1.75,
+                        md: 2,
+                      },
+
+                      py: 1.5,
+
+                      borderBottom:
+                        `1px solid ${crmPalette.border}`,
+
+                      bgcolor: "#ffffff",
+                    }}
+                  >
+                    <Stack
+                      direction="row"
+                      spacing={1.25}
+                      sx={{
+                        alignItems: "center",
+                      }}
+                    >
+                      <Box
+                        sx={{
+                          width: 38,
+                          height: 38,
+
+                          display: "grid",
+                          placeItems: "center",
+
+                          flexShrink: 0,
+
+                          borderRadius: "10px",
+
+                          bgcolor: "#fff7ed",
+
+                          color:
+                            crmPalette.orangeDark,
+                        }}
+                      >
+                        <FileText size={18} />
+                      </Box>
+
+                      <Box sx={{ minWidth: 0 }}>
+                        <Typography
+                          sx={{
+                            color:
+                              crmPalette.text,
+
+                            fontSize: 15,
+
+                            fontWeight: 900,
+                          }}
+                        >
+                          Informações operacionais
+                        </Typography>
+
+                        <Typography
+                          sx={{
+                            mt: 0.25,
+
+                            color:
+                              crmPalette.muted,
+
+                            fontSize: 11.5,
+
+                            lineHeight: 1.45,
+                          }}
+                        >
+                          Dados necessários para montar a cotação e a proposta comercial.
+                        </Typography>
+                      </Box>
+                    </Stack>
+                  </Box>
+
+                  {/* CAMPOS */}
+                  <Box
+                    sx={{
+                      p: {
+                        xs: 1.75,
+                        md: 2,
+                      },
+                    }}
+                  >
+                    <Box
+                      sx={{
+                        display: "grid",
+
+                        gridTemplateColumns: {
+                          xs: "1fr",
+
+                          md:
+                            "repeat(2, minmax(0, 1fr))",
+
+                          xl:
+                            "repeat(3, minmax(0, 1fr))",
+                        },
+
+                        gap: 1.5,
+                      }}
+                    >
+                      <TextField
+                        required
+                        fullWidth
+                        size="small"
+                        label="Origem"
+                        value={
+                          opportunityProposalForm.origin
+                        }
+                        onChange={(event) =>
+                          setFormularioPropostaOportunidade(
+                            (current) => ({
+                              ...current,
+
+                              origin:
+                                event.target.value,
+                            }),
+                          )
+                        }
+                        sx={textFieldSx}
+                      />
+
+                      <TextField
+                        required
+                        fullWidth
+                        size="small"
+                        label="Destino"
+                        value={
+                          opportunityProposalForm.destination
+                        }
+                        onChange={(event) =>
+                          setFormularioPropostaOportunidade(
+                            (current) => ({
+                              ...current,
+
+                              destination:
+                                event.target.value,
+                            }),
+                          )
+                        }
+                        sx={textFieldSx}
+                      />
+
+                      <TextField
+                        required
+                        select
+                        fullWidth
+                        size="small"
+                        label="Tipo de veículo"
+                        value={
+                          opportunityProposalForm.vehicleType
+                        }
+                        onChange={(event) =>
+                          setFormularioPropostaOportunidade(
+                            (current) => ({
+                              ...current,
+
+                              vehicleType:
+                                event.target.value,
+                            }),
+                          )
+                        }
+                        sx={textFieldSx}
+                      >
+                        <MenuItem value="">
+                          Selecione
+                        </MenuItem>
+
+                        {VEHICLE_TYPE_OPTIONS.map(
+                          (option) => (
+                            <MenuItem
+                              key={option}
+                              value={option}
+                            >
+                              {option}
+                            </MenuItem>
+                          ),
+                        )}
+                      </TextField>
+
+                      <TextField
+                        required
+                        fullWidth
+                        size="small"
+                        label="Tipo de carga"
+                        value={
+                          opportunityProposalForm.cargoType
+                        }
+                        onChange={(event) =>
+                          setFormularioPropostaOportunidade(
+                            (current) => ({
+                              ...current,
+
+                              cargoType:
+                                event.target.value,
+                            }),
+                          )
+                        }
+                        sx={textFieldSx}
+                      />
+
+                      <TextField
+                        required
+                        fullWidth
+                        size="small"
+                        label="Peso médio"
+                        placeholder="Ex.: 1.200 kg"
+                        value={
+                          opportunityProposalForm.averageWeight
+                        }
+                        onChange={(event) =>
+                          setFormularioPropostaOportunidade(
+                            (current) => ({
+                              ...current,
+
+                              averageWeight:
+                                event.target.value,
+                            }),
+                          )
+                        }
+                        sx={textFieldSx}
+                      />
+
+                      <TextField
+                        required
+                        fullWidth
+                        size="small"
+                        label="Valor agregado"
+                        placeholder="Ex.: R$ 80.000,00"
+                        value={
+                          opportunityProposalForm.aggregateValue
+                        }
+                        onChange={(event) =>
+                          setFormularioPropostaOportunidade(
+                            (current) => ({
+                              ...current,
+
+                              aggregateValue:
+                                event.target.value,
+                            }),
+                          )
+                        }
+                        sx={textFieldSx}
+                      />
+
+                      <TextField
+                        fullWidth
+                        size="small"
+                        label="Cubagem"
+                        placeholder="Opcional"
+                        value={
+                          opportunityProposalForm.cubage
+                        }
+                        onChange={(event) =>
+                          setFormularioPropostaOportunidade(
+                            (current) => ({
+                              ...current,
+
+                              cubage:
+                                event.target.value,
+                            }),
+                          )
+                        }
+                        sx={textFieldSx}
+                      />
+
+                      <TextField
+                        fullWidth
+                        size="small"
+                        label="Quantidade de embarques/mês"
+                        placeholder="Opcional"
+                        value={
+                          opportunityProposalForm.monthlyShipments
+                        }
+                        onChange={(event) =>
+                          setFormularioPropostaOportunidade(
+                            (current) => ({
+                              ...current,
+
+                              monthlyShipments:
+                                event.target.value,
+                            }),
+                          )
+                        }
+                        sx={textFieldSx}
+                      />
+
+                      <TextField
+                        required
+                        select
+                        fullWidth
+                        size="small"
+                        label="Produto perigoso"
+                        value={
+                          opportunityProposalForm.dangerousGoods
+                        }
+                        onChange={(event) =>
+                          setFormularioPropostaOportunidade(
+                            (current) => ({
+                              ...current,
+
+                              dangerousGoods:
+                                event.target
+                                  .value as FormularioPropostaOportunidade["dangerousGoods"],
+
+                              dangerousGoodsInfo:
+                                event.target.value ===
+                                  "SIM"
+                                  ? current.dangerousGoodsInfo
+                                  : "",
+                            }),
+                          )
+                        }
+                        sx={textFieldSx}
+                      >
+                        <MenuItem value="">
+                          Selecione
+                        </MenuItem>
+
+                        <MenuItem value="NAO">
+                          Não
+                        </MenuItem>
+
+                        <MenuItem value="SIM">
+                          Sim
+                        </MenuItem>
+                      </TextField>
+
+                      {opportunityProposalForm.dangerousGoods ===
+                        "SIM" ? (
+                        <TextField
+                          required
+                          fullWidth
+                          multiline
+                          minRows={2}
+                          label="FDS / Ficha de Emergência"
+                          placeholder="Informe os dados ou instruções da FDS/Ficha de Emergência"
+                          value={
+                            opportunityProposalForm.dangerousGoodsInfo
+                          }
+                          onChange={(event) =>
+                            setFormularioPropostaOportunidade(
+                              (current) => ({
+                                ...current,
+
+                                dangerousGoodsInfo:
+                                  event.target
+                                    .value,
+                              }),
+                            )
+                          }
+                          sx={{
+                            ...textFieldSx,
+
+                            gridColumn: {
+                              xs: "auto",
+                              md: "1 / -1",
+                            },
+                          }}
+                        />
+                      ) : null}
+                    </Box>
+                  </Box>
+                </Paper>
+              ) : null}
+
+              {/* =========================================
+          4. VALORES DA PROPOSTA
+      ========================================== */}
+              {opportunityProposalForm.proposalType ===
+                "TRANSPORTE_RODOVIARIO" ? (
+                <Paper
+                  variant="outlined"
+                  sx={{
+                    overflow: "hidden",
+
+                    borderRadius: "16px",
+
+                    borderColor: "#e2e8f0",
+
+                    bgcolor: "#ffffff",
+
+                    boxShadow: "none",
+                  }}
+                >
+                  {/* CABEÇALHO */}
+                  <Box
+                    sx={{
+                      px: {
+                        xs: 1.75,
+                        md: 2,
+                      },
+
+                      py: 1.5,
+
+                      borderBottom:
+                        `1px solid ${crmPalette.border}`,
+
+                      bgcolor: "#ffffff",
+                    }}
+                  >
+                    <Stack
+                      direction="row"
+                      spacing={1.25}
+                      sx={{
+                        alignItems: "center",
+                      }}
+                    >
+                      <Box
+                        sx={{
+                          width: 38,
+                          height: 38,
+
+                          display: "grid",
+                          placeItems: "center",
+
+                          flexShrink: 0,
+
+                          borderRadius: "10px",
+
+                          bgcolor: "#fff7ed",
+
+                          color:
+                            crmPalette.orangeDark,
+                        }}
+                      >
+                        <FileText size={18} />
+                      </Box>
+
+                      <Box>
+                        <Typography
+                          sx={{
+                            color:
+                              crmPalette.text,
+
+                            fontSize: 15,
+
+                            fontWeight: 900,
+                          }}
+                        >
+                          Valores da proposta
+                        </Typography>
+
+                        <Typography
+                          sx={{
+                            mt: 0.25,
+
+                            color:
+                              crmPalette.muted,
+
+                            fontSize: 11.5,
+                          }}
+                        >
+                          Informe os valores comerciais da operação.
+                        </Typography>
+                      </Box>
+                    </Stack>
+                  </Box>
+
+                  {/* VALORES */}
+                  <Box
+                    sx={{
+                      p: {
+                        xs: 1.75,
+                        md: 2,
+                      },
+
+                      display: "grid",
+
+                      gridTemplateColumns: {
+                        xs: "1fr",
+
+                        sm:
+                          "repeat(2, minmax(0, 1fr))",
+
+                        xl:
+                          "repeat(3, minmax(0, 1fr))",
+                      },
+
+                      gap: 1.5,
+                    }}
+                  >
+                    {TRANSPORT_PRICE_ITEMS.map(
+                      (item) => (
+                        <TextField
+                          key={item}
+                          fullWidth
+                          size="small"
+                          label={item}
+                          placeholder="R$ 0,00"
+                          value={
+                            opportunityProposalForm
+                              .transportValues[
+                            item
+                            ] ?? ""
+                          }
+                          onChange={(event) =>
+                            setFormularioPropostaOportunidade(
+                              (current) => ({
+                                ...current,
+
+                                transportValues: {
+                                  ...current.transportValues,
+
+                                  [item]:
+                                    event.target
+                                      .value,
+                                },
+                              }),
+                            )
+                          }
+                          sx={textFieldSx}
+                        />
+                      ),
+                    )}
+                  </Box>
+                </Paper>
+              ) : null}
+
+              {/* =========================================
+          ERRO
+      ========================================== */}
+              {opportunityProposalError ? (
+                <Alert
+                  severity="error"
+                  sx={{
+                    borderRadius: "12px",
+                  }}
+                >
+                  {opportunityProposalError}
+                </Alert>
+              ) : null}
+
+              {/* =========================================
+          AÇÃO FINAL
+      ========================================== */}
+              <Stack
+                direction={{
+                  xs: "column",
+                  sm: "row",
+                }}
+                spacing={1}
+                sx={{
+                  pt: 0.25,
+
+                  justifyContent: "flex-end",
+                }}
+              >
                 <Button
                   type="submit"
                   variant="contained"
-                  disabled={savingOpportunityProposal}
+                  disabled={
+                    savingOpportunityProposal
+                  }
                   startIcon={
                     savingOpportunityProposal ? (
-                      <CircularProgress size={16} color="inherit" />
+                      <CircularProgress
+                        size={16}
+                        color="inherit"
+                      />
                     ) : (
                       <Save size={16} />
                     )
@@ -276,21 +1223,31 @@ export function AbaOportunidadePropostaCliente(props: PropriedadesAbaDetalhesCli
                   sx={{
                     width: {
                       xs: "100%",
-                      md: "auto",
+                      sm: "auto",
                     },
-                    minWidth: {
-                      md: 180,
-                    },
-                    minHeight: 40,
+
+                    minHeight: 42,
+
+                    px: 2.5,
+
                     borderRadius: "10px",
+
                     bgcolor: crmPalette.orange,
-                    fontWeight: 800,
+
+                    color: "#ffffff",
+
+                    fontSize: 13,
+
+                    fontWeight: 900,
+
                     textTransform: "none",
-                    whiteSpace: "nowrap",
+
                     boxShadow: "none",
 
                     "&:hover": {
-                      bgcolor: crmPalette.orangeDark,
+                      bgcolor:
+                        crmPalette.orangeDark,
+
                       boxShadow: "none",
                     },
                   }}
@@ -299,401 +1256,16 @@ export function AbaOportunidadePropostaCliente(props: PropriedadesAbaDetalhesCli
                     ? "Salvando..."
                     : "Cadastrar proposta"}
                 </Button>
-              </Box>
-
-              {opportunityProposalForm.proposalType ? (
-                <Paper
-                  variant="outlined"
-                  sx={{
-                    p: { xs: 1.5, md: 2 },
-                    borderRadius: "12px",
-                    borderColor: crmPalette.border,
-                    bgcolor: "#f8fafc",
-                  }}
-                >
-                  <Typography
-                    sx={{
-                      color: crmPalette.text,
-                      fontSize: 14,
-                      fontWeight: 900,
-                    }}
-                  >
-                    {opportunityProposalForm.proposalType === "ARMAZENAGEM"
-                      ? "Serviços de armazenagem"
-                      : "Serviços de transporte rodoviário"}
-                  </Typography>
-
-                  <Box
-                    sx={{
-                      mt: 1,
-                      display: "grid",
-                      gridTemplateColumns: {
-                        xs: "1fr",
-                        sm: "repeat(2, minmax(0, 1fr))",
-                        lg: "repeat(3, minmax(0, 1fr))",
-                      },
-                      gap: 0.5,
-                    }}
-                  >
-                    {[...proposalOptions, ...customSelectedOptions].map(
-                      (option) => (
-                        <FormControlLabel
-                          key={option}
-                          control={
-                            <Checkbox
-                              checked={selectedProposalOptions.includes(
-                                option,
-                              )}
-                              onChange={() => toggleProposalOption(option)}
-                              size="small"
-                              sx={{
-                                color: crmPalette.muted,
-                                "&.Mui-checked": {
-                                  color: crmPalette.orange,
-                                },
-                              }}
-                            />
-                          }
-                          label={option}
-                          sx={{
-                            m: 0,
-                            minHeight: 34,
-                            color: crmPalette.text,
-                            "& .MuiFormControlLabel-label": {
-                              fontSize: 13,
-                              fontWeight: 700,
-                              overflowWrap: "anywhere",
-                            },
-                          }}
-                        />
-                      ),
-                    )}
-                  </Box>
-
-                  <Stack
-                    direction={{ xs: "column", sm: "row" }}
-                    spacing={1}
-                    sx={{
-                      mt: 1.5,
-                      alignItems: { xs: "stretch", sm: "center" },
-                    }}
-                  >
-                    <TextField
-                      fullWidth
-                      size="small"
-                      label="Outros"
-                      placeholder="Digite uma opção que não está na lista"
-                      value={opportunityProposalForm.customOption}
-                      onChange={(event) =>
-                        setFormularioPropostaOportunidade((current) => ({
-                          ...current,
-                          customOption: event.target.value,
-                        }))
-                      }
-                      sx={textFieldSx}
-                    />
-                    <Button
-                      type="button"
-                      variant="outlined"
-                      startIcon={<PlusCircle size={15} />}
-                      disabled={!opportunityProposalForm.customOption.trim()}
-                      onClick={addCustomProposalOption}
-                      sx={{
-                        ...secondaryButtonSx,
-                        whiteSpace: "nowrap",
-                      }}
-                    >
-                      Adicionar
-                    </Button>
-                  </Stack>
-                </Paper>
-              ) : null}
-
-              {opportunityProposalForm.proposalType ===
-                "TRANSPORTE_RODOVIARIO" ? (
-                <Paper
-                  variant="outlined"
-                  sx={{
-                    p: { xs: 1.5, md: 2 },
-                    borderRadius: "12px",
-                    borderColor: "#bbf7d0",
-                    bgcolor: "#f0fdf4",
-                  }}
-                >
-                  <TituloSecaoFormulario
-                    icon={<FileText size={18} />}
-                    title="Informações necessárias"
-                    description="Dados operacionais usados para montar a cotação e a proposta comercial."
-                  />
-
-                  <Box
-                    sx={{
-                      mt: 1.5,
-                      display: "grid",
-                      gridTemplateColumns: {
-                        xs: "1fr",
-                        md: "repeat(2, minmax(0, 1fr))",
-                        xl: "repeat(3, minmax(0, 1fr))",
-                      },
-                      gap: 1.25,
-                    }}
-                  >
-                    <TextField
-                      required
-                      fullWidth
-                      size="small"
-                      label="Origem"
-                      value={opportunityProposalForm.origin}
-                      onChange={(event) =>
-                        setFormularioPropostaOportunidade((current) => ({
-                          ...current,
-                          origin: event.target.value,
-                        }))
-                      }
-                      sx={textFieldSx}
-                    />
-
-                    <TextField
-                      required
-                      fullWidth
-                      size="small"
-                      label="Destino"
-                      value={opportunityProposalForm.destination}
-                      onChange={(event) =>
-                        setFormularioPropostaOportunidade((current) => ({
-                          ...current,
-                          destination: event.target.value,
-                        }))
-                      }
-                      sx={textFieldSx}
-                    />
-
-                    <TextField
-                      required
-                      select
-                      fullWidth
-                      size="small"
-                      label="Tipo de veículo"
-                      value={opportunityProposalForm.vehicleType}
-                      onChange={(event) =>
-                        setFormularioPropostaOportunidade((current) => ({
-                          ...current,
-                          vehicleType: event.target.value,
-                        }))
-                      }
-                      sx={textFieldSx}
-                    >
-                      <MenuItem value="">Selecione</MenuItem>
-                      {VEHICLE_TYPE_OPTIONS.map((option) => (
-                        <MenuItem key={option} value={option}>
-                          {option}
-                        </MenuItem>
-                      ))}
-                    </TextField>
-
-                    <TextField
-                      required
-                      fullWidth
-                      size="small"
-                      label="Tipo de carga"
-                      value={opportunityProposalForm.cargoType}
-                      onChange={(event) =>
-                        setFormularioPropostaOportunidade((current) => ({
-                          ...current,
-                          cargoType: event.target.value,
-                        }))
-                      }
-                      sx={textFieldSx}
-                    />
-
-                    <TextField
-                      required
-                      fullWidth
-                      size="small"
-                      label="Peso médio"
-                      placeholder="Ex.: 1.200 kg"
-                      value={opportunityProposalForm.averageWeight}
-                      onChange={(event) =>
-                        setFormularioPropostaOportunidade((current) => ({
-                          ...current,
-                          averageWeight: event.target.value,
-                        }))
-                      }
-                      sx={textFieldSx}
-                    />
-
-                    <TextField
-                      required
-                      fullWidth
-                      size="small"
-                      label="Valor agregado"
-                      placeholder="Ex.: R$ 80.000,00"
-                      value={opportunityProposalForm.aggregateValue}
-                      onChange={(event) =>
-                        setFormularioPropostaOportunidade((current) => ({
-                          ...current,
-                          aggregateValue: event.target.value,
-                        }))
-                      }
-                      sx={textFieldSx}
-                    />
-
-                    <TextField
-                      fullWidth
-                      size="small"
-                      label="Cubagem"
-                      placeholder="Opcional"
-                      value={opportunityProposalForm.cubage}
-                      onChange={(event) =>
-                        setFormularioPropostaOportunidade((current) => ({
-                          ...current,
-                          cubage: event.target.value,
-                        }))
-                      }
-                      sx={textFieldSx}
-                    />
-
-                    <TextField
-                      fullWidth
-                      size="small"
-                      label="Quantidade de embarques/mês"
-                      placeholder="Opcional"
-                      value={opportunityProposalForm.monthlyShipments}
-                      onChange={(event) =>
-                        setFormularioPropostaOportunidade((current) => ({
-                          ...current,
-                          monthlyShipments: event.target.value,
-                        }))
-                      }
-                      sx={textFieldSx}
-                    />
-
-                    <TextField
-                      required
-                      select
-                      fullWidth
-                      size="small"
-                      label="Produto perigoso"
-                      value={opportunityProposalForm.dangerousGoods}
-                      onChange={(event) =>
-                        setFormularioPropostaOportunidade((current) => ({
-                          ...current,
-                          dangerousGoods: event.target
-                            .value as FormularioPropostaOportunidade["dangerousGoods"],
-                          dangerousGoodsInfo:
-                            event.target.value === "SIM"
-                              ? current.dangerousGoodsInfo
-                              : "",
-                        }))
-                      }
-                      sx={textFieldSx}
-                    >
-                      <MenuItem value="">Selecione</MenuItem>
-                      <MenuItem value="NAO">Não</MenuItem>
-                      <MenuItem value="SIM">Sim</MenuItem>
-                    </TextField>
-
-                    {opportunityProposalForm.dangerousGoods === "SIM" ? (
-                      <TextField
-                        required
-                        fullWidth
-                        multiline
-                        minRows={2}
-                        label="FDS / Ficha de Emergência"
-                        placeholder="Informe os dados ou instruções da FDS/Ficha de Emergência"
-                        value={opportunityProposalForm.dangerousGoodsInfo}
-                        onChange={(event) =>
-                          setFormularioPropostaOportunidade((current) => ({
-                            ...current,
-                            dangerousGoodsInfo: event.target.value,
-                          }))
-                        }
-                        sx={{
-                          ...textFieldSx,
-                          gridColumn: { xs: "auto", md: "1 / -1" },
-                        }}
-                      />
-                    ) : null}
-                  </Box>
-
-                  <Box sx={{ mt: 2 }}>
-                    <Typography
-                      sx={{
-                        color: crmPalette.text,
-                        fontSize: 14,
-                        fontWeight: 900,
-                      }}
-                    >
-                      Valores da proposta
-                    </Typography>
-
-                    <List
-                      disablePadding
-                      sx={{
-                        ...modernListSx,
-                        mt: 1,
-                        boxShadow: "none",
-                      }}
-                    >
-                      {TRANSPORT_PRICE_ITEMS.map((item) => (
-                        <ListItem
-                          key={item}
-                          sx={{
-                            ...listItemSx,
-                            py: 1,
-                            display: "grid",
-                            gridTemplateColumns: {
-                              xs: "1fr",
-                              sm: "minmax(0, 1fr) minmax(160px, 220px)",
-                            },
-                            alignItems: "center",
-                          }}
-                        >
-                          <Typography
-                            sx={{
-                              color: crmPalette.text,
-                              fontSize: 13,
-                              fontWeight: 800,
-                            }}
-                          >
-                            {item}
-                          </Typography>
-                          <TextField
-                            fullWidth
-                            size="small"
-                            label="Valor"
-                            value={
-                              opportunityProposalForm.transportValues[item] ??
-                              ""
-                            }
-                            onChange={(event) =>
-                              setFormularioPropostaOportunidade((current) => ({
-                                ...current,
-                                transportValues: {
-                                  ...current.transportValues,
-                                  [item]: event.target.value,
-                                },
-                              }))
-                            }
-                            sx={textFieldSx}
-                          />
-                        </ListItem>
-                      ))}
-                    </List>
-                  </Box>
-                </Paper>
-              ) : null}
-
-              {opportunityProposalError ? (
-                <Alert severity="error" sx={{ borderRadius: "12px" }}>
-                  {opportunityProposalError}
-                </Alert>
-              ) : null}
-
+              </Stack>
             </Stack>
-          </Paper>
+          </Box>
         ) : (
-          <Alert severity="info" sx={{ borderRadius: "12px" }}>
+          <Alert
+            severity="info"
+            sx={{
+              borderRadius: "12px",
+            }}
+          >
             Nenhuma proposta cadastrada para este cliente.
           </Alert>
         )}
@@ -702,29 +1274,154 @@ export function AbaOportunidadePropostaCliente(props: PropriedadesAbaDetalhesCli
           <Paper
             variant="outlined"
             sx={{
-              borderRadius: "12px",
-              borderColor: crmPalette.border,
-              bgcolor: "#ffffff",
               overflow: "hidden",
+              borderRadius: "16px",
+              borderColor: "#e2e8f0",
+              bgcolor: "#ffffff",
+              boxShadow: "none",
             }}
           >
+            {/* CABEÇALHO DA LISTA */}
+            <Box
+              sx={{
+                px: {
+                  xs: 1.75,
+                  md: 2,
+                },
+
+                py: 1.5,
+
+                borderBottom: `1px solid ${crmPalette.border}`,
+
+                bgcolor: "#ffffff",
+              }}
+            >
+              <Stack
+                direction={{
+                  xs: "column",
+                  sm: "row",
+                }}
+                spacing={1}
+                sx={{
+                  alignItems: {
+                    xs: "flex-start",
+                    sm: "center",
+                  },
+
+                  justifyContent: "space-between",
+                }}
+              >
+                <Stack
+                  direction="row"
+                  spacing={1.25}
+                  sx={{
+                    alignItems: "center",
+                  }}
+                >
+                  <Box
+                    sx={{
+                      width: 38,
+                      height: 38,
+
+                      display: "grid",
+                      placeItems: "center",
+
+                      flexShrink: 0,
+
+                      borderRadius: "10px",
+
+                      bgcolor: "#fff7ed",
+
+                      color: crmPalette.orangeDark,
+                    }}
+                  >
+                    <FileText size={18} />
+                  </Box>
+
+                  <Box>
+                    <Typography
+                      sx={{
+                        color: crmPalette.text,
+
+                        fontSize: 15,
+
+                        fontWeight: 900,
+
+                        lineHeight: 1.3,
+                      }}
+                    >
+                      Propostas cadastradas
+                    </Typography>
+
+                    <Typography
+                      sx={{
+                        mt: 0.25,
+
+                        color: crmPalette.muted,
+
+                        fontSize: 11.5,
+                      }}
+                    >
+                      Acompanhe as propostas comerciais deste cliente.
+                    </Typography>
+                  </Box>
+                </Stack>
+
+                <Chip
+                  label={
+                    currentLead.opportunities.length === 1
+                      ? "1 proposta"
+                      : `${currentLead.opportunities.length} propostas`
+                  }
+                  size="small"
+                  sx={{
+                    height: 26,
+
+                    borderRadius: "8px",
+
+                    bgcolor: "#f1f5f9",
+
+                    color: "#475569",
+
+                    fontSize: 11,
+
+                    fontWeight: 900,
+                  }}
+                />
+              </Stack>
+            </Box>
+
+            {/* CABEÇALHO DAS COLUNAS */}
             <Box
               sx={{
                 display: {
                   xs: "none",
                   md: "grid",
                 },
+
                 gridTemplateColumns:
                   "minmax(0, 1.6fr) 130px 150px 110px 210px",
+
                 gap: 1.25,
+
                 px: 2,
-                py: 1.25,
+
+                py: 1,
+
                 alignItems: "center",
+
                 bgcolor: "#f8fafc",
+
                 borderBottom: `1px solid ${crmPalette.border}`,
               }}
             >
-              {["Proposta", "Etapa", "Cadastro", "Anexos", "Ações"].map(
+              {[
+                "Proposta",
+                "Etapa",
+                "Cadastro",
+                "Anexos",
+                "Ações",
+              ].map(
                 (label) => (
                   <Typography
                     key={label}
@@ -795,22 +1492,12 @@ export function AbaOportunidadePropostaCliente(props: PropriedadesAbaDetalhesCli
 
                       bgcolor: isEditing ? "#fffaf5" : "#ffffff",
 
-                      // borderLeft: isEditing
-                      //   ? `4px solid ${crmPalette.orange}`
-                      //   : "4px solid transparent",
-
-                      transition: [
-                        "background-color 160ms ease",
-                        "border-color 160ms ease",
-                        "box-shadow 160ms ease",
-                      ].join(", "),
+                      transition: "background-color 160ms ease",
 
                       "&:hover": isEditing
                         ? undefined
                         : {
-                          bgcolor: "#fffaf7",
-                          borderLeftColor: "#fed7aa",
-                          boxShadow: "inset 0 0 0 1px rgba(234, 88, 12, 0.04)",
+                          bgcolor: "#f8fafc",
                         },
                     }}
                   >
@@ -824,36 +1511,27 @@ export function AbaOportunidadePropostaCliente(props: PropriedadesAbaDetalhesCli
                         <Paper
                           variant="outlined"
                           sx={{
-                            position: "relative",
                             overflow: "hidden",
-                            p: { xs: 2, md: 2.5 },
-                            borderRadius: "18px",
-                            borderColor: "#fed7aa",
+                            borderRadius: "16px",
+                            borderColor: "#e2e8f0",
                             bgcolor: "#ffffff",
-                            boxShadow: "0 14px 35px rgba(15, 23, 42, 0.08)",
-
-                            // Faixa laranja no topo do card
-                            "&::before": {
-                              content: '""',
-                              position: "absolute",
-                              top: 0,
-                              left: 0,
-                              right: 0,
-                              height: 4,
-                              bgcolor: crmPalette.orange,
-                            },
+                            boxShadow: "0 10px 24px rgba(15, 23, 42, 0.05)",
                           }}
                         >
-                          <Stack spacing={2.25}>
-                            {/* Cabeçalho do modo de edição */}
+                          {/* CABEÇALHO */}
+                          <Box
+                            sx={{
+                              px: { xs: 1.75, md: 2 },
+                              py: 1.5,
+                              borderBottom: `1px solid ${crmPalette.border}`,
+                              bgcolor: "#fff7ed",
+                            }}
+                          >
                             <Stack
                               direction={{ xs: "column", sm: "row" }}
                               spacing={1.5}
                               sx={{
-                                alignItems: {
-                                  xs: "stretch",
-                                  sm: "center",
-                                },
+                                alignItems: { xs: "stretch", sm: "center" },
                                 justifyContent: "space-between",
                               }}
                             >
@@ -867,78 +1545,101 @@ export function AbaOportunidadePropostaCliente(props: PropriedadesAbaDetalhesCli
                               >
                                 <Box
                                   sx={{
-                                    width: 42,
-                                    height: 42,
+                                    width: 40,
+                                    height: 40,
                                     display: "grid",
                                     placeItems: "center",
                                     flexShrink: 0,
                                     borderRadius: "12px",
                                     color: crmPalette.orangeDark,
-                                    bgcolor: "#fff7ed",
+                                    bgcolor: "#ffedd5",
                                     border: "1px solid #fed7aa",
                                   }}
                                 >
-                                  <Edit3 size={19} />
+                                  <Edit3 size={18} />
                                 </Box>
 
                                 <Box sx={{ minWidth: 0 }}>
-                                  <Stack
-                                    direction="row"
-                                    spacing={0.75}
-                                    useFlexGap
+                                  <Typography
                                     sx={{
-                                      alignItems: "center",
-                                      flexWrap: "wrap",
+                                      color: "#c2410c",
+                                      fontSize: 14,
+                                      fontWeight: 900,
+                                      lineHeight: 1.3,
                                     }}
                                   >
-                                    <Typography
-                                      sx={{
-                                        color: crmPalette.text,
-                                        fontSize: 16,
-                                        fontWeight: 900,
-                                      }}
-                                    >
-                                      Editar proposta
-                                    </Typography>
-
-                                    <Chip
-                                      label="Modo de edição"
-                                      size="small"
-                                      sx={{
-                                        height: 23,
-                                        borderRadius: "7px",
-                                        bgcolor: "#ffedd5",
-                                        color: crmPalette.orangeDark,
-                                        fontSize: 10.5,
-                                        fontWeight: 900,
-                                      }}
-                                    />
-                                  </Stack>
+                                    Editar proposta
+                                  </Typography>
 
                                   <Typography
                                     sx={{
-                                      mt: 0.35,
+                                      mt: 0.2,
                                       color: crmPalette.muted,
-                                      fontSize: 12.5,
-                                      lineHeight: 1.5,
+                                      fontSize: 11.5,
+                                      lineHeight: 1.4,
                                     }}
                                   >
                                     Atualize os dados comerciais da proposta selecionada.
                                   </Typography>
                                 </Box>
                               </Stack>
-                            </Stack>
 
-                            {/* Área dos campos */}
-                            <Box
-                              sx={{
-                                p: { xs: 1.5, md: 2 },
-                                borderRadius: "14px",
-                                bgcolor: "#f8fafc",
-                                border: `1px solid ${crmPalette.border}`,
-                              }}
-                            >
-                              <Stack spacing={2}>
+                              <Stack
+                                direction="row"
+                                spacing={0.75}
+                                useFlexGap
+                                sx={{
+                                  flexWrap: "wrap",
+                                  alignItems: "center",
+                                }}
+                              >
+                                <Chip
+                                  label={formatOpportunityStage(opportunity.stage)}
+                                  size="small"
+                                  sx={{
+                                    height: 24,
+                                    borderRadius: "8px",
+                                    bgcolor: "#ffedd5",
+                                    color: crmPalette.orangeDark,
+                                    fontSize: 10.5,
+                                    fontWeight: 900,
+                                  }}
+                                />
+
+                                <Chip
+                                  label={formatarData(opportunity.createdAt)}
+                                  size="small"
+                                  sx={{
+                                    height: 24,
+                                    borderRadius: "8px",
+                                    bgcolor: "#f1f5f9",
+                                    color: "#475569",
+                                    fontSize: 10.5,
+                                    fontWeight: 800,
+                                  }}
+                                />
+                              </Stack>
+                            </Stack>
+                          </Box>
+
+                          {/* CORPO */}
+                          <Box
+                            sx={{
+                              p: { xs: 1.75, md: 2 },
+                            }}
+                          >
+                            <Stack spacing={2}>
+                              {/* CAMPOS PRINCIPAIS */}
+                              <Box
+                                sx={{
+                                  display: "grid",
+                                  gridTemplateColumns: {
+                                    xs: "1fr",
+                                    md: "repeat(2, minmax(0, 1fr))",
+                                  },
+                                  gap: 1.25,
+                                }}
+                              >
                                 <TextField
                                   required
                                   fullWidth
@@ -952,15 +1653,7 @@ export function AbaOportunidadePropostaCliente(props: PropriedadesAbaDetalhesCli
                                       event.target.value,
                                     )
                                   }
-                                  // helperText="Use um título curto e fácil de identificar."
-                                  sx={{
-                                    ...textFieldSx,
-
-                                    "& .MuiFormHelperText-root": {
-                                      ml: 0.25,
-                                      fontSize: 11.5,
-                                    },
-                                  }}
+                                  sx={textFieldSx}
                                 />
 
                                 <TextField
@@ -1002,21 +1695,32 @@ export function AbaOportunidadePropostaCliente(props: PropriedadesAbaDetalhesCli
                                     Armazenagem
                                   </MenuItem>
                                 </TextField>
+                              </Box>
 
-                                {editingOpportunityForm.proposalType ? (
-                                  <Paper
-                                    variant="outlined"
+                              {/* SERVIÇOS */}
+                              {editingOpportunityForm.proposalType ? (
+                                <Paper
+                                  variant="outlined"
+                                  sx={{
+                                    overflow: "hidden",
+                                    borderRadius: "14px",
+                                    borderColor: "#e2e8f0",
+                                    bgcolor: "#ffffff",
+                                    boxShadow: "none",
+                                  }}
+                                >
+                                  <Box
                                     sx={{
-                                      p: { xs: 1.5, md: 2 },
-                                      borderRadius: "12px",
-                                      borderColor: crmPalette.border,
-                                      bgcolor: "#ffffff",
+                                      px: { xs: 1.5, md: 1.75 },
+                                      py: 1.25,
+                                      borderBottom: `1px solid ${crmPalette.border}`,
+                                      bgcolor: "#faf5ff",
                                     }}
                                   >
                                     <Typography
                                       sx={{
-                                        color: crmPalette.text,
-                                        fontSize: 14,
+                                        color: "#6d28d9",
+                                        fontSize: 13,
                                         fontWeight: 900,
                                       }}
                                     >
@@ -1025,9 +1729,24 @@ export function AbaOportunidadePropostaCliente(props: PropriedadesAbaDetalhesCli
                                         : "Serviços de transporte rodoviário"}
                                     </Typography>
 
+                                    <Typography
+                                      sx={{
+                                        mt: 0.2,
+                                        color: crmPalette.muted,
+                                        fontSize: 11.5,
+                                      }}
+                                    >
+                                      Selecione os serviços que fazem parte desta proposta.
+                                    </Typography>
+                                  </Box>
+
+                                  <Box
+                                    sx={{
+                                      p: { xs: 1.5, md: 1.75 },
+                                    }}
+                                  >
                                     <Box
                                       sx={{
-                                        mt: 1,
                                         display: "grid",
                                         gridTemplateColumns: {
                                           xs: "1fr",
@@ -1045,9 +1764,7 @@ export function AbaOportunidadePropostaCliente(props: PropriedadesAbaDetalhesCli
                                           key={option}
                                           control={
                                             <Checkbox
-                                              checked={editingSelectedProposalOptions.includes(
-                                                option,
-                                              )}
+                                              checked={editingSelectedProposalOptions.includes(option)}
                                               onChange={() =>
                                                 toggleEditingProposalOption(option)
                                               }
@@ -1110,35 +1827,65 @@ export function AbaOportunidadePropostaCliente(props: PropriedadesAbaDetalhesCli
                                         onClick={addCustomEditingProposalOption}
                                         sx={{
                                           ...secondaryButtonSx,
+                                          minHeight: 40,
                                           whiteSpace: "nowrap",
                                         }}
                                       >
                                         Adicionar
                                       </Button>
                                     </Stack>
-                                  </Paper>
-                                ) : null}
+                                  </Box>
+                                </Paper>
+                              ) : null}
 
-                                {editingOpportunityForm.proposalType ===
-                                  "TRANSPORTE_RODOVIARIO" ? (
-                                  <Paper
-                                    variant="outlined"
+                              {/* INFORMAÇÕES OPERACIONAIS */}
+                              {editingOpportunityForm.proposalType === "TRANSPORTE_RODOVIARIO" ? (
+                                <Paper
+                                  variant="outlined"
+                                  sx={{
+                                    overflow: "hidden",
+                                    borderRadius: "14px",
+                                    borderColor: "#d1fae5",
+                                    bgcolor: "#ffffff",
+                                    boxShadow: "none",
+                                  }}
+                                >
+                                  <Box
                                     sx={{
-                                      p: { xs: 1.5, md: 2 },
-                                      borderRadius: "12px",
-                                      borderColor: "#bbf7d0",
-                                      bgcolor: "#f0fdf4",
+                                      px: { xs: 1.5, md: 1.75 },
+                                      py: 1.25,
+                                      borderBottom: `1px solid ${crmPalette.border}`,
+                                      bgcolor: "#ecfdf5",
                                     }}
                                   >
-                                    <TituloSecaoFormulario
-                                      icon={<FileText size={18} />}
-                                      title="Informações necessárias"
-                                      description="Dados operacionais usados para montar a cotação e a proposta comercial."
-                                    />
+                                    <Typography
+                                      sx={{
+                                        color: "#047857",
+                                        fontSize: 13,
+                                        fontWeight: 900,
+                                      }}
+                                    >
+                                      Informações operacionais
+                                    </Typography>
 
+                                    <Typography
+                                      sx={{
+                                        mt: 0.2,
+                                        color: crmPalette.muted,
+                                        fontSize: 11.5,
+                                      }}
+                                    >
+                                      Dados utilizados para montar a cotação e a proposta comercial.
+                                    </Typography>
+                                  </Box>
+
+                                  <Box
+                                    sx={{
+                                      p: { xs: 1.5, md: 1.75 },
+                                    }}
+                                  >
                                     <Box
                                       sx={{
-                                        mt: 1.5,
                                         display: "grid",
                                         gridTemplateColumns: {
                                           xs: "1fr",
@@ -1304,8 +2051,7 @@ export function AbaOportunidadePropostaCliente(props: PropriedadesAbaDetalhesCli
                                         <MenuItem value="SIM">Sim</MenuItem>
                                       </TextField>
 
-                                      {editingOpportunityForm.dangerousGoods ===
-                                      "SIM" ? (
+                                      {editingOpportunityForm.dangerousGoods === "SIM" ? (
                                         <TextField
                                           required
                                           fullWidth
@@ -1313,9 +2059,7 @@ export function AbaOportunidadePropostaCliente(props: PropriedadesAbaDetalhesCli
                                           minRows={2}
                                           label="FDS / Ficha de Emergência"
                                           placeholder="Informe os dados ou instruções da FDS/Ficha de Emergência"
-                                          value={
-                                            editingOpportunityForm.dangerousGoodsInfo
-                                          }
+                                          value={editingOpportunityForm.dangerousGoodsInfo}
                                           onChange={(event) =>
                                             updateEditingOpportunityForm(
                                               "dangerousGoodsInfo",
@@ -1334,84 +2078,69 @@ export function AbaOportunidadePropostaCliente(props: PropriedadesAbaDetalhesCli
                                       <Typography
                                         sx={{
                                           color: crmPalette.text,
-                                          fontSize: 14,
+                                          fontSize: 13,
                                           fontWeight: 900,
                                         }}
                                       >
                                         Valores da proposta
                                       </Typography>
 
-                                      <List
-                                        disablePadding
+                                      <Box
                                         sx={{
-                                          ...modernListSx,
-                                          mt: 1,
-                                          boxShadow: "none",
+                                          mt: 1.25,
+                                          display: "grid",
+                                          gridTemplateColumns: {
+                                            xs: "1fr",
+                                            sm: "repeat(2, minmax(0, 1fr))",
+                                            xl: "repeat(3, minmax(0, 1fr))",
+                                          },
+                                          gap: 1.25,
                                         }}
                                       >
                                         {TRANSPORT_PRICE_ITEMS.map((item) => (
-                                          <ListItem
+                                          <TextField
                                             key={item}
-                                            sx={{
-                                              ...listItemSx,
-                                              py: 1,
-                                              display: "grid",
-                                              gridTemplateColumns: {
-                                                xs: "1fr",
-                                                sm: "minmax(0, 1fr) minmax(160px, 220px)",
-                                              },
-                                              alignItems: "center",
-                                            }}
-                                          >
-                                            <Typography
-                                              sx={{
-                                                color: crmPalette.text,
-                                                fontSize: 13,
-                                                fontWeight: 800,
-                                              }}
-                                            >
-                                              {item}
-                                            </Typography>
-                                            <TextField
-                                              fullWidth
-                                              size="small"
-                                              label="Valor"
-                                              value={
-                                                editingOpportunityForm
-                                                  .transportValues[item] ?? ""
-                                              }
-                                              onChange={(event) =>
-                                                setEditingOpportunityForm(
-                                                  (current) => ({
-                                                    ...current,
-                                                    transportValues: {
-                                                      ...current.transportValues,
-                                                      [item]: event.target.value,
-                                                    },
-                                                  }),
-                                                )
-                                              }
-                                              sx={textFieldSx}
-                                            />
-                                          </ListItem>
+                                            fullWidth
+                                            size="small"
+                                            label={item}
+                                            placeholder="R$ 0,00"
+                                            value={
+                                              editingOpportunityForm.transportValues[item] ?? ""
+                                            }
+                                            onChange={(event) =>
+                                              setEditingOpportunityForm((current) => ({
+                                                ...current,
+                                                transportValues: {
+                                                  ...current.transportValues,
+                                                  [item]: event.target.value,
+                                                },
+                                              }))
+                                            }
+                                            sx={textFieldSx}
+                                          />
                                         ))}
-                                      </List>
+                                      </Box>
                                     </Box>
-                                  </Paper>
-                                ) : null}
+                                  </Box>
+                                </Paper>
+                              ) : null}
+                            </Stack>
+                          </Box>
 
-                              </Stack>
-                            </Box>
-
-                            {/* Rodapé com as ações */}
+                          {/* RODAPÉ */}
+                          <Box
+                            sx={{
+                              px: { xs: 1.75, md: 2 },
+                              py: 1.4,
+                              borderTop: `1px solid ${crmPalette.border}`,
+                              bgcolor: "#f8fafc",
+                            }}
+                          >
                             <Stack
                               direction={{ xs: "column", sm: "row" }}
                               spacing={1.25}
                               sx={{
-                                alignItems: {
-                                  xs: "stretch",
-                                  sm: "center",
-                                },
+                                alignItems: { xs: "stretch", sm: "center" },
                                 justifyContent: "space-between",
                               }}
                             >
@@ -1428,9 +2157,6 @@ export function AbaOportunidadePropostaCliente(props: PropriedadesAbaDetalhesCli
                               <Stack
                                 direction={{ xs: "column-reverse", sm: "row" }}
                                 spacing={1}
-                                sx={{
-                                  alignItems: "stretch",
-                                }}
                               >
                                 <Button
                                   type="button"
@@ -1471,16 +2197,10 @@ export function AbaOportunidadePropostaCliente(props: PropriedadesAbaDetalhesCli
                                     fontWeight: 900,
                                     textTransform: "none",
                                     whiteSpace: "nowrap",
-                                    boxShadow: "0 6px 14px rgba(234, 88, 12, 0.22)",
-
+                                    boxShadow: "none",
                                     "&:hover": {
                                       bgcolor: crmPalette.orangeDark,
-                                      boxShadow: "0 8px 18px rgba(234, 88, 12, 0.28)",
-                                    },
-
-                                    "&.Mui-disabled": {
-                                      bgcolor: "#fed7aa",
-                                      color: "#ffffff",
+                                      boxShadow: "none",
                                     },
                                   }}
                                 >
@@ -1488,7 +2208,7 @@ export function AbaOportunidadePropostaCliente(props: PropriedadesAbaDetalhesCli
                                 </Button>
                               </Stack>
                             </Stack>
-                          </Stack>
+                          </Box>
                         </Paper>
                       ) : (
                         <Stack
@@ -1498,15 +2218,21 @@ export function AbaOportunidadePropostaCliente(props: PropriedadesAbaDetalhesCli
                         >
                           <Box
                             sx={{
-                              width: 34,
-                              height: 34,
+                              width: 36,
+                              height: 36,
+
                               display: "grid",
                               placeItems: "center",
+
                               flexShrink: 0,
+
                               borderRadius: "10px",
-                              color: crmPalette.orangeDark,
-                              bgcolor: "#fff7ed",
-                              border: "1px solid #fed7c3",
+
+                              color: "#475569",
+
+                              bgcolor: "#f8fafc",
+
+                              border: "1px solid #e2e8f0",
                             }}
                           >
                             <FileText size={17} />
@@ -1514,9 +2240,14 @@ export function AbaOportunidadePropostaCliente(props: PropriedadesAbaDetalhesCli
                           <Box sx={{ minWidth: 0 }}>
                             <Typography
                               sx={{
-                                color: crmPalette.text,
-                                fontSize: 14,
-                                fontWeight: 900,
+                                color: "#0f172a",
+
+                                fontSize: 13.5,
+
+                                fontWeight: 850,
+
+                                lineHeight: 1.4,
+
                                 overflowWrap: "anywhere",
                               }}
                             >
@@ -1549,15 +2280,24 @@ export function AbaOportunidadePropostaCliente(props: PropriedadesAbaDetalhesCli
                             xs: "none",
                             md: "inline-flex",
                           },
+
                         width: "fit-content",
+
+                        height: 25,
+
                         borderRadius: "8px",
-                        bgcolor: "#ffedd5",
-                        color: crmPalette.orangeDark,
-                        fontSize: 11,
+
+                        bgcolor: "#eff6ff",
+
+                        color: "#1d4ed8",
+
+                        border: "1px solid #dbeafe",
+
+                        fontSize: 10.5,
+
                         fontWeight: 900,
                       }}
                     />
-
                     <Typography
                       sx={{
                         display: isEditing
@@ -1566,9 +2306,12 @@ export function AbaOportunidadePropostaCliente(props: PropriedadesAbaDetalhesCli
                             xs: "none",
                             md: "block",
                           },
-                        color: crmPalette.text,
-                        fontSize: 13,
-                        fontWeight: 800,
+
+                        color: "#475569",
+
+                        fontSize: 12.5,
+
+                        fontWeight: 700,
                       }}
                     >
                       {formatarData(opportunity.createdAt)}
@@ -1579,13 +2322,25 @@ export function AbaOportunidadePropostaCliente(props: PropriedadesAbaDetalhesCli
                         }`}
                       size="small"
                       sx={{
-                        display: isEditing ? "none" : "inline-flex",
+                        display: isEditing
+                          ? "none"
+                          : "inline-flex",
+
                         width: "fit-content",
+
+                        height: 25,
+
                         borderRadius: "8px",
-                        bgcolor: "#f1f5f9",
+
+                        bgcolor: "#f8fafc",
+
                         color: "#475569",
-                        fontSize: 11,
-                        fontWeight: 900,
+
+                        border: "1px solid #e2e8f0",
+
+                        fontSize: 10.5,
+
+                        fontWeight: 800,
                       }}
                     />
 
@@ -1666,30 +2421,36 @@ export function AbaOportunidadePropostaCliente(props: PropriedadesAbaDetalhesCli
                             variant="outlined"
                             startIcon={<Eye size={15} />}
                             sx={{
-                              ...secondaryButtonSx,
+                              minHeight: 34,
 
-                              minHeight: 36,
+                              px: 1.4,
 
-                              px: 1.5,
+                              borderRadius: "9px",
 
-                              borderRadius: "10px",
-
-                              borderColor: "#cbd5e1",
+                              borderColor: "#e2e8f0",
 
                               bgcolor: "#ffffff",
 
                               color: "#334155",
 
-                              fontSize: 12,
+                              fontSize: 11.5,
 
                               fontWeight: 800,
 
+                              textTransform: "none",
+
                               whiteSpace: "nowrap",
 
+                              boxShadow: "none",
+
                               "&:hover": {
-                                borderColor: crmPalette.orange,
-                                bgcolor: "#fff7ed",
-                                color: crmPalette.orangeDark,
+                                borderColor: "#cbd5e1",
+
+                                bgcolor: "#f8fafc",
+
+                                color: "#0f172a",
+
+                                boxShadow: "none",
                               },
                             }}
                           >

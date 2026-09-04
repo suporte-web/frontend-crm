@@ -40,7 +40,7 @@ const visibilityLabels: Record<ChatMessageVisibility, string> = {
 };
 
 function isInternalUser(role?: string) {
-  return role === "ADMIN" || role === "GESTAO" || role === "COMERCIAL";
+  return role === "ADMIN" || role === "GESTÃO" || role === "COMERCIAL";
 }
 
 function formatDate(value?: string | null) {

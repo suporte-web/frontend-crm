@@ -311,7 +311,7 @@ function getActionBadge(ticket: Ticket, role?: string | null) {
     return null;
   }
 
-  if (role === "GESTAO" || role === "ADMIN") {
+  if (role === "GESTÃO" || role === "ADMIN") {
     if (ticket.status === "AGUARDANDO_GESTAO") return "Aguardando aprovação";
     if (ticket.type === "APROVACAO_GESTAO") return "Reenviado para aprovação";
   }

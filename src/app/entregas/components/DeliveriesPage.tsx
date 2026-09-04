@@ -2,8 +2,10 @@
 
 import { useEffect, useMemo, useState } from "react";
 import Alert from "@mui/material/Alert";
+import Box from "@mui/material/Box";
 import Paper from "@mui/material/Paper";
 import Typography from "@mui/material/Typography";
+import Button from "@mui/material/Button";
 import { AppLayout } from "@/components/layout/app-layout";
 import { useAuth } from "@/context/auth-context";
 import {
@@ -21,7 +23,10 @@ import type {
   DeliveryRow,
   DeliverySummary,
 } from "@/types/deliveries";
-import { Truck } from "lucide-react";
+import {
+  Truck,
+  MonitorUp,
+} from "lucide-react";
 import {
   CrmPageHeader,
   CrmPageShell,
@@ -357,7 +362,7 @@ export default function DeliveriesPage() {
         );
       });
 
-      
+
   }, [occurrences, rows]);
   function updateFilter<K extends keyof DeliveryFilters>(
     field: K,
@@ -487,31 +492,72 @@ export default function DeliveriesPage() {
           // description="Acompanhe pedidos, prazos, ocorrências e status operacional das entregas."
           icon={<Truck size={30} />}
           aside={
-            <Paper
-              elevation={0}
+            <Box
               sx={{
-                border: "1px solid #e2e8f0",
-                borderRadius: "12px",
-                px: 2.5,
-                py: 2,
-                bgcolor: "#fff",
+                display: "flex",
+                flexDirection: "column",
+                gap: 1.5,
+                minWidth: {
+                  xs: "100%",
+                  md: 280,
+                },
               }}
             >
-              <Typography
+              <Paper
+                elevation={0}
                 sx={{
-                  color: "#94a3b8",
-                  fontSize: 12,
-                  fontWeight: 900,
-                  letterSpacing: ".12em",
-                  textTransform: "uppercase",
+                  border: "1px solid #e2e8f0",
+                  borderRadius: "12px",
+                  px: 2.5,
+                  py: 2,
+                  bgcolor: "#fff",
                 }}
               >
-                Periodo aplicado
-              </Typography>
-              <Typography sx={{ mt: 0.5, color: "#020617", fontSize: 18, fontWeight: 900 }}>
-                {formatFilterPeriod(appliedFilters)}
-              </Typography>
-            </Paper>
+                <Typography
+                  sx={{
+                    color: "#94a3b8",
+                    fontSize: 12,
+                    fontWeight: 900,
+                    letterSpacing: ".12em",
+                    textTransform: "uppercase",
+                  }}
+                >
+                  Período aplicado
+                </Typography>
+
+                <Typography
+                  sx={{
+                    mt: 0.5,
+                    color: "#020617",
+                    fontSize: 18,
+                    fontWeight: 900,
+                  }}
+                >
+                  {formatFilterPeriod(appliedFilters)}
+                </Typography>
+              </Paper>
+
+              <Button
+                variant="contained"
+                size="large"
+                startIcon={<MonitorUp size={20} />}
+                onClick={() => {
+                  window.open(
+                    "/entregas/tv",
+                    "_blank",
+                    "noopener,noreferrer",
+                  );
+                }}
+                sx={{
+                  borderRadius: "12px",
+                  py: 1.4,
+                  fontWeight: 900,
+                  textTransform: "none",
+                }}
+              >
+                Abrir modo TV
+              </Button>
+            </Box>
           }
         />
 

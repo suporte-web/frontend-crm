@@ -3,6 +3,7 @@ import type {
   DeliveryFilters,
   DeliveryOccurrence,
   DeliveryPayer,
+  DeliveryRegion,
   DeliveryRow,
   DeliverySummary,
 } from '@/types/deliveries';
@@ -89,6 +90,23 @@ export async function getCities(
   return parseResponse<DeliveryCity[]>(response);
 }
 
+export async function getRegions(
+  filters: Partial<DeliveryFilters>,
+  token: string,
+) {
+  const response = await fetch(
+    `${API_BASE_URL}/entregas/find-regions${buildQueryString(filters)}`,
+    {
+      method: 'GET',
+      headers: {
+        Authorization: `Bearer ${token}`,
+      },
+    },
+  );
+
+  return parseResponse<DeliveryRegion[]>(response);
+}
+
 export async function getPayers(
   filters: Partial<DeliveryFilters>,
   token: string,
@@ -128,5 +146,4 @@ export async function getOccurrences(
 
   
 }
-
 

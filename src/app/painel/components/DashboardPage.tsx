@@ -31,6 +31,10 @@ import {
   type LucideIcon,
 } from "lucide-react";
 import { AppLayout } from "@/components/layout/app-layout";
+import {
+  LEAD_FUNNEL_STAGES,
+  normalizeLeadFunnelStage,
+} from "@/constants/lead-funnel";
 import { useAuth } from "@/context/auth-context";
 import {
   formatOpportunityStage,
@@ -312,7 +316,7 @@ function MarketingDashboard({ userName }: { userName: string }) {
             {Array.from({ length: 3 }).map((_, index) => (
               <div
                 key={index}
-                className="h-[360px] animate-pulse rounded-[24px] bg-slate-100"
+                className="h-90 animate-pulse rounded-[24px] bg-slate-100"
               />
             ))}
           </div>
@@ -329,7 +333,7 @@ function MarketingDashboard({ userName }: { userName: string }) {
             {contents.map((item) => (
               <article
                 key={item.id}
-                className="group relative min-h-[380px] overflow-hidden rounded-[22px] bg-[#343434] shadow-[0_20px_45px_rgba(52,52,52,0.18)] transition duration-300 hover:-translate-y-1 hover:shadow-[0_26px_60px_rgba(52,52,52,0.24)]"
+                className="group relative min-h-95 overflow-hidden rounded-[22px] bg-[#343434] shadow-[0_20px_45px_rgba(52,52,52,0.18)] transition duration-300 hover:-translate-y-1 hover:shadow-[0_26px_60px_rgba(52,52,52,0.24)]"
               >
                 {item.coverImageUrl ? (
                   <div
@@ -338,7 +342,7 @@ function MarketingDashboard({ userName }: { userName: string }) {
                   />
                 ) : (
                   <div
-                    className={`absolute inset-0 bg-gradient-to-br ${getClientFeedAccent(
+                    className={`absolute inset-0 bg-linear-to-br ${getClientFeedAccent(
                       item.type,
                     )}`}
                   />
@@ -346,7 +350,7 @@ function MarketingDashboard({ userName }: { userName: string }) {
 
                 <div className="absolute inset-0 bg-[linear-gradient(180deg,rgba(52,52,52,0.20)_0%,rgba(52,52,52,0.50)_45%,rgba(0,0,0,0.78)_100%)]" />
 
-                <div className="relative flex min-h-[380px] flex-col justify-end p-6 text-white">
+                <div className="relative flex min-h-95 flex-col justify-end p-6 text-white">
                   <div className="mb-5 flex items-center justify-between gap-3">
                     <span
                       className={`inline-flex rounded-full px-4 py-2 text-sm font-extrabold shadow-[0_10px_24px_rgba(0,0,0,0.18)] ${getTypeBadgeClass(
@@ -407,6 +411,416 @@ function MarketingDashboard({ userName }: { userName: string }) {
 }
 
 function ClientDashboard({ userName }: { userName: string }) {
+  const [contents, setContents] = useState<PortalContent[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState("");
+
+  useEffect(() => {
+    async function loadContents() {
+      try {
+        setLoading(true);
+        setError("");
+        const data = await getPublishedPortalContents();
+        setContents(data);
+      } catch (loadError) {
+        setError(
+          loadError instanceof Error
+            ? loadError.message
+            : "Erro ao carregar o conteúdo do portal.",
+        );
+      } finally {
+        setLoading(false);
+      }
+    }
+
+    loadContents();
+  }, []);
+
+  const firstName = userName?.trim()?.split(" ")[0] || "Cliente";
+  const highlights = contents.filter((item) => item.highlight);
+  const featuredContent = highlights[0] ?? contents[0] ?? null;
+  const summary = {
+    highlights: highlights.length,
+    news: contents.filter((item) => item.type === "NOTICIA").length,
+    campaigns: contents.filter((item) => item.type === "INFORMACAO").length,
+    videos: contents.filter((item) => item.type === "VLOG").length,
+  };
+  const clientMetrics: Array<{
+    label: string;
+    value: number;
+    icon: LucideIcon;
+    accent: string;
+    softColor: string;
+  }> = [
+    {
+      label: "Destaques",
+      value: summary.highlights,
+      icon: Flame,
+      accent: dashboardPalette.red,
+      softColor: "#fff1f2",
+    },
+    {
+      label: "Notícias",
+      value: summary.news,
+      icon: FileText,
+      accent: dashboardPalette.text,
+      softColor: "#f8fafc",
+    },
+    {
+      label: "Campanhas",
+      value: summary.campaigns,
+      icon: Megaphone,
+      accent: dashboardPalette.yellow,
+      softColor: "#fff7d6",
+    },
+    {
+      label: "Vídeos",
+      value: summary.videos,
+      icon: Layers3,
+      accent: "#7c3aed",
+      softColor: "#f3e8ff",
+    },
+  ];
+
+  return (
+    <Box
+      sx={{
+        mx: "auto",
+        width: "100%",
+        maxWidth: 1440,
+        display: "flex",
+        flexDirection: "column",
+        gap: 3,
+      }}
+    >
+      <Paper
+        elevation={0}
+        sx={{
+          ...dashboardPaperSx,
+          overflow: "hidden",
+          bgcolor: "#343434",
+          color: "#ffffff",
+        }}
+      >
+        <Stack
+          direction={{ xs: "column", lg: "row" }}
+          spacing={0}
+          sx={{ minHeight: { xs: "auto", lg: 360 } }}
+        >
+          <Box sx={{ flex: 1, p: { xs: 3, md: 4 }, display: "flex", flexDirection: "column", justifyContent: "center" }}>
+            <Chip
+              icon={<Sparkles size={14} />}
+              label="Canal do Cliente"
+              sx={{
+                alignSelf: "flex-start",
+                border: "1px solid rgba(250,181,25,0.35)",
+                bgcolor: "rgba(250,181,25,0.12)",
+                color: dashboardPalette.yellow,
+                fontSize: 12,
+                fontWeight: 900,
+                letterSpacing: ".08em",
+                textTransform: "uppercase",
+                "& .MuiChip-icon": { color: dashboardPalette.yellow },
+              }}
+            />
+
+            <Typography
+              component="h1"
+              sx={{
+                mt: 3,
+                maxWidth: 680,
+                fontSize: { xs: 32, md: 46 },
+                fontWeight: 900,
+                lineHeight: 1.08,
+              }}
+            >
+              Olá, {firstName}. Seu portal em um só lugar.
+            </Typography>
+
+            <Typography
+              sx={{
+                mt: 2,
+                maxWidth: 660,
+                color: "#e2e8f0",
+                fontSize: { xs: 14, md: 16 },
+                lineHeight: 1.7,
+              }}
+            >
+              Acompanhe comunicados, campanhas e vídeos publicados para sua empresa,
+              com acesso rápido a rastreamentos e atendimento.
+            </Typography>
+
+            <Stack direction={{ xs: "column", sm: "row" }} spacing={1.5} sx={{ mt: 3 }}>
+              <Button
+                component={Link}
+                href="/rastreamentos"
+                variant="contained"
+                endIcon={<ArrowRight size={17} />}
+                sx={{
+                  minHeight: 46,
+                  borderRadius: "12px",
+                  px: 2.75,
+                  bgcolor: dashboardPalette.yellow,
+                  color: dashboardPalette.text,
+                  fontWeight: 900,
+                  textTransform: "none",
+                  boxShadow: "none",
+                  "&:hover": { bgcolor: "#ffd04f", boxShadow: "none" },
+                }}
+              >
+                Consultar rastreamento
+              </Button>
+
+              <Button
+                component={Link}
+                href="/chamados"
+                variant="outlined"
+                sx={{
+                  minHeight: 46,
+                  borderRadius: "12px",
+                  px: 2.75,
+                  borderColor: "rgba(255,255,255,0.22)",
+                  color: "#ffffff",
+                  fontWeight: 800,
+                  textTransform: "none",
+                  "&:hover": {
+                    borderColor: dashboardPalette.yellow,
+                    bgcolor: "rgba(255,255,255,0.08)",
+                  },
+                }}
+              >
+                Abrir atendimento
+              </Button>
+            </Stack>
+          </Box>
+
+          <Box
+            sx={{
+              width: { xs: "100%", lg: 420 },
+              p: { xs: 2, md: 3 },
+              bgcolor: "rgba(255,255,255,0.06)",
+              borderLeft: { lg: "1px solid rgba(255,255,255,0.10)" },
+            }}
+          >
+            <Paper
+              elevation={0}
+              sx={{
+                height: "100%",
+                minHeight: 280,
+                overflow: "hidden",
+                border: "1px solid rgba(255,255,255,0.12)",
+                borderRadius: "18px",
+                bgcolor: "rgba(255,255,255,0.08)",
+              }}
+            >
+              <Box
+                sx={{
+                  height: 170,
+                  bgcolor: "rgba(250,181,25,0.18)",
+                  backgroundImage: featuredContent?.coverImageUrl
+                    ? `url(${featuredContent.coverImageUrl})`
+                    : `linear-gradient(135deg, ${dashboardPalette.yellow} 0%, ${dashboardPalette.red} 100%)`,
+                  backgroundSize: "cover",
+                  backgroundPosition: "center",
+                }}
+              />
+              <Box sx={{ p: 2.5 }}>
+                <Typography sx={{ color: dashboardPalette.yellow, fontSize: 12, fontWeight: 900, textTransform: "uppercase" }}>
+                  {featuredContent ? getTypeLabel(featuredContent.type) : "Portal"}
+                </Typography>
+                <Typography sx={{ mt: 1, color: "#ffffff", fontSize: 22, fontWeight: 900, lineHeight: 1.15 }}>
+                  {featuredContent?.title ?? "Nenhuma publicação em destaque"}
+                </Typography>
+                <Typography
+                  sx={{
+                    mt: 1,
+                    color: "#cbd5e1",
+                    fontSize: 14,
+                    lineHeight: 1.6,
+                    display: "-webkit-box",
+                    WebkitLineClamp: 2,
+                    WebkitBoxOrient: "vertical",
+                    overflow: "hidden",
+                  }}
+                >
+                  {featuredContent?.summary ?? "As novidades publicadas aparecerão aqui."}
+                </Typography>
+              </Box>
+            </Paper>
+          </Box>
+        </Stack>
+      </Paper>
+
+      <Box
+        sx={{
+          display: "grid",
+          gridTemplateColumns: { xs: "1fr", sm: "repeat(2, minmax(0, 1fr))", lg: "repeat(4, minmax(0, 1fr))" },
+          gap: 2,
+        }}
+      >
+        {clientMetrics.map(({ label, value, icon: Icon, accent, softColor }) => (
+          <Paper key={label} elevation={0} sx={{ ...dashboardPaperSx, minHeight: 128, p: 2.5 }}>
+            <Stack direction="row" spacing={2} sx={{ alignItems: "center", justifyContent: "space-between" }}>
+              <Box>
+                <Typography sx={{ color: dashboardPalette.muted, fontSize: 14, fontWeight: 800 }}>
+                  {label}
+                </Typography>
+                <Typography sx={{ mt: 1, color: dashboardPalette.text, fontSize: 34, fontWeight: 900, lineHeight: 1 }}>
+                  {value}
+                </Typography>
+              </Box>
+              <Avatar
+                variant="rounded"
+                sx={{
+                  width: 48,
+                  height: 48,
+                  borderRadius: "14px",
+                  bgcolor: softColor,
+                  color: accent,
+                }}
+              >
+                <Icon size={22} />
+              </Avatar>
+            </Stack>
+          </Paper>
+        ))}
+      </Box>
+
+      {loading ? (
+        <Paper elevation={0} sx={{ ...dashboardPaperSx, p: 3 }}>
+          <Skeleton width={180} height={24} />
+          <Skeleton width={320} height={38} />
+          <Box sx={{ mt: 2, display: "grid", gap: 2, gridTemplateColumns: { xs: "1fr", md: "repeat(2, 1fr)", xl: "repeat(3, 1fr)" } }}>
+            {Array.from({ length: 3 }).map((_, index) => (
+              <Skeleton key={index} variant="rounded" height={290} sx={{ borderRadius: "18px" }} />
+            ))}
+          </Box>
+        </Paper>
+      ) : error ? (
+        <Alert severity="error" sx={{ borderRadius: "14px" }}>
+          {error}
+        </Alert>
+      ) : contents.length === 0 ? (
+        <Paper elevation={0} sx={{ ...dashboardPaperSx, p: 5, textAlign: "center" }}>
+          <Typography sx={{ color: dashboardPalette.text, fontSize: 22, fontWeight: 900 }}>
+            Ainda não há conteúdos publicados.
+          </Typography>
+          <Typography sx={{ mt: 1, color: dashboardPalette.muted }}>
+            As publicações do portal do cliente aparecerão nesta página.
+          </Typography>
+        </Paper>
+      ) : (
+        <Paper elevation={0} sx={{ ...dashboardPaperSx, p: { xs: 2.5, md: 3 } }}>
+          <Stack direction={{ xs: "column", md: "row" }} spacing={2} sx={{ alignItems: { xs: "flex-start", md: "flex-end" }, justifyContent: "space-between" }}>
+            <Box>
+              <Typography sx={{ color: dashboardPalette.red, fontSize: 12, fontWeight: 900, letterSpacing: ".16em", textTransform: "uppercase" }}>
+                Novidades
+              </Typography>
+              <Typography component="h2" sx={{ mt: 0.5, color: dashboardPalette.text, fontSize: 28, fontWeight: 900 }}>
+                Conteúdos do portal
+              </Typography>
+              <Typography sx={{ mt: 0.75, color: dashboardPalette.muted, fontSize: 14 }}>
+                Comunicados, campanhas e vídeos publicados para clientes.
+              </Typography>
+            </Box>
+          </Stack>
+
+          <Box sx={{ mt: 3, display: "grid", gap: 2, gridTemplateColumns: { xs: "1fr", md: "repeat(2, minmax(0, 1fr))", xl: "repeat(3, minmax(0, 1fr))" } }}>
+            {contents.map((item) => {
+              const actionUrl = getPublishedActionUrl(item);
+
+              return (
+                <Paper
+                  key={item.id}
+                  elevation={0}
+                  sx={{
+                    overflow: "hidden",
+                    border: `1px solid ${dashboardPalette.border}`,
+                    borderRadius: "16px",
+                    bgcolor: "#ffffff",
+                    transition: "box-shadow 160ms ease, transform 160ms ease",
+                    "&:hover": {
+                      transform: "translateY(-2px)",
+                      boxShadow: "0 20px 45px rgba(52,52,52,0.10)",
+                    },
+                  }}
+                >
+                  <Box
+                    sx={{
+                      height: 190,
+                      bgcolor: "#f8fafc",
+                      backgroundImage: item.coverImageUrl
+                        ? `url(${item.coverImageUrl})`
+                        : `linear-gradient(135deg, ${dashboardPalette.text} 0%, ${dashboardPalette.red} 58%, ${dashboardPalette.yellow} 100%)`,
+                      backgroundSize: "cover",
+                      backgroundPosition: "center",
+                    }}
+                  />
+
+                  <Stack spacing={1.5} sx={{ p: 2.5 }}>
+                    <Stack direction="row" spacing={1} sx={{ flexWrap: "wrap" }}>
+                      <Chip
+                        size="small"
+                        label={getTypeLabel(item.type)}
+                        sx={{ bgcolor: "#fff7d6", color: "#8a5a00", fontWeight: 900 }}
+                      />
+                      {item.highlight ? (
+                        <Chip size="small" label="Destaque" color="warning" sx={{ fontWeight: 800 }} />
+                      ) : null}
+                    </Stack>
+
+                    <Box>
+                      <Typography sx={{ color: dashboardPalette.text, fontSize: 19, fontWeight: 900, lineHeight: 1.2 }}>
+                        {item.title}
+                      </Typography>
+                      <Typography
+                        sx={{
+                          mt: 1,
+                          color: dashboardPalette.muted,
+                          fontSize: 14,
+                          lineHeight: 1.6,
+                          display: "-webkit-box",
+                          WebkitLineClamp: 3,
+                          WebkitBoxOrient: "vertical",
+                          overflow: "hidden",
+                        }}
+                      >
+                        {item.summary}
+                      </Typography>
+                    </Box>
+
+                    {actionUrl ? (
+                      <>
+                        <Divider />
+                        <Button
+                          href={actionUrl}
+                          target="_blank"
+                          rel="noreferrer"
+                          endIcon={<ArrowRight size={16} />}
+                          sx={{
+                            alignSelf: "flex-start",
+                            borderRadius: "10px",
+                            color: dashboardPalette.red,
+                            fontWeight: 900,
+                            textTransform: "none",
+                          }}
+                        >
+                          Acessar conteúdo
+                        </Button>
+                      </>
+                    ) : null}
+                  </Stack>
+                </Paper>
+              );
+            })}
+          </Box>
+        </Paper>
+      )}
+    </Box>
+  );
+}
+
+function LegacyClientDashboard({ userName }: { userName: string }) {
   const [contents, setContents] = useState<PortalContent[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
@@ -534,13 +948,13 @@ function ClientDashboard({ userName }: { userName: string }) {
                         />
                       ) : (
                         <div
-                          className={`absolute inset-0 bg-gradient-to-br ${getClientFeedAccent(
+                          className={`absolute inset-0 bg-linear-to-br ${getClientFeedAccent(
                             item.type,
                           )}`}
                         />
                       )}
 
-                      <div className="absolute inset-0 bg-gradient-to-t from-slate-950/75 via-slate-950/10 to-transparent" />
+                      <div className="absolute inset-0 bg-linear-to-t from-slate-950/75 via-slate-950/10 to-transparent" />
 
                       <div className="absolute left-4 top-4">
                         <span
@@ -583,7 +997,7 @@ function ClientDashboard({ userName }: { userName: string }) {
               {contents.map((item) => (
                 <article
                   key={item.id}
-                  className="group relative min-h-[380px] overflow-hidden rounded-[22px] bg-[#343434] shadow-[0_20px_45px_rgba(52,52,52,0.18)] transition duration-300 hover:-translate-y-1 hover:shadow-[0_26px_60px_rgba(52,52,52,0.24)]"
+                  className="group relative min-h-95 overflow-hidden rounded-[22px] bg-[#343434] shadow-[0_20px_45px_rgba(52,52,52,0.18)] transition duration-300 hover:-translate-y-1 hover:shadow-[0_26px_60px_rgba(52,52,52,0.24)]"
                 >
                   {item.coverImageUrl ? (
                     <div
@@ -592,7 +1006,7 @@ function ClientDashboard({ userName }: { userName: string }) {
                     />
                   ) : (
                     <div
-                      className={`absolute inset-0 bg-gradient-to-br ${getClientFeedAccent(
+                      className={`absolute inset-0 bg-linear-to-br ${getClientFeedAccent(
                         item.type,
                       )}`}
                     />
@@ -600,7 +1014,7 @@ function ClientDashboard({ userName }: { userName: string }) {
 
                   <div className="absolute inset-0 bg-[linear-gradient(180deg,rgba(52,52,52,0.20)_0%,rgba(52,52,52,0.50)_45%,rgba(0,0,0,0.78)_100%)]" />
 
-                  <div className="relative flex min-h-[380px] flex-col justify-end p-6 text-white">
+                  <div className="relative flex min-h-95 flex-col justify-end p-6 text-white">
                     <div className="mb-5">
                       <span
                         className={`inline-flex rounded-full px-4 py-2 text-sm font-extrabold shadow-[0_10px_24px_rgba(0,0,0,0.18)] ${getTypeBadgeClass(
@@ -780,6 +1194,19 @@ function InternalDashboard({
   ];
 
   const topStages = crmSummary?.opportunitiesByStage.slice(0, 3) ?? [];
+  const leadFunnel = LEAD_FUNNEL_STAGES.map((stage) => {
+    const summaryStage = crmSummary?.leadsByStage?.find(
+      (item) => normalizeLeadFunnelStage(item.stage) === stage.value,
+    );
+
+    return {
+      ...stage,
+      count: summaryStage?.count ?? 0,
+      monthlyEstimatedValue: summaryStage?.monthlyEstimatedValue ?? 0,
+    };
+  });
+  const totalLeadFunnel = leadFunnel.reduce((total, stage) => total + stage.count, 0);
+  const maxLeadFunnelCount = Math.max(...leadFunnel.map((stage) => stage.count), 1);
 
   return (
     <Box
@@ -1169,6 +1596,154 @@ function InternalDashboard({
             ))}
           </Box>
 
+          <Paper
+            elevation={0}
+            sx={{
+              mt: 3,
+              p: { xs: 2, md: 2.5 },
+              border: `1px solid ${dashboardPalette.border}`,
+              borderRadius: "16px",
+              bgcolor: "#f8fafc",
+            }}
+          >
+            <Stack
+              direction={{ xs: "column", md: "row" }}
+              spacing={2}
+              sx={{
+                alignItems: { xs: "flex-start", md: "center" },
+                justifyContent: "space-between",
+              }}
+            >
+              <Stack direction="row" spacing={1.5} sx={{ alignItems: "center" }}>
+                <Box
+                  sx={{
+                    width: 44,
+                    height: 44,
+                    display: "grid",
+                    placeItems: "center",
+                    borderRadius: "14px",
+                    bgcolor: "rgba(236,49,57,0.10)",
+                    color: dashboardPalette.red,
+                  }}
+                >
+                  <Layers3 size={22} />
+                </Box>
+                <Box>
+                  <Typography sx={{ color: dashboardPalette.text, fontSize: 16, fontWeight: 900 }}>
+                    Funil de Vendas — Pizzattolog
+                  </Typography>
+                  <Typography sx={{ color: dashboardPalette.muted, fontSize: 13 }}>
+                    Leads manuais e vindos do site por etapa.
+                  </Typography>
+                </Box>
+              </Stack>
+
+              <Chip
+                label={`${totalLeadFunnel} lead(s) no funil`}
+                sx={{
+                  borderRadius: "10px",
+                  bgcolor: "#ffffff",
+                  color: dashboardPalette.text,
+                  border: `1px solid ${dashboardPalette.border}`,
+                  fontWeight: 900,
+                }}
+              />
+            </Stack>
+
+            <Box
+              sx={{
+                mt: 2.5,
+                display: "grid",
+                gridTemplateColumns: {
+                  xs: "1fr",
+                  sm: "repeat(2, minmax(0, 1fr))",
+                  xl: "repeat(7, minmax(0, 1fr))",
+                },
+                gap: 1.25,
+              }}
+            >
+              {leadFunnel.map((stage, index) => {
+                const percentage =
+                  maxLeadFunnelCount > 0
+                    ? Math.max((stage.count / maxLeadFunnelCount) * 100, stage.count > 0 ? 12 : 0)
+                    : 0;
+
+                return (
+                  <Paper
+                    key={stage.value}
+                    elevation={0}
+                    sx={{
+                      p: 1.5,
+                      minHeight: 154,
+                      border: `1px solid ${dashboardPalette.border}`,
+                      borderRadius: "14px",
+                      bgcolor: "#ffffff",
+                    }}
+                  >
+                    <Stack spacing={1.25} sx={{ height: "100%" }}>
+                      <Stack direction="row" sx={{ alignItems: "center", justifyContent: "space-between" }}>
+                        <Box
+                          sx={{
+                            width: 28,
+                            height: 28,
+                            display: "grid",
+                            placeItems: "center",
+                            borderRadius: "8px",
+                            bgcolor: index === 6 ? "#fef2f2" : "#fff3ed",
+                            color: index === 6 ? "#b91c1c" : dashboardPalette.red,
+                            fontSize: 12,
+                            fontWeight: 900,
+                          }}
+                        >
+                          {index + 1}
+                        </Box>
+                        <Typography sx={{ color: dashboardPalette.text, fontSize: 24, fontWeight: 900, lineHeight: 1 }}>
+                          {stage.count}
+                        </Typography>
+                      </Stack>
+
+                      <Box sx={{ minWidth: 0 }}>
+                        <Typography sx={{ color: dashboardPalette.text, fontSize: 13, fontWeight: 900, lineHeight: 1.25 }}>
+                          {stage.label}
+                        </Typography>
+                        <Typography
+                          sx={{
+                            mt: 0.6,
+                            color: dashboardPalette.muted,
+                            fontSize: 11.5,
+                            lineHeight: 1.45,
+                            display: "-webkit-box",
+                            WebkitLineClamp: 2,
+                            WebkitBoxOrient: "vertical",
+                            overflow: "hidden",
+                          }}
+                        >
+                          {stage.action}
+                        </Typography>
+                      </Box>
+
+                      <Box sx={{ mt: "auto" }}>
+                        <LinearProgress
+                          variant="determinate"
+                          value={percentage}
+                          sx={{
+                            height: 7,
+                            borderRadius: 999,
+                            bgcolor: "#f1f5f9",
+                            "& .MuiLinearProgress-bar": {
+                              borderRadius: 999,
+                              bgcolor: index === 6 ? "#ef4444" : dashboardPalette.red,
+                            },
+                          }}
+                        />
+                      </Box>
+                    </Stack>
+                  </Paper>
+                );
+              })}
+            </Box>
+          </Paper>
+
           <Box
             sx={{
               mt: 3,
@@ -1342,6 +1917,441 @@ function InternalDashboard({
 
 }
 
+type ModernMetricCardProps = {
+  title: string;
+  value: string;
+  detail: string;
+  icon: LucideIcon;
+  color: string;
+  background: string;
+};
+
+function ModernMetricCard({
+  title,
+  value,
+  detail,
+  icon: Icon,
+  color,
+  background,
+}: ModernMetricCardProps) {
+  return (
+    <Paper
+      elevation={0}
+      sx={{
+        p: 2.5,
+        minHeight: 142,
+        border: `1px solid ${dashboardPalette.border}`,
+        borderRadius: "16px",
+        bgcolor: "#ffffff",
+        boxShadow: "0 16px 40px rgba(15,23,42,0.05)",
+      }}
+    >
+      <Stack spacing={2} sx={{ height: "100%", justifyContent: "space-between" }}>
+        <Stack direction="row" sx={{ alignItems: "flex-start", justifyContent: "space-between", gap: 2 }}>
+          <Box>
+            <Typography sx={{ color: dashboardPalette.muted, fontSize: 13, fontWeight: 800 }}>
+              {title}
+            </Typography>
+            <Typography sx={{ mt: 1, color: dashboardPalette.text, fontSize: 32, fontWeight: 900, lineHeight: 1 }}>
+              {value}
+            </Typography>
+          </Box>
+          <Box
+            sx={{
+              width: 44,
+              height: 44,
+              display: "grid",
+              placeItems: "center",
+              flex: "0 0 auto",
+              borderRadius: "12px",
+              color,
+              bgcolor: background,
+            }}
+          >
+            <Icon size={22} />
+          </Box>
+        </Stack>
+        <Typography sx={{ color: dashboardPalette.muted, fontSize: 13.5, lineHeight: 1.45 }}>
+          {detail}
+        </Typography>
+      </Stack>
+    </Paper>
+  );
+}
+
+function ModernInternalDashboard({
+  userName,
+  userRole,
+  token,
+}: {
+  userName: string;
+  userRole: string;
+  token: string | null;
+}) {
+  const [crmSummary, setCrmSummary] = useState<CrmDashboardSummary | null>(
+    null,
+  );
+  const [summaryError, setSummaryError] = useState("");
+  const [isLoadingSummary, setIsLoadingSummary] = useState(true);
+
+  useEffect(() => {
+    async function loadCrmSummary() {
+      if (!token) {
+        setIsLoadingSummary(false);
+        return;
+      }
+
+      try {
+        setIsLoadingSummary(true);
+        const data = await getCrmDashboardSummary(token);
+        setCrmSummary(data);
+        setSummaryError("");
+      } catch (error) {
+        setSummaryError(
+          error instanceof Error
+            ? error.message
+            : "Erro ao carregar dashboard.",
+        );
+      } finally {
+        setIsLoadingSummary(false);
+      }
+    }
+
+    loadCrmSummary();
+  }, [token]);
+
+  const firstName = userName?.trim()?.split(" ")[0] || "Usuário";
+
+  const leadFunnel = LEAD_FUNNEL_STAGES.map((stage) => {
+    const summaryStage = crmSummary?.leadsByStage?.find(
+      (item) => normalizeLeadFunnelStage(item.stage) === stage.value,
+    );
+
+    return {
+      ...stage,
+      count: summaryStage?.count ?? 0,
+      monthlyEstimatedValue: summaryStage?.monthlyEstimatedValue ?? 0,
+    };
+  });
+  const totalLeadFunnel = leadFunnel.reduce((total, stage) => total + stage.count, 0);
+  const maxLeadFunnelCount = Math.max(...leadFunnel.map((stage) => stage.count), 1);
+  const maxStageCount = Math.max(
+    ...(crmSummary?.opportunitiesByStage.map((item) => item.count) ?? [1]),
+    1,
+  );
+
+  const metrics = [
+    {
+      title: "Leads no funil",
+      value: String(crmSummary?.totalLeads ?? 0),
+      detail: `${crmSummary?.newLeads ?? 0} na entrada de leads`,
+      icon: Users,
+      color: dashboardPalette.red,
+      background: "rgba(236,49,57,0.08)",
+    },
+    {
+      title: "Clientes ativos",
+      value: String(crmSummary?.activeClients ?? 0),
+      detail: `${crmSummary?.totalClients ?? 0} cliente(s) cadastrados`,
+      icon: Building2,
+      color: dashboardPalette.text,
+      background: "rgba(52,52,52,0.08)",
+    },
+    {
+      title: "Cotações abertas",
+      value: String(crmSummary?.openQuotes ?? 0),
+      detail: `${crmSummary?.answeredQuotes ?? 0} cotação(ões) respondidas`,
+      icon: FileText,
+      color: "#b45309",
+      background: "rgba(250,181,25,0.16)",
+    },
+    {
+      title: "Tickets abertos",
+      value: String(crmSummary?.openTickets ?? 0),
+      detail: `${crmSummary?.closedTickets ?? 0} chamado(s) fechado(s)`,
+      icon: Ticket,
+      color: "#0f766e",
+      background: "rgba(20,184,166,0.10)",
+    },
+  ];
+
+  const commercialSummary = [
+    {
+      label: "Taxa de conversão",
+      value: `${crmSummary?.conversionRate ?? 0}%`,
+    },
+    {
+      label: "Valor em aberto",
+      value: formatCurrency(crmSummary?.openValue ?? 0),
+    },
+    {
+      label: "Oportunidades ganhas",
+      value: String(crmSummary?.wonOpportunities ?? 0),
+    },
+    {
+      label: "Usuários com acesso",
+      value: String(crmSummary?.usersWithAccess ?? 0),
+    },
+  ];
+
+  return (
+    <Box
+      sx={{
+        mx: "auto",
+        width: "100%",
+        maxWidth: 1540,
+        display: "flex",
+        flexDirection: "column",
+        gap: 2.5,
+      }}
+    >
+      <Paper
+        elevation={0}
+        sx={{
+          ...dashboardPaperSx,
+          p: { xs: 2.25, md: 3 },
+          borderRadius: "18px",
+        }}
+      >
+        <Stack
+          direction={{ xs: "column", md: "row" }}
+          spacing={2}
+          sx={{ alignItems: { xs: "flex-start", md: "center" }, justifyContent: "space-between" }}
+        >
+          <Box>
+            <Chip
+              label="Dashboard comercial"
+              size="small"
+              sx={{
+                height: 24,
+                bgcolor: "rgba(236,49,57,0.08)",
+                color: dashboardPalette.red,
+                fontSize: 11,
+                fontWeight: 900,
+                letterSpacing: 0.8,
+                textTransform: "uppercase",
+              }}
+            />
+            <Typography
+              component="h1"
+              sx={{ mt: 1.5, color: dashboardPalette.text, fontSize: { xs: 28, md: 36 }, fontWeight: 900, lineHeight: 1.05 }}
+            >
+              Olá, {firstName}
+            </Typography>
+            <Typography sx={{ mt: 1, color: dashboardPalette.muted, fontSize: 15.5 }}>
+              Indicadores comerciais, funil de vendas e operação em uma visão objetiva.
+            </Typography>
+          </Box>
+        </Stack>
+      </Paper>
+
+      {summaryError ? <Alert severity="warning">{summaryError}</Alert> : null}
+
+      {isLoadingSummary ? (
+        <Box sx={{ display: "grid", gridTemplateColumns: { xs: "1fr", sm: "repeat(2,1fr)", xl: "repeat(4,1fr)" }, gap: 2 }}>
+          {Array.from({ length: 4 }).map((_, index) => (
+            <Skeleton key={index} variant="rounded" height={142} sx={{ borderRadius: "16px" }} />
+          ))}
+        </Box>
+      ) : crmSummary ? (
+        <>
+          <Box sx={{ display: "grid", gridTemplateColumns: { xs: "1fr", sm: "repeat(2,1fr)", xl: "repeat(4,1fr)" }, gap: 2 }}>
+            {metrics.map((metric) => (
+              <ModernMetricCard key={metric.title} {...metric} />
+            ))}
+          </Box>
+
+          <Box sx={{ display: "grid", gridTemplateColumns: { xs: "1fr", xl: "1.35fr .65fr" }, gap: 2 }}>
+            <Paper elevation={0} sx={{ ...dashboardPaperSx, p: { xs: 2, md: 2.5 }, borderRadius: "18px" }}>
+              <Stack direction={{ xs: "column", md: "row" }} spacing={1.5} sx={{ justifyContent: "space-between", alignItems: { xs: "flex-start", md: "center" } }}>
+                <Box>
+                  <Typography sx={{ color: dashboardPalette.text, fontSize: 21, fontWeight: 900 }}>
+                    Funil de Vendas — Pizzattolog
+                  </Typography>
+                  <Typography sx={{ mt: 0.5, color: dashboardPalette.muted, fontSize: 14 }}>
+                    {totalLeadFunnel} lead(s) distribuídos nas etapas comerciais.
+                  </Typography>
+                </Box>
+                <Button
+                  component={Link}
+                  href="/leads"
+                  variant="outlined"
+                  endIcon={<ArrowRight size={17} />}
+                  sx={{ borderRadius: "12px", borderColor: dashboardPalette.border, color: dashboardPalette.text, fontWeight: 800 }}
+                >
+                  Abrir leads
+                </Button>
+              </Stack>
+
+              <Stack spacing={1.25} sx={{ mt: 2.5 }}>
+                {leadFunnel.map((stage, index) => {
+                  const percentage = maxLeadFunnelCount > 0 ? (stage.count / maxLeadFunnelCount) * 100 : 0;
+                  const isLost = stage.value === "perdido";
+
+                  return (
+                    <Box
+                      key={stage.value}
+                      sx={{
+                        p: 1.5,
+                        border: `1px solid ${dashboardPalette.border}`,
+                        borderRadius: "14px",
+                        bgcolor: "#ffffff",
+                      }}
+                    >
+                      <Stack direction="row" spacing={1.5} sx={{ alignItems: "center" }}>
+                        <Box
+                          sx={{
+                            width: 30,
+                            height: 30,
+                            display: "grid",
+                            placeItems: "center",
+                            borderRadius: "10px",
+                            bgcolor: isLost ? "rgba(100,116,139,0.10)" : "rgba(236,49,57,0.08)",
+                            color: isLost ? "#64748b" : dashboardPalette.red,
+                            fontSize: 12,
+                            fontWeight: 900,
+                            flex: "0 0 auto",
+                          }}
+                        >
+                          {index + 1}
+                        </Box>
+                        <Box sx={{ minWidth: 0, flex: 1 }}>
+                          <Stack direction="row" spacing={1} sx={{ alignItems: "center", justifyContent: "space-between", gap: 2 }}>
+                            <Box sx={{ minWidth: 0 }}>
+                              <Typography sx={{ color: dashboardPalette.text, fontSize: 14.5, fontWeight: 900 }}>
+                                {stage.label}
+                              </Typography>
+                              <Typography sx={{ mt: 0.25, color: dashboardPalette.muted, fontSize: 12.5, fontWeight: 700 }}>
+                                {formatCurrency(stage.monthlyEstimatedValue)} estimado/mês
+                              </Typography>
+                            </Box>
+                            <Typography sx={{ color: dashboardPalette.text, fontSize: 14, fontWeight: 900 }}>
+                              {stage.count}
+                            </Typography>
+                          </Stack>
+                          <LinearProgress
+                            variant="determinate"
+                            value={percentage}
+                            sx={{
+                              mt: 1,
+                              height: 7,
+                              borderRadius: 999,
+                              bgcolor: "#f1f5f9",
+                              "& .MuiLinearProgress-bar": {
+                                borderRadius: 999,
+                                bgcolor: isLost ? "#64748b" : dashboardPalette.red,
+                              },
+                            }}
+                          />
+                        </Box>
+                      </Stack>
+                    </Box>
+                  );
+                })}
+              </Stack>
+            </Paper>
+
+            <Stack spacing={2}>
+              <Paper elevation={0} sx={{ ...dashboardPaperSx, p: 2.5, borderRadius: "18px" }}>
+                <Stack direction="row" spacing={1.5} sx={{ alignItems: "center" }}>
+                  <Box sx={{ width: 42, height: 42, display: "grid", placeItems: "center", borderRadius: "12px", color: dashboardPalette.red, bgcolor: "rgba(236,49,57,0.08)" }}>
+                    <TrendingUp size={21} />
+                  </Box>
+                  <Box>
+                    <Typography sx={{ color: dashboardPalette.text, fontSize: 18, fontWeight: 900 }}>
+                      Resumo comercial
+                    </Typography>
+                    <Typography sx={{ color: dashboardPalette.muted, fontSize: 13 }}>
+                      Conversão, oportunidades e acesso.
+                    </Typography>
+                  </Box>
+                </Stack>
+
+                <Stack spacing={0} sx={{ mt: 2 }}>
+                  {commercialSummary.map((item) => (
+                    <Stack
+                      key={item.label}
+                      direction="row"
+                      sx={{
+                        py: 1.35,
+                        alignItems: "center",
+                        justifyContent: "space-between",
+                        borderTop: `1px solid ${dashboardPalette.border}`,
+                      }}
+                    >
+                      <Typography sx={{ color: dashboardPalette.muted, fontSize: 13.5, fontWeight: 700 }}>
+                        {item.label}
+                      </Typography>
+                      <Typography sx={{ color: dashboardPalette.text, fontSize: 14, fontWeight: 900 }}>
+                        {item.value}
+                      </Typography>
+                    </Stack>
+                  ))}
+                </Stack>
+              </Paper>
+
+              <Paper elevation={0} sx={{ ...dashboardPaperSx, p: 2.5, borderRadius: "18px" }}>
+                <Stack direction="row" spacing={1.5} sx={{ alignItems: "center" }}>
+                  <Box sx={{ width: 42, height: 42, display: "grid", placeItems: "center", borderRadius: "12px", color: "#b45309", bgcolor: "rgba(250,181,25,0.16)" }}>
+                    <BriefcaseBusiness size={21} />
+                  </Box>
+                  <Box>
+                    <Typography sx={{ color: dashboardPalette.text, fontSize: 18, fontWeight: 900 }}>
+                      Oportunidades
+                    </Typography>
+                    <Typography sx={{ color: dashboardPalette.muted, fontSize: 13 }}>
+                      {crmSummary.openOpportunities} oportunidade(s) em aberto.
+                    </Typography>
+                  </Box>
+                </Stack>
+
+                <Stack spacing={1.25} sx={{ mt: 2 }}>
+                  {crmSummary.opportunitiesByStage.length > 0 ? (
+                    crmSummary.opportunitiesByStage.map((item) => {
+                      const percentage = maxStageCount > 0 ? (item.count / maxStageCount) * 100 : 0;
+
+                      return (
+                        <Box key={item.stage}>
+                          <Stack direction="row" sx={{ justifyContent: "space-between", gap: 2 }}>
+                            <Typography sx={{ color: dashboardPalette.text, fontSize: 13.5, fontWeight: 800 }}>
+                              {formatOpportunityStage(item.stage)}
+                            </Typography>
+                            <Typography sx={{ color: dashboardPalette.muted, fontSize: 13, fontWeight: 800 }}>
+                              {item.count}
+                            </Typography>
+                          </Stack>
+                          <LinearProgress
+                            variant="determinate"
+                            value={percentage}
+                            sx={{
+                              mt: 0.75,
+                              height: 6,
+                              borderRadius: 999,
+                              bgcolor: "#f1f5f9",
+                              "& .MuiLinearProgress-bar": {
+                                borderRadius: 999,
+                                bgcolor: dashboardPalette.yellow,
+                              },
+                            }}
+                          />
+                        </Box>
+                      );
+                    })
+                  ) : (
+                    <Typography sx={{ color: dashboardPalette.muted, fontSize: 14 }}>
+                      Nenhuma oportunidade registrada.
+                    </Typography>
+                  )}
+                </Stack>
+              </Paper>
+            </Stack>
+          </Box>
+        </>
+      ) : null}
+    </Box>
+  );
+}
+
 export default function DashboardPage() {
   const { user, token } = useAuth();
 
@@ -1352,7 +2362,7 @@ export default function DashboardPage() {
       ) : user?.role === "MARKETING" ? (
         <MarketingDashboard userName={user.name} />
       ) : (
-        <InternalDashboard
+        <ModernInternalDashboard
           userName={user?.name ?? "Usuário do portal"}
           userRole={user?.role ?? "-"}
           token={token}
