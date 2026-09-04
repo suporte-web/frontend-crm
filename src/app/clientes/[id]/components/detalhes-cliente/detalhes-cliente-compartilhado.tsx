@@ -1496,50 +1496,87 @@ export function CabecalhoSecao({ eyebrow, title, description, icon }: Propriedad
   );
 }
 
-export type PropriedadesTituloSecaoFormulario = {
+type PropriedadesTituloSecaoFormulario = {
   icon: React.ReactNode;
   title: string;
   description?: string;
+
+  headerBg?: string;
+  headerColor?: string;
+  iconBg?: string;
+  iconColor?: string;
 };
 
-export function TituloSecaoFormulario({ icon, title, description }: PropriedadesTituloSecaoFormulario) {
+export function TituloSecaoFormulario({
+  icon,
+  title,
+  description,
+
+  headerBg = "#f8fafc",
+  headerColor = "#334155",
+  iconBg = "#e2e8f0",
+  iconColor = "#475569",
+}: PropriedadesTituloSecaoFormulario) {
   return (
     <Stack
       direction="row"
       spacing={1.25}
       sx={{
         gridColumn: "1 / -1",
+
         alignItems: "center",
+
         minWidth: 0,
-        pb: 1.5,
+
+        px: 1.25,
+        py: 1.15,
+
         mb: 0.25,
+
+        borderRadius: "10px",
+
         borderBottom: `1px solid ${crmPalette.border}`,
+
+        bgcolor: headerBg,
       }}
     >
+      {/* ÍCONE */}
       <Box
         sx={{
           width: 36,
           height: 36,
+
           display: "grid",
           placeItems: "center",
+
           flex: "0 0 auto",
 
           borderRadius: "10px",
-          bgcolor: "#fff3ed",
-          color: crmPalette.orangeDark,
-          border: "1px solid #fed7c3",
+
+          bgcolor: iconBg,
+          color: iconColor,
+
+          "& svg": {
+            width: 18,
+            height: 18,
+          },
         }}
       >
         {icon}
       </Box>
 
+      {/* TÍTULO E DESCRIÇÃO */}
       <Box sx={{ minWidth: 0 }}>
         <Typography
           sx={{
-            color: "#1e293b",
+            color: headerColor,
+
             fontSize: 14,
+
             fontWeight: 900,
+
             lineHeight: 1.3,
+
             overflowWrap: "anywhere",
           }}
         >
@@ -1550,10 +1587,16 @@ export function TituloSecaoFormulario({ icon, title, description }: Propriedades
           <Typography
             sx={{
               mt: 0.25,
+
               color: crmPalette.muted,
+
               fontSize: 11.5,
+
               fontWeight: 500,
+
               lineHeight: 1.45,
+
+              overflowWrap: "anywhere",
             }}
           >
             {description}
