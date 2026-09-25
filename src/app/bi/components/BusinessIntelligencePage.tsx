@@ -1,6 +1,11 @@
 'use client';
 
-import { useEffect, useMemo, useState } from 'react';
+import {
+  useEffect,
+  useMemo,
+  useState,
+  type ReactNode,
+} from 'react';
 
 import Alert from '@mui/material/Alert';
 import Box from '@mui/material/Box';
@@ -9,6 +14,12 @@ import CircularProgress from '@mui/material/CircularProgress';
 import Paper from '@mui/material/Paper';
 import Stack from '@mui/material/Stack';
 import Typography from '@mui/material/Typography';
+import GroupsRoundedIcon from '@mui/icons-material/GroupsRounded';
+import TrackChangesRoundedIcon from '@mui/icons-material/TrackChangesRounded';
+import FactCheckRoundedIcon from '@mui/icons-material/FactCheckRounded';
+import TaskAltRoundedIcon from '@mui/icons-material/TaskAltRounded';
+import ScheduleRoundedIcon from '@mui/icons-material/ScheduleRounded';
+
 
 import { RefreshCcw } from 'lucide-react';
 
@@ -25,18 +36,29 @@ import type { CrmDashboardSummary } from '@/types/crm';
 import type { Lead } from '@/types/leads';
 
 const colors = {
-  page: '#f6f3ef',
+  page: '#ffffff',
   panel: '#ffffff',
-  panelAlt: '#fffaf6',
-  border: '#e2e8f0',
-  orange: '#f97316',
-  orangeSoft: '#ffedd5',
-  green: '#86efac',
-  greenText: '#14532d',
+  panelAlt: '#fafafa',
+
+  border: '#e5e7eb',
+
+  yellow: '#ffb71b',
+  yellowSoft: '#fff7df',
+
+  orange: '#ff5805',
+  orangeSoft: '#fff0e8',
+
+  red: '#f23f35',
+  redSoft: '#fff0ef',
+
+  green: '#22c55e',
+  greenSoft: '#ecfdf3',
+  greenText: '#15803d',
+
   text: '#1f2937',
   muted: '#64748b',
-  red: '#ec3139',
-  shadow: '0 18px 45px rgba(15,23,42,0.06)',
+
+  shadow: '0 10px 30px rgba(15, 23, 42, 0.06)',
 };
 
 const visibleLeadSources = new Set(['manual', 'site']);
@@ -116,7 +138,7 @@ function average(values: Array<number | null>) {
 
   return Math.round(
     validValues.reduce((total, value) => total + value, 0) /
-      validValues.length,
+    validValues.length,
   );
 }
 
@@ -207,6 +229,188 @@ function SummaryBox({
         {value}
       </Typography>
     </Box>
+  );
+}
+function MetricCard({
+  title,
+  value,
+  helper,
+  icon,
+  accent,
+  softAccent,
+  progress,
+}: {
+  title: string;
+  value: string | number;
+  helper: string;
+  icon: ReactNode;
+  accent: string;
+  softAccent: string;
+  progress?: number;
+}) {
+  const safeProgress =
+    progress === undefined
+      ? undefined
+      : Math.min(100, Math.max(0, progress));
+
+  return (
+    <Paper
+      elevation={0}
+      sx={{
+        position: 'relative',
+
+        p: 2,
+
+        minHeight: 145,
+
+        border: `1px solid ${colors.border}`,
+        borderRadius: '18px',
+
+        bgcolor: '#ffffff',
+
+        boxShadow: '0 8px 24px rgba(15, 23, 42, 0.06)',
+
+        overflow: 'hidden',
+
+        transition:
+          'transform 0.2s ease, box-shadow 0.2s ease',
+
+        /* LINHA COLORIDA NO TOPO */
+        '&::before': {
+          content: '""',
+
+          position: 'absolute',
+
+          top: 0,
+          left: 0,
+          right: 0,
+
+          height: '4px',
+
+          bgcolor: accent,
+        },
+
+        '&:hover': {
+          transform: 'translateY(-3px)',
+
+          boxShadow:
+            '0 14px 35px rgba(15, 23, 42, 0.10)',
+        },
+      }}
+    >
+      <Stack
+        direction="row"
+        spacing={1.5}
+        sx={{
+          alignItems: 'center',
+        }}
+      >
+        {/* ÍCONE */}
+
+        <Box
+          sx={{
+            width: 50,
+            height: 50,
+
+            flexShrink: 0,
+
+            display: 'grid',
+            placeItems: 'center',
+
+            borderRadius: '14px',
+
+            bgcolor: softAccent,
+            color: accent,
+          }}
+        >
+          {icon}
+        </Box>
+
+        {/* TÍTULO E VALOR */}
+
+        <Box
+          sx={{
+            minWidth: 0,
+            flex: 1,
+          }}
+        >
+          <Typography
+            sx={{
+              color: colors.muted,
+
+              fontSize: 13.5,
+              fontWeight: 800,
+
+              lineHeight: 1.2,
+            }}
+          >
+            {title}
+          </Typography>
+
+          <Typography
+            sx={{
+              mt: 0.45,
+
+              color: colors.text,
+
+              fontSize: 30,
+              fontWeight: 950,
+
+              lineHeight: 1,
+            }}
+          >
+            {value}
+          </Typography>
+        </Box>
+      </Stack>
+
+      {/* TEXTO AUXILIAR */}
+
+      <Typography
+        sx={{
+          mt: 1.5,
+
+          color: accent,
+
+          fontSize: 12.5,
+          fontWeight: 800,
+        }}
+      >
+        {helper}
+      </Typography>
+
+      {/* BARRA */}
+
+      {safeProgress !== undefined ? (
+        <Box
+          sx={{
+            mt: 1,
+
+            width: '100%',
+            height: 5,
+
+            borderRadius: '999px',
+
+            bgcolor: softAccent,
+
+            overflow: 'hidden',
+          }}
+        >
+          <Box
+            sx={{
+              width: `${safeProgress}%`,
+              height: '100%',
+
+              borderRadius: '999px',
+
+              bgcolor: accent,
+
+              transition: 'width 0.3s ease',
+            }}
+          />
+        </Box>
+      ) : null}
+    </Paper>
   );
 }
 
@@ -376,12 +580,92 @@ export default function BusinessIntelligencePage() {
       (row) => row.value === 'venda_efetivada',
     )?.count ?? 0;
 
+  // cALCULO DE CARDS
+
   const vendaEfetivadaRate =
     totalLeads > 0
       ? (vendaEfetivadaCount / totalLeads) * 100
       : 0;
 
+  /* =========================================================
+     INDICADORES PRINCIPAIS
+     ========================================================= */
+
+  const activeLeadCount = commercialLeads.filter((lead) => {
+    const stage = normalizeLeadFunnelStage(lead.status);
+
+    return ![
+      'perdido',
+      'venda_efetivada',
+      'pos_venda',
+    ].includes(stage);
+  }).length;
+
+  /*
+    Procuramos dentro das etapas do funil uma etapa
+    que tenha "contato" no nome.
+  */
+  const contactCount =
+    funnelRows.find((row) =>
+      row.label
+        .toLocaleLowerCase('pt-BR')
+        .includes('contato'),
+    )?.count ?? 0;
+
+  /*
+    O mesmo para homologação.
+    Usamos "homologa" porque funciona com
+    "Homologação", "Em Homologação" etc.
+  */
+  const homologationCount =
+    funnelRows.find((row) =>
+      row.label
+        .toLocaleLowerCase('pt-BR')
+        .includes('homologa'),
+    )?.count ?? 0;
+
+  /*
+    Consideramos convertidos quem chegou em
+    Venda Efetivada ou Pós-venda.
+  */
+  const convertedCount =
+    vendaEfetivadaCount + posVendaCount;
+
+  /*
+    Conta quantos leads possuem uma próxima ação cadastrada.
+  */
+  const nextActionCount = commercialLeads.filter((lead) => {
+    return (
+      metadataValue(lead, 'nextAction').trim().length > 0
+    );
+  }).length;
+
+  /*
+    Função auxiliar para calcular porcentagem do funil.
+  */
+  function percentageOfTotal(value: number) {
+    if (totalLeads === 0) {
+      return 0;
+    }
+
+    return (value / totalLeads) * 100;
+  }
+
+  const contactPercent =
+    percentageOfTotal(contactCount);
+
+  const homologationPercent =
+    percentageOfTotal(homologationCount);
+
+  const convertedPercent =
+    percentageOfTotal(convertedCount);
+
+  const nextActionPercent =
+    percentageOfTotal(nextActionCount);
+
   const maxCount = Math.max(
+
+
     1,
     ...funnelRows.map((row) => row.count),
   );
@@ -534,6 +818,118 @@ export default function BusinessIntelligencePage() {
           </Box>
         ) : (
           <Stack spacing={2.5}>
+            {/* =====================================================
+        CARDS PRINCIPAIS
+       ===================================================== */}
+
+            <Box
+              sx={{
+                display: 'grid',
+                gap: 1.5,
+
+                gridTemplateColumns: {
+                  xs: '1fr',
+                  sm: 'repeat(2, minmax(0, 1fr))',
+                  md: 'repeat(3, minmax(0, 1fr))',
+                  xl: 'repeat(5, minmax(0, 1fr))',
+                },
+              }}
+            >
+              {/* LEADS ATIVOS */}
+
+              <MetricCard
+                title="Leads Ativos"
+                value={activeLeadCount}
+                helper="Oportunidades em andamento"
+                icon={
+                  <GroupsRoundedIcon
+                    sx={{
+                      fontSize: 28,
+                    }}
+                  />
+                }
+                accent={colors.orange}
+                softAccent={colors.orangeSoft}
+              />
+
+              {/* EM CONTATO */}
+
+              <MetricCard
+                title="Em Contato"
+                value={contactCount}
+                helper={`${formatPercent(
+                  contactPercent,
+                )} do funil`}
+                progress={contactPercent}
+                icon={
+                  <TrackChangesRoundedIcon
+                    sx={{
+                      fontSize: 28,
+                    }}
+                  />
+                }
+                accent={colors.yellow}
+                softAccent={colors.yellowSoft}
+              />
+
+              {/* HOMOLOGAÇÃO */}
+
+              <MetricCard
+                title="Em Homologação"
+                value={homologationCount}
+                helper={`${formatPercent(
+                  homologationPercent,
+                )} do funil`}
+                progress={homologationPercent}
+                icon={
+                  <FactCheckRoundedIcon
+                    sx={{
+                      fontSize: 28,
+                    }}
+                  />
+                }
+                accent={colors.red}
+                softAccent={colors.redSoft}
+              />
+
+              {/* CONVERTIDOS */}
+              <MetricCard
+                title="Convertidos"
+                value={convertedCount}
+                helper={`${formatPercent(
+                  convertedPercent,
+                )} do funil`}
+                progress={convertedPercent}
+                icon={
+                  <TaskAltRoundedIcon
+                    sx={{
+                      fontSize: 28,
+                    }}
+                  />
+                }
+                accent={colors.green}
+                softAccent={colors.greenSoft}
+              />
+
+              {/* PRÓXIMAS AÇÕES */}
+
+              <MetricCard
+                title="Próximas Ações"
+                value={nextActionCount}
+                helper="Leads com ação cadastrada"
+                progress={nextActionPercent}
+                icon={
+                  <ScheduleRoundedIcon
+                    sx={{
+                      fontSize: 28,
+                    }}
+                  />
+                }
+                accent="#f43f5e"
+                softAccent="#ffe4e6"
+              />
+            </Box>
+
             {/* TABELA DO FUNIL */}
 
             <Paper
@@ -1090,7 +1486,8 @@ export default function BusinessIntelligencePage() {
                     <Box
                       component="tr"
                       sx={{
-                        bgcolor: colors.orange,
+                        bgcolor: '#f8fafc',
+                        borderBottom: `2px solid ${colors.orange}`,
                       }}
                     >
                       {[

@@ -15,7 +15,9 @@ export type ScreenKey =
   | 'suppliers'
   | 'users'
   | 'marketing'
+  | 'marketingIntegrations'
   | 'siteRequests'
+  | 'siteInstitutional'
   | 'logs'
   | 'entregas-por-placas';
 
@@ -131,6 +133,19 @@ export const appScreens: AppScreen[] = [
     label: 'Criação de conteúdo',
     roles: ['ADMIN', 'GESTAO', 'MARKETING'],
   },
+  {
+    key: 'marketingIntegrations',
+    href: '/marketing/integracoes',
+    label: 'Integrações',
+    roles: ['ADMIN', 'MARKETING'],
+  },
+{
+  key: 'siteInstitutional',
+  href: '/site-institucional',
+  label: 'Site Institucional',
+  roles: ['ADMIN', 'MARKETING'],
+},
+
   {
     key: 'siteRequests',
     href: '/solicitacoes-site',

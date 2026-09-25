@@ -1,13 +1,18 @@
 "use client";
 
+import type { ReactNode } from "react";
+
 import Alert from "@mui/material/Alert";
 import Box from "@mui/material/Box";
 import Button from "@mui/material/Button";
 import CircularProgress from "@mui/material/CircularProgress";
 import MenuItem from "@mui/material/MenuItem";
+import Divider from "@mui/material/Divider";
+import Paper from "@mui/material/Paper";
 import Stack from "@mui/material/Stack";
 import TextField from "@mui/material/TextField";
 import Typography from "@mui/material/Typography";
+import { alpha } from "@mui/material/styles";
 
 import CloseRoundedIcon from "@mui/icons-material/CloseRounded";
 import EditRoundedIcon from "@mui/icons-material/EditRounded";
@@ -21,7 +26,6 @@ import {
   FileText,
   Landmark,
   MapPin,
-  Phone,
   ReceiptText,
   Save,
   ShieldCheck,
@@ -36,7 +40,6 @@ import type { LeadStatus } from "@/types/crm";
 
 import {
   TituloSecaoFormulario,
-  ListaInformacoes,
   CabecalhoSecao,
   UF_OPTIONS,
   addressGridSx,
@@ -53,15 +56,188 @@ function displayValue(value?: string | null) {
   return value?.trim() || "Não informado";
 }
 
+
+const cadastroFormCardSx = {
+  ...editFormSectionSx,
+  p: { xs: 2.25, md: 2.75 },
+  borderRadius: "16px",
+  border: "1px solid rgba(23, 33, 43, 0.08)",
+  bgcolor: "#ffffff",
+  boxShadow: "0 10px 30px rgba(23, 33, 43, 0.035)",
+};
+
+function DetailField({
+  icon,
+  label,
+  value,
+  color = "#17456B",
+}: {
+  icon: ReactNode;
+  label: string;
+  value: ReactNode;
+  color?: string;
+}) {
+  return (
+    <Box
+      sx={{
+        minWidth: 0,
+        p: 2,
+        borderRadius: 2.5,
+        border: "1px solid",
+        borderColor: alpha("#17212B", 0.06),
+        bgcolor: "#F8F9FA",
+        transition:
+          "transform 0.2s ease, border-color 0.2s ease, background-color 0.2s ease",
+        "&:hover": {
+          transform: "translateY(-1px)",
+          bgcolor: "#ffffff",
+          borderColor: alpha(color, 0.2),
+        },
+      }}
+    >
+      <Stack direction="row" spacing={1.25} sx={{ alignItems: "flex-start" }}>
+        <Box
+          sx={{
+            width: 36,
+            height: 36,
+            display: "grid",
+            placeItems: "center",
+            flexShrink: 0,
+            borderRadius: 2,
+            bgcolor: alpha(color, 0.09),
+            color,
+            "& svg": {
+              width: 18,
+              height: 18,
+              strokeWidth: 2.2,
+            },
+          }}
+        >
+          {icon}
+        </Box>
+
+        <Box sx={{ minWidth: 0 }}>
+          <Typography
+            sx={{
+              color: "text.secondary",
+              fontSize: 10.5,
+              fontWeight: 900,
+              lineHeight: 1.2,
+              textTransform: "uppercase",
+              letterSpacing: 0.45,
+            }}
+          >
+            {label}
+          </Typography>
+
+          <Typography
+            component="div"
+            sx={{
+              mt: 0.55,
+              color: "text.primary",
+              fontSize: 14,
+              fontWeight: 800,
+              lineHeight: 1.45,
+              overflowWrap: "anywhere",
+            }}
+          >
+            {value || "Não informado"}
+          </Typography>
+        </Box>
+      </Stack>
+    </Box>
+  );
+}
+
+function DetailSection({
+  icon,
+  title,
+  description,
+  color,
+  children,
+}: {
+  icon: ReactNode;
+  title: string;
+  description: string;
+  color: string;
+  children: ReactNode;
+}) {
+  return (
+    <Paper
+      elevation={0}
+      sx={{
+        height: "100%",
+        p: { xs: 2.25, md: 2.75 },
+        borderRadius: 3,
+        border: "1px solid",
+        borderColor: alpha("#17212B", 0.08),
+        bgcolor: "#ffffff",
+        boxShadow: "0 10px 30px rgba(23, 33, 43, 0.035)",
+      }}
+    >
+      <Stack direction="row" spacing={1.5} sx={{ alignItems: "center" }}>
+        <Box
+          sx={{
+            width: 46,
+            height: 46,
+            display: "grid",
+            placeItems: "center",
+            flexShrink: 0,
+            borderRadius: 2.5,
+            bgcolor: alpha(color, 0.1),
+            color,
+            "& svg": {
+              width: 22,
+              height: 22,
+              strokeWidth: 2.2,
+            },
+          }}
+        >
+          {icon}
+        </Box>
+
+        <Box sx={{ minWidth: 0 }}>
+          <Typography
+            component="h3"
+            sx={{
+              color: "text.primary",
+              fontSize: 17,
+              lineHeight: 1.25,
+              fontWeight: 900,
+            }}
+          >
+            {title}
+          </Typography>
+
+          <Typography
+            sx={{
+              mt: 0.25,
+              color: "text.secondary",
+              fontSize: 12.5,
+              lineHeight: 1.45,
+            }}
+          >
+            {description}
+          </Typography>
+        </Box>
+      </Stack>
+
+      <Divider sx={{ my: 2.25 }} />
+
+      {children}
+    </Paper>
+  );
+}
+
 export function AbaCadastroCliente(props: PropriedadesAbaDetalhesCliente) {
   const { currentLead, canEditClient, clientForm, setFormularioCliente, clientFormError, setFormularioClienteError, isEditingClient, setIsEditingClient, savingClient, handleUpdateClient, setClientContacts } = props;
   return (
     <CrmSection
       sx={{
         p: { xs: 2, md: 2.5 },
-        borderRadius: "14px",
+        borderRadius: 3,
         border: `1px solid ${crmPalette.border}`,
-        bgcolor: "#ffffff",
+        bgcolor: "#F8F9FA",
         boxShadow: "0 8px 24px rgba(15, 23, 42, 0.04)",
       }}
     >
@@ -197,7 +373,7 @@ export function AbaCadastroCliente(props: PropriedadesAbaDetalhesCliente) {
             >
               <Box
                 sx={{
-                  ...editFormSectionSx,
+                  ...cadastroFormCardSx,
 
                   height: "100%",
                 }}
@@ -306,7 +482,7 @@ export function AbaCadastroCliente(props: PropriedadesAbaDetalhesCliente) {
 
               <Box
                 sx={{
-                  ...editFormSectionSx,
+                  ...cadastroFormCardSx,
 
                   height: "100%",
                 }}
@@ -607,7 +783,7 @@ export function AbaCadastroCliente(props: PropriedadesAbaDetalhesCliente) {
 
               <Box
                 sx={{
-                  ...editFormSectionSx,
+                  ...cadastroFormCardSx,
 
                   gridColumn: {
                     xs: "auto",
@@ -682,7 +858,7 @@ export function AbaCadastroCliente(props: PropriedadesAbaDetalhesCliente) {
 
               <Box
                 sx={{
-                  ...editFormSectionSx,
+                  ...cadastroFormCardSx,
 
                   p: {
                     xs: 1.5,
@@ -1014,224 +1190,242 @@ export function AbaCadastroCliente(props: PropriedadesAbaDetalhesCliente) {
             </Stack>
           </Box>
         ) : (
-          <Box
-            sx={{
-              display: "grid",
-
-              gridTemplateColumns: {
-                xs: "1fr",
-                lg: "repeat(2, minmax(0, 1fr))",
-              },
-
-              gap: 2,
-
-              alignItems: "stretch",
-            }}
-          >
-            {/* =======================================
-            IDENTIFICAÇÃO
-            ======================================== */}
+          <Stack spacing={2.5}>
             <Box
               sx={{
-                minWidth: 0,
-
-                "& > *": {
-                  height: "100%",
+                display: "grid",
+                gridTemplateColumns: {
+                  xs: "1fr",
+                  xl: "repeat(2, minmax(0, 1fr))",
                 },
+                gap: 2.5,
+                alignItems: "stretch",
               }}
             >
-              <ListaInformacoes
+              <DetailSection
                 icon={<Building2 />}
                 title="Identificação"
+                description="Dados cadastrais e empresariais do cliente"
+                color="#ff5805"
+              >
+                <Box
+                  sx={{
+                    display: "grid",
+                    gridTemplateColumns: {
+                      xs: "1fr",
+                      sm: "repeat(2, minmax(0, 1fr))",
+                    },
+                    gap: 1.5,
+                  }}
+                >
+                  <DetailField
+                    icon={<Building2 />}
+                    label="Empresa"
+                    value={displayValue(currentLead.company)}
+                    color="#ff5805"
+                  />
 
-                headerBg="#fff7ed"
-                headerColor="#c2410c"
+                  <DetailField
+                    icon={<ClipboardList />}
+                    label="CNPJ"
+                    value={displayValue(currentLead.document)}
+                    color="#ff5805"
+                  />
 
-                iconBg="#ffedd5"
-                iconColor="#ea580c"
+                  <DetailField
+                    icon={<Badge />}
+                    label="Razão social"
+                    value={displayValue(currentLead.legalName)}
+                    color="#ff5805"
+                  />
 
-                items={[
-                  [
-                    "Empresa",
-                    displayValue(currentLead.company),
-                    <Building2 />,
-                  ],
+                  <DetailField
+                    icon={<UserRound />}
+                    label="Nome fantasia"
+                    value={displayValue(currentLead.tradeName)}
+                    color="#ff5805"
+                  />
 
-                  [
-                    "CNPJ",
-                    displayValue(currentLead.document),
-                    <ClipboardList />,
-                  ],
+                  <Box
+                    sx={{
+                      gridColumn: {
+                        xs: "auto",
+                        sm: "1 / -1",
+                      },
+                    }}
+                  >
+                    <DetailField
+                      icon={<Tag />}
+                      label="Segmento"
+                      value={displayValue(currentLead.segment)}
+                      color="#ff5805"
+                    />
+                  </Box>
+                </Box>
+              </DetailSection>
 
-                  [
-                    "Razão social",
-                    displayValue(currentLead.legalName),
-                    <Badge />,
-                  ],
-
-                  [
-                    "Nome fantasia",
-                    displayValue(currentLead.tradeName),
-                    <UserRound />,
-                  ],
-
-                  [
-                    "Segmento",
-                    displayValue(currentLead.segment),
-                    <Tag />,
-                  ],
-                ]}
-              />
-            </Box>
-
-            {/* =======================================
-        FISCAL
-    ======================================== */}
-            <Box
-              sx={{
-                minWidth: 0,
-
-                "& > *": {
-                  height: "100%",
-                },
-              }}
-            >
-              <ListaInformacoes
+              <DetailSection
                 icon={<Activity />}
                 title="Fiscal"
+                description="Dados fiscais e tributários"
+                color="#7c3aed"
+              >
+                <Box
+                  sx={{
+                    display: "grid",
+                    gridTemplateColumns: {
+                      xs: "1fr",
+                      sm: "repeat(2, minmax(0, 1fr))",
+                    },
+                    gap: 1.5,
+                  }}
+                >
+                  <DetailField
+                    icon={<ReceiptText />}
+                    label="CNAE"
+                    value={displayValue(currentLead.cnae)}
+                    color="#7c3aed"
+                  />
 
-                headerBg="#f5f3ff"
-                headerColor="#6d28d9"
+                  <DetailField
+                    icon={<FileText />}
+                    label="Inscrição estadual"
+                    value={displayValue(currentLead.stateRegistration)}
+                    color="#7c3aed"
+                  />
 
-                iconBg="#ede9fe"
-                iconColor="#7c3aed"
+                  <DetailField
+                    icon={<Activity />}
+                    label="Atividade comercial"
+                    value={displayValue(currentLead.businessActivity)}
+                    color="#7c3aed"
+                  />
 
-                items={[
-                  [
-                    "CNAE",
-                    displayValue(currentLead.cnae),
-                    <ReceiptText />,
-                  ],
+                  <DetailField
+                    icon={<Landmark />}
+                    label="Regime tributário"
+                    value={displayValue(currentLead.taxRegime)}
+                    color="#7c3aed"
+                  />
 
-                  [
-                    "Inscrição estadual",
-                    displayValue(
-                      currentLead.stateRegistration,
-                    ),
-                    <FileText />,
-                  ],
-
-                  [
-                    "Atividade comercial",
-                    displayValue(
-                      currentLead.businessActivity,
-                    ),
-                    <Activity />,
-                  ],
-
-                  [
-                    "Regime tributário",
-                    displayValue(currentLead.taxRegime),
-                    <Landmark />,
-                  ],
-
-                  [
-                    "Tributação",
-                    displayValue(currentLead.taxation),
-                    <ShieldCheck />,
-                  ],
-                ]}
-              />
+                  <Box
+                    sx={{
+                      gridColumn: {
+                        xs: "auto",
+                        sm: "1 / -1",
+                      },
+                    }}
+                  >
+                    <DetailField
+                      icon={<ShieldCheck />}
+                      label="Tributação"
+                      value={displayValue(currentLead.taxation)}
+                      color="#7c3aed"
+                    />
+                  </Box>
+                </Box>
+              </DetailSection>
             </Box>
 
-            {/* =======================================
-        ENDEREÇO E CADASTRO
-        OCUPA A LARGURA INTEIRA
-    ======================================== */}
-            <Box
-              sx={{
-                gridColumn: {
-                  xs: "auto",
-                  lg: "1 / -1",
-                },
-
-                minWidth: 0,
-              }}
+            <DetailSection
+              icon={<MapPin />}
+              title="Endereço e cadastro"
+              description="Localização e informações de registro"
+              color="#17456B"
             >
-              <ListaInformacoes
-                icon={<MapPin />}
-                title="Endereço e cadastro"
+              <Box
+                sx={{
+                  display: "grid",
+                  gridTemplateColumns: {
+                    xs: "1fr",
+                    sm: "repeat(2, minmax(0, 1fr))",
+                    lg: "repeat(4, minmax(0, 1fr))",
+                  },
+                  gap: 1.5,
+                }}
+              >
+                <Box
+                  sx={{
+                    gridColumn: {
+                      xs: "auto",
+                      sm: "1 / -1",
+                      lg: "span 2",
+                    },
+                  }}
+                >
+                  <DetailField
+                    icon={<MapPin />}
+                    label="Endereço"
+                    value={displayValue(currentLead.address)}
+                    color="#17456B"
+                  />
+                </Box>
 
-                headerBg="#eff6ff"
-                headerColor="#1d4ed8"
+                <DetailField
+                  icon={<MapPin />}
+                  label="Cidade"
+                  value={displayValue(currentLead.city)}
+                  color="#17456B"
+                />
 
-                iconBg="#dbeafe"
-                iconColor="#2563eb"
+                <DetailField
+                  icon={<CalendarDays />}
+                  label="Data do cadastro"
+                  value={formatarData(
+                    currentLead.registrationDate ?? currentLead.createdAt,
+                  )}
+                  color="#17456B"
+                />
 
-                items={[
-                  [
-                    "Endereço",
-                    displayValue(currentLead.address),
-                    <MapPin />,
-                  ],
+                <Box
+                  sx={{
+                    gridColumn: {
+                      xs: "auto",
+                      sm: "1 / -1",
+                    },
+                  }}
+                >
+                  <DetailField
+                    icon={<ClipboardList />}
+                    label="Status"
+                    value={formatLeadStatus(currentLead.status)}
+                    color="#2E7D32"
+                  />
+                </Box>
+              </Box>
+            </DetailSection>
 
-                  [
-                    "Cidade",
-                    displayValue(currentLead.city),
-                    <MapPin />,
-                  ],
-
-                  [
-                    "Data do cadastro",
-                    formatarData(
-                      currentLead.registrationDate ??
-                      currentLead.createdAt,
-                    ),
-                    <CalendarDays />,
-                  ],
-
-                  [
-                    "Status",
-                    formatLeadStatus(currentLead.status),
-                    <ClipboardList />,
-                  ],
-                ]}
-              />
-            </Box>
-
-            {/* =======================================
-        OBSERVAÇÕES
-    ======================================== */}
-            <Box
-              sx={{
-                gridColumn: {
-                  xs: "auto",
-                  lg: "1 / -1",
-                },
-
-                minWidth: 0,
-              }}
+            <DetailSection
+              icon={<StickyNote />}
+              title="Observações"
+              description="Informações adicionais sobre o cadastro"
+              color="#A35A00"
             >
-              <ListaInformacoes
-                icon={<StickyNote />}
-                title="Observações"
-
-                headerBg="#fffbeb"
-                headerColor="#a16207"
-
-                iconBg="#fef3c7"
-                iconColor="#d97706"
-
-                items={[
-                  [
-                    "Observações",
-                    displayValue(currentLead.notes),
-                    <StickyNote />,
-                  ],
-                ]}
-              />
-            </Box>
-          </Box>
+              <Box
+                sx={{
+                  p: 2.25,
+                  borderRadius: 2.5,
+                  border: "1px solid",
+                  borderColor: alpha("#A35A00", 0.12),
+                  bgcolor: alpha("#A35A00", 0.04),
+                }}
+              >
+                <Typography
+                  sx={{
+                    color: currentLead.notes
+                      ? "text.primary"
+                      : "text.secondary",
+                    fontSize: 14,
+                    lineHeight: 1.7,
+                    whiteSpace: "pre-wrap",
+                    overflowWrap: "anywhere",
+                  }}
+                >
+                  {displayValue(currentLead.notes)}
+                </Typography>
+              </Box>
+            </DetailSection>
+          </Stack>
         )}
 
       </Stack>

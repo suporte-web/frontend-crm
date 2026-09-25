@@ -47,6 +47,7 @@ export interface SolicitacaoSite {
 
   criadoEm: string;
   atualizadoEm: string;
+ 
 }
 
 export interface AnexoSolicitacaoSite {
@@ -58,6 +59,7 @@ export interface AnexoSolicitacaoSite {
   tamanho?: number | null;
   url: string;
   criadoEm: string;
+  anexo?: AnexoSolicitacaoSite[];
 }
 
 export interface ListarSolicitacoesSiteResponse {

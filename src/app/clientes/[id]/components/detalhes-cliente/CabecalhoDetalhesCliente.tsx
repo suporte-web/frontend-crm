@@ -1,42 +1,48 @@
-"use client";
+'use client';
 
-import type { ReactNode } from "react";
-import Link from "next/link";
+import type { ReactNode } from 'react';
 
-import Alert from "@mui/material/Alert";
-import Avatar from "@mui/material/Avatar";
-import Box from "@mui/material/Box";
-import IconButton from "@mui/material/IconButton";
-import Tooltip from "@mui/material/Tooltip";
-import DeleteOutlineRoundedIcon from "@mui/icons-material/DeleteOutlineRounded";
-import Chip from "@mui/material/Chip";
-import CircularProgress from "@mui/material/CircularProgress";
+import Link from 'next/link';
 
-import Stack from "@mui/material/Stack";
-import Typography from "@mui/material/Typography";
+import Alert from '@mui/material/Alert';
+import Avatar from '@mui/material/Avatar';
+import Box from '@mui/material/Box';
+import Chip from '@mui/material/Chip';
+import CircularProgress from '@mui/material/CircularProgress';
+import IconButton from '@mui/material/IconButton';
+import Stack from '@mui/material/Stack';
+import Tooltip from '@mui/material/Tooltip';
+import Typography from '@mui/material/Typography';
 
+import { alpha } from '@mui/material/styles';
 
+import DeleteOutlineRoundedIcon from '@mui/icons-material/DeleteOutlineRounded';
 
 import {
   ArrowLeft,
+  Building2,
   Clock,
   Edit3,
   Mail,
   UserRoundCheck,
-} from "lucide-react";
+} from 'lucide-react';
 
 import {
   CrmSection,
   crmPalette,
-} from "@/components/mui/crm-primitives";
+} from '@/components/mui/crm-primitives';
 
-import { formatLeadStatus, requestClientDeletion, } from "@/services/crm.service";
+import {
+  formatLeadStatus,
+} from '@/services/crm.service';
 
-import type { LeadDetail } from "@/types/crm";
+import type {
+  LeadDetail,
+} from '@/types/crm';
 
 import {
   statusStyles,
-} from "./detalhes-cliente-compartilhado";
+} from './detalhes-cliente-compartilhado';
 
 type PropriedadesCabecalhoDetalhesCliente = {
   lead: LeadDetail | null;
@@ -50,60 +56,97 @@ type PropriedadesCabecalhoDetalhesCliente = {
   onRequestDeletion?: () => void;
 };
 
-function formatDate(date?: string | null) {
+function formatDate(
+  date?: string | null,
+) {
   if (!date) {
-    return "Não informado";
+    return 'Não informado';
   }
 
-  return new Intl.DateTimeFormat("pt-BR", {
-    dateStyle: "short",
-    timeStyle: "short",
-  }).format(new Date(date));
+  return new Intl.DateTimeFormat(
+    'pt-BR',
+    {
+      dateStyle: 'short',
+      timeStyle: 'short',
+    },
+  ).format(new Date(date));
 }
 
-function getClientCreatedBy(lead: LeadDetail) {
-  const creationEvent = lead.timeline?.find((event) => {
-    const title = event.title?.toLowerCase() ?? "";
+function getClientCreatedBy(
+  lead: LeadDetail,
+) {
+  const creationEvent =
+    lead.timeline?.find(
+      (event) => {
+        const title =
+          event.title?.toLowerCase() ??
+          '';
 
-    return (
-      event.type === "LEAD_CREATED" ||
-      title.includes("cliente criado") ||
-      title.includes("cliente convertido")
+        return (
+          event.type ===
+            'LEAD_CREATED' ||
+          title.includes(
+            'cliente criado',
+          ) ||
+          title.includes(
+            'cliente convertido',
+          )
+        );
+      },
     );
-  });
 
-  return creationEvent?.createdBy || "Não informado";
+  return (
+    creationEvent?.createdBy ||
+    'Não informado'
+  );
 }
+
+/* =====================================================
+   CARD RESUMO
+===================================================== */
 
 function HeaderSummaryItem({
   icon,
   label,
   value,
-  iconBg,
-  iconColor,
-  withDivider = false,
+  color,
 }: {
   icon: ReactNode;
   label: string;
   value: ReactNode;
-  iconBg: string;
-  iconColor: string;
-  withDivider?: boolean;
+  color: string;
 }) {
   return (
     <Box
       sx={{
         minWidth: 0,
 
-        p: {
-          xs: 2,
-          md: 2.5,
-        },
+        p: 2,
 
-        borderRight: {
-          md: withDivider
-            ? "1px solid rgba(15,23,42,0.08)"
-            : "none",
+        borderRadius: 2.5,
+
+        border: '1px solid',
+
+        borderColor: alpha(
+          '#17212B',
+          0.07,
+        ),
+
+        bgcolor: '#F8F9FA',
+
+        transition:
+          'transform 0.2s ease, border-color 0.2s ease, background-color 0.2s ease',
+
+        '&:hover': {
+          transform:
+            'translateY(-1px)',
+
+          bgcolor: '#fff',
+
+          borderColor: alpha(
+            color,
+            0.2,
+          ),
         },
       }}
     >
@@ -111,23 +154,33 @@ function HeaderSummaryItem({
         direction="row"
         spacing={1.5}
         sx={{
-          alignItems: "center",
+          alignItems: 'center',
         }}
       >
         <Box
           sx={{
-            width: 50,
-            height: 50,
+            width: 42,
+            height: 42,
 
-            display: "grid",
-            placeItems: "center",
+            display: 'grid',
+            placeItems: 'center',
 
-            flex: "0 0 auto",
+            flexShrink: 0,
 
-            borderRadius: "16px",
+            borderRadius: 2.25,
 
-            bgcolor: iconBg,
-            color: iconColor,
+            bgcolor: alpha(
+              color,
+              0.1,
+            ),
+
+            color,
+
+            '& svg': {
+              width: 20,
+              height: 20,
+              strokeWidth: 2.2,
+            },
           }}
         >
           {icon}
@@ -140,29 +193,40 @@ function HeaderSummaryItem({
         >
           <Typography
             sx={{
-              color: "#94a3b8",
+              color:
+                'text.secondary',
 
-              fontSize: 14,
-              fontWeight: 800,
+              fontSize: 10.5,
 
-              lineHeight: 1.35,
+              fontWeight: 900,
+
+              lineHeight: 1.2,
+
+              textTransform:
+                'uppercase',
+
+              letterSpacing: 0.45,
             }}
           >
             {label}
           </Typography>
 
           <Typography
+            component="div"
             sx={{
-              mt: 0.35,
+              mt: 0.55,
 
-              color: "#1e293b",
+              color:
+                'text.primary',
 
-              fontSize: 17,
-              fontWeight: 900,
+              fontSize: 14,
 
-              lineHeight: 1.35,
+              fontWeight: 850,
 
-              overflowWrap: "anywhere",
+              lineHeight: 1.4,
+
+              overflowWrap:
+                'anywhere',
             }}
           >
             {value}
@@ -172,6 +236,10 @@ function HeaderSummaryItem({
     </Box>
   );
 }
+
+/* =====================================================
+   COMPONENTE
+===================================================== */
 
 export function CabecalhoDetalhesCliente({
   lead,
@@ -187,50 +255,75 @@ export function CabecalhoDetalhesCliente({
   return (
     <CrmSection
       sx={{
-        position: "relative",
+        position: 'relative',
 
-        overflow: "hidden",
+        overflow: 'hidden',
 
         p: 0,
 
-        borderRadius: "20px",
+        borderRadius: 3,
 
-        border: "1px solid rgba(15,23,42,0.08)",
+        border: '1px solid',
 
-        bgcolor: "#ffffff",
+        borderColor: alpha(
+          '#17212B',
+          0.08,
+        ),
+
+        bgcolor: '#fff',
 
         boxShadow:
-          "0 14px 40px rgba(15,23,42,0.06)",
+          '0 14px 38px rgba(23, 33, 43, 0.05)',
+
+        '&::before': {
+          content: '""',
+
+          position: 'absolute',
+
+          top: 0,
+          left: 0,
+
+          width: 5,
+          height: '100%',
+
+          bgcolor: '#ff5805',
+        },
       }}
     >
+      {/* LOADING */}
+
       {loading ? (
         <Box
           sx={{
             minHeight: 220,
 
-            display: "grid",
-            placeItems: "center",
+            display: 'grid',
+
+            placeItems: 'center',
           }}
         >
           <Stack
             direction="row"
             spacing={1.5}
             sx={{
-              alignItems: "center",
+              alignItems: 'center',
             }}
           >
             <CircularProgress
               size={24}
               sx={{
-                color: crmPalette.orange,
+                color:
+                  crmPalette.orange,
               }}
             />
 
             <Typography
               sx={{
-                color: "#64748b",
+                color:
+                  'text.secondary',
 
                 fontSize: 14,
+
                 fontWeight: 700,
               }}
             >
@@ -239,6 +332,8 @@ export function CabecalhoDetalhesCliente({
           </Stack>
         </Box>
       ) : error ? (
+        /* ERRO */
+
         <Box
           sx={{
             p: {
@@ -250,7 +345,7 @@ export function CabecalhoDetalhesCliente({
           <Alert
             severity="error"
             sx={{
-              borderRadius: "12px",
+              borderRadius: 2.5,
             }}
           >
             {error}
@@ -260,198 +355,267 @@ export function CabecalhoDetalhesCliente({
         <Box
           sx={{
             p: {
-              xs: 2.25,
+              xs: 2.5,
               md: 3.5,
             },
           }}
         >
-          
-          <Stack spacing={4}>
-            {/* =========================================
-                PARTE SUPERIOR DO CABEÇALHO
-            ========================================== */}
+          <Stack spacing={3}>
+            {/* =================================================
+                TOPO
+            ================================================= */}
+
             <Stack
               direction={{
-                xs: "column",
-                xl: "row",
+                xs: 'column',
+                lg: 'row',
               }}
               spacing={2.5}
               sx={{
                 alignItems: {
-                  xs: "stretch",
-                  xl: "center",
+                  xs: 'stretch',
+                  lg: 'center',
                 },
 
-                justifyContent: "space-between",
+                justifyContent:
+                  'space-between',
               }}
             >
-              {/* =========================================
-                  AVATAR + INFORMAÇÕES DO CLIENTE
-              ========================================== */}
+              {/* EMPRESA */}
+
               <Stack
                 direction={{
-                  xs: "column",
-                  sm: "row",
+                  xs: 'column',
+                  sm: 'row',
                 }}
                 spacing={2}
                 sx={{
                   alignItems: {
-                    xs: "flex-start",
-                    sm: "center",
+                    xs: 'flex-start',
+                    sm: 'center',
                   },
 
                   minWidth: 0,
                 }}
               >
-                {/* LOGO / INICIAL DA EMPRESA */}
+                {/* AVATAR */}
+
                 <Avatar
                   variant="rounded"
                   sx={{
                     width: {
-                      xs: 100,
-                      md: 130,
+                      xs: 76,
+                      md: 86,
                     },
 
                     height: {
-                      xs: 100,
-                      md: 130,
+                      xs: 76,
+                      md: 86,
                     },
 
-                    flex: "0 0 auto",
+                    flexShrink: 0,
 
-                    borderRadius: "16px",
+                    borderRadius: 3,
 
-                    bgcolor: "#fff7ed",
+                    bgcolor:
+                      alpha(
+                        '#ff5805',
+                        0.09,
+                      ),
 
-                    color: crmPalette.orange,
+                    color:
+                      '#ff5805',
 
-                    border: "1px solid #fed7aa",
+                    border:
+                      '1px solid',
+
+                    borderColor:
+                      alpha(
+                        '#ff5805',
+                        0.17,
+                      ),
 
                     fontSize: {
-                      xs: 34,
-                      md: 42,
+                      xs: 28,
+                      md: 32,
                     },
 
                     fontWeight: 950,
                   }}
                 >
-                  {(lead.company || "C")
+                  {(lead.company ||
+                    'C')
                     .slice(0, 1)
                     .toUpperCase()}
                 </Avatar>
 
-                {/* DADOS PRINCIPAIS */}
+                {/* DADOS */}
+
                 <Box
                   sx={{
                     minWidth: 0,
                   }}
                 >
-                  {/* TEXTO PEQUENO */}
-                  <Typography
+                  <Stack
+                    direction="row"
+                    spacing={1}
                     sx={{
-                      color: crmPalette.orangeDark,
+                      alignItems:
+                        'center',
 
-                      fontSize: 14,
-
-                      fontWeight: 900,
-
-                      letterSpacing: ".16em",
-
-                      textTransform: "uppercase",
-                    }}
-                  >
-                    Comercial · Cliente
-                  </Typography>
-
-                  {/* NOME DA EMPRESA */}
-                  <Typography
-                    component="h1"
-                    sx={{
-                      mt: 0.5,
-
-                      color: "#0f172a",
-
-                      fontSize: {
-                        xs: 28,
-                        md: 34,
-                      },
-
-                      fontWeight: 950,
-
-                      lineHeight: 1.08,
-
-                      letterSpacing: "-0.03em",
-
-                      overflowWrap: "anywhere",
-                    }}
-                  >
-                    {lead.company || "Cliente"}
-                  </Typography>
-
-                  {/* CONTATO PRINCIPAL */}
-                  <Typography
-                    sx={{
-                      mt: 1,
-
-                      color: "#64748b",
-
-                      fontSize: {
-                        xs: 10,
-                        md: 15,
-                      },
-
-                      lineHeight: 1.5,
-
-                      fontWeight: 600,
-
-                      overflowWrap: "anywhere",
-                    }}
-                  >
-                    CNPJ: {lead.document || "Não informado"}
-                  </Typography>
-                  <Box
-                    sx={{
-                      mt: 1.5,
-
-                      display: "flex",
-
-                      flexWrap: "wrap",
+                      flexWrap:
+                        'wrap',
 
                       gap: 1,
                     }}
                   >
+                    <Box
+                      sx={{
+                        display:
+                          'inline-flex',
+
+                        alignItems:
+                          'center',
+
+                        gap: 0.75,
+
+                        px: 1.25,
+
+                        py: 0.55,
+
+                        borderRadius:
+                          999,
+
+                        bgcolor:
+                          alpha(
+                            '#ff5805',
+                            0.08,
+                          ),
+
+                        color:
+                          '#e94f00',
+                      }}
+                    >
+                      <Building2
+                        size={14}
+                      />
+
+                      <Typography
+                        sx={{
+                          fontSize:
+                            11,
+
+                          fontWeight:
+                            900,
+
+                          textTransform:
+                            'uppercase',
+
+                          letterSpacing:
+                            0.7,
+                        }}
+                      >
+                        Cliente
+                      </Typography>
+                    </Box>
+
                     <Chip
                       size="small"
                       variant="outlined"
-                      label={formatLeadStatus(lead.status)}
+                      label={formatLeadStatus(
+                        lead.status,
+                      )}
                       sx={{
-                        ...statusStyles[lead.status],
+                        ...statusStyles[
+                          lead.status
+                        ],
 
-                        fontWeight: 900,
+                        height: 27,
 
-                        borderRadius: "8px",
+                        borderRadius:
+                          2,
+
+                        fontSize: 11,
+
+                        fontWeight:
+                          900,
                       }}
                     />
-                  </Box>
+                  </Stack>
+
+                  <Typography
+                    component="h1"
+                    sx={{
+                      mt: 1,
+
+                      color:
+                        'text.primary',
+
+                      fontSize: {
+                        xs: 25,
+                        md: 30,
+                      },
+
+                      fontWeight:
+                        950,
+
+                      lineHeight:
+                        1.12,
+
+                      letterSpacing:
+                        '-0.025em',
+
+                      overflowWrap:
+                        'anywhere',
+                    }}
+                  >
+                    {lead.company ||
+                      'Cliente'}
+                  </Typography>
+
+                  <Typography
+                    sx={{
+                      mt: 0.75,
+
+                      color:
+                        'text.secondary',
+
+                      fontSize:
+                        13.5,
+
+                      lineHeight:
+                        1.5,
+
+                      fontWeight:
+                        650,
+                    }}
+                  >
+                    CNPJ:{' '}
+                    {lead.document ||
+                      'Não informado'}
+                  </Typography>
                 </Box>
               </Stack>
 
-                    {/* =========================================
-                    BOTÕES DO CABEÇALHO
-                    ========================================== */}
-              <Box
-                sx={{
-                  display: "flex",
-                  flexWrap: "wrap",
-                  gap: 1,
+              {/* =================================================
+                  AÇÕES
+              ================================================= */}
 
-                  justifyContent: {
-                    xs: "flex-start",
-                    xl: "flex-end",
-                  },
+              <Stack
+                direction="row"
+                spacing={1}
+                sx={{
+                  alignItems:
+                    'center',
+
+                  flexWrap:
+                    'wrap',
+
+                  gap: 1,
                 }}
               >
                 {/* VOLTAR */}
+
                 <Tooltip title="Voltar para clientes">
                   <IconButton
                     component={Link}
@@ -461,167 +625,199 @@ export function CabecalhoDetalhesCliente({
                       width: 42,
                       height: 42,
 
-                      borderRadius: "10px",
+                      borderRadius:
+                        2.25,
 
-                      border: "1px solid #cbd5e1",
+                      border:
+                        '1px solid',
 
-                      bgcolor: "#ffffff",
+                      borderColor:
+                        alpha(
+                          '#17212B',
+                          0.12,
+                        ),
 
-                      color: "#334155",
+                      bgcolor:
+                        '#fff',
 
-                      boxShadow: "none",
+                      color:
+                        '#334155',
 
-                      "&:hover": {
-                        borderColor: "#ff5805",
+                      '&:hover': {
+                        borderColor:
+                          '#ff5805',
 
-                        bgcolor: "#fff7ed",
+                        bgcolor:
+                          alpha(
+                            '#ff5805',
+                            0.06,
+                          ),
 
-                        color: "#e94f00",
+                        color:
+                          '#ff5805',
                       },
                     }}
                   >
-                    <ArrowLeft size={18} />
+                    <ArrowLeft
+                      size={18}
+                    />
                   </IconButton>
                 </Tooltip>
 
                 {/* EDITAR */}
+
                 {canEditClient ? (
                   <Tooltip title="Editar cliente">
                     <IconButton
                       type="button"
-                      onClick={onEditClient}
+                      onClick={
+                        onEditClient
+                      }
                       aria-label="Editar cliente"
                       sx={{
                         width: 42,
                         height: 42,
 
-                        borderRadius: "10px",
+                        borderRadius:
+                          2.25,
 
-                        border: "1px solid #ff5805",
+                        bgcolor:
+                          '#ff5805',
 
-                        bgcolor: "#ff5805",
+                        color:
+                          '#fff',
 
-                        color: "#ffffff",
+                        border:
+                          '1px solid #ff5805',
 
-                        boxShadow: "none",
+                        '&:hover': {
+                          bgcolor:
+                            '#e94f00',
 
-                        "&:hover": {
-                          borderColor: "#e94f00",
-
-                          bgcolor: "#e94f00",
-
-                          color: "#ffffff",
+                          borderColor:
+                            '#e94f00',
                         },
                       }}
                     >
-                      <Edit3 size={18} />
+                      <Edit3
+                        size={18}
+                      />
                     </IconButton>
                   </Tooltip>
                 ) : null}
 
                 {/* EXCLUIR */}
+
                 {canRequestDeletion ? (
                   <Tooltip title="Excluir cliente">
                     <IconButton
                       type="button"
-                      onClick={onRequestDeletion}
+                      onClick={
+                        onRequestDeletion
+                      }
                       aria-label="Excluir cliente"
                       sx={{
                         width: 42,
                         height: 42,
 
-                        borderRadius: "10px",
+                        borderRadius:
+                          2.25,
 
-                        border: "1px solid #ef4444",
+                        border:
+                          '1px solid',
 
-                        bgcolor: "#ffffff",
+                        borderColor:
+                          alpha(
+                            '#dc2626',
+                            0.25,
+                          ),
 
-                        color: "#dc2626",
+                        bgcolor:
+                          alpha(
+                            '#dc2626',
+                            0.03,
+                          ),
 
-                        boxShadow: "none",
+                        color:
+                          '#dc2626',
 
-                        "&:hover": {
-                          borderColor: "#dc2626",
+                        '&:hover': {
+                          borderColor:
+                            '#dc2626',
 
-                          bgcolor: "#fef2f2",
-
-                          color: "#b91c1c",
+                          bgcolor:
+                            alpha(
+                              '#dc2626',
+                              0.08,
+                            ),
                         },
                       }}
                     >
-                      <DeleteOutlineRoundedIcon fontSize="small" />
+                      <DeleteOutlineRoundedIcon
+                        fontSize="small"
+                      />
                     </IconButton>
                   </Tooltip>
                 ) : null}
-              </Box>
-                </Stack>
-                
+              </Stack>
+            </Stack>
 
-              {/* =========================================
-                RESUMO DO CLIENTE
-            ========================================== */}
-              <Box
-                sx={{
-                  display: "grid",
+            {/* =================================================
+                RESUMO
+            ================================================= */}
 
-                  gridTemplateColumns: {
-                    xs: "1fr",
+            <Box
+              sx={{
+                display: 'grid',
 
-                    md: "repeat(3, minmax(0, 1fr))",
+                gridTemplateColumns:
+                  {
+                    xs: '1fr',
+
+                    md: 'repeat(3, minmax(0, 1fr))',
                   },
 
-                  overflow: "hidden",
+                gap: 1.5,
+              }}
+            >
+              <HeaderSummaryItem
+                icon={
+                  <Mail size={20} />
+                }
+                label="Contato"
+                value={
+                  lead.email ||
+                  lead.phone ||
+                  'Não informado'
+                }
+                color="#17456B"
+              />
 
-                  border:
-                    "1px solid rgba(15,23,42,0.08)",
+              <HeaderSummaryItem
+                icon={
+                  <UserRoundCheck
+                    size={20}
+                  />
+                }
+                label="Responsável"
+                value={getClientCreatedBy(
+                  lead,
+                )}
+                color="#2E7D32"
+              />
 
-                  borderRadius: "12px",
-
-                  bgcolor: "#ffffff",
-                }}
-              >
-                {/* CONTATO */}
-                <HeaderSummaryItem
-                  icon={
-                    <Mail size={22} />
-                  }
-                  label="Contato"
-                  value={
-                    lead.email ||
-                    lead.phone ||
-                    "Não informado"
-                  }
-                  iconBg="#eff6ff"
-                  iconColor="#2563eb"
-                  withDivider
-                />
-
-                {/* RESPONSÁVEL */}
-                <HeaderSummaryItem
-                  icon={
-                    <UserRoundCheck size={22} />
-                  }
-                  label="Responsável"
-                  value={getClientCreatedBy(lead)}
-                  iconBg="#ecfdf5"
-                  iconColor="#059669"
-                  withDivider
-                />
-
-                {/* ÚLTIMA INTERAÇÃO */}
-                <HeaderSummaryItem
-                  icon={
-                    <Clock size={22} />
-                  }
-                  label="Última interação"
-                  value={formatDate(
-                    lead.lastContactAt,
-                  )}
-                  iconBg="#fff7d6"
-                  iconColor="#9a6700"
-                />
-              </Box>
-            </Stack>
+              <HeaderSummaryItem
+                icon={
+                  <Clock size={20} />
+                }
+                label="Última interação"
+                value={formatDate(
+                  lead.lastContactAt,
+                )}
+                color="#A35A00"
+              />
+            </Box>
+          </Stack>
         </Box>
       ) : null}
     </CrmSection>
