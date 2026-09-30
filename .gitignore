@@ -8,3 +8,5 @@ build/
 .env.test.local
 .env.production.local
 frontend-build.zip
+*.zip
+*.tar.gz
