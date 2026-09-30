@@ -290,17 +290,17 @@ export function AppSidebar() {
                   height: 48,
                   mx: "auto",
                   borderRadius: "12px",
-                  bgcolor: "#ffffff",
+                  bgcolor: "#2f2f2f",
                   p: 0.75,
 
                   "&:hover": {
-                    bgcolor: "#fff7df",
+                    bgcolor: "#3a3a3a",
                   },
                 }}
               >
                 <Box
                   component="img"
-                  src="/imagem/logopizzatto.png"
+                  src="/imagem/logopizzattolog.png"
                   alt="Pizzattolog"
                   sx={{
                     width: "100%",

@@ -6,14 +6,12 @@ import Alert from "@mui/material/Alert";
 import Avatar from "@mui/material/Avatar";
 import Box from "@mui/material/Box";
 import Button from "@mui/material/Button";
-import Checkbox from "@mui/material/Checkbox";
 import Chip from "@mui/material/Chip";
 import CircularProgress from "@mui/material/CircularProgress";
 import Dialog from "@mui/material/Dialog";
 import DialogActions from "@mui/material/DialogActions";
 import DialogContent from "@mui/material/DialogContent";
 import DialogTitle from "@mui/material/DialogTitle";
-import Divider from "@mui/material/Divider";
 import FormControlLabel from "@mui/material/FormControlLabel";
 import IconButton from "@mui/material/IconButton";
 import InputAdornment from "@mui/material/InputAdornment";
@@ -21,6 +19,7 @@ import MenuItem from "@mui/material/MenuItem";
 import Pagination from "@mui/material/Pagination";
 import Paper from "@mui/material/Paper";
 import Stack from "@mui/material/Stack";
+import Switch from "@mui/material/Switch";
 import TextField from "@mui/material/TextField";
 import ToggleButton from "@mui/material/ToggleButton";
 import ToggleButtonGroup from "@mui/material/ToggleButtonGroup";
@@ -34,7 +33,7 @@ import {
   KeyRound,
   Mail,
   Pencil,
-  PlusCircle,
+  Plus,
   RefreshCcw,
   Search,
   ShieldCheck,
@@ -42,7 +41,7 @@ import {
   UserCog,
   UserRound,
   UsersRound,
-  XCircle,
+  X,
 } from "lucide-react";
 
 import { AppLayout } from "@/components/layout/app-layout";
@@ -92,6 +91,13 @@ type FormState = {
   isActive: boolean;
 };
 
+type ConfirmAction =
+  | {
+      type: "delete" | "reset-password";
+      user: User;
+    }
+  | null;
+
 const initialFormState: FormState = {
   name: "",
   email: "",
@@ -111,39 +117,39 @@ const roleMeta: Record<
   ADMIN: {
     label: "Admin",
     accent: "#7c3aed",
-    softColor: "#f3e8ff",
+    softColor: "#f5f3ff",
     chipSx: {
-      bgcolor: "#f3e8ff",
+      bgcolor: "#f5f3ff",
       color: "#6d28d9",
       borderColor: "#ddd6fe",
     },
   },
-  "GESTAO": {
+  GESTAO: {
     label: "Gestão",
     accent: crmPalette.blue,
-    softColor: "#eaf4ff",
+    softColor: "#eff6ff",
     chipSx: {
-      bgcolor: "#eaf4ff",
-      color: "#1d5f99",
+      bgcolor: "#eff6ff",
+      color: "#1d4ed8",
       borderColor: "#bfdbfe",
     },
   },
   COMERCIAL: {
     label: "Comercial",
     accent: crmPalette.orange,
-    softColor: "#fff0e8",
+    softColor: "#fff7ed",
     chipSx: {
-      bgcolor: "#fff0e8",
+      bgcolor: "#fff7ed",
       color: crmPalette.orangeDark,
-      borderColor: "#fed7c3",
+      borderColor: "#fed7aa",
     },
   },
   OPERACAO: {
     label: "Operação",
     accent: "#0f766e",
-    softColor: "#ccfbf1",
+    softColor: "#f0fdfa",
     chipSx: {
-      bgcolor: "#ccfbf1",
+      bgcolor: "#f0fdfa",
       color: "#0f766e",
       borderColor: "#99f6e4",
     },
@@ -151,9 +157,9 @@ const roleMeta: Record<
   MARKETING: {
     label: "Marketing",
     accent: "#db2777",
-    softColor: "#fce7f3",
+    softColor: "#fdf2f8",
     chipSx: {
-      bgcolor: "#fce7f3",
+      bgcolor: "#fdf2f8",
       color: "#be185d",
       borderColor: "#fbcfe8",
     },
@@ -170,76 +176,38 @@ const roleMeta: Record<
   },
 };
 
-const textFieldSx = {
+const fieldSx = {
   "& .MuiOutlinedInput-root": {
-    minHeight: 50,
-    borderRadius: "14px",
+    minHeight: 48,
+    borderRadius: "12px",
     bgcolor: "#ffffff",
   },
   "& .MuiInputBase-input": {
-    fontSize: 16,
+    fontSize: 14,
     fontWeight: 700,
   },
   "& .MuiInputLabel-root": {
     fontSize: 14,
-    fontWeight: 800,
+    fontWeight: 700,
   },
-};
-
-const modalSectionTitleSx = {
-  color: crmPalette.text,
-  fontSize: 18,
-  fontWeight: 900,
-  lineHeight: 1.2,
-};
-
-const modalSectionTextSx = {
-  mt: 0.75,
-  color: crmPalette.muted,
-  fontSize: 15,
-  lineHeight: 1.5,
 };
 
 const filterFieldSx = {
   "& .MuiOutlinedInput-root": {
-    height: 52,
-    minHeight: 52,
-    borderRadius: "10px",
+    minHeight: 48,
+    borderRadius: "12px",
     bgcolor: "#ffffff",
-    alignItems: "center",
-  },
-  "& .MuiInputBase-input": {
-    height: "auto",
-    paddingTop: 0,
-    paddingBottom: 0,
-  },
-  "& .MuiSelect-select": {
-    display: "flex",
-    alignItems: "center",
-    height: "100% !important",
-    paddingTop: "0 !important",
-    paddingBottom: "0 !important",
-  },
-  "& .MuiInputAdornment-root": {
-    height: 24,
-    maxHeight: 24,
-    alignItems: "center",
   },
   "& .MuiInputLabel-root": {
-    fontWeight: 800,
+    fontWeight: 700,
   },
 };
 
 function getInitials(name: string) {
   const parts = name.trim().split(" ").filter(Boolean);
 
-  if (parts.length === 0) {
-    return "US";
-  }
-
-  if (parts.length === 1) {
-    return parts[0].slice(0, 2).toUpperCase();
-  }
+  if (parts.length === 0) return "US";
+  if (parts.length === 1) return parts[0].slice(0, 2).toUpperCase();
 
   return `${parts[0][0] ?? ""}${parts[1][0] ?? ""}`.toUpperCase();
 }
@@ -250,13 +218,16 @@ function getRoleLabel(role: UserRole) {
 
 export default function UsersPage() {
   const { user: currentUser, refreshUser } = useAuth();
+
   const [users, setUsers] = useState<User[]>([]);
   const [screenPermissions, setScreenPermissions] = useState<
     RoleScreenPermissionsGroup[]
   >([]);
+
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
   const [savingPermissions, setSavingPermissions] = useState(false);
+  const [confirmLoading, setConfirmLoading] = useState(false);
 
   const [search, setSearch] = useState("");
   const [roleFilter, setRoleFilter] = useState<"TODOS" | UserRole>("TODOS");
@@ -273,7 +244,7 @@ export default function UsersPage() {
 
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [editingUser, setEditingUser] = useState<User | null>(null);
-
+  const [confirmAction, setConfirmAction] = useState<ConfirmAction>(null);
   const [form, setForm] = useState<FormState>(initialFormState);
 
   const companyUsers = useMemo(
@@ -285,15 +256,18 @@ export default function UsersPage() {
     try {
       setLoading(true);
       setPageError("");
+
       const [usersData, permissionsData] = await Promise.all([
         getUsers(),
         getScreenPermissions(),
       ]);
+
       setUsers(usersData);
       setScreenPermissions(permissionsData);
     } catch (error) {
       const message =
         error instanceof Error ? error.message : "Erro ao carregar usuários";
+
       setPageError(message);
       setErrorToastMessage(message);
     } finally {
@@ -308,20 +282,14 @@ export default function UsersPage() {
   useEffect(() => {
     if (!successMessage) return;
 
-    const timer = setTimeout(() => {
-      setSuccessMessage("");
-    }, 5000);
-
+    const timer = setTimeout(() => setSuccessMessage(""), 5000);
     return () => clearTimeout(timer);
   }, [successMessage]);
 
   useEffect(() => {
     if (!errorToastMessage) return;
 
-    const timer = setTimeout(() => {
-      setErrorToastMessage("");
-    }, 6000);
-
+    const timer = setTimeout(() => setErrorToastMessage(""), 6000);
     return () => clearTimeout(timer);
   }, [errorToastMessage]);
 
@@ -346,9 +314,9 @@ export default function UsersPage() {
   }
 
   const filteredUsers = useMemo(() => {
-    return companyUsers.filter((user) => {
-      const normalizedSearch = search.trim().toLowerCase();
+    const normalizedSearch = search.trim().toLowerCase();
 
+    return companyUsers.filter((user) => {
       const matchesSearch =
         !normalizedSearch ||
         user.name.toLowerCase().includes(normalizedSearch) ||
@@ -366,7 +334,7 @@ export default function UsersPage() {
 
       return matchesSearch && matchesRole && matchesStatus;
     });
-  }, [companyUsers, search, roleFilter, statusFilter]);
+  }, [companyUsers, roleFilter, search, statusFilter]);
 
   const totalPages = Math.max(
     1,
@@ -375,13 +343,11 @@ export default function UsersPage() {
 
   const paginatedUsers = useMemo(() => {
     const start = (page - 1) * rowsPerPage;
-
     return filteredUsers.slice(start, start + rowsPerPage);
   }, [filteredUsers, page, rowsPerPage]);
 
   const paginationStart =
     filteredUsers.length === 0 ? 0 : (page - 1) * rowsPerPage + 1;
-
   const paginationEnd = Math.min(page * rowsPerPage, filteredUsers.length);
 
   useEffect(() => {
@@ -389,9 +355,7 @@ export default function UsersPage() {
   }, [roleFilter, rowsPerPage, search, statusFilter]);
 
   useEffect(() => {
-    if (page > totalPages) {
-      setPage(totalPages);
-    }
+    if (page > totalPages) setPage(totalPages);
   }, [page, totalPages]);
 
   const summary = useMemo(() => {
@@ -418,12 +382,6 @@ export default function UsersPage() {
     );
   }, [screenPermissions, selectedPermissionRole]);
 
-  const selectedEnabledCount = useMemo(() => {
-    return profilePermissionItems.filter((permissionItem) =>
-      isPermissionItemChecked(permissionItem),
-    ).length;
-  }, [selectedRolePermissions, selectedPermissionRole]);
-
   function isPermissionItemChecked(
     permissionItem: (typeof profilePermissionItems)[number],
   ) {
@@ -433,6 +391,14 @@ export default function UsersPage() {
       ? permission.isEnabled
       : permissionItem.roles.includes(selectedPermissionRole);
   }
+
+  const selectedEnabledCount = useMemo(
+    () =>
+      profilePermissionItems.filter((permissionItem) =>
+        isPermissionItemChecked(permissionItem),
+      ).length,
+    [selectedRolePermissions, selectedPermissionRole],
+  );
 
   function isProtectedAdminPermission(screenKey: string) {
     return selectedPermissionRole === "ADMIN" && screenKey === "users";
@@ -471,9 +437,7 @@ export default function UsersPage() {
 
       const updated = await updateRoleScreenPermissions(
         selectedPermissionRole,
-        {
-          screens: nextPermissions,
-        },
+        { screens: nextPermissions },
       );
 
       setScreenPermissions((prev) => {
@@ -505,10 +469,7 @@ export default function UsersPage() {
     field: K,
     value: FormState[K],
   ) {
-    setForm((prev) => ({
-      ...prev,
-      [field]: value,
-    }));
+    setForm((prev) => ({ ...prev, [field]: value }));
   }
 
   function openCreateModal() {
@@ -531,6 +492,8 @@ export default function UsersPage() {
   }
 
   function closeModal() {
+    if (saving) return;
+
     setIsModalOpen(false);
     setEditingUser(null);
     setForm(initialFormState);
@@ -538,14 +501,8 @@ export default function UsersPage() {
   }
 
   function validateForm() {
-    if (!form.name.trim()) {
-      return "Informe o nome do usuário.";
-    }
-
-    if (!form.email.trim()) {
-      return "Informe o email do usuário.";
-    }
-
+    if (!form.name.trim()) return "Informe o nome do usuário.";
+    if (!form.email.trim()) return "Informe o email do usuário.";
     return "";
   }
 
@@ -576,7 +533,9 @@ export default function UsersPage() {
         const updatedUser = await updateUser(editingUser.id, payload);
 
         setUsers((prev) =>
-          prev.map((user) => (user.id === updatedUser.id ? updatedUser : user)),
+          prev.map((user) =>
+            user.id === updatedUser.id ? updatedUser : user,
+          ),
         );
 
         setSuccessMessage("Usuário atualizado com sucesso.");
@@ -589,42 +548,22 @@ export default function UsersPage() {
         };
 
         const createdUser = await createUser(payload);
-
         setUsers((prev) => [createdUser, ...prev]);
-
         setSuccessMessage("Usuário criado com sucesso.");
       }
 
-      closeModal();
+      setIsModalOpen(false);
+      setEditingUser(null);
+      setForm(initialFormState);
     } catch (error) {
       const rawMessage =
         error instanceof Error ? error.message : "Erro ao salvar usuário";
-
       const friendlyMessage = getFriendlyErrorMessage(rawMessage);
 
       setFormError(friendlyMessage);
       setErrorToastMessage(friendlyMessage);
     } finally {
       setSaving(false);
-    }
-  }
-
-  async function handleDelete(user: User) {
-    const confirmed = window.confirm(
-      `Tem certeza que deseja excluir o usuário "${user.name}"?`,
-    );
-
-    if (!confirmed) return;
-
-    try {
-      await deleteUser(user.id);
-      setUsers((prev) => prev.filter((item) => item.id !== user.id));
-      setSuccessMessage("Usuário excluído com sucesso.");
-    } catch (error) {
-      const message =
-        error instanceof Error ? error.message : "Erro ao excluir usuário";
-
-      setErrorToastMessage(message);
     }
   }
 
@@ -635,7 +574,9 @@ export default function UsersPage() {
       });
 
       setUsers((prev) =>
-        prev.map((item) => (item.id === updatedUser.id ? updatedUser : item)),
+        prev.map((item) =>
+          item.id === updatedUser.id ? updatedUser : item,
+        ),
       );
 
       setSuccessMessage(
@@ -646,45 +587,68 @@ export default function UsersPage() {
     } catch (error) {
       const message =
         error instanceof Error ? error.message : "Erro ao alterar status";
-
       setErrorToastMessage(message);
     }
   }
 
-  async function handleResetPassword(user: User) {
+  function openDeleteDialog(user: User) {
+    setConfirmAction({ type: "delete", user });
+  }
+
+  function openResetPasswordDialog(user: User) {
     if (currentUser?.role !== "ADMIN") {
       setErrorToastMessage("Somente administradores podem redefinir senhas.");
       return;
     }
 
-    const confirmed = window.confirm(
-      `Redefinir a senha de "${user.name}" para a senha padrão do sistema?`,
-    );
+    setConfirmAction({ type: "reset-password", user });
+  }
 
-    if (!confirmed) return;
+  async function handleConfirmAction() {
+    if (!confirmAction) return;
 
     try {
-      const updatedUser = await resetUserPassword(user.id);
+      setConfirmLoading(true);
 
-      setUsers((prev) =>
-        prev.map((item) => (item.id === updatedUser.id ? updatedUser : item)),
-      );
+      if (confirmAction.type === "delete") {
+        await deleteUser(confirmAction.user.id);
+        setUsers((prev) =>
+          prev.filter((item) => item.id !== confirmAction.user.id),
+        );
+        setSuccessMessage("Usuário excluído com sucesso.");
+      } else {
+        const updatedUser = await resetUserPassword(confirmAction.user.id);
 
-      setSuccessMessage(
-        "Senha redefinida. O usuário deverá alterar a senha no próximo acesso.",
-      );
+        setUsers((prev) =>
+          prev.map((item) =>
+            item.id === updatedUser.id ? updatedUser : item,
+          ),
+        );
+
+        setSuccessMessage(
+          "Senha redefinida. O usuário deverá alterar a senha no próximo acesso.",
+        );
+      }
+
+      setConfirmAction(null);
     } catch (error) {
-      const message =
-        error instanceof Error ? error.message : "Erro ao redefinir senha.";
-
+      const fallback =
+        confirmAction.type === "delete"
+          ? "Erro ao excluir usuário"
+          : "Erro ao redefinir senha";
+      const message = error instanceof Error ? error.message : fallback;
       setErrorToastMessage(message);
+    } finally {
+      setConfirmLoading(false);
     }
   }
 
   function renderStatusChip(isActive: boolean) {
     return (
       <Chip
-        icon={isActive ? <CheckCircle2 size={14} /> : <CircleOff size={14} />}
+        icon={
+          isActive ? <CheckCircle2 size={14} /> : <CircleOff size={14} />
+        }
         label={isActive ? "Ativo" : "Inativo"}
         size="small"
         variant="outlined"
@@ -696,9 +660,7 @@ export default function UsersPage() {
           borderColor: isActive ? "#bbf7d0" : "#fecaca",
           fontSize: 12,
           fontWeight: 900,
-          "& .MuiChip-icon": {
-            color: "inherit",
-          },
+          "& .MuiChip-icon": { color: "inherit" },
         }}
       />
     );
@@ -732,15 +694,13 @@ export default function UsersPage() {
             aria-label={`Editar ${user.name}`}
             onClick={() => openEditModal(user)}
             sx={{
-              width: 36,
-              height: 36,
+              width: 38,
+              height: 38,
               border: `1px solid ${crmPalette.border}`,
               borderRadius: "10px",
               color: crmPalette.text,
               bgcolor: "#ffffff",
-              "&:hover": {
-                bgcolor: "#f8fafc",
-              },
+              "&:hover": { bgcolor: "#f8fafc" },
             }}
           >
             <Pencil size={16} />
@@ -753,15 +713,13 @@ export default function UsersPage() {
             aria-label={user.isActive ? "Inativar usuário" : "Ativar usuário"}
             onClick={() => handleToggleStatus(user)}
             sx={{
-              width: 36,
-              height: 36,
+              width: 38,
+              height: 38,
               border: "1px solid #bfdbfe",
               borderRadius: "10px",
               color: crmPalette.blue,
               bgcolor: "#eff6ff",
-              "&:hover": {
-                bgcolor: "#dbeafe",
-              },
+              "&:hover": { bgcolor: "#dbeafe" },
             }}
           >
             {user.isActive ? <CircleOff size={16} /> : <BadgeCheck size={16} />}
@@ -773,17 +731,15 @@ export default function UsersPage() {
             <IconButton
               type="button"
               aria-label={`Redefinir senha de ${user.name}`}
-              onClick={() => handleResetPassword(user)}
+              onClick={() => openResetPasswordDialog(user)}
               sx={{
-                width: 36,
-                height: 36,
+                width: 38,
+                height: 38,
                 border: "1px solid #fed7aa",
                 borderRadius: "10px",
                 color: crmPalette.orangeDark,
                 bgcolor: "#fff7ed",
-                "&:hover": {
-                  bgcolor: "#ffedd5",
-                },
+                "&:hover": { bgcolor: "#ffedd5" },
               }}
             >
               <KeyRound size={16} />
@@ -795,17 +751,15 @@ export default function UsersPage() {
           <IconButton
             type="button"
             aria-label={`Excluir ${user.name}`}
-            onClick={() => handleDelete(user)}
+            onClick={() => openDeleteDialog(user)}
             sx={{
-              width: 36,
-              height: 36,
+              width: 38,
+              height: 38,
               border: "1px solid #fecaca",
               borderRadius: "10px",
               color: "#b91c1c",
               bgcolor: "#fef2f2",
-              "&:hover": {
-                bgcolor: "#fee2e2",
-              },
+              "&:hover": { bgcolor: "#fee2e2" },
             }}
           >
             <Trash2 size={16} />
@@ -821,15 +775,14 @@ export default function UsersPage() {
         key={user.id}
         elevation={0}
         sx={{
-          px: { xs: 2, md: 2.5 },
-          py: 2,
+          p: { xs: 2, md: 2.25 },
           border: `1px solid ${crmPalette.border}`,
-          borderRadius: "12px",
+          borderRadius: "14px",
           bgcolor: "#ffffff",
           transition: "border-color 160ms ease, box-shadow 160ms ease",
           "&:hover": {
             borderColor: "#fed7c3",
-            boxShadow: "0 12px 30px rgba(15, 23, 42, 0.07)",
+            boxShadow: "0 10px 28px rgba(15, 23, 42, 0.06)",
           },
         }}
       >
@@ -841,16 +794,18 @@ export default function UsersPage() {
             justifyContent: "space-between",
           }}
         >
-          <Stack direction="row" spacing={1.75} sx={{ minWidth: 0, flex: 1 }}>
+          <Stack
+            direction="row"
+            spacing={1.75}
+            sx={{ minWidth: 0, flex: 1, alignItems: "center" }}
+          >
             <Avatar
-              variant="rounded"
               sx={{
-                width: 56,
-                height: 56,
-                borderRadius: "999px",
+                width: 50,
+                height: 50,
                 bgcolor: "#fff0e8",
-                color: crmPalette.orange,
-                fontSize: 15,
+                color: crmPalette.orangeDark,
+                fontSize: 14,
                 fontWeight: 900,
                 flexShrink: 0,
               }}
@@ -862,13 +817,14 @@ export default function UsersPage() {
               <Stack
                 direction="row"
                 spacing={1}
-                sx={{ alignItems: "center", flexWrap: "wrap", rowGap: 0.75 }}
+                useFlexGap
+                sx={{ alignItems: "center", flexWrap: "wrap" }}
               >
                 <Typography
                   component="h3"
                   sx={{
-                    color: "#020617",
-                    fontSize: { xs: 16, md: 18 },
+                    color: crmPalette.text,
+                    fontSize: { xs: 15, md: 16 },
                     fontWeight: 900,
                     lineHeight: 1.25,
                     overflowWrap: "anywhere",
@@ -883,15 +839,19 @@ export default function UsersPage() {
 
               <Stack
                 direction={{ xs: "column", sm: "row" }}
-                spacing={{ xs: 0.75, sm: 2 }}
+                spacing={{ xs: 0.6, sm: 2 }}
                 sx={{ mt: 1, color: crmPalette.muted }}
               >
-                <Stack direction="row" spacing={0.75} sx={{ alignItems: "center", minWidth: 0 }}>
-                  <Mail size={17} />
+                <Stack
+                  direction="row"
+                  spacing={0.75}
+                  sx={{ alignItems: "center", minWidth: 0 }}
+                >
+                  <Mail size={16} />
                   <Typography
                     sx={{
                       color: crmPalette.muted,
-                      fontSize: 14,
+                      fontSize: 13,
                       overflowWrap: "anywhere",
                     }}
                   >
@@ -899,12 +859,16 @@ export default function UsersPage() {
                   </Typography>
                 </Stack>
 
-                <Stack direction="row" spacing={0.75} sx={{ alignItems: "center", minWidth: 0 }}>
-                  <KeyRound size={17} />
+                <Stack
+                  direction="row"
+                  spacing={0.75}
+                  sx={{ alignItems: "center", minWidth: 0 }}
+                >
+                  <KeyRound size={16} />
                   <Typography
                     sx={{
                       color: crmPalette.muted,
-                      fontSize: 14,
+                      fontSize: 13,
                       overflowWrap: "anywhere",
                     }}
                   >
@@ -921,13 +885,15 @@ export default function UsersPage() {
     );
   }
 
+  const confirmIsDelete = confirmAction?.type === "delete";
+
   return (
     <AppLayout>
       <CrmPageShell>
         <CrmPageHeader
           eyebrow="Administração"
           title="Gestão de usuários"
-          description="Controle perfis, status de acesso e telas disponíveis para cada tipo de usuário."
+          description="Controle usuários, perfis, status de acesso e permissões do portal."
           icon={<UserCog size={30} />}
           aside={
             <Stack
@@ -949,6 +915,8 @@ export default function UsersPage() {
                 sx={{
                   minHeight: 44,
                   borderRadius: "10px",
+                  px: 2,
+                  textTransform: "none",
                   fontWeight: 800,
                 }}
               >
@@ -957,17 +925,19 @@ export default function UsersPage() {
 
               <Button
                 variant="contained"
-                startIcon={<PlusCircle size={17} />}
+                startIcon={<Plus size={17} />}
                 onClick={openCreateModal}
                 sx={{
                   minHeight: 44,
                   borderRadius: "10px",
                   px: 2.25,
                   bgcolor: crmPalette.orange,
-                  fontWeight: 800,
-                  boxShadow: "0 12px 24px rgba(255,77,0,0.20)",
+                  textTransform: "none",
+                  fontWeight: 900,
+                  boxShadow: "none",
                   "&:hover": {
                     bgcolor: crmPalette.orangeDark,
+                    boxShadow: "none",
                   },
                 }}
               >
@@ -986,7 +956,6 @@ export default function UsersPage() {
               xl: "repeat(4, minmax(0, 1fr))",
             },
             gap: 2,
-            alignItems: "stretch",
           }}
         >
           <CrmKpiCard
@@ -994,7 +963,7 @@ export default function UsersPage() {
             value={summary.total}
             icon={<UsersRound size={22} />}
             accent={crmPalette.blue}
-            softColor="#eaf4ff"
+            softColor="#eff6ff"
           />
 
           <CrmKpiCard
@@ -1037,18 +1006,13 @@ export default function UsersPage() {
             <Box>
               <Typography
                 component="h2"
-                sx={{
-                  color: crmPalette.text,
-                  fontSize: 18,
-                  fontWeight: 900,
-                }}
+                sx={{ color: crmPalette.text, fontSize: 18, fontWeight: 900 }}
               >
-                Telas por perfil
+                Permissões por perfil
               </Typography>
 
               <Typography sx={{ mt: 0.4, color: crmPalette.muted, fontSize: 13 }}>
-                Configure quais áreas do portal ficam disponíveis para cada
-                perfil de acesso.
+                Defina quais áreas do portal ficam disponíveis para cada perfil.
               </Typography>
             </Box>
 
@@ -1057,9 +1021,7 @@ export default function UsersPage() {
               size="small"
               value={selectedPermissionRole}
               onChange={(_, value: UserRole | null) => {
-                if (value) {
-                  setSelectedPermissionRole(value);
-                }
+                if (value) setSelectedPermissionRole(value);
               }}
               sx={{
                 display: "flex",
@@ -1093,7 +1055,7 @@ export default function UsersPage() {
           <Box
             sx={{
               display: "grid",
-              gridTemplateColumns: { xs: "1fr", xl: "280px 1fr" },
+              gridTemplateColumns: { xs: "1fr", xl: "260px 1fr" },
               gap: 2,
               p: { xs: 2, md: 2.5 },
             }}
@@ -1103,7 +1065,7 @@ export default function UsersPage() {
               sx={{
                 p: 2,
                 border: `1px solid ${crmPalette.border}`,
-                borderRadius: "12px",
+                borderRadius: "14px",
                 bgcolor: roleMeta[selectedPermissionRole].softColor,
               }}
             >
@@ -1111,24 +1073,20 @@ export default function UsersPage() {
                 <Avatar
                   variant="rounded"
                   sx={{
-                    width: 46,
-                    height: 46,
+                    width: 44,
+                    height: 44,
                     borderRadius: "12px",
                     bgcolor: "#ffffff",
                     color: roleMeta[selectedPermissionRole].accent,
                     border: `1px solid ${roleMeta[selectedPermissionRole].accent}30`,
                   }}
                 >
-                  <ShieldCheck size={22} />
+                  <ShieldCheck size={21} />
                 </Avatar>
 
                 <Box>
                   <Typography
-                    sx={{
-                      color: crmPalette.text,
-                      fontSize: 15,
-                      fontWeight: 900,
-                    }}
+                    sx={{ color: crmPalette.text, fontSize: 15, fontWeight: 900 }}
                   >
                     Perfil {getRoleLabel(selectedPermissionRole)}
                   </Typography>
@@ -1141,14 +1099,14 @@ export default function UsersPage() {
                       lineHeight: 1.5,
                     }}
                   >
-                    {selectedEnabledCount} de {profilePermissionItems.length}{" "}
-                    telas habilitadas.
+                    {selectedEnabledCount} de {profilePermissionItems.length} telas
+                    habilitadas.
                   </Typography>
                 </Box>
 
                 {savingPermissions ? (
                   <Stack direction="row" spacing={1} sx={{ alignItems: "center" }}>
-                    <CircularProgress size={16} />
+                    <CircularProgress size={15} />
                     <Typography sx={{ color: crmPalette.muted, fontSize: 12 }}>
                       Salvando permissões...
                     </Typography>
@@ -1185,9 +1143,8 @@ export default function UsersPage() {
                       gap: 1.25,
                       alignItems: "center",
                       justifyContent: "space-between",
-                      minHeight: 76,
-                      border: `1px solid ${checked ? "#fed7c3" : crmPalette.border
-                        }`,
+                      minHeight: 74,
+                      border: `1px solid ${checked ? "#fed7c3" : crmPalette.border}`,
                       borderRadius: "12px",
                       bgcolor: checked ? "#fffaf7" : "#ffffff",
                       cursor:
@@ -1210,7 +1167,7 @@ export default function UsersPage() {
 
                       <Typography
                         sx={{
-                          mt: 0.5,
+                          mt: 0.45,
                           color: checked ? crmPalette.orangeDark : crmPalette.muted,
                           fontSize: 12,
                         }}
@@ -1223,16 +1180,19 @@ export default function UsersPage() {
                       </Typography>
                     </Box>
 
-                    <Checkbox
+                    <Switch
+                      size="small"
                       checked={checked}
                       disabled={isProtected || savingPermissions}
                       onChange={() =>
                         handleTogglePermissionItem(permissionItem.key)
                       }
                       sx={{
-                        color: crmPalette.border,
-                        "&.Mui-checked": {
+                        "& .MuiSwitch-switchBase.Mui-checked": {
                           color: crmPalette.orange,
+                        },
+                        "& .MuiSwitch-switchBase.Mui-checked + .MuiSwitch-track": {
+                          bgcolor: crmPalette.orange,
                         },
                       }}
                     />
@@ -1244,67 +1204,81 @@ export default function UsersPage() {
         </CrmSection>
 
         <CrmSection sx={{ p: { xs: 2, md: 2.5 } }}>
-          <Box
-            sx={{
-              display: "grid",
-              gridTemplateColumns: {
-                xs: "1fr",
-                md: "minmax(0, 1.4fr) minmax(180px, .75fr) minmax(180px, .75fr)",
-              },
-              gap: 2,
-            }}
-          >
-            <TextField
-              fullWidth
-              label="Buscar usuário"
-              value={search}
-              onChange={(event) => setSearch(event.target.value)}
-              placeholder="Nome ou email"
-              slotProps={{
-                input: {
-                  startAdornment: (
-                    <InputAdornment position="start">
-                      <Search size={18} />
-                    </InputAdornment>
-                  ),
+          <Stack spacing={1.5}>
+            <Box>
+              <Typography
+                component="h2"
+                sx={{ color: crmPalette.text, fontSize: 18, fontWeight: 900 }}
+              >
+                Filtros
+              </Typography>
+              <Typography sx={{ mt: 0.35, color: crmPalette.muted, fontSize: 13 }}>
+                Encontre usuários por nome, e-mail, perfil ou status.
+              </Typography>
+            </Box>
+
+            <Box
+              sx={{
+                display: "grid",
+                gridTemplateColumns: {
+                  xs: "1fr",
+                  md: "minmax(0, 1.4fr) minmax(180px, .75fr) minmax(180px, .75fr)",
                 },
+                gap: 1.5,
               }}
-              sx={filterFieldSx}
-            />
-
-            <TextField
-              select
-              fullWidth
-              label="Perfil"
-              value={roleFilter}
-              onChange={(event) =>
-                setRoleFilter(event.target.value as "TODOS" | UserRole)
-              }
-              sx={filterFieldSx}
             >
-              <MenuItem value="TODOS">Todos os perfis</MenuItem>
-              {roles.map((role) => (
-                <MenuItem key={role} value={role}>
-                  {getRoleLabel(role)}
-                </MenuItem>
-              ))}
-            </TextField>
+              <TextField
+                fullWidth
+                label="Buscar usuário"
+                value={search}
+                onChange={(event) => setSearch(event.target.value)}
+                placeholder="Nome ou email"
+                slotProps={{
+                  input: {
+                    startAdornment: (
+                      <InputAdornment position="start">
+                        <Search size={18} />
+                      </InputAdornment>
+                    ),
+                  },
+                }}
+                sx={filterFieldSx}
+              />
 
-            <TextField
-              select
-              fullWidth
-              label="Status"
-              value={statusFilter}
-              onChange={(event) =>
-                setStatusFilter(event.target.value as StatusFilter)
-              }
-              sx={filterFieldSx}
-            >
-              <MenuItem value="TODOS">Todos os status</MenuItem>
-              <MenuItem value="ATIVO">Ativos</MenuItem>
-              <MenuItem value="INATIVO">Inativos</MenuItem>
-            </TextField>
-          </Box>
+              <TextField
+                select
+                fullWidth
+                label="Perfil"
+                value={roleFilter}
+                onChange={(event) =>
+                  setRoleFilter(event.target.value as "TODOS" | UserRole)
+                }
+                sx={filterFieldSx}
+              >
+                <MenuItem value="TODOS">Todos os perfis</MenuItem>
+                {roles.map((role) => (
+                  <MenuItem key={role} value={role}>
+                    {getRoleLabel(role)}
+                  </MenuItem>
+                ))}
+              </TextField>
+
+              <TextField
+                select
+                fullWidth
+                label="Status"
+                value={statusFilter}
+                onChange={(event) =>
+                  setStatusFilter(event.target.value as StatusFilter)
+                }
+                sx={filterFieldSx}
+              >
+                <MenuItem value="TODOS">Todos os status</MenuItem>
+                <MenuItem value="ATIVO">Ativos</MenuItem>
+                <MenuItem value="INATIVO">Inativos</MenuItem>
+              </TextField>
+            </Box>
+          </Stack>
         </CrmSection>
 
         <CrmSection>
@@ -1322,17 +1296,12 @@ export default function UsersPage() {
             <Box>
               <Typography
                 component="h2"
-                sx={{
-                  color: crmPalette.text,
-                  fontSize: 18,
-                  fontWeight: 900,
-                }}
+                sx={{ color: crmPalette.text, fontSize: 18, fontWeight: 900 }}
               >
-                Lista de usuários
+                Usuários cadastrados
               </Typography>
-
               <Typography sx={{ mt: 0.4, color: crmPalette.muted, fontSize: 13 }}>
-                Visualize e gerencie os usuários cadastrados.
+                Visualize e gerencie os acessos da equipe.
               </Typography>
             </Box>
 
@@ -1383,14 +1352,14 @@ export default function UsersPage() {
                 px: 2,
               }}
             >
-              <UsersRound size={28} />
+              <UsersRound size={30} />
               <Typography sx={{ fontSize: 14, fontWeight: 800 }}>
                 Nenhum usuário encontrado com os filtros aplicados.
               </Typography>
             </Stack>
           ) : (
             <>
-              <Stack spacing={1.5} sx={{ p: { xs: 2, md: 2.5 } }}>
+              <Stack spacing={1.25} sx={{ p: { xs: 2, md: 2.5 } }}>
                 {paginatedUsers.map((user) => renderUserCard(user))}
               </Stack>
 
@@ -1407,14 +1376,9 @@ export default function UsersPage() {
                 }}
               >
                 <Typography
-                  sx={{
-                    color: crmPalette.muted,
-                    fontSize: 13,
-                    fontWeight: 700,
-                  }}
+                  sx={{ color: crmPalette.muted, fontSize: 13, fontWeight: 700 }}
                 >
-                  Mostrando {paginationStart}-{paginationEnd} de{" "}
-                  {filteredUsers.length}
+                  Mostrando {paginationStart}-{paginationEnd} de {filteredUsers.length}
                 </Typography>
 
                 <Stack
@@ -1468,20 +1432,16 @@ export default function UsersPage() {
 
         <Dialog
           open={isModalOpen}
-          onClose={() => {
-            if (!saving) {
-              closeModal();
-            }
-          }}
+          onClose={closeModal}
           fullWidth
           maxWidth="md"
-          sx={{
-            "& .MuiDialog-paper": {
-              width: "100%",
-              maxWidth: 750,
-              borderRadius: "14px",
-              overflow: "hidden",
-              boxShadow: "0 28px 80px rgba(15, 23, 42, 0.24)",
+          slotProps={{
+            paper: {
+              sx: {
+                borderRadius: "18px",
+                overflow: "hidden",
+                boxShadow: "0 24px 70px rgba(15, 23, 42, 0.20)",
+              },
             },
           }}
         >
@@ -1490,29 +1450,28 @@ export default function UsersPage() {
               component="div"
               sx={{
                 px: { xs: 2.5, md: 3 },
-                py: 2.5,
-                bgcolor: "#fff7f2",
+                py: 2.25,
+                bgcolor: "#ffffff",
                 borderBottom: `1px solid ${crmPalette.border}`,
               }}
             >
               <Stack
                 direction="row"
                 spacing={2}
-                sx={{
-                  alignItems: "center",
-                  justifyContent: "space-between",
-                }}
+                sx={{ alignItems: "center", justifyContent: "space-between" }}
               >
-                <Stack direction="row" spacing={2} sx={{ alignItems: "center" }}>
+                <Stack direction="row" spacing={1.5} sx={{ alignItems: "center" }}>
                   <Avatar
+                    variant="rounded"
                     sx={{
-                      width: 52,
-                      height: 52,
-                      bgcolor: "#ffe4d6",
+                      width: 44,
+                      height: 44,
+                      borderRadius: "12px",
+                      bgcolor: "#fff0e8",
                       color: crmPalette.orange,
                     }}
                   >
-                    <UserRound size={25} />
+                    <UserRound size={22} />
                   </Avatar>
 
                   <Box>
@@ -1520,24 +1479,19 @@ export default function UsersPage() {
                       component="h2"
                       sx={{
                         color: crmPalette.text,
-                        fontSize: { xs: 22, md: 25 },
+                        fontSize: { xs: 19, md: 21 },
                         fontWeight: 900,
-                        lineHeight: 1.15,
+                        lineHeight: 1.2,
                       }}
                     >
-                      {editingUser ? "Editar usuário" : "Criar novo usuário"}
+                      {editingUser ? "Editar usuário" : "Novo usuário"}
                     </Typography>
 
                     <Typography
-                      sx={{
-                        mt: 0.75,
-                        color: "#666666",
-                        fontSize: { xs: 14, md: 18 },
-                        lineHeight: 1.25,
-                      }}
+                      sx={{ mt: 0.35, color: crmPalette.muted, fontSize: 13 }}
                     >
                       {editingUser
-                        ? "Atualize os dados e permissões deste acesso."
+                        ? "Atualize os dados e as configurações deste acesso."
                         : "Preencha os dados para cadastrar um novo acesso."}
                     </Typography>
                   </Box>
@@ -1549,37 +1503,43 @@ export default function UsersPage() {
                   disabled={saving}
                   onClick={closeModal}
                   sx={{
-                    flexShrink: 0,
-                    color: "#737373",
-                    "&:hover": {
-                      bgcolor: "#fff0e8",
-                      color: crmPalette.text,
-                    },
+                    width: 38,
+                    height: 38,
+                    bgcolor: "#f8fafc",
+                    color: crmPalette.muted,
+                    "&:hover": { bgcolor: "#f1f5f9" },
                   }}
                 >
-                  <XCircle size={27} />
+                  <X size={19} />
                 </IconButton>
               </Stack>
             </DialogTitle>
 
-            <DialogContent
-              sx={{
-                px: { xs: 2.5, md: 3 },
-                py: 0,
-                bgcolor: "#ffffff",
-              }}
-            >
-              <Stack spacing={0}>
-                <Box sx={{ py: 2.5 }}>
-                  <Typography sx={modalSectionTitleSx}>
-                    Dados pessoais
-                  </Typography>
+            <DialogContent sx={{ p: { xs: 2.5, md: 3 }, bgcolor: "#f8fafc" }}>
+              <Stack spacing={2}>
+                <Paper
+                  elevation={0}
+                  sx={{
+                    p: { xs: 2, md: 2.5 },
+                    border: `1px solid ${crmPalette.border}`,
+                    borderRadius: "14px",
+                    bgcolor: "#ffffff",
+                  }}
+                >
+                  <Stack spacing={2}>
+                    <Box>
+                      <Typography
+                        sx={{ color: crmPalette.text, fontSize: 15, fontWeight: 900 }}
+                      >
+                        Dados do usuário
+                      </Typography>
+                      <Typography
+                        sx={{ mt: 0.35, color: crmPalette.muted, fontSize: 12.5 }}
+                      >
+                        Informe nome e e-mail corporativo.
+                      </Typography>
+                    </Box>
 
-                  <Typography sx={modalSectionTextSx}>
-                    Informe o nome e o e-mail do usuário.
-                  </Typography>
-
-                  <Stack spacing={2.5} sx={{ mt: 3 }}>
                     <TextField
                       fullWidth
                       required
@@ -1592,12 +1552,12 @@ export default function UsersPage() {
                         input: {
                           startAdornment: (
                             <InputAdornment position="start">
-                              <UserRound size={19} />
+                              <UserRound size={18} />
                             </InputAdornment>
                           ),
                         },
                       }}
-                      sx={textFieldSx}
+                      sx={fieldSx}
                     />
 
                     <TextField
@@ -1613,28 +1573,39 @@ export default function UsersPage() {
                         input: {
                           startAdornment: (
                             <InputAdornment position="start">
-                              <Mail size={20} />
+                              <Mail size={18} />
                             </InputAdornment>
                           ),
                         },
                       }}
-                      sx={textFieldSx}
+                      sx={fieldSx}
                     />
                   </Stack>
-                </Box>
+                </Paper>
 
-                <Divider />
+                <Paper
+                  elevation={0}
+                  sx={{
+                    p: { xs: 2, md: 2.5 },
+                    border: `1px solid ${crmPalette.border}`,
+                    borderRadius: "14px",
+                    bgcolor: "#ffffff",
+                  }}
+                >
+                  <Stack spacing={2}>
+                    <Box>
+                      <Typography
+                        sx={{ color: crmPalette.text, fontSize: 15, fontWeight: 900 }}
+                      >
+                        Acesso e perfil
+                      </Typography>
+                      <Typography
+                        sx={{ mt: 0.35, color: crmPalette.muted, fontSize: 12.5 }}
+                      >
+                        Defina o perfil de acesso do usuário.
+                      </Typography>
+                    </Box>
 
-                <Box sx={{ py: 3 }}>
-                  <Typography sx={modalSectionTitleSx}>
-                    Permissões de acesso
-                  </Typography>
-
-                  <Typography sx={modalSectionTextSx}>
-                    Selecione o perfil que será atribuído ao usuário.
-                  </Typography>
-
-                  <Stack spacing={2.5} sx={{ mt: 3 }}>
                     <TextField
                       select
                       fullWidth
@@ -1648,25 +1619,16 @@ export default function UsersPage() {
                         input: {
                           startAdornment: (
                             <InputAdornment position="start">
-                              <ShieldCheck size={20} />
+                              <ShieldCheck size={18} />
                             </InputAdornment>
                           ),
                         },
                       }}
-                      sx={{
-                        ...textFieldSx,
-                        "& .MuiOutlinedInput-root": {
-                          ...textFieldSx["& .MuiOutlinedInput-root"],
-                          "&.Mui-focused fieldset": {
-                            borderColor: crmPalette.orange,
-                            borderWidth: 2,
-                          },
-                        },
-                      }}
+                      sx={fieldSx}
                     >
                       {roles.map((role) => (
                         <MenuItem key={role} value={role}>
-                          {role}
+                          {getRoleLabel(role)}
                         </MenuItem>
                       ))}
                     </TextField>
@@ -1676,28 +1638,25 @@ export default function UsersPage() {
                         elevation={0}
                         sx={{
                           px: 1.5,
-                          minHeight: 52,
-                          display: "flex",
-                          alignItems: "center",
+                          py: 0.75,
                           border: `1px solid ${crmPalette.border}`,
                           borderRadius: "12px",
-                          bgcolor: "#ffffff",
+                          bgcolor: "#f8fafc",
                         }}
                       >
                         <FormControlLabel
                           control={
-                            <Checkbox
+                            <Switch
                               checked={form.isActive}
                               onChange={(event) =>
-                                handleFieldChange(
-                                  "isActive",
-                                  event.target.checked,
-                                )
+                                handleFieldChange("isActive", event.target.checked)
                               }
                               sx={{
-                                color: crmPalette.border,
-                                "&.Mui-checked": {
+                                "& .MuiSwitch-switchBase.Mui-checked": {
                                   color: crmPalette.green,
+                                },
+                                "& .MuiSwitch-switchBase.Mui-checked + .MuiSwitch-track": {
+                                  bgcolor: crmPalette.green,
                                 },
                               }}
                             />
@@ -1717,61 +1676,47 @@ export default function UsersPage() {
 
                     <Alert
                       severity="info"
-                      icon={false}
                       sx={{
-                        border: "1px solid #bae6fd",
                         borderRadius: "10px",
-                        bgcolor: "#eef8ff",
-                        color: "#666666",
-                        fontSize: 18,
-                        lineHeight: 1.35,
-                        "& .MuiAlert-message": {
-                          py: 0.25,
-                        },
+                        fontSize: 13,
+                        alignItems: "center",
                       }}
                     >
                       {editingUser
-                        ? "Use a opção de redefinição de senha na lista de usuários quando precisar gerar uma nova senha padrão."
-                        : "O usuário será criado com a senha padrão definida pelo sistema. Ela poderá ser alterada posteriormente pela opção de redefinição de senha."}
+                        ? "Para gerar uma nova senha padrão, use a ação Redefinir senha na lista de usuários."
+                        : "O usuário será criado com a senha padrão definida pelo sistema."}
                     </Alert>
                   </Stack>
+                </Paper>
 
-                  {formError ? (
-                    <Alert severity="error" sx={{ mt: 2, borderRadius: "10px" }}>
-                      {formError}
-                    </Alert>
-                  ) : null}
-                </Box>
+                {formError ? (
+                  <Alert severity="error" sx={{ borderRadius: "10px" }}>
+                    {formError}
+                  </Alert>
+                ) : null}
               </Stack>
             </DialogContent>
-
-            <Divider />
 
             <DialogActions
               sx={{
                 px: { xs: 2.5, md: 3 },
                 py: 2,
-                gap: 1.5,
-                bgcolor: "#fafafa",
+                gap: 1,
+                bgcolor: "#ffffff",
+                borderTop: `1px solid ${crmPalette.border}`,
               }}
             >
               <Button
                 type="button"
-                variant="text"
+                variant="outlined"
                 disabled={saving}
                 onClick={closeModal}
                 sx={{
-                  minWidth: 138,
-                  minHeight: 50,
-                  borderRadius: "12px",
-                  bgcolor: "#ffffff",
-                  color: crmPalette.text,
-                  fontSize: 16,
-                  fontWeight: 900,
+                  minWidth: 110,
+                  minHeight: 44,
+                  borderRadius: "10px",
                   textTransform: "none",
-                  "&:hover": {
-                    bgcolor: "#f1f5f9",
-                  },
+                  fontWeight: 800,
                 }}
               >
                 Cancelar
@@ -1783,24 +1728,25 @@ export default function UsersPage() {
                 disabled={saving}
                 startIcon={
                   saving ? (
-                    <CircularProgress size={18} color="inherit" />
+                    <CircularProgress size={17} color="inherit" />
+                  ) : editingUser ? (
+                    <Pencil size={16} />
                   ) : (
-                    <PlusCircle size={19} />
+                    <Plus size={17} />
                   )
                 }
                 sx={{
-                  minWidth: 188,
-                  minHeight: 50,
-                  borderRadius: "12px",
+                  minWidth: 155,
+                  minHeight: 44,
+                  borderRadius: "10px",
                   px: 2.5,
                   bgcolor: crmPalette.orange,
-                  fontSize: 16,
-                  fontWeight: 900,
                   textTransform: "none",
-                  boxShadow: "0 8px 18px rgba(255, 77, 0, 0.26)",
+                  fontWeight: 900,
+                  boxShadow: "none",
                   "&:hover": {
                     bgcolor: crmPalette.orangeDark,
-                    boxShadow: "0 10px 22px rgba(255, 77, 0, 0.28)",
+                    boxShadow: "none",
                   },
                 }}
               >
@@ -1812,6 +1758,101 @@ export default function UsersPage() {
               </Button>
             </DialogActions>
           </Box>
+        </Dialog>
+
+        <Dialog
+          open={Boolean(confirmAction)}
+          onClose={() => {
+            if (!confirmLoading) setConfirmAction(null);
+          }}
+          fullWidth
+          maxWidth="xs"
+          slotProps={{
+            paper: {
+              sx: {
+                borderRadius: "16px",
+                overflow: "hidden",
+              },
+            },
+          }}
+        >
+          <DialogTitle
+            sx={{
+              px: 3,
+              pt: 3,
+              pb: 1,
+              color: crmPalette.text,
+              fontSize: 19,
+              fontWeight: 900,
+            }}
+          >
+            {confirmIsDelete ? "Excluir usuário?" : "Redefinir senha?"}
+          </DialogTitle>
+
+          <DialogContent sx={{ px: 3, pt: 1 }}>
+            <Typography sx={{ color: crmPalette.muted, fontSize: 14, lineHeight: 1.6 }}>
+              {confirmIsDelete ? (
+                <>
+                  Você está prestes a excluir <strong>{confirmAction?.user.name}</strong>.
+                  Essa ação removerá o acesso deste usuário.
+                </>
+              ) : (
+                <>
+                  A senha de <strong>{confirmAction?.user.name}</strong> será redefinida
+                  para a senha padrão do sistema.
+                </>
+              )}
+            </Typography>
+          </DialogContent>
+
+          <DialogActions sx={{ px: 3, pb: 3, pt: 1.5 }}>
+            <Button
+              variant="outlined"
+              disabled={confirmLoading}
+              onClick={() => setConfirmAction(null)}
+              sx={{
+                borderRadius: "10px",
+                textTransform: "none",
+                fontWeight: 800,
+              }}
+            >
+              Cancelar
+            </Button>
+
+            <Button
+              variant="contained"
+              color={confirmIsDelete ? "error" : "primary"}
+              disabled={confirmLoading}
+              onClick={handleConfirmAction}
+              startIcon={
+                confirmLoading ? (
+                  <CircularProgress size={16} color="inherit" />
+                ) : confirmIsDelete ? (
+                  <Trash2 size={16} />
+                ) : (
+                  <KeyRound size={16} />
+                )
+              }
+              sx={{
+                borderRadius: "10px",
+                textTransform: "none",
+                fontWeight: 900,
+                boxShadow: "none",
+                ...(confirmIsDelete
+                  ? {}
+                  : {
+                      bgcolor: crmPalette.orange,
+                      "&:hover": { bgcolor: crmPalette.orangeDark },
+                    }),
+              }}
+            >
+              {confirmLoading
+                ? "Processando..."
+                : confirmIsDelete
+                  ? "Excluir"
+                  : "Redefinir senha"}
+            </Button>
+          </DialogActions>
         </Dialog>
       </CrmPageShell>
 

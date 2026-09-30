@@ -148,29 +148,6 @@ export const sitePageConfigs: Record<string, SitePageConfig> = {
 
     sections: [
       {
-        key: "hero",
-
-        title: "Banner principal",
-
-        description:
-          "Altere as duas imagens exibidas no banner principal da página inicial.",
-
-        fields: [
-          image(
-            "hero.imagemUrl",
-            "Imagem 1 do banner",
-            "1920 x 900 px, proporção aproximada 16:9",
-          ),
-
-          image(
-            "hero.imagemUrlSecundaria",
-            "Imagem 2 do banner",
-            "1920 x 900 px, proporção aproximada 16:9",
-          ),
-        ],
-      },
-
-      {
         key: "solucoes",
 
         title: "Soluções da Home",
@@ -197,13 +174,13 @@ export const sitePageConfigs: Record<string, SitePageConfig> = {
           // SOLUÇÃO 2 - OPERADOR LOGÍSTICO
           // =====================================================
 
-          text("solucoes.2.titulo", "Solução 3 - título", "Operador Logístico"),
+          text("solucoes.2.titulo", "Solução 2 - título", "Operador Logístico"),
 
-          textarea("solucoes.2.descricao", "Solução 3 - descrição", 4),
+          textarea("solucoes.2.descricao", "Solução 2 - descrição", 4),
 
           image(
             "solucoes.2.imagemUrl",
-            "Solução 3 - imagem",
+            "Solução 2 - imagem",
             "900 x 620 px, proporção aproximada 3:2",
           ),
 
@@ -213,15 +190,15 @@ export const sitePageConfigs: Record<string, SitePageConfig> = {
 
           text(
             "solucoes.1.titulo",
-            "Solução 2 - título",
+            "Solução 3 - título",
             "Transporte de Cargas",
           ),
 
-          textarea("solucoes.1.descricao", "Solução 2 - descrição", 4),
+          textarea("solucoes.1.descricao", "Solução 3 - descrição", 4),
 
           image(
             "solucoes.1.imagemUrl",
-            "Solução 2 - imagem",
+            "Solução 3 - imagem",
             "900 x 620 px, proporção aproximada 3:2",
           ),
         ],
@@ -340,72 +317,58 @@ export const sitePageConfigs: Record<string, SitePageConfig> = {
       },
 
       {
-        key: "solucoes-principais",
+        key: "solucoes",
 
-        title: "Soluções principais",
+        title: "Soluções da Home",
 
         description:
-          "Edite os conteúdos das três soluções principais exibidas no site.",
+          "Edite os textos e as imagens das três soluções exibidas na página inicial.",
 
         fields: [
           // =====================================================
           // SOLUÇÃO 1 - ARMAZENAGEM
           // =====================================================
 
-          text("itens.0.titulo", "Solução 1 - título", "Armazenagem"),
+          text("solucoes.0.titulo", "Solução 1 - título", "Armazenagem"),
 
-          textarea("itens.0.descricao", "Solução 1 - descrição", 4),
+          textarea("solucoes.0.descricao", "Solução 1 - descrição", 4),
 
-          ...bulletFields(
-            "itens.0.pontos",
-            [
-              "Armazenagem - ponto 1",
-              "Armazenagem - ponto 2",
-              "Armazenagem - ponto 3",
-            ],
-            "Solução 1 - ponto",
+          image(
+            "solucoes.0.imagemUrl",
+            "Solução 1 - imagem",
+            "900 x 620 px, proporção aproximada 3:2",
           ),
 
           // =====================================================
           // SOLUÇÃO 2 - OPERADOR LOGÍSTICO
-          //
-          // IMPORTANTE:
-          // Continua usando itens.2 para não trocar os dados
-          // reais do site. Estamos alterando apenas a ordem no CRM.
           // =====================================================
 
-          text("itens.2.titulo", "Solução 2 - título", "Operador Logístico"),
+          text("solucoes.1.titulo", "Solução 2 - título", "Operador Logístico"),
 
-          textarea("itens.2.descricao", "Solução 2 - descrição", 4),
+          textarea("solucoes.1.descricao", "Solução 2 - descrição", 4),
 
-          ...bulletFields(
-            "itens.2.pontos",
-            [
-              "Operador Logístico - ponto 1",
-              "Operador Logístico - ponto 2",
-              "Operador Logístico - ponto 3",
-            ],
-            "Solução 2 - ponto",
+          image(
+            "solucoes.1.imagemUrl",
+            "Solução 2 - imagem",
+            "900 x 620 px, proporção aproximada 3:2",
           ),
 
           // =====================================================
           // SOLUÇÃO 3 - TRANSPORTE DE CARGAS
-          //
-          // Continua usando itens.1.
           // =====================================================
 
-          text("itens.1.titulo", "Solução 3 - título", "Transporte de Cargas"),
+          text(
+            "solucoes.2.titulo",
+            "Solução 3 - título",
+            "Transporte de Cargas",
+          ),
 
-          textarea("itens.1.descricao", "Solução 3 - descrição", 4),
+          textarea("solucoes.2.descricao", "Solução 3 - descrição", 4),
 
-          ...bulletFields(
-            "itens.1.pontos",
-            [
-              "Transporte de Cargas - ponto 1",
-              "Transporte de Cargas - ponto 2",
-              "Transporte de Cargas - ponto 3",
-            ],
-            "Solução 3 - ponto",
+          image(
+            "solucoes.2.imagemUrl",
+            "Solução 3 - imagem",
+            "900 x 620 px, proporção aproximada 3:2",
           ),
         ],
       },
@@ -429,8 +392,7 @@ export const sitePageConfigs: Record<string, SitePageConfig> = {
   "especialidades-logisticas": {
     slug: "especialidades-logisticas",
     title: "Especialidades Logísticas",
-    description:
-      "Gerencie os textos da página de especialidades logísticas.",
+    description: "Gerencie os textos da página de especialidades logísticas.",
     sections: [
       {
         key: "hero",
@@ -478,11 +440,7 @@ export const sitePageConfigs: Record<string, SitePageConfig> = {
             (_, specialtyIndex) =>
               bulletFields(
                 `especialidades.${specialtyIndex}.pontos`,
-                [
-                  "Ponto 1",
-                  "Ponto 2",
-                  "Ponto 3",
-                ],
+                ["Ponto 1", "Ponto 2", "Ponto 3"],
                 `Especialidade ${specialtyIndex + 1} - ponto`,
               ),
           ).flat(),
@@ -699,7 +657,7 @@ export const sitePageConfigs: Record<string, SitePageConfig> = {
           text("intro.botaoTexto", "Texto do botao"),
           image(
             "intro.imagemUrl",
-            "Imagem da apresentao",
+            "Imagem da apresentação",
             "900 x 720 px, proporcao aproximada 5:4",
           ),
         ],
@@ -1081,7 +1039,7 @@ export const sitePageConfigs: Record<string, SitePageConfig> = {
     slug: "contatos",
     title: "Contatos",
     description:
-      "Edite textos institucionais da pagina de contatos. Formularios, links funcionais e acoes permanecem fixos.",
+      "Edite textos institucionais da pagina de contatos. Formulários, links funcionais e ações permanecem fixos.",
     sections: [
       {
         key: "hero",
@@ -1131,23 +1089,23 @@ export const sitePageConfigs: Record<string, SitePageConfig> = {
           "texto",
         ),
       },
-      {
-        key: "comunicacao",
-        title: "Opções de comunicação",
-        description:
-          "Opções fixas do formulário: altere somente os textos exibidos.",
-        fields: itemTextFields(
-          "opcoesComunicacao",
-          ["Elogio", "Reclamação", "Sugestão", "Outro assunto"],
-          "Opção",
-          [
-            {
-              key: "titulo",
-              label: "título",
-            },
-          ],
-        ),
-      },
+      // {
+      //   key: "comunicacao",
+      //   title: "Opções de comunicação",
+      //   description:
+      //     "Opções fixas do formulário: altere somente os textos exibidos.",
+      //   fields: itemTextFields(
+      //     "opcoesComunicacao",
+      //     ["Elogio", "Reclamação", "Sugestão", "Outro assunto"],
+      //     "Opção",
+      //     [
+      //       {
+      //         key: "titulo",
+      //         label: "título",
+      //       },
+      //     ],
+      //   ),
+      // },
       {
         key: "unidades",
         title: "Nossas unidades",

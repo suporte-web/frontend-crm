@@ -38,7 +38,7 @@ const sidebarColors = {
   orangeHover: "#ffe4d6",
 
   background: "#ffffff",
-  submenuBackground: "#f8fafc",
+  submenuBackground: "transparent",
 
   text: "#0f172a",
   muted: "#64748b",
@@ -361,7 +361,7 @@ export function SidebarNavigation({
                     flexDirection: "column",
                     gap: 0.5,
 
-                    border: `1px solid ${sidebarColors.border}`,
+                    border: "none",
                     borderRadius: "12px",
 
                     bgcolor: sidebarColors.submenuBackground,

@@ -36,7 +36,7 @@ import {
   CrmPageHeader,
   CrmPageShell,
   CrmSection,
-  crmPalette,
+
 } from '@/components/mui/crm-primitives';
 
 import {
@@ -64,6 +64,10 @@ import {
 import type {
   PaginaSite,
 } from '@/types/site-institucional';
+
+
+
+
 
 type SitePageEditorProps = {
   slug: string;
@@ -140,20 +144,7 @@ function getInitialContent(
   ) as ConteudoGenerico;
 }
 
-/*
-|--------------------------------------------------------------------------
-| LER UM VALOR DENTRO DO JSON
-|--------------------------------------------------------------------------
-|
-| Exemplo:
-|
-| historia.titulo
-|
-| vira:
-|
-| conteudo.historia.titulo
-|
-*/
+
 
 function getValueByPath(
   source: unknown,
@@ -206,20 +197,7 @@ function getValueByPath(
   return current;
 }
 
-/*
-|--------------------------------------------------------------------------
-| ALTERAR UM VALOR DENTRO DO JSON
-|--------------------------------------------------------------------------
-|
-| Exemplo:
-|
-| setValueByPath(
-|   conteudo,
-|   'historia.titulo',
-|   'Nossa História'
-| )
-|
-*/
+
 
 function setValueByPath(
   source: ConteudoGenerico,
@@ -708,164 +686,6 @@ export function SitePageEditor({
           }
         />
 
-        {/* =====================================================
-          INFORMAÇÃO SOBRE PUBLICAÇÃO
-      ===================================================== */}
-
-        <Paper
-          elevation={0}
-          sx={{
-            position: 'relative',
-
-            overflow: 'hidden',
-
-            p: {
-              xs: 2,
-              md: 2.5,
-            },
-
-            borderRadius: 3,
-
-            border: '1px solid',
-
-            borderColor: alpha(
-              '#17456B',
-              0.1,
-            ),
-
-            bgcolor: '#fff',
-
-            boxShadow:
-              '0 8px 28px rgba(23, 33, 43, 0.035)',
-
-            '&::before': {
-              content: '""',
-
-              position: 'absolute',
-
-              top: 0,
-              left: 0,
-
-              width: 4,
-              height: '100%',
-
-              bgcolor: '#ff5805',
-            },
-          }}
-        >
-          <Stack
-            direction={{
-              xs: 'column',
-              md: 'row',
-            }}
-            spacing={2}
-            sx={{
-              alignItems: {
-                xs: 'flex-start',
-                md: 'center',
-              },
-
-              justifyContent:
-                'space-between',
-            }}
-          >
-            <Stack
-              direction="row"
-              spacing={1.5}
-              sx={{
-                alignItems: 'center',
-              }}
-            >
-              <Box
-                sx={{
-                  width: 46,
-                  height: 46,
-
-                  display: 'grid',
-
-                  placeItems: 'center',
-
-                  flexShrink: 0,
-
-                  borderRadius: 2.5,
-
-                  bgcolor: alpha(
-                    '#17456B',
-                    0.08,
-                  ),
-
-                  color: '#17456B',
-                }}
-              >
-                <Globe2 size={22} />
-              </Box>
-
-              <Box>
-                <Typography
-                  sx={{
-                    color:
-                      'text.primary',
-
-                    fontSize: 15,
-
-                    fontWeight: 900,
-                  }}
-                >
-                  Gestão do conteúdo do site
-                </Typography>
-
-                <Typography
-                  sx={{
-                    mt: 0.3,
-
-                    color:
-                      'text.secondary',
-
-                    fontSize: 13,
-
-                    lineHeight: 1.55,
-                  }}
-                >
-                  Salve como rascunho para continuar
-                  editando sem alterar o site. Quando
-                  finalizar, publique as alterações.
-                </Typography>
-              </Box>
-            </Stack>
-
-            <Chip
-              icon={
-                statusPagina.icone
-              }
-              label={
-                statusPagina.label
-              }
-              sx={{
-                height: 34,
-
-                bgcolor:
-                  statusPagina.fundo,
-
-                color:
-                  statusPagina.cor,
-
-                fontWeight: 900,
-
-                border: '1px solid',
-
-                borderColor: alpha(
-                  statusPagina.cor,
-                  0.15,
-                ),
-
-                '& .MuiChip-icon': {
-                  color:
-                    statusPagina.cor,
-                },
-              }}
-            />
-          </Stack>
-        </Paper>
 
         {/* =====================================================
           ERROS
@@ -1019,9 +839,10 @@ export function SitePageEditor({
             </Stack>
 
             {/* BLOG */}
-
             {slug === 'blog' ? (
               <SiteBlogPostsEditor
+                slug={slug}
+                token={token ?? ''}
                 value={getValueByPath(
                   conteudo,
                   'posts',
@@ -1030,9 +851,7 @@ export function SitePageEditor({
                   savingDraft ||
                   publishing
                 }
-                onChange={(
-                  posts,
-                ) =>
+                onChange={(posts) =>
                   setConteudo(
                     (current) =>
                       setValueByPath(
