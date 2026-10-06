@@ -25,3 +25,10 @@ export type MarketingIntegration = {
   createdAt: string | null;
   updatedAt: string | null;
 };
+
+export type GoogleAnalyticsProperty = {
+  propertyId: string;
+  propertyName: string;
+  accountId: string;
+  accountName: string;
+};

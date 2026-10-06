@@ -2,6 +2,10 @@
 
 import { useEffect, useMemo, useState } from "react";
 
+import Checkbox from "@mui/material/Checkbox";
+import ListItemText from "@mui/material/ListItemText";
+import { getUserRoles, hasAnyRole } from "@/lib/user-roles";
+
 import Alert from "@mui/material/Alert";
 import Avatar from "@mui/material/Avatar";
 import Box from "@mui/material/Box";
@@ -73,6 +77,8 @@ import type {
 } from "@/types/user";
 
 const roles: UserRole[] = [
+  "LIDER_ATENDIMENTO",
+  "ATENDIMENTO",
   "ADMIN",
   "GESTAO",
   "COMERCIAL",
@@ -87,7 +93,7 @@ type StatusFilter = "TODOS" | "ATIVO" | "INATIVO";
 type FormState = {
   name: string;
   email: string;
-  role: UserRole;
+  roles: UserRole[];
   isActive: boolean;
 };
 
@@ -101,7 +107,7 @@ type ConfirmAction =
 const initialFormState: FormState = {
   name: "",
   email: "",
-  role: "COMERCIAL",
+  roles: ["COMERCIAL"],
   isActive: true,
 };
 
@@ -114,6 +120,8 @@ const roleMeta: Record<
     chipSx: object;
   }
 > = {
+  LIDER_ATENDIMENTO: { label: 'Líder de Atendimento', accent: '#0369a1', softColor: '#e0f2fe', chipSx: { bgcolor: '#e0f2fe', color: '#0369a1' } },
+  ATENDIMENTO: { label: 'Atendimento', accent: '#0f766e', softColor: '#f0fdfa', chipSx: { bgcolor: '#f0fdfa', color: '#0f766e' } },
   ADMIN: {
     label: "Admin",
     accent: "#7c3aed",
@@ -323,7 +331,7 @@ export default function UsersPage() {
         user.email.toLowerCase().includes(normalizedSearch);
 
       const matchesRole =
-        roleFilter === "TODOS" ? true : user.role === roleFilter;
+        roleFilter === "TODOS" ? true : hasAnyRole(user, [roleFilter]);
 
       const matchesStatus =
         statusFilter === "TODOS"
@@ -363,7 +371,7 @@ export default function UsersPage() {
     const active = companyUsers.filter((user) => user.isActive).length;
     const inactive = companyUsers.filter((user) => !user.isActive).length;
     const operations = companyUsers.filter(
-      (user) => user.role === "OPERACAO",
+      (user) => hasAnyRole(user, ["OPERACAO"]),
     ).length;
 
     return { total, active, inactive, operations };
@@ -448,7 +456,7 @@ export default function UsersPage() {
         return [...withoutCurrentRole, updated];
       });
 
-      if (currentUser?.role === selectedPermissionRole) {
+      if (hasAnyRole(currentUser, [selectedPermissionRole])) {
         await refreshUser();
       }
 
@@ -484,7 +492,7 @@ export default function UsersPage() {
     setForm({
       name: user.name,
       email: user.email,
-      role: user.role,
+      roles: getUserRoles(user),
       isActive: user.isActive,
     });
     setFormError("");
@@ -501,6 +509,7 @@ export default function UsersPage() {
   }
 
   function validateForm() {
+    if (!form.roles.length) return "Selecione pelo menos um perfil.";
     if (!form.name.trim()) return "Informe o nome do usuário.";
     if (!form.email.trim()) return "Informe o email do usuário.";
     return "";
@@ -526,7 +535,7 @@ export default function UsersPage() {
         const payload: UpdateUserPayload = {
           name: form.name.trim(),
           email: form.email.trim(),
-          role: form.role,
+          roles: form.roles,
           isActive: form.isActive,
         };
 
@@ -538,12 +547,13 @@ export default function UsersPage() {
           ),
         );
 
+        if (updatedUser.id === currentUser?.id) await refreshUser();
         setSuccessMessage("Usuário atualizado com sucesso.");
       } else {
         const payload: CreateUserPayload = {
           name: form.name.trim(),
           email: form.email.trim(),
-          role: form.role,
+          roles: form.roles,
           isActive: form.isActive,
         };
 
@@ -596,7 +606,7 @@ export default function UsersPage() {
   }
 
   function openResetPasswordDialog(user: User) {
-    if (currentUser?.role !== "ADMIN") {
+    if (!hasAnyRole(currentUser, ["ADMIN"])) {
       setErrorToastMessage("Somente administradores podem redefinir senhas.");
       return;
     }
@@ -726,7 +736,7 @@ export default function UsersPage() {
           </IconButton>
         </Tooltip>
 
-        {currentUser?.role === "ADMIN" ? (
+        {hasAnyRole(currentUser, ["ADMIN"]) ? (
           <Tooltip title="Redefinir senha">
             <IconButton
               type="button"
@@ -833,7 +843,7 @@ export default function UsersPage() {
                   {user.name}
                 </Typography>
 
-                {renderRoleChip(user.role)}
+                {getUserRoles(user).map((role) => <Box key={role}>{renderRoleChip(role)}</Box>)}
                 {renderStatusChip(user.isActive)}
               </Stack>
 
@@ -993,32 +1003,61 @@ export default function UsersPage() {
 
         <CrmSection>
           <Stack
-            direction={{ xs: "column", lg: "row" }}
-            spacing={2}
+            direction={{ xs: "column", md: "row" }}
+            spacing={1.25}
             sx={{
-              px: { xs: 2, md: 2.5 },
-              py: 2,
-              alignItems: { xs: "stretch", lg: "center" },
+              px: { xs: 1.75, md: 2 },
+              py: 1.5,
+              alignItems: { xs: "stretch", md: "center" },
               justifyContent: "space-between",
               borderBottom: `1px solid ${crmPalette.border}`,
             }}
           >
-            <Box>
+            <Stack spacing={0.75}>
               <Typography
                 component="h2"
-                sx={{ color: crmPalette.text, fontSize: 18, fontWeight: 900 }}
+                sx={{ color: crmPalette.text, fontSize: 16, fontWeight: 800 }}
               >
                 Permissões por perfil
               </Typography>
-
-              <Typography sx={{ mt: 0.4, color: crmPalette.muted, fontSize: 13 }}>
-                Defina quais áreas do portal ficam disponíveis para cada perfil.
-              </Typography>
-            </Box>
+              <Stack
+                direction="row"
+                spacing={0.75}
+                useFlexGap
+                sx={{ alignItems: "center", flexWrap: "wrap" }}
+              >
+                <Chip
+                  icon={<ShieldCheck size={13} />}
+                  label={getRoleLabel(selectedPermissionRole)}
+                  size="small"
+                  sx={{
+                    height: 23,
+                    borderRadius: "6px",
+                    bgcolor: roleMeta[selectedPermissionRole].softColor,
+                    color: roleMeta[selectedPermissionRole].accent,
+                    fontSize: 11,
+                    fontWeight: 700,
+                    "& .MuiChip-icon": { color: "inherit", ml: 0.75 },
+                  }}
+                />
+                <Typography sx={{ color: crmPalette.muted, fontSize: 12 }}>
+                  {selectedEnabledCount}/{profilePermissionItems.length} telas habilitadas
+                </Typography>
+                {savingPermissions ? (
+                  <Stack direction="row" spacing={0.5} role="status" sx={{ alignItems: "center" }}>
+                    <CircularProgress size={12} />
+                    <Typography sx={{ color: crmPalette.muted, fontSize: 11 }}>
+                      Salvando...
+                    </Typography>
+                  </Stack>
+                ) : null}
+              </Stack>
+            </Stack>
 
             <ToggleButtonGroup
               exclusive
               size="small"
+              aria-label="Selecionar perfil para configurar permissões"
               value={selectedPermissionRole}
               onChange={(_, value: UserRole | null) => {
                 if (value) setSelectedPermissionRole(value);
@@ -1026,20 +1065,25 @@ export default function UsersPage() {
               sx={{
                 display: "flex",
                 flexWrap: "wrap",
-                gap: 1,
+                gap: 0.5,
                 "& .MuiToggleButtonGroup-grouped": {
-                  border: `1px solid ${crmPalette.border} !important`,
-                  borderRadius: "10px !important",
-                  px: 1.5,
-                  py: 0.9,
-                  color: crmPalette.text,
-                  fontSize: 12,
-                  fontWeight: 900,
+                  border: "1px solid transparent !important",
+                  borderRadius: "7px !important",
+                  minHeight: 32,
+                  px: 1.25,
+                  py: 0.5,
+                  color: crmPalette.muted,
+                  bgcolor: "#f8fafc",
+                  fontSize: 11.5,
+                  fontWeight: 600,
                   textTransform: "none",
+                  "&:hover": { bgcolor: "#f1f5f9", color: crmPalette.text },
                   "&.Mui-selected": {
                     bgcolor: "#fff0e8",
                     color: crmPalette.orangeDark,
                     borderColor: "#fed7c3 !important",
+                    fontWeight: 700,
+                    "&:hover": { bgcolor: "#ffe6d9" },
                   },
                 },
               }}
@@ -1055,151 +1099,80 @@ export default function UsersPage() {
           <Box
             sx={{
               display: "grid",
-              gridTemplateColumns: { xs: "1fr", xl: "260px 1fr" },
-              gap: 2,
-              p: { xs: 2, md: 2.5 },
+              gridTemplateColumns: {
+                xs: "1fr",
+                sm: "repeat(2, minmax(0, 1fr))",
+                md: "repeat(3, minmax(0, 1fr))",
+                lg: "repeat(4, minmax(0, 1fr))",
+              },
+              gap: 0.75,
+              p: { xs: 1.75, md: 2 },
             }}
           >
-            <Paper
-              elevation={0}
-              sx={{
-                p: 2,
-                border: `1px solid ${crmPalette.border}`,
-                borderRadius: "14px",
-                bgcolor: roleMeta[selectedPermissionRole].softColor,
-              }}
-            >
-              <Stack spacing={1.5}>
-                <Avatar
-                  variant="rounded"
+            {profilePermissionItems.map((permissionItem) => {
+              const checked = isPermissionItemChecked(permissionItem);
+              const isProtected = isProtectedAdminPermission(permissionItem.key);
+
+              return (
+                <Paper
+                  key={permissionItem.key}
+                  elevation={0}
+                  component="label"
                   sx={{
-                    width: 44,
-                    height: 44,
-                    borderRadius: "12px",
-                    bgcolor: "#ffffff",
-                    color: roleMeta[selectedPermissionRole].accent,
-                    border: `1px solid ${roleMeta[selectedPermissionRole].accent}30`,
+                    px: 1.25,
+                    py: 0.75,
+                    display: "flex",
+                    gap: 0.75,
+                    alignItems: "center",
+                    justifyContent: "space-between",
+                    minHeight: 48,
+                    border: `1px solid ${crmPalette.border}`,
+                    borderRadius: "8px",
+                    bgcolor: checked ? "#fffaf7" : "#ffffff",
+                    cursor: isProtected || savingPermissions ? "not-allowed" : "pointer",
+                    transition: "border-color 160ms ease, background-color 160ms ease",
+                    "&:hover": {
+                      borderColor: isProtected || savingPermissions ? crmPalette.border : "#cbd5e1",
+                    },
+                    "&:focus-within": {
+                      outline: `2px solid ${crmPalette.orange}`,
+                      outlineOffset: 2,
+                    },
                   }}
                 >
-                  <ShieldCheck size={21} />
-                </Avatar>
-
-                <Box>
-                  <Typography
-                    sx={{ color: crmPalette.text, fontSize: 15, fontWeight: 900 }}
-                  >
-                    Perfil {getRoleLabel(selectedPermissionRole)}
-                  </Typography>
-
-                  <Typography
-                    sx={{
-                      mt: 0.5,
-                      color: crmPalette.muted,
-                      fontSize: 13,
-                      lineHeight: 1.5,
-                    }}
-                  >
-                    {selectedEnabledCount} de {profilePermissionItems.length} telas
-                    habilitadas.
-                  </Typography>
-                </Box>
-
-                {savingPermissions ? (
-                  <Stack direction="row" spacing={1} sx={{ alignItems: "center" }}>
-                    <CircularProgress size={15} />
-                    <Typography sx={{ color: crmPalette.muted, fontSize: 12 }}>
-                      Salvando permissões...
+                  <Box sx={{ minWidth: 0 }}>
+                    <Typography
+                      sx={{ color: crmPalette.text, fontSize: 12.5, fontWeight: 600, lineHeight: 1.3 }}
+                    >
+                      {permissionItem.label}
                     </Typography>
-                  </Stack>
-                ) : null}
-              </Stack>
-            </Paper>
+                    {isProtected ? (
+                      <Typography sx={{ mt: 0.25, color: crmPalette.muted, fontSize: 10.5 }}>
+                        Obrigatória para Admin
+                      </Typography>
+                    ) : null}
+                  </Box>
 
-            <Box
-              sx={{
-                display: "grid",
-                gridTemplateColumns: {
-                  xs: "1fr",
-                  sm: "repeat(2, minmax(0, 1fr))",
-                  lg: "repeat(3, minmax(0, 1fr))",
-                },
-                gap: 1.25,
-              }}
-            >
-              {profilePermissionItems.map((permissionItem) => {
-                const checked = isPermissionItemChecked(permissionItem);
-                const isProtected = isProtectedAdminPermission(
-                  permissionItem.key,
-                );
-
-                return (
-                  <Paper
-                    key={permissionItem.key}
-                    elevation={0}
-                    component="label"
-                    sx={{
-                      p: 1.5,
-                      display: "flex",
-                      gap: 1.25,
-                      alignItems: "center",
-                      justifyContent: "space-between",
-                      minHeight: 74,
-                      border: `1px solid ${checked ? "#fed7c3" : crmPalette.border}`,
-                      borderRadius: "12px",
-                      bgcolor: checked ? "#fffaf7" : "#ffffff",
-                      cursor:
-                        isProtected || savingPermissions ? "not-allowed" : "pointer",
-                      transition:
-                        "border-color 160ms ease, background-color 160ms ease",
+                  <Switch
+                    size="small"
+                    checked={checked}
+                    disabled={isProtected || savingPermissions}
+                    onChange={() => handleTogglePermissionItem(permissionItem.key)}
+                    slotProps={{
+                      input: {
+                        "aria-label": `${permissionItem.label} — perfil ${getRoleLabel(selectedPermissionRole)}`,
+                      },
                     }}
-                  >
-                    <Box sx={{ minWidth: 0 }}>
-                      <Typography
-                        sx={{
-                          color: crmPalette.text,
-                          fontSize: 13,
-                          fontWeight: 900,
-                          lineHeight: 1.25,
-                        }}
-                      >
-                        {permissionItem.label}
-                      </Typography>
-
-                      <Typography
-                        sx={{
-                          mt: 0.45,
-                          color: checked ? crmPalette.orangeDark : crmPalette.muted,
-                          fontSize: 12,
-                        }}
-                      >
-                        {isProtected
-                          ? "Obrigatória para Admin"
-                          : checked
-                            ? "Disponível no perfil"
-                            : "Oculta no perfil"}
-                      </Typography>
-                    </Box>
-
-                    <Switch
-                      size="small"
-                      checked={checked}
-                      disabled={isProtected || savingPermissions}
-                      onChange={() =>
-                        handleTogglePermissionItem(permissionItem.key)
-                      }
-                      sx={{
-                        "& .MuiSwitch-switchBase.Mui-checked": {
-                          color: crmPalette.orange,
-                        },
-                        "& .MuiSwitch-switchBase.Mui-checked + .MuiSwitch-track": {
-                          bgcolor: crmPalette.orange,
-                        },
-                      }}
-                    />
-                  </Paper>
-                );
-              })}
-            </Box>
+                    sx={{
+                      flexShrink: 0,
+                      mr: -0.5,
+                      "& .MuiSwitch-switchBase.Mui-checked": { color: crmPalette.orange },
+                      "& .MuiSwitch-switchBase.Mui-checked + .MuiSwitch-track": { bgcolor: crmPalette.orange },
+                    }}
+                  />
+                </Paper>
+              );
+            })}
           </Box>
         </CrmSection>
 
@@ -1549,6 +1522,14 @@ export default function UsersPage() {
                         handleFieldChange("name", event.target.value)
                       }
                       slotProps={{
+                        select: {
+                          multiple: true,
+                          renderValue: (value) => (
+                            <Stack direction="row" spacing={0.5} sx={{ flexWrap: "wrap", gap: 0.5 }}>
+                              {(value as UserRole[]).map((role) => <Chip key={role} label={getRoleLabel(role)} size="small" />)}
+                            </Stack>
+                          ),
+                        },
                         input: {
                           startAdornment: (
                             <InputAdornment position="start">
@@ -1570,6 +1551,14 @@ export default function UsersPage() {
                         handleFieldChange("email", event.target.value)
                       }
                       slotProps={{
+                        select: {
+                          multiple: true,
+                          renderValue: (value) => (
+                            <Stack direction="row" spacing={0.5} sx={{ flexWrap: "wrap", gap: 0.5 }}>
+                              {(value as UserRole[]).map((role) => <Chip key={role} label={getRoleLabel(role)} size="small" />)}
+                            </Stack>
+                          ),
+                        },
                         input: {
                           startAdornment: (
                             <InputAdornment position="start">
@@ -1597,12 +1586,12 @@ export default function UsersPage() {
                       <Typography
                         sx={{ color: crmPalette.text, fontSize: 15, fontWeight: 900 }}
                       >
-                        Acesso e perfil
+                        Acesso e perfis
                       </Typography>
                       <Typography
                         sx={{ mt: 0.35, color: crmPalette.muted, fontSize: 12.5 }}
                       >
-                        Defina o perfil de acesso do usuário.
+                        Selecione um ou mais perfis. Os acessos dos perfis serão combinados.
                       </Typography>
                     </Box>
 
@@ -1610,12 +1599,20 @@ export default function UsersPage() {
                       select
                       fullWidth
                       required
-                      label="Perfil"
-                      value={form.role}
+                      label="Perfis"
+                      value={form.roles}
                       onChange={(event) =>
-                        handleFieldChange("role", event.target.value as UserRole)
+                        handleFieldChange("roles", typeof event.target.value === "string" ? event.target.value.split(",") as UserRole[] : event.target.value as unknown as UserRole[])
                       }
                       slotProps={{
+                        select: {
+                          multiple: true,
+                          renderValue: (value) => (
+                            <Stack direction="row" spacing={0.5} sx={{ flexWrap: "wrap", gap: 0.5 }}>
+                              {(value as UserRole[]).map((role) => <Chip key={role} label={getRoleLabel(role)} size="small" />)}
+                            </Stack>
+                          ),
+                        },
                         input: {
                           startAdornment: (
                             <InputAdornment position="start">
@@ -1628,7 +1625,8 @@ export default function UsersPage() {
                     >
                       {roles.map((role) => (
                         <MenuItem key={role} value={role}>
-                          {getRoleLabel(role)}
+                          <Checkbox checked={form.roles.includes(role)} />
+                          <ListItemText primary={getRoleLabel(role)} />
                         </MenuItem>
                       ))}
                     </TextField>

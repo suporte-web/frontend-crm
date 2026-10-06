@@ -1,5 +1,6 @@
 "use client";
 
+import { hasAnyRole } from "@/lib/user-roles";
 import Link from "next/link";
 import { useEffect, useMemo, useState } from "react";
 import {
@@ -19,6 +20,7 @@ import {
   UserRound,
   XCircle,
 } from "lucide-react";
+import { DadosRelatoSite } from '@/components/atendimentos/DadosRelatoSite';
 import { AppLayout } from "@/components/layout/app-layout";
 import { ChatBox } from "@/components/chat/ChatBox";
 import { FeedbackToast } from "@/components/ui/feedback-toast";
@@ -264,6 +266,7 @@ function getClientName(ticket: Ticket) {
     ticket.client?.user?.name ||
     ticket.lead?.company ||
     ticket.lead?.name ||
+    ticket.nomeSolicitante ||
     "Sem cliente vinculado"
   );
 }
@@ -490,10 +493,10 @@ export default function TicketsPage() {
   } | null>(null);
 
   const isClient = user?.role === "CLIENTE";
-  const isManagement = user?.role === "GESTAO" || user?.role === "ADMIN";
-  const isCommercial = user?.role === "COMERCIAL" || user?.role === "ADMIN";
+  const isManagement = hasAnyRole(user, ["GESTAO"]) || hasAnyRole(user, ["ADMIN"]);
+  const isCommercial = hasAnyRole(user, ["COMERCIAL"]) || hasAnyRole(user, ["ADMIN"]);
   const isInternal = user?.role
-    ? ["ADMIN", "GESTAO", "COMERCIAL"].includes(user.role)
+    ? hasAnyRole(user, ["ADMIN", "GESTAO", "COMERCIAL"])
     : false;
   const selectedProposta = useMemo(() => {
     if (selectedPropostaId === "new") {
@@ -1326,6 +1329,7 @@ export default function TicketsPage() {
 
               <div className="mt-5 grid gap-5 xl:grid-cols-[1fr_330px]">
                 <div className="space-y-5">
+                  <DadosRelatoSite atendimento={selectedTicket} />
                   {!isClient ? (
                   <section className="rounded-2xl border border-slate-200 bg-slate-50 p-4">
                     <h3 className="flex items-center gap-2 text-sm font-semibold text-slate-900">

@@ -368,7 +368,16 @@ export function SidebarNavigation({
                   }}
                 >
                   {section.items.map((item) => {
-                    const active = isScreenActive(pathname, item.href);
+                    const active =
+                      pathname === item.href ||
+                      (
+                        pathname.startsWith(`${item.href}/`) &&
+                        !section.items.some(
+                          (outroItem) =>
+                            outroItem.href !== item.href &&
+                            pathname === outroItem.href
+                        )
+                      );
 
                     const Icon = screenIcons[item.key];
 

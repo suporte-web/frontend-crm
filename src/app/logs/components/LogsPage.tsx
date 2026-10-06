@@ -1,5 +1,6 @@
 'use client';
 
+import { hasAnyRole } from "@/lib/user-roles";
 import { useEffect, useMemo, useState } from 'react';
 
 import Alert from '@mui/material/Alert';
@@ -401,7 +402,7 @@ export default function LogsPage() {
   const [page, setPage] = useState(1);
   const [rowsPerPage, setRowsPerPage] = useState(10);
 
-  const isAllowed = user ? allowedRoles.has(user.role) : false;
+  const isAllowed = user ? hasAnyRole(user, [...allowedRoles]) : false;
 
   const apiFilters = useMemo(
     () => ({

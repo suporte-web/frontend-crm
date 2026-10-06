@@ -1,5 +1,6 @@
 ﻿"use client";
 
+import { hasAnyRole } from "@/lib/user-roles";
 import Link from "next/link";
 import { useSearchParams } from "next/navigation";
 import { useEffect, useMemo, useState } from "react";
@@ -192,7 +193,7 @@ export default function PaginaDetalhesCliente({
   } | null>(null);
 
   const canEditCommercialData = user?.role
-    ? ["ADMIN", "GESTAO", "COMERCIAL"].includes(user.role)
+    ? hasAnyRole(user, ["ADMIN", "GESTAO", "COMERCIAL"])
     : false;
 
   const canEditClient = canEditCommercialData;
@@ -791,32 +792,32 @@ export default function PaginaDetalhesCliente({
       return;
     }
 
-    if (opportunityProposalForm.proposalType === "TRANSPORTE_RODOVIARIO") {
-      if (
-        !opportunityProposalForm.origin.trim() ||
-        !opportunityProposalForm.destination.trim() ||
-        !opportunityProposalForm.vehicleType ||
-        !opportunityProposalForm.cargoType.trim() ||
-        !opportunityProposalForm.averageWeight.trim() ||
-        !opportunityProposalForm.aggregateValue.trim() ||
-        !opportunityProposalForm.dangerousGoods
-      ) {
-        setOpportunityProposalError(
-          "Preencha origem, destino, veículo, tipo de carga, peso médio, valor agregado e produto perigoso.",
-        );
-        return;
-      }
+    // if (opportunityProposalForm.proposalType === "TRANSPORTE_RODOVIARIO") {
+    //   if (
+    //     !opportunityProposalForm.origin.trim() ||
+    //     !opportunityProposalForm.destination.trim() ||
+    //     !opportunityProposalForm.vehicleType ||
+    //     !opportunityProposalForm.cargoType.trim() ||
+    //     !opportunityProposalForm.averageWeight.trim() ||
+    //     !opportunityProposalForm.aggregateValue.trim() ||
+    //     !opportunityProposalForm.dangerousGoods
+    //   ) {
+    //     setOpportunityProposalError(
+    //       "Preencha origem, destino, veículo, tipo de carga, peso médio, valor agregado e produto perigoso.",
+    //     );
+    //     return;
+    //   }
 
-      if (
-        opportunityProposalForm.dangerousGoods === "SIM" &&
-        !opportunityProposalForm.dangerousGoodsInfo.trim()
-      ) {
-        setOpportunityProposalError(
-          "Informe os dados de FDS/Ficha de Emergência para produto perigoso.",
-        );
-        return;
-      }
-    }
+    //   if (
+    //     opportunityProposalForm.dangerousGoods === "SIM" &&
+    //     !opportunityProposalForm.dangerousGoodsInfo.trim()
+    //   ) {
+    //     setOpportunityProposalError(
+    //       "Informe os dados de FDS/Ficha de Emergência para produto perigoso.",
+    //     );
+    //     return;
+    //   }
+    // }
 
     const proposalTypeLabel =
       opportunityProposalForm.proposalType === "ARMAZENAGEM"

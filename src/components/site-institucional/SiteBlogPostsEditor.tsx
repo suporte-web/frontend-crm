@@ -64,6 +64,7 @@ type SiteBlogPostsEditorProps = {
   token: string;
   value: unknown;
   disabled?: boolean;
+  onUploadStateChange?: (path: string, uploading: boolean) => void;
 
   onChange: (
     value: BlogPostSite[],
@@ -179,6 +180,7 @@ function createPost(): BlogPostSite {
 }
 
 export function SiteBlogPostsEditor({
+  onUploadStateChange,
   slug,
   token,
   value,
@@ -564,6 +566,7 @@ export function SiteBlogPostsEditor({
                     token={token}
                     label="Imagem do post"
                     value={post.image ?? ''}
+                    onUploadingChange={uploading => onUploadStateChange?.(`posts.${index}.image`, uploading)}
                     recommendedSize="1600 x 900 px, proporção 16:9"
                     disabled={disabled}
                     onChange={(imageUrl) =>
@@ -859,6 +862,7 @@ export function SiteBlogPostsEditor({
                         slug={slug}
                         token={token}
                         label="Imagem do post"
+                        onUploadingChange={uploading => onUploadStateChange?.('new-post.image', uploading)}
                         value={
                           newPost?.image ?? ''
                         }

@@ -1,4 +1,6 @@
 export type UserRole =
+  | 'LIDER_ATENDIMENTO'
+  | 'ATENDIMENTO'
   | 'ADMIN'
   | 'GESTAO'
   | 'COMERCIAL'
@@ -21,6 +23,7 @@ export interface AuthUser {
   name: string;
   email: string;
   role: UserRole;
+  roles?: UserRole[];
   mustChangePassword?: boolean;
   clientProfile?: unknown | null;
   screenPermissions?: RoleScreenPermission[];

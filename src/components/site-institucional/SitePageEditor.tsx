@@ -1,13 +1,19 @@
 'use client';
 
+import { hasAnyRole } from '@/lib/user-roles';
 import Link from 'next/link';
 
 import {
+  useCallback,
   useEffect,
+  useRef,
   useState,
 } from 'react';
 
 import Alert from '@mui/material/Alert';
+import Tabs from '@mui/material/Tabs';
+import Tab from '@mui/material/Tab';
+import { getSitePageUrl, getSitePhotoCount } from '@/config/site-institucional/site-media-guide';
 import Button from '@mui/material/Button';
 import Chip from '@mui/material/Chip';
 import CircularProgress from '@mui/material/CircularProgress';
@@ -352,11 +358,26 @@ export function SitePageEditor({
   ] =
     useState('');
 
+  const [editorView, setEditorView] = useState<'photos' | 'content'>('photos');
+  const [hasLocalChanges, setHasLocalChanges] = useState(false);
+  const pendingUploadPaths = useRef(new Set<string>());
+  const [uploadingPaths, setUploadingPaths] = useState(new Set<string>());
+  const photoCount = config ? getSitePhotoCount(config) : 0;
+  const activeView = photoCount > 0 ? editorView : 'content';
+  const hasUploads = uploadingPaths.size > 0;
+  const visibleSections = config?.sections.map(section => ({
+    ...section,
+    fields: section.fields.filter(field => activeView === 'photos' ? field.type === 'image' : field.type !== 'image'),
+  })).filter(section => section.fields.length > 0) ?? [];
+  const handleUploadStateChange = useCallback((fieldPath: string, uploading: boolean) => {
+    if (uploading) pendingUploadPaths.current.add(fieldPath);
+    else pendingUploadPaths.current.delete(fieldPath);
+    setUploadingPaths(new Set(pendingUploadPaths.current));
+  }, []);
+
   const isAllowed =
     user?.role
-      ? allowedRoles.has(
-        user.role,
-      )
+      ? hasAnyRole(user, [...allowedRoles])
       : false;
 
   /*
@@ -382,6 +403,8 @@ export function SitePageEditor({
     async function carregar() {
       try {
         setLoading(true);
+        setHasLocalChanges(false);
+        setEditorView('photos');
 
         setPageError('');
 
@@ -449,6 +472,7 @@ export function SitePageEditor({
     path: string,
     value: string,
   ) {
+    setHasLocalChanges(true);
     setConteudo(
       (current) =>
         setValueByPath(
@@ -468,7 +492,8 @@ export function SitePageEditor({
   async function handleSave() {
     if (
       !token ||
-      !config
+      !config ||
+      pendingUploadPaths.current.size > 0
     ) {
       return;
     }
@@ -490,6 +515,7 @@ export function SitePageEditor({
         resultado,
       );
 
+      setHasLocalChanges(false);
       setSuccessMessage(
         'Rascunho salvo com sucesso.',
       );
@@ -513,7 +539,8 @@ export function SitePageEditor({
   async function handlePublish() {
     if (
       !token ||
-      !config
+      !config ||
+      pendingUploadPaths.current.size > 0
     ) {
       return;
     }
@@ -549,6 +576,7 @@ export function SitePageEditor({
         resultado,
       );
 
+      setHasLocalChanges(false);
       setSuccessMessage(
         'Página publicada com sucesso.',
       );
@@ -598,7 +626,11 @@ export function SitePageEditor({
       </AppLayout>
     );
   }
-  const statusPagina = !pagina?.publicado
+  const statusPagina = hasUploads
+    ? { label: 'Enviando imagens', descricao: 'Aguarde o envio terminar para salvar ou publicar.', cor: '#D97706', fundo: '#FFF7ED', icone: <Clock3 size={18} /> }
+    : hasLocalChanges
+      ? { label: 'Alterações por salvar', descricao: 'Salve o rascunho ou publique para aplicar as alterações.', cor: '#D97706', fundo: '#FFF7ED', icone: <FilePenLine size={18} /> }
+      : !pagina?.publicado
     ? {
       label: 'Rascunho',
       descricao:
@@ -641,9 +673,15 @@ export function SitePageEditor({
           }
           icon={<Globe2 size={24} />}
           aside={
+            <Stack direction={{ xs: 'column', sm: 'row' }} spacing={1}>
+            <Button component="a" href={getSitePageUrl(slug)} target="_blank" rel="noopener noreferrer"
+              variant="outlined" startIcon={<Globe2 size={18} />} sx={{ textTransform: 'none', fontWeight: 800 }}>
+              Ver página no site
+            </Button>
             <Button
               component={Link}
               href="/site-institucional"
+              disabled={hasUploads || savingDraft || publishing}
               variant="outlined"
               startIcon={
                 <ArrowLeft size={18} />
@@ -683,6 +721,7 @@ export function SitePageEditor({
             >
               Voltar
             </Button>
+            </Stack>
           }
         />
 
@@ -802,10 +841,25 @@ export function SitePageEditor({
 
         {!loading ? (
           <Stack spacing={3}>
+            <Paper variant="outlined" sx={{ p: 2.5, borderRadius: 3 }}>
+              <Typography component="h2" sx={{ fontSize: 18, fontWeight: 850 }}>Como atualizar esta página</Typography>
+              <Typography sx={{ mt: 1, fontSize: 14, color: 'text.secondary', lineHeight: 1.7 }}>
+                1. Escolha a foto e confira a prévia. 2. Salve como rascunho para continuar depois.
+                3. Clique em Publicar para atualizar o site.
+              </Typography>
+              {photoCount > 0 ? <Typography sx={{ mt: 0.75, fontSize: 13, color: 'text.secondary' }}>
+                Excluir remove a foto desta edição. Ao publicar, o site volta a usar a imagem padrão quando disponível.
+              </Typography> : null}
+            </Paper>
+            {photoCount > 0 ? <Tabs value={activeView} onChange={(_, value) => setEditorView(value)} aria-label="Conteúdo da página" variant="scrollable" scrollButtons="auto">
+              <Tab value="photos" label={`Fotos da página (${photoCount})`} disabled={hasUploads || savingDraft || publishing} />
+              <Tab value="content" label="Textos e outros conteúdos" disabled={hasUploads || savingDraft || publishing} />
+            </Tabs> : null}
+
             {/* SEÇÕES */}
 
             <Stack spacing={2.5}>
-              {config.sections.map(
+              {visibleSections.map(
                 (section) => (
                   <SiteSectionEditor
                     key={
@@ -829,6 +883,7 @@ export function SitePageEditor({
                     onChange={
                       handleFieldChange
                     }
+                    onUploadStateChange={handleUploadStateChange}
                     disabled={
                       savingDraft ||
                       publishing
@@ -843,6 +898,7 @@ export function SitePageEditor({
               <SiteBlogPostsEditor
                 slug={slug}
                 token={token ?? ''}
+                onUploadStateChange={handleUploadStateChange}
                 value={getValueByPath(
                   conteudo,
                   'posts',
@@ -851,7 +907,8 @@ export function SitePageEditor({
                   savingDraft ||
                   publishing
                 }
-                onChange={(posts) =>
+                onChange={(posts) => {
+                  setHasLocalChanges(true);
                   setConteudo(
                     (current) =>
                       setValueByPath(
@@ -859,8 +916,8 @@ export function SitePageEditor({
                         'posts',
                         posts,
                       ),
-                  )
-                }
+                  );
+                }}
               />
             ) : null}
 
@@ -1021,7 +1078,8 @@ export function SitePageEditor({
                     variant="outlined"
                     disabled={
                       savingDraft ||
-                      publishing
+                      publishing ||
+                      hasUploads
                     }
                     sx={{
                       minHeight: 42,
@@ -1077,7 +1135,8 @@ export function SitePageEditor({
                     }
                     disabled={
                       savingDraft ||
-                      publishing
+                      publishing ||
+                      hasUploads
                     }
                     sx={{
                       minHeight: 42,
@@ -1144,7 +1203,8 @@ export function SitePageEditor({
                     }
                     disabled={
                       savingDraft ||
-                      publishing
+                      publishing ||
+                      hasUploads
                     }
                     sx={{
                       minHeight: 42,

@@ -1,4 +1,6 @@
 export type UserRole =
+  | 'LIDER_ATENDIMENTO'
+  | 'ATENDIMENTO'
   | 'ADMIN'
   | 'GESTAO'
   | 'COMERCIAL'
@@ -58,6 +60,7 @@ export interface User {
   name: string;
   email: string;
   role: UserRole;
+  roles?: UserRole[];
   isActive: boolean;
   createdAt: string;
   updatedAt: string;
@@ -69,7 +72,8 @@ export interface CreateUserPayload {
   name: string;
   email?: string;
   password?: string;
-  role: UserRole;
+  role?: UserRole;
+  roles?: UserRole[];
   isActive?: boolean;
   document?: string;
   phone?: string;
@@ -94,6 +98,7 @@ export interface UpdateUserPayload {
   name?: string;
   email?: string;
   role?: UserRole;
+  roles?: UserRole[];
   isActive?: boolean;
   document?: string;
   phone?: string;

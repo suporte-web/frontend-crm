@@ -11,6 +11,7 @@ import {
   LayoutDashboard,
   MapPinned,
   Megaphone,
+  Mail,
   MessageCircle,
   PackageSearch,
   Plug,
@@ -27,6 +28,8 @@ export const sidebarFontFamily =
 
 export const screenIcons: Record<ScreenKey, LucideIcon> = {
   dashboard: LayoutDashboard,
+  atendimentoSac: Inbox,
+  acoesSac: Ticket,
   bi: ChartSpline,
   entregas: Truck,
   trackings: PackageSearch,
@@ -41,6 +44,8 @@ export const screenIcons: Record<ScreenKey, LucideIcon> = {
   users: Users,
   marketing: Megaphone,
   marketingIntegrations: Plug,
+  marketingMetrics: ChartSpline,
+  informativo: Mail,
   siteRequests: Inbox,
   siteInstitutional: Globe2,
   logs: History,
@@ -77,18 +82,19 @@ export const sidebarSections: SidebarSectionConfig[] = [
     ],
   },
 
-  // {
-  //   id: "atendimento",
-  //   title: "Atendimento",
-  //   icon: Inbox,
-  //   keys: ["entradas", "tickets", "chat", "helpCenter"],
-  // },
+  {
+    id: 'atendimento-sac',
+    title: 'Atendimento',
+    icon: Inbox,
+    keys: ['atendimentoSac', 'acoesSac'],
+  },
+
 
   {
     id: "marketing",
     title: "Marketing",
     icon: Megaphone,
-    keys: ["marketing", "siteInstitutional", "marketingIntegrations", "siteRequests"],
+    keys: ["marketing", "siteInstitutional", "marketingIntegrations", "marketingMetrics", "informativo", "siteRequests"],
   },
   {
     id: "administracao",

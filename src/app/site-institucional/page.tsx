@@ -1,6 +1,10 @@
 'use client';
 
+import { hasAnyRole } from "@/lib/user-roles";
 import Alert from '@mui/material/Alert';
+import TextField from '@mui/material/TextField';
+import { useState } from 'react';
+import { getSitePageUrl, getSitePhotoCount } from '@/config/site-institucional/site-media-guide';
 import Box from '@mui/material/Box';
 import Button from '@mui/material/Button';
 import Chip from '@mui/material/Chip';
@@ -48,7 +52,6 @@ type PaginaSite = {
     nome: string;
     descricao: string;
     rota: string;
-    status: 'PUBLICADO' | 'RASCUNHO';
     icon: ReactNode;
 };
 
@@ -59,7 +62,6 @@ const paginasSite: PaginaSite[] = [
         descricao: sitePageConfigs.home.description ??
             'Gerencie os principais conteúdos apresentados na página inicial do site.',
         rota: '/',
-        status: 'PUBLICADO',
         icon: <Home size={22} />,
     },
     {
@@ -68,7 +70,6 @@ const paginasSite: PaginaSite[] = [
         descricao: sitePageConfigs['quem-somos'].description ??
             'História, missão, visão, valores e informações institucionais da empresa.',
         rota: '/quem-somos',
-        status: 'PUBLICADO',
         icon: <Building2 size={22} />,
     },
     {
@@ -77,7 +78,6 @@ const paginasSite: PaginaSite[] = [
         descricao: sitePageConfigs.solucoes.description ??
             'Gerencie as soluções e os serviços logísticos apresentados no site.',
         rota: '/solucoes',
-        status: 'PUBLICADO',
         icon: <Layers3 size={22} />,
     },
     {
@@ -86,7 +86,6 @@ const paginasSite: PaginaSite[] = [
         descricao: sitePageConfigs.carreiras.description ??
             'Gerencie textos institucionais da página de carreiras.',
         rota: '/carreiras',
-        status: 'PUBLICADO',
         icon: <FileText size={22} />,
     },
     {
@@ -95,7 +94,6 @@ const paginasSite: PaginaSite[] = [
         descricao: sitePageConfigs.agregados.description ??
             'Gerencie textos e imagens institucionais da página de agregados.',
         rota: '/agregados',
-        status: 'PUBLICADO',
         icon: <Truck size={22} />,
     },
     {
@@ -104,7 +102,6 @@ const paginasSite: PaginaSite[] = [
         descricao: sitePageConfigs.esg.description ??
             'Conteúdos relacionados aos pilares ambiental, social e de governança.',
         rota: '/esg',
-        status: 'PUBLICADO',
         icon: <Leaf size={22} />,
     },
     {
@@ -113,7 +110,6 @@ const paginasSite: PaginaSite[] = [
         descricao: sitePageConfigs.seminovos.description ??
             'Gerencie informações e conteúdos da página de veículos seminovos.',
         rota: '/seminovos',
-        status: 'PUBLICADO',
         icon: <Truck size={22} />,
     },
     {
@@ -122,7 +118,6 @@ const paginasSite: PaginaSite[] = [
         descricao: sitePageConfigs['solicitar-cotacao'].description ??
             'Gerencie textos e conteúdos apresentados na página de solicitação de cotação.',
         rota: '/solicitar-cotacao',
-        status: 'PUBLICADO',
         icon: <FileText size={22} />,
     },
     {
@@ -131,7 +126,6 @@ const paginasSite: PaginaSite[] = [
         descricao: sitePageConfigs.contatos.description ??
             'Gerencie as informações apresentadas nos canais de contato do site.',
         rota: '/contatos',
-        status: 'PUBLICADO',
         icon: <MessageSquareText size={22} />,
     },
     {
@@ -140,7 +134,6 @@ const paginasSite: PaginaSite[] = [
         descricao: sitePageConfigs.blog.description ??
             'Gerencie os textos da página do blog.',
         rota: '/blog',
-        status: 'PUBLICADO',
         icon: <FileText size={22} />,
     },
     {
@@ -149,7 +142,6 @@ const paginasSite: PaginaSite[] = [
         descricao: sitePageConfigs['lei-geral-de-protecao-de-dados'].description ??
             'Gerencie o conteúdo da página de LGPD.',
         rota: '/lei-geral-de-protecao-de-dados',
-        status: 'PUBLICADO',
         icon: <FileText size={22} />,
     },
     {
@@ -158,7 +150,6 @@ const paginasSite: PaginaSite[] = [
         descricao: sitePageConfigs['politica-de-privacidade'].description ??
             'Gerencie o conteúdo da política de privacidade.',
         rota: '/politica-de-privacidade',
-        status: 'PUBLICADO',
         icon: <FileText size={22} />,
     },
     {
@@ -167,16 +158,18 @@ const paginasSite: PaginaSite[] = [
         descricao: sitePageConfigs['termos-de-uso'].description ??
             'Gerencie o conteúdo dos termos de uso.',
         rota: '/termos-de-uso',
-        status: 'PUBLICADO',
         icon: <FileText size={22} />,
     },
 ];
 
 export default function SiteInstitucionalPage() {
     const { user } = useAuth();
+    const [search, setSearch] = useState('');
+    const normalize = (value: string) => value.normalize('NFD').replace(/[\u0300-\u036f]/g, '').toLowerCase();
+    const filteredPages = paginasSite.filter(page => normalize(page.nome + ' ' + page.descricao).includes(normalize(search.trim())));
 
     const isAllowed = user?.role
-        ? allowedRoles.has(user.role)
+        ? hasAnyRole(user, [...allowedRoles])
         : false;
 
     if (!isAllowed) {
@@ -237,8 +230,8 @@ export default function SiteInstitucionalPage() {
                                     fontSize: 14,
                                 }}
                             >
-                                Selecione uma página para visualizar e administrar seus
-                                conteúdos.
+                                Escolha a página, confira onde cada foto aparece e publique
+                                suas alterações para atualizar o site.
                             </Typography>
                         </Box>
 
@@ -253,6 +246,10 @@ export default function SiteInstitucionalPage() {
                         />
                     </Stack>
 
+                    <TextField label="Buscar página" placeholder="Ex.: Soluções, Carreiras, ESG"
+                        value={search} onChange={event => setSearch(event.target.value)} fullWidth
+                        sx={{ mt: 3, '& .MuiOutlinedInput-root': { borderRadius: 2.5 } }} />
+                    {filteredPages.length === 0 ? <Alert severity="info" sx={{ mt: 2 }}>Nenhuma página encontrada.</Alert> : null}
                     <Box
                         sx={{
                             mt: 3,
@@ -268,7 +265,7 @@ export default function SiteInstitucionalPage() {
                             },
                         }}
                     >
-                        {paginasSite.map((pagina) => (
+                        {filteredPages.map((pagina) => (
                             <Paper
                                 key={pagina.id}
                                 elevation={0}
@@ -329,16 +326,9 @@ export default function SiteInstitucionalPage() {
 
                                     <Chip
                                         size="small"
-                                        label={
-                                            pagina.status === 'PUBLICADO'
-                                                ? 'Publicado'
-                                                : 'Rascunho'
-                                        }
-                                        color={
-                                            pagina.status === 'PUBLICADO'
-                                                ? 'success'
-                                                : 'default'
-                                        }
+                                        label={getSitePhotoCount(sitePageConfigs[pagina.id]) > 0
+                                            ? `${getSitePhotoCount(sitePageConfigs[pagina.id])} fotos editáveis`
+                                            : pagina.id === 'blog' ? 'Posts e imagens' : 'Conteúdo da página'}
                                         sx={{
                                             fontWeight: 800,
                                         }}
@@ -411,7 +401,11 @@ export default function SiteInstitucionalPage() {
                                             },
                                         }}
                                     >
-                                        Editar
+                                        Editar página
+                                    </Button>
+                                    <Button component="a" href={getSitePageUrl(pagina.id)} target="_blank" rel="noopener noreferrer"
+                                        variant="outlined" sx={{ textTransform: 'none', fontWeight: 750 }}>
+                                        Ver no site
                                     </Button>
                                 </Stack>
                             </Paper>

@@ -144,9 +144,18 @@ export const sitePageConfigs: Record<string, SitePageConfig> = {
     title: "Página inicial",
 
     description:
-      "Gerencie as imagens do banner principal e o conteúdo das soluções exibidas na página inicial.",
+      "Gerencie os dois banners do topo e as fotos das soluções exibidas na página inicial.",
 
     sections: [
+      {
+        key: "banners",
+        title: "Banners do topo da página inicial",
+        description: "As duas imagens que se alternam no topo da página inicial.",
+        fields: [
+          image("hero.imagemUrl", "Banner 1 — imagem principal", "1920 x 680 px, formato horizontal"),
+          image("hero.imagemUrlSecundaria", "Banner 2 — segunda imagem", "1920 x 680 px, formato horizontal"),
+        ],
+      },
       {
         key: "solucoes",
 
@@ -901,7 +910,7 @@ export const sitePageConfigs: Record<string, SitePageConfig> = {
       },
       {
         key: "introducao",
-        title: "Introducao",
+        title: "Introdução",
         fields: [
           text("introducao.etiqueta", "Etiqueta"),
           text("introducao.titulo", "Titulo"),
@@ -915,7 +924,7 @@ export const sitePageConfigs: Record<string, SitePageConfig> = {
       },
       {
         key: "pilares",
-        title: "Pilares da introducao",
+        title: "Pilares da introdução",
         description:
           "Cards fixos: altere somente os textos. Icones, ordem, cores, estrutura e quantidade permanecem como no site.",
         fields: cardTextFields(
@@ -928,7 +937,7 @@ export const sitePageConfigs: Record<string, SitePageConfig> = {
       },
       {
         key: "beneficios",
-        title: "Beneficios",
+        title: "Benefícios",
         description:
           "Cards fixos: altere somente os textos. Icones, ordem, cores, estrutura e quantidade permanecem como no site.",
         fields: cardTextFields(

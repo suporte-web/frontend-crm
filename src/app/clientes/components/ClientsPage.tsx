@@ -1,5 +1,6 @@
 "use client";
 
+import { hasAnyRole } from "@/lib/user-roles";
 import Link from "next/link";
 import { useEffect, useMemo, useState } from "react";
 
@@ -348,9 +349,9 @@ export default function ClientsPage() {
     message: string;
     variant: "success" | "error";
   } | null>(null);
-  const isManagement = user?.role === "GESTAO" || user?.role === "ADMIN";
+  const isManagement = hasAnyRole(user, ["GESTAO"]) || hasAnyRole(user, ["ADMIN"]);
   const canManageClients = user?.role
-    ? ["ADMIN", "GESTAO", "COMERCIAL"].includes(user.role)
+    ? hasAnyRole(user, ["ADMIN", "GESTAO", "COMERCIAL"])
     : false;
 
   async function loadClients() {

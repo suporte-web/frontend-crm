@@ -70,7 +70,7 @@ export function FloatingHelpAssistant() {
   if (
     !isPermissionEnabledForRole(
       virtualAssistantPermission,
-      user?.role,
+      user?.roles?.length ? user.roles : user?.role,
       user?.screenPermissions,
     )
   ) {

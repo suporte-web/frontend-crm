@@ -4,6 +4,10 @@ const backendInternalUrl =
   process.env.BACKEND_INTERNAL_URL || 'http://127.0.0.1:3001';
 
 const nextConfig: NextConfig = {
+  experimental: {
+    // Evita o crescimento do cache de desenvolvimento em disco.
+    turbopackFileSystemCacheForDev: false,
+  },
   async rewrites() {
     return [
       {

@@ -1,16 +1,17 @@
-'use client';
+"use client";
 
-import { useEffect, useMemo, useState } from 'react';
-import type { ReactNode } from 'react';
+import { hasAnyRole } from "@/lib/user-roles";
+import { useEffect, useMemo, useState } from "react";
+import type { ReactNode } from "react";
 
-import Alert from '@mui/material/Alert';
-import Box from '@mui/material/Box';
-import Button from '@mui/material/Button';
-import Chip from '@mui/material/Chip';
-import CircularProgress from '@mui/material/CircularProgress';
-import Paper from '@mui/material/Paper';
-import Stack from '@mui/material/Stack';
-import Typography from '@mui/material/Typography';
+import Alert from "@mui/material/Alert";
+import Box from "@mui/material/Box";
+import Button from "@mui/material/Button";
+import Chip from "@mui/material/Chip";
+import CircularProgress from "@mui/material/CircularProgress";
+import Paper from "@mui/material/Paper";
+import Stack from "@mui/material/Stack";
+import Typography from "@mui/material/Typography";
 
 import {
   BarChart3,
@@ -19,24 +20,25 @@ import {
   LineChart,
   Megaphone,
   Plug,
-} from 'lucide-react';
+} from "lucide-react";
 
-import { AppLayout } from '@/components/layout/app-layout';
+import { AppLayout } from "@/components/layout/app-layout";
+import { GoogleAnalyticsControls } from "@/components/marketing/GoogleAnalyticsControls";
 import {
   CrmPageHeader,
   CrmPageShell,
   CrmSection,
   crmPalette,
-} from '@/components/mui/crm-primitives';
-import { useAuth } from '@/context/auth-context';
-import { listarIntegracoesMarketing } from '@/services/marketing-integrations.service';
+} from "@/components/mui/crm-primitives";
+import { useAuth } from "@/context/auth-context";
+import { listarIntegracoesMarketing } from "@/services/marketing-integrations.service";
 import type {
   MarketingIntegration,
   MarketingIntegrationStatus,
   MarketingProvider,
-} from '@/types/marketing-integrations';
+} from "@/types/marketing-integrations";
 
-const allowedRoles = new Set(['ADMIN', 'MARKETING']);
+const allowedRoles = new Set(["ADMIN", "MARKETING"]);
 
 const providerDetails: Record<
   MarketingProvider,
@@ -47,27 +49,26 @@ const providerDetails: Record<
   }
 > = {
   GOOGLE_ANALYTICS: {
-    name: 'Google Analytics 4',
+    name: "Google Analytics 4",
     description:
-      'Medição de acessos, eventos e conversões do site institucional.',
+      "Medição de acessos, eventos e conversões do site institucional.",
     icon: <LineChart size={22} />,
   },
   GOOGLE_ADS: {
-    name: 'Google Ads',
+    name: "Google Ads",
     description:
-      'Base para campanhas, conversões e públicos vindos do Google Ads.',
+      "Base para campanhas, conversões e públicos vindos do Google Ads.",
     icon: <BarChart3 size={22} />,
   },
   META: {
-    name: 'Meta Ads',
+    name: "Meta Ads",
     description:
-      'Preparação para pixel, públicos e campanhas de Facebook e Instagram.',
+      "Preparação para pixel, públicos e campanhas de Facebook e Instagram.",
     icon: <Megaphone size={22} />,
   },
   LINKEDIN: {
-    name: 'LinkedIn Ads',
-    description:
-      'Preparação para campanhas B2B e conversões do LinkedIn Ads.',
+    name: "LinkedIn Ads",
+    description: "Preparação para campanhas B2B e conversões do LinkedIn Ads.",
     icon: <Building2 size={22} />,
   },
 };
@@ -77,63 +78,63 @@ const statusDetails: Record<
   {
     label: string;
     helper: string;
-    color: 'default' | 'primary' | 'success' | 'error' | 'warning';
+    color: "default" | "primary" | "success" | "error" | "warning";
     accent: string;
     softColor: string;
   }
 > = {
   NAO_CONFIGURADO: {
-    label: 'Não configurado',
-    helper: 'Aguardando configuração das credenciais.',
-    color: 'default',
-    accent: '#64748b',
-    softColor: '#f8fafc',
+    label: "Não configurado",
+    helper: "Aguardando configuração das credenciais.",
+    color: "default",
+    accent: "#64748b",
+    softColor: "#f8fafc",
   },
   CONECTANDO: {
-    label: 'Conectando',
-    helper: 'Conexão em andamento.',
-    color: 'primary',
+    label: "Conectando",
+    helper: "Conexão em andamento.",
+    color: "primary",
     accent: crmPalette.blue,
-    softColor: '#eff6ff',
+    softColor: "#eff6ff",
   },
   CONECTADO: {
-    label: 'Conectado',
-    helper: 'Integração conectada.',
-    color: 'success',
+    label: "Conectado",
+    helper: "Integração conectada.",
+    color: "success",
     accent: crmPalette.green,
-    softColor: '#ecfdf5',
+    softColor: "#ecfdf5",
   },
   ERRO: {
-    label: 'Erro',
-    helper: 'Verifique a última mensagem de erro.',
-    color: 'error',
+    label: "Erro",
+    helper: "Verifique a última mensagem de erro.",
+    color: "error",
     accent: crmPalette.red,
-    softColor: '#fef2f2',
+    softColor: "#fef2f2",
   },
   EXPIRADO: {
-    label: 'Expirado',
-    helper: 'A conexão precisa ser renovada.',
-    color: 'warning',
-    accent: '#b45309',
-    softColor: '#fffbeb',
+    label: "Expirado",
+    helper: "A conexão precisa ser renovada.",
+    color: "warning",
+    accent: "#b45309",
+    softColor: "#fffbeb",
   },
 };
 
 const expectedProviders: MarketingProvider[] = [
-  'GOOGLE_ANALYTICS',
-  'GOOGLE_ADS',
-  'META',
-  'LINKEDIN',
+  "GOOGLE_ANALYTICS",
+  "GOOGLE_ADS",
+  "META",
+  "LINKEDIN",
 ];
 
 function formatDate(date?: string | null) {
   if (!date) {
-    return 'Nunca sincronizado';
+    return "Nunca sincronizado";
   }
 
-  return new Intl.DateTimeFormat('pt-BR', {
-    dateStyle: 'short',
-    timeStyle: 'short',
+  return new Intl.DateTimeFormat("pt-BR", {
+    dateStyle: "short",
+    timeStyle: "short",
   }).format(new Date(date));
 }
 
@@ -143,7 +144,7 @@ function buildFallbackIntegration(
   return {
     id: null,
     provider,
-    status: 'NAO_CONFIGURADO',
+    status: "NAO_CONFIGURADO",
     accountId: null,
     accountName: null,
     expiresAt: null,
@@ -160,9 +161,13 @@ export default function MarketingIntegrationsPage() {
   const { token, user } = useAuth();
   const [integrations, setIntegrations] = useState<MarketingIntegration[]>([]);
   const [loading, setLoading] = useState(true);
-  const [pageError, setPageError] = useState('');
+  const [pageError, setPageError] = useState("");
 
-  const isAllowed = user?.role ? allowedRoles.has(user.role) : false;
+  const isAllowed = user?.role ? hasAnyRole(user, [...allowedRoles]) : false;
+
+  async function reloadIntegrations() {
+    setIntegrations(await listarIntegracoesMarketing(token));
+  }
 
   useEffect(() => {
     let active = true;
@@ -175,7 +180,7 @@ export default function MarketingIntegrationsPage() {
 
       try {
         setLoading(true);
-        setPageError('');
+        setPageError("");
 
         const data = await listarIntegracoesMarketing(token);
 
@@ -187,7 +192,7 @@ export default function MarketingIntegrationsPage() {
           setPageError(
             error instanceof Error
               ? error.message
-              : 'Não foi possível carregar as integrações.',
+              : "Não foi possível carregar as integrações.",
           );
         }
       } finally {
@@ -206,14 +211,12 @@ export default function MarketingIntegrationsPage() {
 
   const cards = useMemo(() => {
     const byProvider = new Map(
-      integrations.map((integration) => [
-        integration.provider,
-        integration,
-      ]),
+      integrations.map((integration) => [integration.provider, integration]),
     );
 
     return expectedProviders.map(
-      (provider) => byProvider.get(provider) ?? buildFallbackIntegration(provider),
+      (provider) =>
+        byProvider.get(provider) ?? buildFallbackIntegration(provider),
     );
   }, [integrations]);
 
@@ -233,7 +236,7 @@ export default function MarketingIntegrationsPage() {
         <CrmPageHeader
           eyebrow="Marketing"
           title="Integrações de Marketing"
-          description="Prepare e acompanhe conexões com plataformas de mídia e mensuração. As credenciais reais ainda não estão configuradas."
+          description="Conecte suas contas e acompanhe as integrações de mídia e mensuração."
           icon={<Plug size={24} />}
         />
 
@@ -241,17 +244,17 @@ export default function MarketingIntegrationsPage() {
 
         <CrmSection sx={{ p: { xs: 2, md: 3 } }}>
           {loading ? (
-            <Box sx={{ minHeight: 280, display: 'grid', placeItems: 'center' }}>
+            <Box sx={{ minHeight: 280, display: "grid", placeItems: "center" }}>
               <CircularProgress />
             </Box>
           ) : (
             <Box
               sx={{
-                display: 'grid',
+                display: "grid",
                 gap: 2,
                 gridTemplateColumns: {
-                  xs: '1fr',
-                  lg: 'repeat(2, minmax(0, 1fr))',
+                  xs: "1fr",
+                  lg: "repeat(2, minmax(0, 1fr))",
                 },
               }}
             >
@@ -266,19 +269,19 @@ export default function MarketingIntegrationsPage() {
                     sx={{
                       minHeight: 300,
                       p: 2.5,
-                      border: '1px solid',
-                      borderColor: 'divider',
-                      borderRadius: '14px',
-                      bgcolor: '#fff',
+                      border: "1px solid",
+                      borderColor: "divider",
+                      borderRadius: "14px",
+                      bgcolor: "#fff",
                     }}
                   >
-                    <Stack spacing={2.5} sx={{ height: '100%' }}>
+                    <Stack spacing={2.5} sx={{ height: "100%" }}>
                       <Stack
                         direction="row"
                         spacing={1.5}
                         sx={{
-                          alignItems: 'flex-start',
-                          justifyContent: 'space-between',
+                          alignItems: "flex-start",
+                          justifyContent: "space-between",
                         }}
                       >
                         <Stack direction="row" spacing={1.5}>
@@ -286,10 +289,10 @@ export default function MarketingIntegrationsPage() {
                             sx={{
                               width: 48,
                               height: 48,
-                              display: 'grid',
-                              placeItems: 'center',
+                              display: "grid",
+                              placeItems: "center",
                               flexShrink: 0,
-                              borderRadius: '12px',
+                              borderRadius: "12px",
                               bgcolor: status.softColor,
                               color: status.accent,
                               border: `1px solid ${status.accent}22`,
@@ -308,7 +311,7 @@ export default function MarketingIntegrationsPage() {
                             <Typography
                               sx={{
                                 mt: 0.75,
-                                color: 'text.secondary',
+                                color: "text.secondary",
                                 fontSize: 14,
                                 lineHeight: 1.55,
                               }}
@@ -328,11 +331,11 @@ export default function MarketingIntegrationsPage() {
 
                       <Box
                         sx={{
-                          display: 'grid',
+                          display: "grid",
                           gap: 1.5,
                           gridTemplateColumns: {
-                            xs: '1fr',
-                            sm: 'repeat(2, minmax(0, 1fr))',
+                            xs: "1fr",
+                            sm: "repeat(2, minmax(0, 1fr))",
                           },
                         }}
                       >
@@ -341,13 +344,24 @@ export default function MarketingIntegrationsPage() {
                           value={
                             integration.accountName ||
                             integration.accountId ||
-                            'Nenhuma conta conectada'
+                            "Nenhuma conta conectada"
                           }
                         />
                         <InfoBlock
                           label="Última sincronização"
                           value={formatDate(integration.lastSyncAt)}
                         />
+                        {integration.provider === "GOOGLE_ANALYTICS" ? (
+                          <InfoBlock
+                            label="Property ID"
+                            value={
+                              typeof integration.metadata?.propertyId ===
+                              "string"
+                                ? integration.metadata.propertyId
+                                : "Nenhuma propriedade selecionada"
+                            }
+                          />
+                        ) : null}
                       </Box>
 
                       {integration.lastError ? (
@@ -358,20 +372,28 @@ export default function MarketingIntegrationsPage() {
 
                       <Box sx={{ flexGrow: 1 }} />
 
-                      <Button
-                        type="button"
-                        variant="outlined"
-                        disabled
-                        startIcon={<ExternalLink size={17} />}
-                        sx={{
-                          alignSelf: 'flex-start',
-                          borderRadius: '10px',
-                          textTransform: 'none',
-                          fontWeight: 800,
-                        }}
-                      >
-                        Configurar em breve
-                      </Button>
+                      {integration.provider === "GOOGLE_ANALYTICS" ? (
+                        <GoogleAnalyticsControls
+                          integration={integration}
+                          token={token}
+                          onChanged={reloadIntegrations}
+                        />
+                      ) : (
+                        <Button
+                          type="button"
+                          variant="outlined"
+                          disabled
+                          startIcon={<ExternalLink size={17} />}
+                          sx={{
+                            alignSelf: "flex-start",
+                            borderRadius: "10px",
+                            textTransform: "none",
+                            fontWeight: 800,
+                          }}
+                        >
+                          Configurar em breve
+                        </Button>
+                      )}
                     </Stack>
                   </Paper>
                 );
@@ -384,29 +406,23 @@ export default function MarketingIntegrationsPage() {
   );
 }
 
-function InfoBlock({
-  label,
-  value,
-}: {
-  label: string;
-  value: string;
-}) {
+function InfoBlock({ label, value }: { label: string; value: string }) {
   return (
     <Box
       sx={{
         p: 1.5,
-        border: '1px solid',
-        borderColor: 'divider',
-        borderRadius: '10px',
-        bgcolor: '#f8fafc',
+        border: "1px solid",
+        borderColor: "divider",
+        borderRadius: "10px",
+        bgcolor: "#f8fafc",
       }}
     >
       <Typography
         sx={{
-          color: 'text.secondary',
+          color: "text.secondary",
           fontSize: 12,
           fontWeight: 800,
-          textTransform: 'uppercase',
+          textTransform: "uppercase",
         }}
       >
         {label}

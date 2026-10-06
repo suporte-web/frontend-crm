@@ -1,5 +1,6 @@
 'use client';
 
+import { hasAnyRole } from "@/lib/user-roles";
 import { useEffect, useMemo, useState } from 'react';
 
 import Alert from '@mui/material/Alert';
@@ -206,7 +207,7 @@ export default function MarketingPage() {
   const [uploadingVideo, setUploadingVideo] = useState(false);
   const [tab, setTab] = useState('editor');
 
-  const isAllowed = user?.role ? allowedRoles.has(user.role) : false;
+  const isAllowed = user?.role ? hasAnyRole(user, [...allowedRoles]) : false;
 
   async function loadData() {
     try {

@@ -1,5 +1,6 @@
 'use client';
 
+import { hasAnyRole } from "@/lib/user-roles";
 import { useEffect, useMemo, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { v4 as uuidv4 } from 'uuid';
@@ -123,7 +124,7 @@ export default function HelpCenterPage() {
   const [sendingMessage, setSendingMessage] = useState(false);
   const [chatError, setChatError] = useState('');
 
-  const canManage = user?.role ? canManageRoles.has(user.role) : false;
+  const canManage = user?.role ? hasAnyRole(user, [...canManageRoles]) : false;
   const isClient = user?.role === 'CLIENTE';
   const firstName = user?.name?.split(' ')[0] || 'cliente';
   const greeting = `${getGreeting()}, ${firstName}. Como posso te ajudar?`;

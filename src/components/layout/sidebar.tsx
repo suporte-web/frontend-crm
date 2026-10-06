@@ -93,7 +93,7 @@ export function AppSidebar() {
     : SIDEBAR_COLLAPSED_WIDTH;
 
   const filteredMenu = appScreens.filter((item) =>
-    isScreenEnabledForRole(item, user?.role, user?.screenPermissions),
+    isScreenEnabledForRole(item, user?.roles?.length ? user.roles : user?.role, user?.screenPermissions),
   );
 
   const filteredSections = buildSidebarSections(filteredMenu);

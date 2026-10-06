@@ -1,5 +1,6 @@
 'use client';
 
+import { hasAnyRole } from "@/lib/user-roles";
 import Link from 'next/link';
 import { useEffect, useMemo, useState } from 'react';
 
@@ -119,7 +120,7 @@ export default function LeadsPage() {
   });
 
   const isAllowed = user?.role
-    ? internalRoles.has(user.role)
+    ? hasAnyRole(user, [...internalRoles])
     : false;
 
   const visibleLeads = leads;

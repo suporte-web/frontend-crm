@@ -1,5 +1,6 @@
 "use client";
 
+import { hasAnyRole } from "@/lib/user-roles";
 import Link from "next/link";
 import { useEffect, useMemo, useState } from "react";
 import {
@@ -225,17 +226,17 @@ export default function QuoteDetailsPage({
   const [actionMessage, setActionMessage] = useState("");
 
   const canRespond =
-    !!user?.role && ["ADMIN", "GESTÃO", "COMERCIAL"].includes(user.role);
+    !!user?.role && hasAnyRole(user, ["ADMIN", "GESTAO", "COMERCIAL"]);
   const isClient = user?.role === "CLIENTE";
   const isProspectQuote = Boolean(quote?.prospectId && !quote.clientId);
   const canEdit = useMemo(() => {
     if (!quote || !user?.role) return false;
-    if (["ADMIN", "GESTÃO", "COMERCIAL"].includes(user.role)) return true;
+    if (hasAnyRole(user, ["ADMIN", "GESTAO", "COMERCIAL"])) return true;
     if (user.role === "CLIENTE") {
       return ["RECEIVED", "IN_ANALYSIS"].includes(quote.status);
     }
     return false;
-  }, [quote, user?.role]);
+  }, [quote, user?.role, user?.roles]);
 
   useEffect(() => {
     let active = true;

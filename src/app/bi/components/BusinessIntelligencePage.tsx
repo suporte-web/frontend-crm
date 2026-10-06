@@ -1,5 +1,6 @@
 'use client';
 
+import { hasAnyRole } from "@/lib/user-roles";
 import {
   useEffect,
   useMemo,
@@ -430,7 +431,7 @@ export default function BusinessIntelligencePage() {
 
   const canViewPage =
     user?.role &&
-    ['ADMIN', 'GESTAO', 'COMERCIAL'].includes(user.role);
+    hasAnyRole(user, ['ADMIN', 'GESTAO', 'COMERCIAL']);
 
   useEffect(() => {
     if (authLoading || !token || !canViewPage) {

@@ -52,23 +52,26 @@ const headerColors = {
 
 function getPageTitle(pathname: string, role?: string) {
   if (pathname.startsWith("/painel")) {
-    return role === "CLIENTE" ? "Canal do Cliente" : "Dashboard";
+    return role === "CLIENTE" ? "Canal do Cliente" : "Início";
   }
 
-  if (pathname.startsWith("/bi")) return "BI Comercial";
-  if (pathname.startsWith("/rastreamentos")) return "Rastreamento";
-  if (pathname.startsWith("/cotacoes")) return "Cotações";
-  if (pathname.startsWith("/clientes")) return "Clientes";
-  if (pathname.startsWith("/leads")) return "Leads";
-  if (pathname.startsWith("/chamados")) return "Chamados";
-  if (pathname.startsWith("/usuarios")) return "Usuários";
-  if (pathname.startsWith("/solicitacoes-site")) return "Fila do site";
-  if (pathname.startsWith("/marketing")) return "Criação de conteúdo";
-  if (pathname.startsWith("/entregas")) return "Entregas";
-  if (pathname.startsWith("/entradas")) return "Central de Entradas";
-  if (pathname.startsWith("/fornecedores")) return "Fornecedores";
-  if (pathname.startsWith("/chat")) return "Chat";
-  if (pathname.startsWith("/logs")) return "Logs";
+  // if (pathname.startsWith("/bi")) return "BI Comercial";
+  // if (pathname.startsWith("/rastreamentos")) return "Rastreamento";
+  // if (pathname.startsWith("/cotacoes")) return "Cotações";
+  // if (pathname.startsWith("/clientes")) return "Clientes";
+  // if (pathname.startsWith("/leads")) return "Leads";
+  // if (pathname.startsWith("/chamados")) return "Chamados";
+  // if (pathname.startsWith("/usuarios")) return "Usuários";
+  // if (pathname.startsWith("/solicitacoes-site")) return "Fila do site";
+  // if (pathname.startsWith("/marketing/informativo")) return "";
+  // if (pathname.startsWith("/marketing/metricas")) return "Métricas de Marketing";
+
+  // if (pathname.startsWith("/marketing")) return "Criação de conteúdo";
+  // if (pathname.startsWith("/entregas")) return "Entregas";
+  // if (pathname.startsWith("/entradas")) return "Central de Entradas";
+  // if (pathname.startsWith("/fornecedores")) return "Fornecedores";
+  // if (pathname.startsWith("/chat")) return "Chat";
+  // if (pathname.startsWith("/logs")) return "Logs";
 
   return "CRM";
 }
@@ -77,6 +80,8 @@ function getRoleLabel(role?: string) {
   if (!role) return "Perfil";
 
   const labels: Record<string, string> = {
+    LIDER_ATENDIMENTO: "Líder de Atendimento",
+    ATENDIMENTO: "Atendimento",
     ADMIN: "Administrador",
     GESTAO: "Gestão",
     COMERCIAL: "Comercial",
@@ -180,7 +185,7 @@ export function Header() {
   const profileOpen = Boolean(profileAnchorEl);
 
   const availableScreens = appScreens.filter((item) =>
-    isScreenEnabledForRole(item, user?.role, user?.screenPermissions),
+    isScreenEnabledForRole(item, user?.roles?.length ? user.roles : user?.role, user?.screenPermissions),
   );
 
   function handleSignOut() {

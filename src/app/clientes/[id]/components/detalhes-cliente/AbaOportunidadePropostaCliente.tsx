@@ -858,7 +858,7 @@ export function AbaOportunidadePropostaCliente(props: PropriedadesAbaDetalhesCli
                       />
 
                       <TextField
-                        required
+                     
                         fullWidth
                         size="small"
                         label="Peso médio"
@@ -880,7 +880,7 @@ export function AbaOportunidadePropostaCliente(props: PropriedadesAbaDetalhesCli
                       />
 
                       <TextField
-                        required
+                        
                         fullWidth
                         size="small"
                         label="Valor agregado"
@@ -944,7 +944,7 @@ export function AbaOportunidadePropostaCliente(props: PropriedadesAbaDetalhesCli
                       />
 
                       <TextField
-                        required
+                        
                         select
                         fullWidth
                         size="small"

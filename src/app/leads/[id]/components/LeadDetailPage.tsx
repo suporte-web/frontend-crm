@@ -1,5 +1,7 @@
 'use client';
 
+import { LeadAttachments } from "@/components/attachments/LeadAttachments";
+import { hasAnyRole } from "@/lib/user-roles";
 import Link from 'next/link';
 import { useParams, useRouter } from 'next/navigation';
 import { useEffect, useMemo, useState, type ReactNode } from 'react';
@@ -1118,8 +1120,8 @@ export default function LeadDetailPage() {
     variant: 'success' | 'error';
   } | null>(null);
 
-  const isAllowed = user?.role ? internalRoles.has(user.role) : false;
-  const canConvert = user?.role ? converterRoles.has(user.role) : false;
+  const isAllowed = user?.role ? hasAnyRole(user, [...internalRoles]) : false;
+  const canConvert = user?.role ? hasAnyRole(user, [...converterRoles]) : false;
   const conversionTarget = getConversionTarget(lead);
   const currentStageInfo = getLeadFunnelStageInfo(lead?.status);
   const commercialInfo = getLeadCommercialInfo(lead);
@@ -2271,6 +2273,10 @@ export default function LeadDetailPage() {
                   />
                 </Box>
               </CrmSection>
+
+              {token && <CrmSection sx={{ p: { xs: 2, md: 3 }, gridColumn: { xs: 'auto', xl: '1 / -1' } }}>
+                <LeadAttachments key={lead.id} leadId={lead.id} token={token} />
+              </CrmSection>}
 
               <CrmSection
                 sx={{

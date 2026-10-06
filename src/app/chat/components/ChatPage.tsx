@@ -1,5 +1,6 @@
 "use client";
 
+import { canUseInternalChat } from "@/lib/user-roles";
 import { useEffect, useMemo, useState } from "react";
 import {
   Building2,
@@ -39,9 +40,6 @@ const visibilityLabels: Record<ChatMessageVisibility, string> = {
   PRIVADA_USUARIOS: "Privada",
 };
 
-function isInternalUser(role?: string) {
-  return role === "ADMIN" || role === "GESTÃO" || role === "COMERCIAL";
-}
 
 function formatDate(value?: string | null) {
   if (!value) return "-";
@@ -107,7 +105,7 @@ export default function ChatPage() {
     () => chats.find((chat) => chat.id === selectedChatId) ?? null,
     [chats, selectedChatId],
   );
-  const canUseInternalVisibility = isInternalUser(user?.role);
+  const canUseInternalVisibility = canUseInternalChat(user);
 
   async function loadChats() {
     if (authLoading) return;

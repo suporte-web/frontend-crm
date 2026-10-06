@@ -1,5 +1,6 @@
 'use client';
 
+import { hasAnyRole } from "@/lib/user-roles";
 import { useEffect, useState } from 'react';
 import { Copy, Send } from 'lucide-react';
 import { AppLayout } from '@/components/layout/app-layout';
@@ -44,7 +45,7 @@ export default function SuppliersPage() {
     variant: 'success' | 'error';
   } | null>(null);
 
-  const canAccess = user?.role && ['ADMIN', 'GESTAO', 'COMERCIAL'].includes(user.role);
+  const canAccess = user?.role && hasAnyRole(user, ['ADMIN', 'GESTAO', 'COMERCIAL']);
 
   async function loadInvites() {
     if (!token || !canAccess) {

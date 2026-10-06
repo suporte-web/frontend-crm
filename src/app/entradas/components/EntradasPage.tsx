@@ -1,5 +1,6 @@
 "use client";
 
+import { hasAnyRole } from "@/lib/user-roles";
 import Link from "next/link";
 import { useEffect, useMemo, useState } from "react";
 import { Eye, RefreshCcw, Search, UserCheck } from "lucide-react";
@@ -74,8 +75,8 @@ export default function EntradasPage() {
   } | null>(null);
 
   const canUsePage = useMemo(
-    () => Boolean(user?.role && ["ADMIN", "GESTÃO", "COMERCIAL"].includes(user.role)),
-    [user?.role],
+    () => Boolean(user?.role && hasAnyRole(user, ["ADMIN", "GESTAO", "COMERCIAL"])),
+    [user?.role, user?.roles],
   );
 
   async function loadEntradas() {

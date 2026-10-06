@@ -1,5 +1,6 @@
 "use client";
 
+import { hasAnyRole } from "@/lib/user-roles";
 import Link from "next/link";
 import { useEffect, useMemo, useState } from "react";
 import {
@@ -11,6 +12,7 @@ import {
   UserPlus,
   XCircle,
 } from "lucide-react";
+import { DadosRelatoSite } from '@/components/atendimentos/DadosRelatoSite';
 import { AppLayout } from "@/components/layout/app-layout";
 import { FeedbackToast } from "@/components/ui/feedback-toast";
 import { useAuth } from "@/context/auth-context";
@@ -114,8 +116,8 @@ export default function EntradaDetailPage({
   } | null>(null);
 
   const canManage = useMemo(
-    () => Boolean(user?.role && ["ADMIN", "GESTÃO", "COMERCIAL"].includes(user.role)),
-    [user?.role],
+    () => Boolean(user?.role && hasAnyRole(user, ["ADMIN", "GESTAO", "COMERCIAL"])),
+    [user?.role, user?.roles],
   );
   const hasAccountLink = Boolean(entrada?.prospectId || entrada?.clientId);
   const canCreateQuote = hasAccountLink && !entrada?.quoteId;
@@ -359,7 +361,8 @@ export default function EntradaDetailPage({
                   </p>
                 </div>
 
-                {entrada.formPayload ? (
+                <DadosRelatoSite atendimento={entrada} />
+                {entrada.formPayload && entrada.formPayload.canal !== 'RECLAMACOES_ELOGIOS' ? (
                   <div className="mt-5">
                     <p className="text-xs font-semibold uppercase tracking-wide text-slate-500">
                       Dados extras do formulario

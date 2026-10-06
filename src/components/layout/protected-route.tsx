@@ -8,7 +8,7 @@ import type { RoleScreenPermission, UserRole } from '@/types/auth';
 
 function canAccessRoute(
   pathname: string,
-  role?: UserRole,
+  role?: UserRole | UserRole[],
   permissions?: RoleScreenPermission[],
 ) {
   if (!role || pathname === '/alterar-senha') {
@@ -23,7 +23,7 @@ function canAccessRoute(
 }
 
 function getDefaultRoute(
-  role?: UserRole,
+  role?: UserRole | UserRole[],
   permissions?: RoleScreenPermission[],
 ) {
   return (
@@ -57,9 +57,9 @@ export function ProtectedRoute({ children }: { children: React.ReactNode }) {
     if (
       !loading &&
       token &&
-      !canAccessRoute(pathname, user?.role, user?.screenPermissions)
+      !canAccessRoute(pathname, user?.roles?.length ? user.roles : user?.role, user?.screenPermissions)
     ) {
-      router.replace(getDefaultRoute(user?.role, user?.screenPermissions));
+      router.replace(getDefaultRoute(user?.roles?.length ? user.roles : user?.role, user?.screenPermissions));
     }
   }, [
     loading,
@@ -67,6 +67,7 @@ export function ProtectedRoute({ children }: { children: React.ReactNode }) {
     token,
     user?.mustChangePassword,
     user?.role,
+    user?.roles,
     user?.screenPermissions,
     router,
   ]);
@@ -83,7 +84,7 @@ export function ProtectedRoute({ children }: { children: React.ReactNode }) {
     return null;
   }
 
-  if (!canAccessRoute(pathname, user?.role, user?.screenPermissions)) {
+  if (!canAccessRoute(pathname, user?.roles?.length ? user.roles : user?.role, user?.screenPermissions)) {
     return null;
   }
 

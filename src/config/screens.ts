@@ -1,6 +1,8 @@
 import type { UserRole } from '@/types/user';
 
 export type ScreenKey =
+  | 'atendimentoSac'
+  | 'acoesSac'
   | 'dashboard'
   | 'bi'
   | 'entregas'
@@ -16,6 +18,8 @@ export type ScreenKey =
   | 'users'
   | 'marketing'
   | 'marketingIntegrations'
+  | 'marketingMetrics'
+  | 'informativo'
   | 'siteRequests'
   | 'siteInstitutional'
   | 'logs'
@@ -40,9 +44,11 @@ export const appScreens: AppScreen[] = [
   {
     key: 'dashboard',
     href: '/painel',
-    label: 'Dashboard',
-    roles: ['ADMIN', 'GESTAO', 'COMERCIAL', 'MARKETING', 'CLIENTE'],
+    label: 'Início',
+    roles: ['ADMIN', 'GESTAO', 'COMERCIAL', 'MARKETING', 'CLIENTE', 'LIDER_ATENDIMENTO', 'ATENDIMENTO'],
   },
+
+
   {
     key: 'bi',
     href: '/bi',
@@ -128,6 +134,18 @@ export const appScreens: AppScreen[] = [
     roles: ['ADMIN', 'GESTAO'],
   },
   {
+    key: 'informativo',
+    href: '/marketing/informativo',
+    label: 'Informativo Pizzattolog',
+    roles: ['ADMIN', 'MARKETING'],
+  },
+  {
+    key: 'marketingMetrics',
+    href: '/marketing/metricas',
+    label: 'Métricas',
+    roles: ['ADMIN', 'MARKETING'],
+  },
+  {
     key: 'marketing',
     href: '/marketing',
     label: 'Criação de conteúdo',
@@ -158,6 +176,18 @@ export const appScreens: AppScreen[] = [
     label: 'Logs',
     roles: ['ADMIN', 'GESTAO'],
   },
+  {
+    key: 'acoesSac',
+    href: '/atendimento/acoes',
+    label: 'Minhas ações',
+    roles: ['ADMIN','GESTAO','LIDER_ATENDIMENTO','ATENDIMENTO','COMERCIAL','OPERACAO','MARKETING','CLIENTE'],
+  },
+  {
+    key: 'atendimentoSac',
+    href: '/atendimento',
+    label: 'Atendimento SAC',
+    roles: ['ADMIN','GESTAO','LIDER_ATENDIMENTO','ATENDIMENTO'],
+  },
 ];
 
 export const profilePermissionItems: ProfilePermissionItem[] = [
@@ -179,24 +209,26 @@ export const virtualAssistantPermission = profilePermissionItems.find(
 
 export function isPermissionEnabledForRole(
   permissionItem: ProfilePermissionItem,
-  role?: UserRole,
-  permissions?: Array<{ screenKey: string; isEnabled: boolean }>,
+  role?: UserRole | UserRole[],
+  permissions?: Array<{ role?: UserRole; screenKey: string; isEnabled: boolean }>,
 ) {
   if (!role) {
     return false;
   }
 
-  const permission = permissions?.find(
-    (item) => item.screenKey === permissionItem.key,
-  );
-
-  return permission ? permission.isEnabled : permissionItem.roles.includes(role);
+  const roles = Array.isArray(role) ? role : [role];
+  return roles.some((profile) => {
+    const permission = permissions?.find(
+      (item) => item.screenKey === permissionItem.key && (!item.role || item.role === profile),
+    );
+    return permission ? permission.isEnabled : permissionItem.roles.includes(profile);
+  });
 }
 
 export function isScreenEnabledForRole(
   screen: AppScreen,
-  role?: UserRole,
-  permissions?: Array<{ screenKey: string; isEnabled: boolean }>,
+  role?: UserRole | UserRole[],
+  permissions?: Array<{ role?: UserRole; screenKey: string; isEnabled: boolean }>,
 ) {
   return isPermissionEnabledForRole(screen, role, permissions);
 }

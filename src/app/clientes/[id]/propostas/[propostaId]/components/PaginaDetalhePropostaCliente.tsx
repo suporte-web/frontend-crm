@@ -1,5 +1,6 @@
 "use client";
 
+import { hasAnyRole } from "@/lib/user-roles";
 import Link from "next/link";
 import { useEffect, useMemo, useState } from "react";
 
@@ -139,7 +140,7 @@ export default function PaginaDetalhePropostaCliente({
   const proposalId = proposalIdParam;
 
   const canEditCommercialData = user?.role
-    ? ["ADMIN", "GESTÃO", "COMERCIAL"].includes(user.role)
+    ? hasAnyRole(user, ["ADMIN", "GESTAO", "COMERCIAL"])
     : false;
 
   const opportunity = useMemo(
