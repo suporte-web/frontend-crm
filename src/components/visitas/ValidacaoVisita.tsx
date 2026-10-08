@@ -78,7 +78,7 @@ export function ValidacaoVisita({
         <AnexosVisita
           visita={visita}
           token={token}
-          etapa="REALIZAÇÃO"
+          etapa="REALIZACAO"
           permitido={false}
           atualizar={atualizar}
           erro={erro}

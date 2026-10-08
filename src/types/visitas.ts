@@ -9,10 +9,10 @@ export const rotulosStatusVisita = {
   CONCLUIDA: "Concluída",
 } as const;
 export type StatusVisita = keyof typeof rotulosStatusVisita;
-export type EtapaVisita = "VISITA" | "REALIZAÇÃO" | "VALIDACAO" | "POS_VISITA";
+export type EtapaVisita = "VISITA" | "REALIZACAO" | "VALIDACAO" | "POS_VISITA";
 export const rotulosEtapaVisita: Record<EtapaVisita, string> = {
   VISITA: "Visita",
-  REALIZAÇÃO: "Realização",
+  REALIZACAO: "Realização",
   VALIDACAO: "Validação",
   POS_VISITA: "Pós-visita",
 };
