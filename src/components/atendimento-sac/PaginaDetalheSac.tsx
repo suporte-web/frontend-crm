@@ -37,6 +37,7 @@ import {
   StatusSacChip,
   UploadAnexosSac,
 } from "./ComponentesSac";
+import { HistoricoAtendimento } from '@/components/atendimento/HistoricoAtendimento';
 import { FormularioAcaoSac } from "./FormularioAcaoSac";
 export default function PaginaDetalheSac() {
   const { id } = useParams<{ id: string }>();
@@ -218,6 +219,7 @@ export default function PaginaDetalheSac() {
               titulo={`${a.protocolo} · ${a.tipo === "ELOGIO" ? "Elogio" : "Reclamação"}`}
             >
               <StatusSacChip status={a.status} />
+              {a.visita && <Alert severity="info" action={<Button component={Link} href={'/atendimento/visitas/' + a.visita.id} size="small">Abrir visita</Button>}>Atendimento decorrente da visita {a.visita.protocolo}</Alert>}
               <Box
                 sx={{
                   display: "grid",
@@ -359,7 +361,17 @@ export default function PaginaDetalheSac() {
                   Este relato é preservado. A classificação e as observações
                   internas são registradas separadamente.
                 </Alert>
-                <Box sx={camposSac}>
+                <Box
+                  sx={{
+                    display: "grid",
+                    gridTemplateColumns: {
+                      xs: "1fr",
+                      md: "repeat(2, minmax(0, 1fr))",
+                    },
+                    gap: 2,
+                    width: "100%",
+                  }}
+                >
                   {[
                     ["Nome", a.nome],
                     ["Telefone", a.telefone],
@@ -373,11 +385,42 @@ export default function PaginaDetalheSac() {
                       dataSac(String(a.relatoOriginal.enviadoEm || a.criadoEm)),
                     ],
                   ].map(([r, v]) => (
-                    <Box key={String(r)}>
-                      <Typography variant="caption" color="text.secondary">
+                    <Box
+                      key={String(r)}
+                      sx={{
+                        minHeight: 62,
+                        px: 2,
+                        py: 1.25,
+                        border: "1px solid",
+                        borderColor: "divider",
+                        borderRadius: 2,
+                        backgroundColor: "#fff",
+                        display: "flex",
+                        flexDirection: "column",
+                        justifyContent: "center",
+                      }}
+                    >
+                      <Typography
+                        variant="caption"
+                        sx={{
+                          color: "text.secondary",
+                          fontWeight: 600,
+                          mb: 0.4,
+                        }}
+                      >
                         {String(r)}
                       </Typography>
-                      <Typography>{String(v || "—")}</Typography>
+
+                      <Typography
+                        sx={{
+                          fontSize: 14,
+                          fontWeight: 500,
+                          color: "text.primary",
+                          overflowWrap: "anywhere",
+                        }}
+                      >
+                        {String(v || "—")}
+                      </Typography>
                     </Box>
                   ))}
                 </Box>
@@ -402,7 +445,17 @@ export default function PaginaDetalheSac() {
                     atendimento e antes de iniciar a ação.
                   </Alert>
                 )}
-                <Box sx={camposSac}>
+                <Box
+                  sx={{
+                    display: "grid",
+                    gridTemplateColumns: {
+                      xs: "1fr",
+                      md: "repeat(2, minmax(0, 1fr))",
+                    },
+                    gap: 2,
+                    alignItems: "start",
+                  }}
+                >
                   {(
                     [
                       {
@@ -426,7 +479,6 @@ export default function PaginaDetalheSac() {
                       },
                     ] as const
                   ).map((f) => (
-
                     <TextField
                       key={f.k}
                       label={f.r}
@@ -444,17 +496,30 @@ export default function PaginaDetalheSac() {
                           : undefined
                       }
                       fullWidth
+                      size="small"
                       sx={{
+                        width: "100%",
+
                         gridColumn: [
                           "motivo",
                           "observacoesClassificacao",
                         ].includes(f.k)
                           ? "1 / -1"
                           : "auto",
+
+                        "& .MuiInputBase-root": {
+                          minHeight: ["motivo", "observacoesClassificacao"].includes(f.k)
+                            ? undefined
+                            : 40,
+                        },
                       }}
                       slotProps={{
-                        inputLabel: { shrink: true },
-                        htmlInput: { maxLength: f.max },
+                        inputLabel: {
+                          shrink: true,
+                        },
+                        htmlInput: {
+                          maxLength: f.max,
+                        },
                       }}
                       onChange={(e) =>
                         setClassificacao({
@@ -533,15 +598,26 @@ export default function PaginaDetalheSac() {
               <SecaoSac titulo="Registro de não conformidade (RNC)">
                 <TextField
                   select
+                  size="small"
                   label="Gerou RNC?"
                   value={rnc.gerou}
                   disabled={!avaliavel || ocupado}
-                  onChange={(e) => setRnc({ ...rnc, gerou: e.target.value })}
+                  onChange={(e) =>
+                    setRnc({
+                      ...rnc,
+                      gerou: e.target.value,
+                    })
+                  }
+                  sx={{
+                    width: 320,
+                    maxWidth: "100%",
+                  }}
                 >
                   <MenuItem value="">Selecione</MenuItem>
                   <MenuItem value="true">Sim</MenuItem>
                   <MenuItem value="false">Não</MenuItem>
                 </TextField>
+
                 {rnc.gerou === "true" && (
                   <Box sx={camposSac}>
                     {(
@@ -590,26 +666,50 @@ export default function PaginaDetalheSac() {
                 {avaliavel && (
                   <Button
                     variant="contained"
+                    size="small"
                     disabled={ocupado}
                     onClick={salvarRnc}
+                    sx={{
+                      px: 2,
+                      py: 0.7,
+                      fontSize: "0.78rem",
+                      minHeight: 32,
+                      width: "fit-content",
+                    }}
                   >
                     Registrar decisão sobre RNC
                   </Button>
                 )}
-                <ListaAnexosSac
-                  anexos={a.anexos.filter((x) => x.etapa === "RNC")}
-                  token={token}
-                  id={id}
-                  erro={setErro}
-                />
-                {avaliavel && rnc.gerou === "true" && (
-                  <UploadAnexosSac
+                <Box
+                  sx={{
+                    width: "100%",
+                    maxWidth: 320,
+                  }}
+                >
+                  <ListaAnexosSac
+                    anexos={a.anexos.filter((x) => x.etapa === "RNC")}
                     token={token}
                     id={id}
-                    etapa="RNC"
-                    concluido={carregar}
                     erro={setErro}
                   />
+                </Box>
+
+                {avaliavel && rnc.gerou === "true" && (
+                  <Box
+                    sx={{
+                      width: "100%",
+                      maxWidth: 520,
+                      mt: 1,
+                    }}
+                  >
+                    <UploadAnexosSac
+                      token={token}
+                      id={id}
+                      etapa="RNC"
+                      concluido={carregar}
+                      erro={setErro}
+                    />
+                  </Box>
                 )}
               </SecaoSac>
             )}
@@ -643,58 +743,7 @@ export default function PaginaDetalheSac() {
             {aba === 5 && (
               <Stack spacing={3}>
                 <SecaoSac titulo="Histórico do atendimento">
-                  <Box
-                    sx={{
-                      borderLeft: "2px solid",
-                      borderColor: "divider",
-                      pl: 3,
-                    }}
-                  >
-                    {a.historico.map((h) => (
-                      <Box
-                        key={h.id}
-                        sx={{
-                          position: "relative",
-                          pb: 3,
-                          "&:before": {
-                            content: '""',
-                            position: "absolute",
-                            left: -31,
-                            top: 6,
-                            width: 12,
-                            height: 12,
-                            borderRadius: "50%",
-                            bgcolor: "primary.main",
-                          },
-                        }}
-                      >
-                        <Typography
-                          sx={{
-                            fontWeight: 700,
-                            whiteSpace: "pre-wrap",
-                            overflowWrap: "anywhere",
-                          }}
-                        >
-                          {h.descricao}
-                        </Typography>
-                        <Typography variant="caption" color="text.secondary">
-                          {dataSac(h.criadoEm)} ·{" "}
-                          {h.usuario?.name || "Site / sistema"}
-                          {h.tarefaId
-                            ? ` · Tarefa ${h.tarefaId.slice(0, 8)}`
-                            : ""}
-                        </Typography>
-                        {h.statusAnterior &&
-                          h.statusNovo &&
-                          h.statusAnterior !== h.statusNovo && (
-                            <Typography variant="body2">
-                              {rotulosStatusSac[h.statusAnterior]} →{" "}
-                              {rotulosStatusSac[h.statusNovo]}
-                            </Typography>
-                          )}
-                      </Box>
-                    ))}
-                  </Box>
+                  <HistoricoAtendimento eventos={a.historico} rotulos={rotulosStatusSac} />
                   <TextField
                     label="Adicionar observação interna"
                     value={observacao}

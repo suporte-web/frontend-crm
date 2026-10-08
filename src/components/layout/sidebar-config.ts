@@ -29,6 +29,7 @@ export const sidebarFontFamily =
 export const screenIcons: Record<ScreenKey, LucideIcon> = {
   dashboard: LayoutDashboard,
   atendimentoSac: Inbox,
+  visitas: MapPinned,
   acoesSac: Ticket,
   bi: ChartSpline,
   entregas: Truck,
@@ -86,7 +87,7 @@ export const sidebarSections: SidebarSectionConfig[] = [
     id: 'atendimento-sac',
     title: 'Atendimento',
     icon: Inbox,
-    keys: ['atendimentoSac', 'acoesSac'],
+    keys: ['atendimentoSac', 'visitas', 'acoesSac'],
   },
 
 

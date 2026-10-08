@@ -88,26 +88,101 @@ export function FormularioAcaoSac({
     }
   }
   return (
-    <Stack spacing={2}>
+    <Stack spacing={2.5}>
       <Alert severity="info">
         A ação concluída volta ao atendente para avaliação. Anexe as evidências
         antes de concluir.
       </Alert>
-      {acao.motivo && (
-        <Typography>
-          <b>Motivo:</b> {acao.motivo}
-        </Typography>
+
+      {(acao.motivo || acao.documento) && (
+        <Box
+          sx={{
+            display: "grid",
+            gridTemplateColumns: {
+              xs: "1fr",
+              md: "repeat(2, minmax(0, 1fr))",
+            },
+            gap: 2,
+            p: 2,
+            borderRadius: 2,
+            backgroundColor: "#f8f9fa",
+            border: "1px solid",
+            borderColor: "divider",
+          }}
+        >
+          {acao.motivo && (
+            <Box>
+              <Typography
+                variant="caption"
+                sx={{
+                  color: "text.secondary",
+                  fontWeight: 600,
+                }}
+              >
+                Motivo
+              </Typography>
+
+              <Typography
+                sx={{
+                  mt: 0.3,
+                  fontSize: 14,
+                  fontWeight: 500,
+                }}
+              >
+                {acao.motivo}
+              </Typography>
+            </Box>
+          )}
+
+          {acao.documento && (
+            <Box>
+              <Typography
+                variant="caption"
+                sx={{
+                  color: "text.secondary",
+                  fontWeight: 600,
+                }}
+              >
+                Documento
+              </Typography>
+
+              <Typography
+                sx={{
+                  mt: 0.3,
+                  fontSize: 14,
+                  fontWeight: 500,
+                }}
+              >
+                {acao.documento}
+              </Typography>
+            </Box>
+          )}
+        </Box>
       )}
-      {acao.documento && (
-        <Typography>
-          <b>Documento:</b> {acao.documento}
-        </Typography>
-      )}
-      <Box sx={camposSac}>
+
+      <Box
+        sx={{
+          display: "grid",
+          gridTemplateColumns: {
+            xs: "1fr",
+            md: "repeat(2, minmax(0, 1fr))",
+          },
+          gap: 2,
+          alignItems: "start",
+          width: "100%",
+        }}
+      >
         {(
           [
-            { chave: "oQue", label: "O que será feito?", multiline: true },
-            { chave: "executor", label: "Quem irá executar?" },
+            {
+              chave: "oQue",
+              label: "O que será feito?",
+              multiline: true,
+            },
+            {
+              chave: "executor",
+              label: "Quem irá executar?",
+            },
             {
               chave: "prazo",
               label: "Prazo para solução",
@@ -118,67 +193,187 @@ export function FormularioAcaoSac({
               label: "Data da execução",
               tipo: "datetime-local",
             },
-            { chave: "observacoes", label: "Observações", multiline: true },
-            { chave: "reporte", label: "Conclusão / reporte", multiline: true },
+            {
+              chave: "observacoes",
+              label: "Observações",
+              multiline: true,
+            },
+            {
+              chave: "reporte",
+              label: "Conclusão / reporte",
+              multiline: true,
+            },
           ] as const
-        ).map((f) => (
-          <TextField
-            key={f.chave}
-            label={f.label}
-            type={"tipo" in f ? f.tipo : "text"}
-            multiline={"multiline" in f}
-            minRows={"multiline" in f ? 3 : undefined}
-            value={dados[f.chave]}
-            disabled={!editavel || ocupado}
-            slotProps={{
-              inputLabel: { shrink: true },
-              htmlInput: {
-                maxLength:
-                  f.chave === "reporte"
-                    ? 10000
-                    : f.chave === "executor"
-                      ? 150
-                      : 4000,
-              },
-            }}
-            onChange={(e) => setDados({ ...dados, [f.chave]: e.target.value })}
-          />
-        ))}
+        ).map((f) => {
+          const campoGrande = [
+            "oQue",
+            "observacoes",
+            "reporte",
+          ].includes(f.chave);
+
+          const multiline = "multiline" in f && f.multiline;
+
+          return (
+            <TextField
+              key={f.chave}
+              label={f.label}
+              type={"tipo" in f ? f.tipo : "text"}
+              multiline={multiline}
+              minRows={multiline ? 3 : undefined}
+              value={dados[f.chave]}
+              disabled={!editavel || ocupado}
+              fullWidth
+              size="small"
+              sx={{
+                width: "100%",
+                gridColumn: campoGrande ? "1 / -1" : "auto",
+
+                "& .MuiInputBase-root": {
+                  minHeight: multiline ? undefined : 40,
+                  borderRadius: 2,
+                  backgroundColor: "#fff",
+                },
+
+                "& .MuiOutlinedInput-root": {
+                  "&:hover fieldset": {
+                    borderColor: "#ff5805",
+                  },
+
+                  "&.Mui-focused fieldset": {
+                    borderColor: "#ff5805",
+                  },
+                },
+
+                "& .MuiInputLabel-root.Mui-focused": {
+                  color: "#ff5805",
+                },
+              }}
+              slotProps={{
+                inputLabel: {
+                  shrink: true,
+                },
+                htmlInput: {
+                  maxLength:
+                    f.chave === "reporte"
+                      ? 10000
+                      : f.chave === "executor"
+                        ? 150
+                        : 4000,
+                },
+              }}
+              onChange={(e) =>
+                setDados({
+                  ...dados,
+                  [f.chave]: e.target.value,
+                })
+              }
+            />
+          );
+        })}
       </Box>
+
       {editavel && (
-        <Stack direction={{ xs: "column", sm: "row" }} sx={{ gap: 1 }}>
+        <Stack
+          direction={{
+            xs: "column",
+            sm: "row",
+          }}
+          sx={{
+            gap: 1,
+            alignItems: {
+              xs: "stretch",
+              sm: "center",
+            },
+          }}
+        >
           <Button
             variant="contained"
+            size="small"
             disabled={ocupado}
             onClick={() => salvar(false)}
+            sx={{
+              width: {
+                xs: "100%",
+                sm: "fit-content",
+              },
+              minWidth: 0,
+              px: 2,
+              py: 0.75,
+              fontSize: 13,
+              fontWeight: 700,
+              textTransform: "none",
+              backgroundColor: "#ff5805",
+
+              "&:hover": {
+                backgroundColor: "#e94f00",
+              },
+            }}
           >
             {acao.status === "AGUARDANDO_ACAO"
               ? "Iniciar ação"
               : "Salvar plano"}
           </Button>
+
           <Button
             variant="outlined"
+            size="small"
             disabled={ocupado}
             onClick={() => salvar(true)}
+            sx={{
+              width: {
+                xs: "100%",
+                sm: "fit-content",
+              },
+              px: 2,
+              py: 0.75,
+              fontSize: 13,
+              fontWeight: 700,
+              textTransform: "none",
+              color: "#ff5805",
+              borderColor: "#ff5805",
+
+              "&:hover": {
+                borderColor: "#e94f00",
+                backgroundColor: "#fff3ee",
+              },
+            }}
           >
             Concluir ação e enviar para avaliação
           </Button>
         </Stack>
       )}
-      <ListaAnexosSac
-        anexos={acao.anexos.filter((a) => a.etapa === "ACAO_CORRETIVA")}
-        token={token}
-        id={acao.id}
-        erro={erro}
-      />
-      {permitido && (
-        <UploadAnexosSac
+
+      <Box
+        sx={{
+          width: "100%",
+          maxWidth: 520,
+        }}
+      >
+        <ListaAnexosSac
+          anexos={acao.anexos.filter(
+            (a) => a.etapa === "ACAO_CORRETIVA",
+          )}
           token={token}
           id={acao.id}
-          etapa="ACAO_CORRETIVA"
-          concluido={atualizar}
           erro={erro}
         />
+      </Box>
+
+      {permitido && (
+        <Box
+          sx={{
+            width: "100%",
+            maxWidth: 520,
+          }}
+        >
+          <UploadAnexosSac
+            token={token}
+            id={acao.id}
+            etapa="ACAO_CORRETIVA"
+            concluido={atualizar}
+            erro={erro}
+          />
+        </Box>
       )}
     </Stack>
   );

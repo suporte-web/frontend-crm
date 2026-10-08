@@ -120,10 +120,12 @@ export default function PaginaFilaSac() {
               display: "grid",
               gridTemplateColumns: {
                 xs: "1fr",
-                sm: "repeat(2,1fr)",
-                lg: "repeat(4,1fr)",
+                sm: "repeat(2, minmax(0, 1fr))",
+                lg: "repeat(4, minmax(0, 1fr))",
               },
               gap: 2,
+              alignItems: "end",
+              width: "100%",
             }}
           >
             {Object.entries(filtros).map(([chave, valor]) => {
@@ -137,12 +139,14 @@ export default function PaginaFilaSac() {
                 inicio: "Data inicial",
                 fim: "Data final",
               };
+
               const select = [
                 "tipo",
                 "status",
                 "atendenteId",
                 "responsavelAcaoId",
               ].includes(chave);
+
               return (
                 <TextField
                   key={chave}
@@ -168,38 +172,58 @@ export default function PaginaFilaSac() {
                     width: "100%",
 
                     "& .MuiInputBase-root": {
-                      height: 56,
+                      minHeight: 40,
+                      borderRadius: 2,
+                      backgroundColor: "#fff",
                     },
 
                     "& .MuiOutlinedInput-root": {
-                      height: 56,
+                      "&:hover fieldset": {
+                        borderColor: "#ff5805",
+                      },
+
+                      "&.Mui-focused fieldset": {
+                        borderColor: "#ff5805",
+                      },
+                    },
+
+                    "& .MuiInputLabel-root.Mui-focused": {
+                      color: "#ff5805",
                     },
 
                     "& .MuiInputBase-input": {
                       boxSizing: "border-box",
+                      fontSize: 14,
                     },
                   }}
                 >
                   {select && <MenuItem value="">Todos</MenuItem>}
+
                   {chave === "tipo" && [
                     <MenuItem key="r" value="RECLAMACAO">
                       Reclamação
                     </MenuItem>,
+
                     <MenuItem key="e" value="ELOGIO">
                       Elogio
                     </MenuItem>,
                   ]}
+
                   {chave === "status" &&
                     Object.entries(rotulosStatusSac).map(([k, v]) => (
                       <MenuItem key={k} value={k}>
                         {v}
                       </MenuItem>
                     ))}
+
                   {["atendenteId", "responsavelAcaoId"].includes(chave) &&
                     pessoas
                       .filter(
                         (p) =>
-                          chave !== "atendenteId" || (p.roles?.length ? p.roles : [p.role]).includes("ATENDIMENTO"),
+                          chave !== "atendenteId" ||
+                          (p.roles?.length ? p.roles : [p.role]).includes(
+                            "ATENDIMENTO",
+                          ),
                       )
                       .map((p) => (
                         <MenuItem key={p.id} value={p.id}>
@@ -209,54 +233,94 @@ export default function PaginaFilaSac() {
                 </TextField>
               );
             })}
-            <Button
-              type="submit"
-              variant="contained"
-              sx={{
-                backgroundColor: "#ff5805",
-                color: "#ffffff",
-                fontWeight: 700,
-                textTransform: "none",
 
-                "&:hover": {
-                  backgroundColor: "#e94f00",
+            <Box
+              sx={{
+                gridColumn: {
+                  xs: "1 / -1",
                 },
+                display: "flex",
+                flexDirection: {
+                  xs: "column",
+                  sm: "row",
+                },
+                gap: 1,
+                justifyContent: "flex-end",
+                alignItems: {
+                  xs: "stretch",
+                  sm: "center",
+                },
+                mt: 0.5,
               }}
             >
-              Aplicar filtros
-            </Button>
-            <Button
-              onClick={() => {
-                const vazios = {
-                  protocolo: "",
-                  tipo: "",
-                  status: "",
-                  atendenteId: "",
-                  responsavelAcaoId: "",
-                  area: "",
-                  inicio: "",
-                  fim: "",
-                };
+              <Button
+                type="submit"
+                variant="contained"
+                size="small"
+                sx={{
+                  width: {
+                    xs: "100%",
+                    sm: "fit-content",
+                  },
+                  minWidth: 0,
+                  px: 2.5,
+                  py: 0.75,
+                  fontSize: 13,
+                  fontWeight: 700,
+                  textTransform: "none",
+                  backgroundColor: "#ff5805",
 
-                setFiltros(vazios);
-                setAplicados(vazios);
-                setPagina(1);
-              }}
-              variant="outlined"
-              sx={{
-                color: "#ff5805",
-                borderColor: "#ff5805",
-                fontWeight: 700,
-                textTransform: "none",
+                  "&:hover": {
+                    backgroundColor: "#e94f00",
+                  },
+                }}
+              >
+                Aplicar filtros
+              </Button>
 
-                "&:hover": {
-                  borderColor: "#e94f00",
-                  backgroundColor: "#fff3ee",
-                },
-              }}
-            >
-              Limpar
-            </Button>
+              <Button
+                type="button"
+                variant="outlined"
+                size="small"
+                onClick={() => {
+                  const vazios = {
+                    protocolo: "",
+                    tipo: "",
+                    status: "",
+                    atendenteId: "",
+                    responsavelAcaoId: "",
+                    area: "",
+                    inicio: "",
+                    fim: "",
+                  };
+
+                  setFiltros(vazios);
+                  setAplicados(vazios);
+                  setPagina(1);
+                }}
+                sx={{
+                  width: {
+                    xs: "100%",
+                    sm: "fit-content",
+                  },
+                  minWidth: 0,
+                  px: 2.5,
+                  py: 0.75,
+                  fontSize: 13,
+                  fontWeight: 700,
+                  textTransform: "none",
+                  color: "#ff5805",
+                  borderColor: "#ff5805",
+
+                  "&:hover": {
+                    borderColor: "#e94f00",
+                    backgroundColor: "#fff3ee",
+                  },
+                }}
+              >
+                Limpar
+              </Button>
+            </Box>
           </Box>
         </SecaoSac>
         {erro && (

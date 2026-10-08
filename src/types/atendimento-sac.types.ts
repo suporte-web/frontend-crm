@@ -47,6 +47,7 @@ export type EventoSac = {
   dados?: Record<string, unknown> | null;
 };
 export type AtendimentoSac = {
+  visita?: { id: string; protocolo: string } | null;
   id: string;
   protocolo: string;
   tipo: string;

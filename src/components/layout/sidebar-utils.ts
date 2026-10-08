@@ -15,6 +15,7 @@ export function isUnreadChatNotification(notification: CrmNotification) {
 }
 
 export function isScreenActive(pathname: string, href: string) {
+  if (href === '/atendimento' && /^\/atendimento\/(visitas|acoes)(\/|$)/.test(pathname)) return false;
   return pathname === href || pathname.startsWith(`${href}/`);
 }
 

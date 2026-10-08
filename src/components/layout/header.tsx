@@ -51,6 +51,7 @@ const headerColors = {
 };
 
 function getPageTitle(pathname: string, role?: string) {
+  if (pathname.startsWith('/atendimento/visitas')) return 'Visitas';
   if (pathname.startsWith("/painel")) {
     return role === "CLIENTE" ? "Canal do Cliente" : "Início";
   }

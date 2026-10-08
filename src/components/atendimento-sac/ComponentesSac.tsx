@@ -141,8 +141,10 @@ export function ListaAnexosSac({
   token,
   id,
   erro,
+  baixar,
 }: {
   anexos: AnexoSac[];
+  baixar?: (anexo: AnexoSac) => Promise<void>;
   token: string;
   id: string;
   erro: (m: string) => void;
@@ -176,7 +178,7 @@ export function ListaAnexosSac({
             </Box>
             <Button
               onClick={() =>
-                baixarAnexoSac(token, id, a.id, a.nome).catch((e) =>
+                (baixar ? baixar(a) : baixarAnexoSac(token, id, a.id, a.nome)).catch((e) =>
                   erro(e.message),
                 )
               }

@@ -1,6 +1,7 @@
 import type { UserRole } from '@/types/user';
 
 export type ScreenKey =
+  | 'visitas'
   | 'atendimentoSac'
   | 'acoesSac'
   | 'dashboard'
@@ -175,6 +176,12 @@ export const appScreens: AppScreen[] = [
     href: '/logs',
     label: 'Logs',
     roles: ['ADMIN', 'GESTAO'],
+  },
+  {
+    key: 'visitas',
+    href: '/atendimento/visitas',
+    label: 'Visitas',
+    roles: ['ADMIN', 'GESTAO', 'LIDER_ATENDIMENTO', 'ATENDIMENTO'],
   },
   {
     key: 'acoesSac',
