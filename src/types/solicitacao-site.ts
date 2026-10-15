@@ -10,6 +10,12 @@ export type StatusSolicitacaoSite =
   | 'CANCELADO';
 
 export interface SolicitacaoSite {
+  etapaCotacao?: EtapaCotacaoSite | null;
+  leadId?: string | null;
+  prospectId?: string | null;
+  clientId?: string | null;
+  responsavel?: {id:string;name:string} | null;
+  lead?: {id:string;timeline?:CotacaoSiteHistorico[]} | null;
   id: string;
 
   tipo: TipoSolicitacaoSite;
@@ -80,3 +86,7 @@ export interface ListarSolicitacoesSiteFiltros {
   departamento?: string;
   busca?: string;
 }
+
+export type EtapaCotacaoSite = 'LEAD' | 'PROSPECT' | 'CLIENTE';
+export type CotacaoSiteHistorico = {id:string;title:string;description:string;createdAt:string;createdBy?:{id:string;name:string}|null;metadata?:Record<string,unknown>|null};
+export type AtualizarCotacaoSitePayload = {nome?:string;empresa?:string;email?:string;telefone?:string;cnpj?:string;cidade?:string;solucao?:string;observacaoInterna?:string};

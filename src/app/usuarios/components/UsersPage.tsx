@@ -4,7 +4,7 @@ import { useEffect, useMemo, useState } from "react";
 
 import Checkbox from "@mui/material/Checkbox";
 import ListItemText from "@mui/material/ListItemText";
-import { getUserRoles, hasAnyRole } from "@/lib/user-roles";
+import { getUserRoles, hasAnyRole, selecionarPerfis } from "@/lib/user-roles";
 
 import Alert from "@mui/material/Alert";
 import Avatar from "@mui/material/Avatar";
@@ -25,8 +25,6 @@ import Paper from "@mui/material/Paper";
 import Stack from "@mui/material/Stack";
 import Switch from "@mui/material/Switch";
 import TextField from "@mui/material/TextField";
-import ToggleButton from "@mui/material/ToggleButton";
-import ToggleButtonGroup from "@mui/material/ToggleButtonGroup";
 import Tooltip from "@mui/material/Tooltip";
 import Typography from "@mui/material/Typography";
 
@@ -56,21 +54,18 @@ import {
   CrmSection,
   crmPalette,
 } from "@/components/mui/crm-primitives";
+import { cartaoCrmSx } from "@/components/mui/estilos-cartoes-crm";
 import { FeedbackToast } from "@/components/ui/feedback-toast";
-import { profilePermissionItems } from "@/config/screens";
 import { useAuth } from "@/context/auth-context";
 import {
   createUser,
   deleteUser,
-  getScreenPermissions,
   getUsers,
   resetUserPassword,
-  updateRoleScreenPermissions,
   updateUser,
 } from "@/services/users.service";
 import type {
   CreateUserPayload,
-  RoleScreenPermissionsGroup,
   UpdateUserPayload,
   User,
   UserRole,
@@ -82,6 +77,7 @@ const roles: UserRole[] = [
   "ADMIN",
   "GESTAO",
   "COMERCIAL",
+  "CONSULTORA",
   "OPERACAO",
   "MARKETING",
 ];
@@ -99,9 +95,9 @@ type FormState = {
 
 type ConfirmAction =
   | {
-      type: "delete" | "reset-password";
-      user: User;
-    }
+    type: "delete" | "reset-password";
+    user: User;
+  }
   | null;
 
 const initialFormState: FormState = {
@@ -142,6 +138,7 @@ const roleMeta: Record<
       borderColor: "#bfdbfe",
     },
   },
+  CONSULTORA: { label: "Consultora", accent: "#0288d1", softColor: "#e0f2fe", chipSx: { bgcolor: "#e0f2fe", color: "#0288d1" } },
   COMERCIAL: {
     label: "Comercial",
     accent: crmPalette.orange,
@@ -201,13 +198,34 @@ const fieldSx = {
 };
 
 const filterFieldSx = {
+  width: "100%",
+  minWidth: 0,
+
   "& .MuiOutlinedInput-root": {
-    minHeight: 48,
-    borderRadius: "12px",
+    height: 42,
+    borderRadius: "10px",
     bgcolor: "#ffffff",
+
+    "& .MuiOutlinedInput-notchedOutline": {
+      borderColor: "#dce3eb",
+    },
+
+    "&:hover .MuiOutlinedInput-notchedOutline": {
+      borderColor: "#94a3b8",
+    },
+
+    "&.Mui-focused .MuiOutlinedInput-notchedOutline": {
+      borderColor: "#ff5805",
+    },
   },
+
+  "& .MuiInputBase-input": {
+    fontSize: 13,
+  },
+
   "& .MuiInputLabel-root": {
-    fontWeight: 700,
+    fontSize: 13,
+    fontWeight: 500,
   },
 };
 
@@ -228,13 +246,10 @@ export default function UsersPage() {
   const { user: currentUser, refreshUser } = useAuth();
 
   const [users, setUsers] = useState<User[]>([]);
-  const [screenPermissions, setScreenPermissions] = useState<
-    RoleScreenPermissionsGroup[]
-  >([]);
 
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
-  const [savingPermissions, setSavingPermissions] = useState(false);
+  const [consultoraPassword, setConsultoraPassword] = useState("");
   const [confirmLoading, setConfirmLoading] = useState(false);
 
   const [search, setSearch] = useState("");
@@ -242,8 +257,6 @@ export default function UsersPage() {
   const [statusFilter, setStatusFilter] = useState<StatusFilter>("TODOS");
   const [page, setPage] = useState(1);
   const [rowsPerPage, setRowsPerPage] = useState(10);
-  const [selectedPermissionRole, setSelectedPermissionRole] =
-    useState<UserRole>("ADMIN");
 
   const [pageError, setPageError] = useState("");
   const [formError, setFormError] = useState("");
@@ -265,13 +278,9 @@ export default function UsersPage() {
       setLoading(true);
       setPageError("");
 
-      const [usersData, permissionsData] = await Promise.all([
-        getUsers(),
-        getScreenPermissions(),
-      ]);
+      const usersData = await getUsers();
 
       setUsers(usersData);
-      setScreenPermissions(permissionsData);
     } catch (error) {
       const message =
         error instanceof Error ? error.message : "Erro ao carregar usuários";
@@ -377,102 +386,6 @@ export default function UsersPage() {
     return { total, active, inactive, operations };
   }, [companyUsers]);
 
-  const selectedRolePermissions = useMemo(() => {
-    const group = screenPermissions.find(
-      (item) => item.role === selectedPermissionRole,
-    );
-
-    return new Map(
-      (group?.screens ?? []).map((permission) => [
-        permission.screenKey,
-        permission,
-      ]),
-    );
-  }, [screenPermissions, selectedPermissionRole]);
-
-  function isPermissionItemChecked(
-    permissionItem: (typeof profilePermissionItems)[number],
-  ) {
-    const permission = selectedRolePermissions.get(permissionItem.key);
-
-    return permission
-      ? permission.isEnabled
-      : permissionItem.roles.includes(selectedPermissionRole);
-  }
-
-  const selectedEnabledCount = useMemo(
-    () =>
-      profilePermissionItems.filter((permissionItem) =>
-        isPermissionItemChecked(permissionItem),
-      ).length,
-    [selectedRolePermissions, selectedPermissionRole],
-  );
-
-  function isProtectedAdminPermission(screenKey: string) {
-    return selectedPermissionRole === "ADMIN" && screenKey === "users";
-  }
-
-  async function handleTogglePermissionItem(screenKey: string) {
-    const permissionItem = profilePermissionItems.find(
-      (item) => item.key === screenKey,
-    );
-
-    if (!permissionItem) return;
-
-    if (isProtectedAdminPermission(screenKey)) {
-      setErrorToastMessage(
-        "A tela Usuários é obrigatória para o perfil Admin e não pode ser desativada.",
-      );
-      return;
-    }
-
-    const nextPermissions = profilePermissionItems.map((item) => {
-      const existingPermission = selectedRolePermissions.get(item.key);
-      const currentValue = existingPermission
-        ? existingPermission.isEnabled
-        : item.roles.includes(selectedPermissionRole);
-
-      return {
-        screenKey: item.key,
-        screenLabel: item.label,
-        isEnabled: item.key === screenKey ? !currentValue : currentValue,
-      };
-    });
-
-    try {
-      setSavingPermissions(true);
-      setErrorToastMessage("");
-
-      const updated = await updateRoleScreenPermissions(
-        selectedPermissionRole,
-        { screens: nextPermissions },
-      );
-
-      setScreenPermissions((prev) => {
-        const withoutCurrentRole = prev.filter(
-          (item) => item.role !== selectedPermissionRole,
-        );
-
-        return [...withoutCurrentRole, updated];
-      });
-
-      if (hasAnyRole(currentUser, [selectedPermissionRole])) {
-        await refreshUser();
-      }
-
-      setSuccessMessage("Permissões de telas atualizadas com sucesso.");
-    } catch (error) {
-      const message =
-        error instanceof Error
-          ? error.message
-          : "Erro ao atualizar permissões de telas";
-
-      setErrorToastMessage(message);
-    } finally {
-      setSavingPermissions(false);
-    }
-  }
-
   function handleFieldChange<K extends keyof FormState>(
     field: K,
     value: FormState[K],
@@ -481,6 +394,7 @@ export default function UsersPage() {
   }
 
   function openCreateModal() {
+    setConsultoraPassword("");
     setEditingUser(null);
     setForm(initialFormState);
     setFormError("");
@@ -501,6 +415,7 @@ export default function UsersPage() {
 
   function closeModal() {
     if (saving) return;
+    setConsultoraPassword("");
 
     setIsModalOpen(false);
     setEditingUser(null);
@@ -509,6 +424,7 @@ export default function UsersPage() {
   }
 
   function validateForm() {
+    if (!editingUser && form.roles.includes('CONSULTORA') && consultoraPassword.length < 6) return 'Informe uma senha inicial com pelo menos 6 caracteres.';
     if (!form.roles.length) return "Selecione pelo menos um perfil.";
     if (!form.name.trim()) return "Informe o nome do usuário.";
     if (!form.email.trim()) return "Informe o email do usuário.";
@@ -535,7 +451,7 @@ export default function UsersPage() {
         const payload: UpdateUserPayload = {
           name: form.name.trim(),
           email: form.email.trim(),
-          roles: form.roles,
+          ...((form.roles.includes('CONSULTORA') || editingUser?.role === 'CONSULTORA') ? { role: form.roles[0] } : { roles: form.roles }),
           isActive: form.isActive,
         };
 
@@ -553,15 +469,17 @@ export default function UsersPage() {
         const payload: CreateUserPayload = {
           name: form.name.trim(),
           email: form.email.trim(),
-          roles: form.roles,
+          ...(form.roles.includes('CONSULTORA') ? { role: 'CONSULTORA' as UserRole } : { roles: form.roles }),
           isActive: form.isActive,
         };
 
+        if (form.roles.includes('CONSULTORA')) payload.password = consultoraPassword;
         const createdUser = await createUser(payload);
         setUsers((prev) => [createdUser, ...prev]);
         setSuccessMessage("Usuário criado com sucesso.");
       }
 
+      setConsultoraPassword("");
       setIsModalOpen(false);
       setEditingUser(null);
       setForm(initialFormState);
@@ -709,7 +627,7 @@ export default function UsersPage() {
               border: `1px solid ${crmPalette.border}`,
               borderRadius: "10px",
               color: crmPalette.text,
-              bgcolor: "#ffffff",
+              bgcolor: "background.paper",
               "&:hover": { bgcolor: "#f8fafc" },
             }}
           >
@@ -785,10 +703,11 @@ export default function UsersPage() {
         key={user.id}
         elevation={0}
         sx={{
+          ...cartaoCrmSx,
           p: { xs: 2, md: 2.25 },
           border: `1px solid ${crmPalette.border}`,
-          borderRadius: "14px",
-          bgcolor: "#ffffff",
+          borderRadius: 3,
+          bgcolor: "background.paper",
           transition: "border-color 160ms ease, box-shadow 160ms ease",
           "&:hover": {
             borderColor: "#fed7c3",
@@ -1001,216 +920,59 @@ export default function UsersPage() {
           />
         </Box>
 
-        <CrmSection>
-          <Stack
-            direction={{ xs: "column", md: "row" }}
-            spacing={1.25}
-            sx={{
-              px: { xs: 1.75, md: 2 },
-              py: 1.5,
-              alignItems: { xs: "stretch", md: "center" },
-              justifyContent: "space-between",
-              borderBottom: `1px solid ${crmPalette.border}`,
-            }}
-          >
-            <Stack spacing={0.75}>
-              <Typography
-                component="h2"
-                sx={{ color: crmPalette.text, fontSize: 16, fontWeight: 800 }}
-              >
-                Permissões por perfil
-              </Typography>
-              <Stack
-                direction="row"
-                spacing={0.75}
-                useFlexGap
-                sx={{ alignItems: "center", flexWrap: "wrap" }}
-              >
-                <Chip
-                  icon={<ShieldCheck size={13} />}
-                  label={getRoleLabel(selectedPermissionRole)}
-                  size="small"
-                  sx={{
-                    height: 23,
-                    borderRadius: "6px",
-                    bgcolor: roleMeta[selectedPermissionRole].softColor,
-                    color: roleMeta[selectedPermissionRole].accent,
-                    fontSize: 11,
-                    fontWeight: 700,
-                    "& .MuiChip-icon": { color: "inherit", ml: 0.75 },
-                  }}
-                />
-                <Typography sx={{ color: crmPalette.muted, fontSize: 12 }}>
-                  {selectedEnabledCount}/{profilePermissionItems.length} telas habilitadas
-                </Typography>
-                {savingPermissions ? (
-                  <Stack direction="row" spacing={0.5} role="status" sx={{ alignItems: "center" }}>
-                    <CircularProgress size={12} />
-                    <Typography sx={{ color: crmPalette.muted, fontSize: 11 }}>
-                      Salvando...
-                    </Typography>
-                  </Stack>
-                ) : null}
-              </Stack>
-            </Stack>
-
-            <ToggleButtonGroup
-              exclusive
-              size="small"
-              aria-label="Selecionar perfil para configurar permissões"
-              value={selectedPermissionRole}
-              onChange={(_, value: UserRole | null) => {
-                if (value) setSelectedPermissionRole(value);
-              }}
-              sx={{
-                display: "flex",
-                flexWrap: "wrap",
-                gap: 0.5,
-                "& .MuiToggleButtonGroup-grouped": {
-                  border: "1px solid transparent !important",
-                  borderRadius: "7px !important",
-                  minHeight: 32,
-                  px: 1.25,
-                  py: 0.5,
-                  color: crmPalette.muted,
-                  bgcolor: "#f8fafc",
-                  fontSize: 11.5,
-                  fontWeight: 600,
-                  textTransform: "none",
-                  "&:hover": { bgcolor: "#f1f5f9", color: crmPalette.text },
-                  "&.Mui-selected": {
-                    bgcolor: "#fff0e8",
-                    color: crmPalette.orangeDark,
-                    borderColor: "#fed7c3 !important",
-                    fontWeight: 700,
-                    "&:hover": { bgcolor: "#ffe6d9" },
-                  },
-                },
-              }}
-            >
-              {roles.map((role) => (
-                <ToggleButton key={role} value={role}>
-                  {getRoleLabel(role)}
-                </ToggleButton>
-              ))}
-            </ToggleButtonGroup>
-          </Stack>
-
-          <Box
-            sx={{
-              display: "grid",
-              gridTemplateColumns: {
-                xs: "1fr",
-                sm: "repeat(2, minmax(0, 1fr))",
-                md: "repeat(3, minmax(0, 1fr))",
-                lg: "repeat(4, minmax(0, 1fr))",
-              },
-              gap: 0.75,
-              p: { xs: 1.75, md: 2 },
-            }}
-          >
-            {profilePermissionItems.map((permissionItem) => {
-              const checked = isPermissionItemChecked(permissionItem);
-              const isProtected = isProtectedAdminPermission(permissionItem.key);
-
-              return (
-                <Paper
-                  key={permissionItem.key}
-                  elevation={0}
-                  component="label"
-                  sx={{
-                    px: 1.25,
-                    py: 0.75,
-                    display: "flex",
-                    gap: 0.75,
-                    alignItems: "center",
-                    justifyContent: "space-between",
-                    minHeight: 48,
-                    border: `1px solid ${crmPalette.border}`,
-                    borderRadius: "8px",
-                    bgcolor: checked ? "#fffaf7" : "#ffffff",
-                    cursor: isProtected || savingPermissions ? "not-allowed" : "pointer",
-                    transition: "border-color 160ms ease, background-color 160ms ease",
-                    "&:hover": {
-                      borderColor: isProtected || savingPermissions ? crmPalette.border : "#cbd5e1",
-                    },
-                    "&:focus-within": {
-                      outline: `2px solid ${crmPalette.orange}`,
-                      outlineOffset: 2,
-                    },
-                  }}
-                >
-                  <Box sx={{ minWidth: 0 }}>
-                    <Typography
-                      sx={{ color: crmPalette.text, fontSize: 12.5, fontWeight: 600, lineHeight: 1.3 }}
-                    >
-                      {permissionItem.label}
-                    </Typography>
-                    {isProtected ? (
-                      <Typography sx={{ mt: 0.25, color: crmPalette.muted, fontSize: 10.5 }}>
-                        Obrigatória para Admin
-                      </Typography>
-                    ) : null}
-                  </Box>
-
-                  <Switch
-                    size="small"
-                    checked={checked}
-                    disabled={isProtected || savingPermissions}
-                    onChange={() => handleTogglePermissionItem(permissionItem.key)}
-                    slotProps={{
-                      input: {
-                        "aria-label": `${permissionItem.label} — perfil ${getRoleLabel(selectedPermissionRole)}`,
-                      },
-                    }}
-                    sx={{
-                      flexShrink: 0,
-                      mr: -0.5,
-                      "& .MuiSwitch-switchBase.Mui-checked": { color: crmPalette.orange },
-                      "& .MuiSwitch-switchBase.Mui-checked + .MuiSwitch-track": { bgcolor: crmPalette.orange },
-                    }}
-                  />
-                </Paper>
-              );
-            })}
-          </Box>
-        </CrmSection>
 
         <CrmSection sx={{ p: { xs: 2, md: 2.5 } }}>
-          <Stack spacing={1.5}>
+          <Stack spacing={2}>
+            {/* CABEÇALHO */}
             <Box>
               <Typography
                 component="h2"
-                sx={{ color: crmPalette.text, fontSize: 18, fontWeight: 900 }}
+                sx={{
+                  color: crmPalette.text,
+                  fontSize: 17,
+                  fontWeight: 800,
+                }}
               >
                 Filtros
               </Typography>
-              <Typography sx={{ mt: 0.35, color: crmPalette.muted, fontSize: 13 }}>
+
+              <Typography
+                sx={{
+                  mt: 0.35,
+                  color: crmPalette.muted,
+                  fontSize: 13,
+                }}
+              >
                 Encontre usuários por nome, e-mail, perfil ou status.
               </Typography>
             </Box>
 
+            {/* CAMPOS */}
             <Box
               sx={{
                 display: "grid",
                 gridTemplateColumns: {
                   xs: "1fr",
-                  md: "minmax(0, 1.4fr) minmax(180px, .75fr) minmax(180px, .75fr)",
+                  sm: "repeat(2, minmax(0, 1fr))",
+                  lg: "repeat(3, minmax(0, 1fr))",
                 },
                 gap: 1.5,
+                alignItems: "start",
               }}
             >
+              {/* BUSCAR USUÁRIO */}
               <TextField
                 fullWidth
+                size="small"
                 label="Buscar usuário"
                 value={search}
                 onChange={(event) => setSearch(event.target.value)}
-                placeholder="Nome ou email"
+                placeholder="Nome ou e-mail"
                 slotProps={{
                   input: {
                     startAdornment: (
                       <InputAdornment position="start">
-                        <Search size={18} />
+                        <Search size={16} />
                       </InputAdornment>
                     ),
                   },
@@ -1218,9 +980,11 @@ export default function UsersPage() {
                 sx={filterFieldSx}
               />
 
+              {/* PERFIL */}
               <TextField
                 select
                 fullWidth
+                size="small"
                 label="Perfil"
                 value={roleFilter}
                 onChange={(event) =>
@@ -1229,6 +993,7 @@ export default function UsersPage() {
                 sx={filterFieldSx}
               >
                 <MenuItem value="TODOS">Todos os perfis</MenuItem>
+
                 {roles.map((role) => (
                   <MenuItem key={role} value={role}>
                     {getRoleLabel(role)}
@@ -1236,9 +1001,11 @@ export default function UsersPage() {
                 ))}
               </TextField>
 
+              {/* STATUS */}
               <TextField
                 select
                 fullWidth
+                size="small"
                 label="Status"
                 value={statusFilter}
                 onChange={(event) =>
@@ -1345,7 +1112,7 @@ export default function UsersPage() {
                   alignItems: { xs: "stretch", md: "center" },
                   justifyContent: "space-between",
                   borderTop: `1px solid ${crmPalette.border}`,
-                  bgcolor: "#ffffff",
+                  bgcolor: "background.paper",
                 }}
               >
                 <Typography
@@ -1424,7 +1191,7 @@ export default function UsersPage() {
               sx={{
                 px: { xs: 2.5, md: 3 },
                 py: 2.25,
-                bgcolor: "#ffffff",
+                bgcolor: "background.paper",
                 borderBottom: `1px solid ${crmPalette.border}`,
               }}
             >
@@ -1495,8 +1262,8 @@ export default function UsersPage() {
                   sx={{
                     p: { xs: 2, md: 2.5 },
                     border: `1px solid ${crmPalette.border}`,
-                    borderRadius: "14px",
-                    bgcolor: "#ffffff",
+                    borderRadius: 3,
+                    bgcolor: "background.paper",
                   }}
                 >
                   <Stack spacing={2}>
@@ -1513,6 +1280,7 @@ export default function UsersPage() {
                       </Typography>
                     </Box>
 
+                    {!editingUser && form.roles.includes('CONSULTORA') && <TextField fullWidth required type="password" label="Senha inicial" value={consultoraPassword} onChange={e => setConsultoraPassword(e.target.value)} helperText="A consultora deverá alterar esta senha no primeiro acesso." autoComplete="new-password" sx={fieldSx} />}
                     <TextField
                       fullWidth
                       required
@@ -1577,8 +1345,8 @@ export default function UsersPage() {
                   sx={{
                     p: { xs: 2, md: 2.5 },
                     border: `1px solid ${crmPalette.border}`,
-                    borderRadius: "14px",
-                    bgcolor: "#ffffff",
+                    borderRadius: 3,
+                    bgcolor: "background.paper",
                   }}
                 >
                   <Stack spacing={2}>
@@ -1602,7 +1370,7 @@ export default function UsersPage() {
                       label="Perfis"
                       value={form.roles}
                       onChange={(event) =>
-                        handleFieldChange("roles", typeof event.target.value === "string" ? event.target.value.split(",") as UserRole[] : event.target.value as unknown as UserRole[])
+                        handleFieldChange("roles", selecionarPerfis(form.roles, typeof event.target.value === "string" ? event.target.value.split(",") : event.target.value as unknown as UserRole[]) as UserRole[])
                       }
                       slotProps={{
                         select: {
@@ -1700,7 +1468,7 @@ export default function UsersPage() {
                 px: { xs: 2.5, md: 3 },
                 py: 2,
                 gap: 1,
-                bgcolor: "#ffffff",
+                bgcolor: "background.paper",
                 borderTop: `1px solid ${crmPalette.border}`,
               }}
             >
@@ -1839,9 +1607,9 @@ export default function UsersPage() {
                 ...(confirmIsDelete
                   ? {}
                   : {
-                      bgcolor: crmPalette.orange,
-                      "&:hover": { bgcolor: crmPalette.orangeDark },
-                    }),
+                    bgcolor: crmPalette.orange,
+                    "&:hover": { bgcolor: crmPalette.orangeDark },
+                  }),
               }}
             >
               {confirmLoading

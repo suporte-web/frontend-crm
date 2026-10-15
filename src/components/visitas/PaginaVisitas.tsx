@@ -154,6 +154,7 @@ export default function PaginaVisitas() {
           {cards.map((c) => (
             <Paper
               key={c.status}
+              aria-pressed={aplicados.status === c.status}
               component="button"
               type="button"
               variant="outlined"

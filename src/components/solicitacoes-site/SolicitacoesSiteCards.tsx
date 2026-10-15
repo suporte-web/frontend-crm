@@ -124,7 +124,7 @@ export function SolicitacoesSiteCards({
                 boxShadow:
                   '0 12px 30px rgba(23, 33, 43, 0.08)',
               },
-            }}
+            }} className="crm-kpi-card"
           >
             <Stack
               direction="row"
@@ -147,7 +147,7 @@ export function SolicitacoesSiteCards({
                       0.08,
                     ),
                   color: '#17212B',
-                }}
+                }} data-cartao-icone
               >
                 <ViewListRounded />
               </Box>
@@ -155,7 +155,7 @@ export function SolicitacoesSiteCards({
               <Box
                 sx={{
                   minWidth: 0,
-                }}
+                }} data-cartao-grupo
               >
                 <Typography
                   sx={{
@@ -163,7 +163,7 @@ export function SolicitacoesSiteCards({
                       'text.secondary',
                     fontSize: 13,
                     fontWeight: 800,
-                  }}
+                  }} data-cartao-titulo
                 >
                   Total da fila
                 </Typography>
@@ -176,7 +176,7 @@ export function SolicitacoesSiteCards({
                     fontSize: 28,
                     lineHeight: 1,
                     fontWeight: 900,
-                  }}
+                  }} data-cartao-valor
                 >
                   {
                     solicitacoes.length
@@ -189,7 +189,7 @@ export function SolicitacoesSiteCards({
                     color:
                       'text.secondary',
                     fontSize: 12.5,
-                  }}
+                  }} data-cartao-legenda
                 >
                   Solicitações recebidas
                 </Typography>
@@ -257,7 +257,7 @@ export function SolicitacoesSiteCards({
                           0.12,
                         )}`,
                     },
-                  }}
+                  }} className="crm-kpi-card"
                 >
                   <Stack
                     direction="row"
@@ -295,7 +295,7 @@ export function SolicitacoesSiteCards({
                         '& svg': {
                           fontSize: 26,
                         },
-                      }}
+                      }} data-cartao-icone
                     >
                       <Icone />
                     </Box>
@@ -303,7 +303,7 @@ export function SolicitacoesSiteCards({
                     <Box
                       sx={{
                         minWidth: 0,
-                      }}
+                      }} data-cartao-grupo
                     >
                       <Typography
                         sx={{
@@ -315,7 +315,7 @@ export function SolicitacoesSiteCards({
 
                           fontWeight:
                             800,
-                        }}
+                        }} data-cartao-titulo
                       >
                         {
                           categoria.titulo
@@ -337,7 +337,7 @@ export function SolicitacoesSiteCards({
 
                           fontWeight:
                             900,
-                        }}
+                        }} data-cartao-valor
                       >
                         {
                           quantidade
@@ -362,7 +362,7 @@ export function SolicitacoesSiteCards({
 
                           textOverflow:
                             'ellipsis',
-                        }}
+                        }} data-cartao-legenda
                       >
                         {
                           categoria.descricao

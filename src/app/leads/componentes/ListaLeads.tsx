@@ -1,6 +1,7 @@
 'use client';
 
 import { hasAnyRole } from "@/lib/user-roles";
+import { IdentificacaoProspeccao } from "@/components/crm/prospeccao-consultora";
 import Link from 'next/link';
 import { useEffect, useMemo, useState } from 'react';
 
@@ -22,6 +23,7 @@ import { ArrowRight, Globe2, UserPlus, Users, X } from 'lucide-react';
 
 import { AppLayout } from '@/components/layout/app-layout';
 import { LeadForm } from '@/components/leads/lead-form';
+import { SolicitacoesExclusaoLeads } from '@/components/leads/solicitacoes-exclusao-leads';
 import { getLeadSourceLabel } from '@/components/leads/lead-timeline';
 import {
   LEAD_FUNNEL_STAGES,
@@ -40,7 +42,7 @@ import { useAuth } from '@/context/auth-context';
 import { createLead, getLeads, getLeadsResumo } from '@/services/leads.service';
 import type { CreateLeadPayload, Lead, LeadsResumo } from '@/types/leads';
 
-const internalRoles = new Set(['ADMIN', 'GESTAO', 'COMERCIAL', 'MARKETING']);
+const internalRoles = new Set(['ADMIN', 'GESTAO', 'COMERCIAL', 'MARKETING', 'CONSULTORA']);
 
 
 const fieldSx = {
@@ -59,6 +61,8 @@ function formatDate(date: string) {
 }
 
 function getLeadStatusLabel(status?: string | null) {
+  if (status === 'converted_to_prospect') return 'Prospect';
+  if (status === 'converted') return 'Cliente';
   return status ? getLeadFunnelStageLabel(status) : '-';
 }
 
@@ -95,7 +99,7 @@ function getClientIdFromLead(lead: Lead) {
 }
 
 
-export default function LeadsPage() {
+export default function ListaLeads() {
   const { user, token } = useAuth();
   const [leads, setLeads] = useState<Lead[]>([]);
   const [visao, setVisao] = useState<'ativos' | 'convertidos'>('ativos');
@@ -259,6 +263,8 @@ export default function LeadsPage() {
             </Button>
           }
         />
+
+        <SolicitacoesExclusaoLeads onChanged={loadData} />
 
         <Box
           sx={{
@@ -703,7 +709,7 @@ export default function LeadsPage() {
                   >
                     <Box sx={{ minWidth: 0 }}>
                       <Typography sx={{ fontSize: 16, fontWeight: 900 }}>
-                        {lead.name}
+                        {lead.company?.trim() || lead.name}
                       </Typography>
                       <Typography
                         sx={{
@@ -715,9 +721,9 @@ export default function LeadsPage() {
                       >
                         {lead.email || lead.phone || 'Sem contato principal'}
                       </Typography>
-                      {lead.company ? (
+                      {lead.company?.trim() ? (
                         <Typography sx={{ mt: 0.25, color: 'text.disabled', fontSize: 13 }}>
-                          {lead.company}
+                          {lead.name}
                         </Typography>
                       ) : null}
                     </Box>
@@ -732,6 +738,7 @@ export default function LeadsPage() {
                         label={getLeadSourceLabel(lead.source)}
                         sx={{ mt: 1, fontWeight: 800, ...getLeadSourceChipSx(lead.source) }}
                       />
+                      <IdentificacaoProspeccao registro={lead}/>
                     </Box>
 
                     <Box>

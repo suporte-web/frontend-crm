@@ -18,6 +18,7 @@ import {
   Ticket,
   Truck,
   UserPlus,
+  UserSearch,
   Users,
 } from "lucide-react";
 
@@ -37,12 +38,14 @@ export const screenIcons: Record<ScreenKey, LucideIcon> = {
   quotes: FileText,
   clients: Building2,
   leads: UserPlus,
+  prospectingManagement: UserSearch,
   entradas: Inbox,
   tickets: Ticket,
   helpCenter: CircleHelp,
   chat: MessageCircle,
   suppliers: Handshake,
   users: Users,
+  profilePermissions: Users,
   marketing: Megaphone,
   marketingIntegrations: Plug,
   marketingMetrics: ChartSpline,
@@ -70,7 +73,7 @@ export const sidebarSections: SidebarSectionConfig[] = [
     id: "crm-comercial",
     title: "Comercial",
     icon: ChartSpline,
-    keys: ["clients", "leads", "quotes", "bi"],
+    keys: ["clients", "leads", "quotes", "bi", "prospectingManagement"],
   },
   {
     id: "operacao",
@@ -101,7 +104,7 @@ export const sidebarSections: SidebarSectionConfig[] = [
     id: "administracao",
     title: "Administração",
     icon: Users,
-    keys: ["users", "logs"],
+    keys: ["users", "profilePermissions", "logs"],
   },
 ];
 

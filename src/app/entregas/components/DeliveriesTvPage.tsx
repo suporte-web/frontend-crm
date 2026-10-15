@@ -2136,7 +2136,7 @@ function MetricCard({
           height: 4,
           bgcolor: accent,
         },
-      }}
+      }} className="crm-kpi-card"
     >
       <Box
         sx={{
@@ -2146,14 +2146,14 @@ function MetricCard({
           gap: 2,
         }}
       >
-        <Box>
+        <Box data-cartao-grupo>
           <Typography
             sx={{
               color:
                 DASHBOARD_COLORS.textSecondary,
               fontSize: 13,
               fontWeight: 700,
-            }}
+            }} data-cartao-titulo
           >
             {title}
           </Typography>
@@ -2168,7 +2168,7 @@ function MetricCard({
               },
               lineHeight: 1,
               fontWeight: 850,
-            }}
+            }} data-cartao-valor
           >
             {formatNumber(value)}
           </Typography>
@@ -2187,7 +2187,7 @@ function MetricCard({
             "& svg": {
               fontSize: 27,
             },
-          }}
+          }} data-cartao-icone
         >
           {icon}
         </Box>

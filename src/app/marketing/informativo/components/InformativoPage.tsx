@@ -143,9 +143,9 @@ export default function InformativoPage() {
               { label: "Ativos", value: data?.totais.ativos },
               { label: "Descadastrados", value: data?.totais.descadastrados },
             ].map((card) => (
-              <CrmSection key={card.label} sx={{ p: 3 }}>
-                <Typography color="text.secondary">{card.label}</Typography>
-                <Typography variant="h4" sx={{ mt: 1, fontWeight: 700 }}>
+              <CrmSection key={card.label} sx={{ p: 3 }} className="crm-kpi-card" data-cartao-grupo>
+                <Typography color="text.secondary" data-cartao-titulo>{card.label}</Typography>
+                <Typography variant="h4" sx={{ mt: 1, fontWeight: 700 }} data-cartao-valor>
                   {card.value ?? "—"}
                 </Typography>
               </CrmSection>

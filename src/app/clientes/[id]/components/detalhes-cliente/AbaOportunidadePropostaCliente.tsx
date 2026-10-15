@@ -1,5 +1,7 @@
 "use client";
 
+import { campoPequenoClienteSx, superficieAbasClienteSx, paletaAbasCliente as crmPalette } from "./estilos-abas-cliente";
+
 import type { FormEvent } from "react";
 import Link from "next/link";
 
@@ -29,7 +31,7 @@ import {
   X,
 } from "lucide-react";
 
-import { CrmSection, crmPalette } from "@/components/mui/crm-primitives";
+import { CrmSection } from "@/components/mui/crm-primitives";
 import { formatOpportunityStage } from "@/services/crm.service";
 
 import {
@@ -173,13 +175,13 @@ export function AbaOportunidadePropostaCliente(props: PropriedadesAbaDetalhesCli
 
   return (
     <CrmSection
-      sx={{
+      sx={[{
         p: { xs: 2, md: 2.5 },
         borderRadius: "14px",
         border: `1px solid ${crmPalette.border}`,
         bgcolor: "#ffffff",
         boxShadow: "0 8px 24px rgba(15, 23, 42, 0.04)",
-      }}
+      }, superficieAbasClienteSx]}
     >
       <Stack spacing={2.5}>
         <CabecalhoSecao
@@ -195,7 +197,7 @@ export function AbaOportunidadePropostaCliente(props: PropriedadesAbaDetalhesCli
             <Stack spacing={2}>
               {/* =========================================
           1. DADOS PRINCIPAIS DA NOVA PROPOSTA
-      ========================================== */}
+        ======================================= */}
               <Paper
                 variant="outlined"
                 sx={{
@@ -241,9 +243,9 @@ export function AbaOportunidadePropostaCliente(props: PropriedadesAbaDetalhesCli
 
                         borderRadius: "10px",
 
-                        bgcolor: "#fff7ed",
+                        bgcolor: "#ffffff",
 
-                        color: crmPalette.orangeDark,
+                        color: "#64748b",
                       }}
                     >
                       <PlusCircle size={19} />
@@ -256,7 +258,7 @@ export function AbaOportunidadePropostaCliente(props: PropriedadesAbaDetalhesCli
 
                           fontSize: 15,
 
-                          fontWeight: 900,
+                          fontWeight: 700,
 
                           lineHeight: 1.3,
                         }}
@@ -323,7 +325,7 @@ export function AbaOportunidadePropostaCliente(props: PropriedadesAbaDetalhesCli
                           }),
                         )
                       }
-                      sx={textFieldSx}
+                      sx={[textFieldSx, campoPequenoClienteSx]} slotProps={{ inputLabel: { shrink: true } }}
                     />
 
                     <TextField
@@ -372,7 +374,7 @@ export function AbaOportunidadePropostaCliente(props: PropriedadesAbaDetalhesCli
                           }),
                         )
                       }
-                      sx={textFieldSx}
+                      sx={[textFieldSx, campoPequenoClienteSx]}
                     >
                       <MenuItem value="">
                         Selecione
@@ -443,10 +445,10 @@ export function AbaOportunidadePropostaCliente(props: PropriedadesAbaDetalhesCli
 
                           borderRadius: "10px",
 
-                          bgcolor: "#fff7ed",
+                          bgcolor: "#ffffff",
 
                           color:
-                            crmPalette.orangeDark,
+                            "#64748b",
                         }}
                       >
                         <FileText size={18} />
@@ -460,7 +462,7 @@ export function AbaOportunidadePropostaCliente(props: PropriedadesAbaDetalhesCli
 
                             fontSize: 15,
 
-                            fontWeight: 900,
+                            fontWeight: 700,
 
                             lineHeight: 1.3,
                           }}
@@ -604,7 +606,7 @@ export function AbaOportunidadePropostaCliente(props: PropriedadesAbaDetalhesCli
                             }),
                           )
                         }
-                        sx={textFieldSx}
+                        sx={[textFieldSx, campoPequenoClienteSx]} slotProps={{ inputLabel: { shrink: true } }}
                       />
 
                       <Button
@@ -690,10 +692,10 @@ export function AbaOportunidadePropostaCliente(props: PropriedadesAbaDetalhesCli
 
                           borderRadius: "10px",
 
-                          bgcolor: "#fff7ed",
+                          bgcolor: "#ffffff",
 
                           color:
-                            crmPalette.orangeDark,
+                            "#64748b",
                         }}
                       >
                         <FileText size={18} />
@@ -707,7 +709,7 @@ export function AbaOportunidadePropostaCliente(props: PropriedadesAbaDetalhesCli
 
                             fontSize: 15,
 
-                            fontWeight: 900,
+                            fontWeight: 700,
                           }}
                         >
                           Informações operacionais
@@ -775,7 +777,7 @@ export function AbaOportunidadePropostaCliente(props: PropriedadesAbaDetalhesCli
                             }),
                           )
                         }
-                        sx={textFieldSx}
+                        sx={[textFieldSx, campoPequenoClienteSx]}
                       />
 
                       <TextField
@@ -796,7 +798,7 @@ export function AbaOportunidadePropostaCliente(props: PropriedadesAbaDetalhesCli
                             }),
                           )
                         }
-                        sx={textFieldSx}
+                        sx={[textFieldSx, campoPequenoClienteSx]}
                       />
 
                       <TextField
@@ -818,7 +820,7 @@ export function AbaOportunidadePropostaCliente(props: PropriedadesAbaDetalhesCli
                             }),
                           )
                         }
-                        sx={textFieldSx}
+                        sx={[textFieldSx, campoPequenoClienteSx]}
                       >
                         <MenuItem value="">
                           Selecione
@@ -854,7 +856,7 @@ export function AbaOportunidadePropostaCliente(props: PropriedadesAbaDetalhesCli
                             }),
                           )
                         }
-                        sx={textFieldSx}
+                        sx={[textFieldSx, campoPequenoClienteSx]}
                       />
 
                       <TextField
@@ -876,7 +878,7 @@ export function AbaOportunidadePropostaCliente(props: PropriedadesAbaDetalhesCli
                             }),
                           )
                         }
-                        sx={textFieldSx}
+                        sx={[textFieldSx, campoPequenoClienteSx]} slotProps={{ inputLabel: { shrink: true } }}
                       />
 
                       <TextField
@@ -898,7 +900,7 @@ export function AbaOportunidadePropostaCliente(props: PropriedadesAbaDetalhesCli
                             }),
                           )
                         }
-                        sx={textFieldSx}
+                        sx={[textFieldSx, campoPequenoClienteSx]} slotProps={{ inputLabel: { shrink: true } }}
                       />
 
                       <TextField
@@ -919,7 +921,7 @@ export function AbaOportunidadePropostaCliente(props: PropriedadesAbaDetalhesCli
                             }),
                           )
                         }
-                        sx={textFieldSx}
+                        sx={[textFieldSx, campoPequenoClienteSx]} slotProps={{ inputLabel: { shrink: true } }}
                       />
 
                       <TextField
@@ -940,7 +942,7 @@ export function AbaOportunidadePropostaCliente(props: PropriedadesAbaDetalhesCli
                             }),
                           )
                         }
-                        sx={textFieldSx}
+                        sx={[textFieldSx, campoPequenoClienteSx]} slotProps={{ inputLabel: { shrink: true } }}
                       />
 
                       <TextField
@@ -969,7 +971,7 @@ export function AbaOportunidadePropostaCliente(props: PropriedadesAbaDetalhesCli
                             }),
                           )
                         }
-                        sx={textFieldSx}
+                        sx={[textFieldSx, campoPequenoClienteSx]}
                       >
                         <MenuItem value="">
                           Selecione
@@ -1007,14 +1009,14 @@ export function AbaOportunidadePropostaCliente(props: PropriedadesAbaDetalhesCli
                               }),
                             )
                           }
-                          sx={{
+                          sx={[{
                             ...textFieldSx,
 
                             gridColumn: {
                               xs: "auto",
                               md: "1 / -1",
                             },
-                          }}
+                          }, campoPequenoClienteSx]} size="small" slotProps={{ inputLabel: { shrink: true } }}
                         />
                       ) : null}
                     </Box>
@@ -1076,10 +1078,10 @@ export function AbaOportunidadePropostaCliente(props: PropriedadesAbaDetalhesCli
 
                           borderRadius: "10px",
 
-                          bgcolor: "#fff7ed",
+                          bgcolor: "#ffffff",
 
                           color:
-                            crmPalette.orangeDark,
+                            "#64748b",
                         }}
                       >
                         <FileText size={18} />
@@ -1093,7 +1095,7 @@ export function AbaOportunidadePropostaCliente(props: PropriedadesAbaDetalhesCli
 
                             fontSize: 15,
 
-                            fontWeight: 900,
+                            fontWeight: 700,
                           }}
                         >
                           Valores da proposta
@@ -1167,7 +1169,7 @@ export function AbaOportunidadePropostaCliente(props: PropriedadesAbaDetalhesCli
                               }),
                             )
                           }
-                          sx={textFieldSx}
+                          sx={[textFieldSx, campoPequenoClienteSx]} slotProps={{ inputLabel: { shrink: true } }}
                         />
                       ),
                     )}
@@ -1238,7 +1240,7 @@ export function AbaOportunidadePropostaCliente(props: PropriedadesAbaDetalhesCli
 
                     fontSize: 13,
 
-                    fontWeight: 900,
+                    fontWeight: 700,
 
                     textTransform: "none",
 
@@ -1330,9 +1332,9 @@ export function AbaOportunidadePropostaCliente(props: PropriedadesAbaDetalhesCli
 
                       borderRadius: "10px",
 
-                      bgcolor: "#fff7ed",
+                      bgcolor: "#ffffff",
 
-                      color: crmPalette.orangeDark,
+                      color: "#64748b",
                     }}
                   >
                     <FileText size={18} />
@@ -1345,7 +1347,7 @@ export function AbaOportunidadePropostaCliente(props: PropriedadesAbaDetalhesCli
 
                         fontSize: 15,
 
-                        fontWeight: 900,
+                        fontWeight: 700,
 
                         lineHeight: 1.3,
                       }}
@@ -1385,7 +1387,7 @@ export function AbaOportunidadePropostaCliente(props: PropriedadesAbaDetalhesCli
 
                     fontSize: 11,
 
-                    fontWeight: 900,
+                    fontWeight: 700,
                   }}
                 />
               </Stack>
@@ -1410,7 +1412,7 @@ export function AbaOportunidadePropostaCliente(props: PropriedadesAbaDetalhesCli
 
                 alignItems: "center",
 
-                bgcolor: "#f8fafc",
+                bgcolor: "#ffffff",
 
                 borderBottom: `1px solid ${crmPalette.border}`,
               }}
@@ -1428,7 +1430,7 @@ export function AbaOportunidadePropostaCliente(props: PropriedadesAbaDetalhesCli
                     sx={{
                       color: "#64748b",
                       fontSize: 10.5,
-                      fontWeight: 900,
+                      fontWeight: 700,
                       letterSpacing: 0.8,
                       textTransform: "uppercase",
                       whiteSpace: "nowrap",
@@ -1497,7 +1499,7 @@ export function AbaOportunidadePropostaCliente(props: PropriedadesAbaDetalhesCli
                       "&:hover": isEditing
                         ? undefined
                         : {
-                          bgcolor: "#f8fafc",
+                          bgcolor: "#ffffff",
                         },
                     }}
                   >
@@ -1515,7 +1517,7 @@ export function AbaOportunidadePropostaCliente(props: PropriedadesAbaDetalhesCli
                             borderRadius: "16px",
                             borderColor: "#e2e8f0",
                             bgcolor: "#ffffff",
-                            boxShadow: "0 10px 24px rgba(15, 23, 42, 0.05)",
+                            boxShadow: "none",
                           }}
                         >
                           {/* CABEÇALHO */}
@@ -1524,7 +1526,7 @@ export function AbaOportunidadePropostaCliente(props: PropriedadesAbaDetalhesCli
                               px: { xs: 1.75, md: 2 },
                               py: 1.5,
                               borderBottom: `1px solid ${crmPalette.border}`,
-                              bgcolor: "#fff7ed",
+                              bgcolor: "#ffffff",
                             }}
                           >
                             <Stack
@@ -1551,9 +1553,9 @@ export function AbaOportunidadePropostaCliente(props: PropriedadesAbaDetalhesCli
                                     placeItems: "center",
                                     flexShrink: 0,
                                     borderRadius: "12px",
-                                    color: crmPalette.orangeDark,
-                                    bgcolor: "#ffedd5",
-                                    border: "1px solid #fed7aa",
+                                    color: "#64748b",
+                                    bgcolor: "#ffffff",
+                                    border: "1px solid #e2e8f0",
                                   }}
                                 >
                                   <Edit3 size={18} />
@@ -1562,9 +1564,9 @@ export function AbaOportunidadePropostaCliente(props: PropriedadesAbaDetalhesCli
                                 <Box sx={{ minWidth: 0 }}>
                                   <Typography
                                     sx={{
-                                      color: "#c2410c",
+                                      color: "#1f2937",
                                       fontSize: 14,
-                                      fontWeight: 900,
+                                      fontWeight: 700,
                                       lineHeight: 1.3,
                                     }}
                                   >
@@ -1599,10 +1601,10 @@ export function AbaOportunidadePropostaCliente(props: PropriedadesAbaDetalhesCli
                                   sx={{
                                     height: 24,
                                     borderRadius: "8px",
-                                    bgcolor: "#ffedd5",
+                                    bgcolor: "#ffffff",
                                     color: crmPalette.orangeDark,
                                     fontSize: 10.5,
-                                    fontWeight: 900,
+                                    fontWeight: 700,
                                   }}
                                 />
 
@@ -1615,7 +1617,7 @@ export function AbaOportunidadePropostaCliente(props: PropriedadesAbaDetalhesCli
                                     bgcolor: "#f1f5f9",
                                     color: "#475569",
                                     fontSize: 10.5,
-                                    fontWeight: 800,
+                                    fontWeight: 700,
                                   }}
                                 />
                               </Stack>
@@ -1653,7 +1655,7 @@ export function AbaOportunidadePropostaCliente(props: PropriedadesAbaDetalhesCli
                                       event.target.value,
                                     )
                                   }
-                                  sx={textFieldSx}
+                                  sx={[textFieldSx, campoPequenoClienteSx]} slotProps={{ inputLabel: { shrink: true } }}
                                 />
 
                                 <TextField
@@ -1685,7 +1687,7 @@ export function AbaOportunidadePropostaCliente(props: PropriedadesAbaDetalhesCli
                                       customOption: "",
                                     }))
                                   }
-                                  sx={textFieldSx}
+                                  sx={[textFieldSx, campoPequenoClienteSx]}
                                 >
                                   <MenuItem value="">Selecione</MenuItem>
                                   <MenuItem value="TRANSPORTE_RODOVIARIO">
@@ -1719,9 +1721,9 @@ export function AbaOportunidadePropostaCliente(props: PropriedadesAbaDetalhesCli
                                   >
                                     <Typography
                                       sx={{
-                                        color: "#6d28d9",
+                                        color: "#1f2937",
                                         fontSize: 13,
-                                        fontWeight: 900,
+                                        fontWeight: 700,
                                       }}
                                     >
                                       {editingOpportunityForm.proposalType === "ARMAZENAGEM"
@@ -1812,7 +1814,7 @@ export function AbaOportunidadePropostaCliente(props: PropriedadesAbaDetalhesCli
                                             event.target.value,
                                           )
                                         }
-                                        sx={textFieldSx}
+                                        sx={[textFieldSx, campoPequenoClienteSx]} slotProps={{ inputLabel: { shrink: true } }}
                                       />
 
                                       <Button
@@ -1855,14 +1857,14 @@ export function AbaOportunidadePropostaCliente(props: PropriedadesAbaDetalhesCli
                                       px: { xs: 1.5, md: 1.75 },
                                       py: 1.25,
                                       borderBottom: `1px solid ${crmPalette.border}`,
-                                      bgcolor: "#ecfdf5",
+                                      bgcolor: "#ffffff",
                                     }}
                                   >
                                     <Typography
                                       sx={{
-                                        color: "#047857",
+                                        color: "#1f2937",
                                         fontSize: 13,
-                                        fontWeight: 900,
+                                        fontWeight: 700,
                                       }}
                                     >
                                       Informações operacionais
@@ -1907,7 +1909,7 @@ export function AbaOportunidadePropostaCliente(props: PropriedadesAbaDetalhesCli
                                             event.target.value,
                                           )
                                         }
-                                        sx={textFieldSx}
+                                        sx={[textFieldSx, campoPequenoClienteSx]}
                                       />
 
                                       <TextField
@@ -1922,7 +1924,7 @@ export function AbaOportunidadePropostaCliente(props: PropriedadesAbaDetalhesCli
                                             event.target.value,
                                           )
                                         }
-                                        sx={textFieldSx}
+                                        sx={[textFieldSx, campoPequenoClienteSx]}
                                       />
 
                                       <TextField
@@ -1938,7 +1940,7 @@ export function AbaOportunidadePropostaCliente(props: PropriedadesAbaDetalhesCli
                                             event.target.value,
                                           )
                                         }
-                                        sx={textFieldSx}
+                                        sx={[textFieldSx, campoPequenoClienteSx]}
                                       >
                                         <MenuItem value="">Selecione</MenuItem>
                                         {VEHICLE_TYPE_OPTIONS.map((option) => (
@@ -1960,7 +1962,7 @@ export function AbaOportunidadePropostaCliente(props: PropriedadesAbaDetalhesCli
                                             event.target.value,
                                           )
                                         }
-                                        sx={textFieldSx}
+                                        sx={[textFieldSx, campoPequenoClienteSx]}
                                       />
 
                                       <TextField
@@ -1976,7 +1978,7 @@ export function AbaOportunidadePropostaCliente(props: PropriedadesAbaDetalhesCli
                                             event.target.value,
                                           )
                                         }
-                                        sx={textFieldSx}
+                                        sx={[textFieldSx, campoPequenoClienteSx]} slotProps={{ inputLabel: { shrink: true } }}
                                       />
 
                                       <TextField
@@ -1992,7 +1994,7 @@ export function AbaOportunidadePropostaCliente(props: PropriedadesAbaDetalhesCli
                                             event.target.value,
                                           )
                                         }
-                                        sx={textFieldSx}
+                                        sx={[textFieldSx, campoPequenoClienteSx]} slotProps={{ inputLabel: { shrink: true } }}
                                       />
 
                                       <TextField
@@ -2007,7 +2009,7 @@ export function AbaOportunidadePropostaCliente(props: PropriedadesAbaDetalhesCli
                                             event.target.value,
                                           )
                                         }
-                                        sx={textFieldSx}
+                                        sx={[textFieldSx, campoPequenoClienteSx]} slotProps={{ inputLabel: { shrink: true } }}
                                       />
 
                                       <TextField
@@ -2022,7 +2024,7 @@ export function AbaOportunidadePropostaCliente(props: PropriedadesAbaDetalhesCli
                                             event.target.value,
                                           )
                                         }
-                                        sx={textFieldSx}
+                                        sx={[textFieldSx, campoPequenoClienteSx]} slotProps={{ inputLabel: { shrink: true } }}
                                       />
 
                                       <TextField
@@ -2044,7 +2046,7 @@ export function AbaOportunidadePropostaCliente(props: PropriedadesAbaDetalhesCli
                                                 : "",
                                           }))
                                         }
-                                        sx={textFieldSx}
+                                        sx={[textFieldSx, campoPequenoClienteSx]}
                                       >
                                         <MenuItem value="">Selecione</MenuItem>
                                         <MenuItem value="NAO">Não</MenuItem>
@@ -2066,10 +2068,10 @@ export function AbaOportunidadePropostaCliente(props: PropriedadesAbaDetalhesCli
                                               event.target.value,
                                             )
                                           }
-                                          sx={{
+                                          sx={[{
                                             ...textFieldSx,
                                             gridColumn: { xs: "auto", md: "1 / -1" },
-                                          }}
+                                          }, campoPequenoClienteSx]} size="small" slotProps={{ inputLabel: { shrink: true } }}
                                         />
                                       ) : null}
                                     </Box>
@@ -2079,7 +2081,7 @@ export function AbaOportunidadePropostaCliente(props: PropriedadesAbaDetalhesCli
                                         sx={{
                                           color: crmPalette.text,
                                           fontSize: 13,
-                                          fontWeight: 900,
+                                          fontWeight: 700,
                                         }}
                                       >
                                         Valores da proposta
@@ -2116,7 +2118,7 @@ export function AbaOportunidadePropostaCliente(props: PropriedadesAbaDetalhesCli
                                                 },
                                               }))
                                             }
-                                            sx={textFieldSx}
+                                            sx={[textFieldSx, campoPequenoClienteSx]} slotProps={{ inputLabel: { shrink: true } }}
                                           />
                                         ))}
                                       </Box>
@@ -2133,7 +2135,7 @@ export function AbaOportunidadePropostaCliente(props: PropriedadesAbaDetalhesCli
                               px: { xs: 1.75, md: 2 },
                               py: 1.4,
                               borderTop: `1px solid ${crmPalette.border}`,
-                              bgcolor: "#f8fafc",
+                              bgcolor: "#ffffff",
                             }}
                           >
                             <Stack
@@ -2170,7 +2172,7 @@ export function AbaOportunidadePropostaCliente(props: PropriedadesAbaDetalhesCli
                                     px: 1.75,
                                     borderRadius: "10px",
                                     fontSize: 12,
-                                    fontWeight: 800,
+                                    fontWeight: 700,
                                     whiteSpace: "nowrap",
                                   }}
                                 >
@@ -2194,7 +2196,7 @@ export function AbaOportunidadePropostaCliente(props: PropriedadesAbaDetalhesCli
                                     borderRadius: "10px",
                                     bgcolor: crmPalette.orange,
                                     fontSize: 12,
-                                    fontWeight: 900,
+                                    fontWeight: 700,
                                     textTransform: "none",
                                     whiteSpace: "nowrap",
                                     boxShadow: "none",
@@ -2230,7 +2232,7 @@ export function AbaOportunidadePropostaCliente(props: PropriedadesAbaDetalhesCli
 
                               color: "#475569",
 
-                              bgcolor: "#f8fafc",
+                              bgcolor: "#ffffff",
 
                               border: "1px solid #e2e8f0",
                             }}
@@ -2244,7 +2246,7 @@ export function AbaOportunidadePropostaCliente(props: PropriedadesAbaDetalhesCli
 
                                 fontSize: 13.5,
 
-                                fontWeight: 850,
+                                fontWeight: 700,
 
                                 lineHeight: 1.4,
 
@@ -2287,15 +2289,15 @@ export function AbaOportunidadePropostaCliente(props: PropriedadesAbaDetalhesCli
 
                         borderRadius: "8px",
 
-                        bgcolor: "#eff6ff",
+                        bgcolor: "#ffffff",
 
                         color: "#1d4ed8",
 
-                        border: "1px solid #dbeafe",
+                        border: "1px solid #e2e8f0",
 
                         fontSize: 10.5,
 
-                        fontWeight: 900,
+                        fontWeight: 700,
                       }}
                     />
                     <Typography
@@ -2332,7 +2334,7 @@ export function AbaOportunidadePropostaCliente(props: PropriedadesAbaDetalhesCli
 
                         borderRadius: "8px",
 
-                        bgcolor: "#f8fafc",
+                        bgcolor: "#ffffff",
 
                         color: "#475569",
 
@@ -2340,7 +2342,7 @@ export function AbaOportunidadePropostaCliente(props: PropriedadesAbaDetalhesCli
 
                         fontSize: 10.5,
 
-                        fontWeight: 800,
+                        fontWeight: 700,
                       }}
                     />
 
@@ -2378,7 +2380,7 @@ export function AbaOportunidadePropostaCliente(props: PropriedadesAbaDetalhesCli
                               width: 34,
                               height: 34,
                               color: "#475569",
-                              bgcolor: "#f8fafc",
+                              bgcolor: "#ffffff",
                               border: `1px solid ${crmPalette.border}`,
                               "&:hover": { bgcolor: "#eef2f7" },
                             }}
@@ -2401,7 +2403,7 @@ export function AbaOportunidadePropostaCliente(props: PropriedadesAbaDetalhesCli
                               borderRadius: "9px",
                               bgcolor: crmPalette.orange,
                               fontSize: 12,
-                              fontWeight: 900,
+                              fontWeight: 700,
                               textTransform: "none",
                               boxShadow: "none",
                               "&:hover": {
@@ -2435,7 +2437,7 @@ export function AbaOportunidadePropostaCliente(props: PropriedadesAbaDetalhesCli
 
                               fontSize: 11.5,
 
-                              fontWeight: 800,
+                              fontWeight: 700,
 
                               textTransform: "none",
 
@@ -2446,7 +2448,7 @@ export function AbaOportunidadePropostaCliente(props: PropriedadesAbaDetalhesCli
                               "&:hover": {
                                 borderColor: "#cbd5e1",
 
-                                bgcolor: "#f8fafc",
+                                bgcolor: "#ffffff",
 
                                 color: "#0f172a",
 
@@ -2469,9 +2471,9 @@ export function AbaOportunidadePropostaCliente(props: PropriedadesAbaDetalhesCli
                                   width: 34,
                                   height: 34,
                                   color: "#1d4ed8",
-                                  bgcolor: "#eff6ff",
+                                  bgcolor: "#ffffff",
                                   border: "1px solid #bfdbfe",
-                                  "&:hover": { bgcolor: "#dbeafe" },
+                                  "&:hover": { bgcolor: "#ffffff" },
                                 }}
                               >
                                 <Edit3 size={16} />
@@ -2570,7 +2572,7 @@ export function AbaOportunidadePropostaCliente(props: PropriedadesAbaDetalhesCli
                     borderRadius: "12px",
                     borderColor: isEditing ? crmPalette.orange : crmPalette.border,
                     bgcolor: isEditing ? "#fff7ed" : "#ffffff",
-                    boxShadow: "0 10px 24px rgba(15, 23, 42, 0.05)",
+                    boxShadow: "none",
                     minWidth: 0,
                   }}
                 >
@@ -2597,9 +2599,9 @@ export function AbaOportunidadePropostaCliente(props: PropriedadesAbaDetalhesCli
                             placeItems: "center",
                             flexShrink: 0,
                             borderRadius: "10px",
-                            color: crmPalette.orangeDark,
-                            bgcolor: "#fff7ed",
-                            border: "1px solid #fed7c3",
+                            color: "#64748b",
+                            bgcolor: "#ffffff",
+                            border: "1px solid #e2e8f0",
                           }}
                         >
                           <FileText size={18} />
@@ -2619,14 +2621,14 @@ export function AbaOportunidadePropostaCliente(props: PropriedadesAbaDetalhesCli
                                   event.target.value,
                                 )
                               }
-                              sx={textFieldSx}
+                              sx={[textFieldSx, campoPequenoClienteSx]}
                             />
                           ) : (
                             <Typography
                               sx={{
                                 color: crmPalette.text,
                                 fontSize: 15,
-                                fontWeight: 900,
+                                fontWeight: 700,
                                 lineHeight: 1.35,
                                 overflowWrap: "anywhere",
                               }}
@@ -2649,10 +2651,10 @@ export function AbaOportunidadePropostaCliente(props: PropriedadesAbaDetalhesCli
                               size="small"
                               sx={{
                                 borderRadius: "8px",
-                                bgcolor: "#ffedd5",
+                                bgcolor: "#ffffff",
                                 color: crmPalette.orangeDark,
                                 fontSize: 11,
-                                fontWeight: 900,
+                                fontWeight: 700,
                               }}
                             />
                             <Chip
@@ -2663,7 +2665,7 @@ export function AbaOportunidadePropostaCliente(props: PropriedadesAbaDetalhesCli
                                 bgcolor: "#f1f5f9",
                                 color: "#475569",
                                 fontSize: 11,
-                                fontWeight: 800,
+                                fontWeight: 700,
                               }}
                             />
                           </Stack>
@@ -2687,7 +2689,7 @@ export function AbaOportunidadePropostaCliente(props: PropriedadesAbaDetalhesCli
                                 width: 34,
                                 height: 34,
                                 color: "#475569",
-                                bgcolor: "#f8fafc",
+                                bgcolor: "#ffffff",
                                 border: `1px solid ${crmPalette.border}`,
                                 "&:hover": { bgcolor: "#eef2f7" },
                               }}
@@ -2705,9 +2707,9 @@ export function AbaOportunidadePropostaCliente(props: PropriedadesAbaDetalhesCli
                                 width: 34,
                                 height: 34,
                                 color: "#1d4ed8",
-                                bgcolor: "#eff6ff",
+                                bgcolor: "#ffffff",
                                 border: "1px solid #bfdbfe",
-                                "&:hover": { bgcolor: "#dbeafe" },
+                                "&:hover": { bgcolor: "#ffffff" },
                               }}
                             >
                               <Edit3 size={16} />
@@ -2763,7 +2765,7 @@ export function AbaOportunidadePropostaCliente(props: PropriedadesAbaDetalhesCli
 
                             borderColor: "#cbd5e1",
 
-                            bgcolor: "#f8fafc",
+                            bgcolor: "#ffffff",
                           }}
                         >
                           <Box
@@ -2777,11 +2779,11 @@ export function AbaOportunidadePropostaCliente(props: PropriedadesAbaDetalhesCli
 
                               borderRadius: "14px",
 
-                              color: crmPalette.orangeDark,
+                              color: "#64748b",
 
-                              bgcolor: "#fff7ed",
+                              bgcolor: "#ffffff",
 
-                              border: "1px solid #fed7aa",
+                              border: "1px solid #e2e8f0",
                             }}
                           >
                             <FileText size={22} />
@@ -2792,7 +2794,7 @@ export function AbaOportunidadePropostaCliente(props: PropriedadesAbaDetalhesCli
                               mt: 1.5,
                               color: crmPalette.text,
                               fontSize: 15,
-                              fontWeight: 900,
+                              fontWeight: 700,
                             }}
                           >
                             Nenhuma proposta cadastrada
@@ -2845,7 +2847,7 @@ export function AbaOportunidadePropostaCliente(props: PropriedadesAbaDetalhesCli
                               customOption: "",
                             }))
                           }
-                          sx={textFieldSx}
+                          sx={[textFieldSx, campoPequenoClienteSx]}
                         >
                           <MenuItem value="">Selecione</MenuItem>
 
@@ -2872,7 +2874,7 @@ export function AbaOportunidadePropostaCliente(props: PropriedadesAbaDetalhesCli
                               sx={{
                                 color: crmPalette.text,
                                 fontSize: 14,
-                                fontWeight: 900,
+                                fontWeight: 700,
                               }}
                             >
                               {editingOpportunityForm.proposalType === "ARMAZENAGEM"
@@ -2955,7 +2957,7 @@ export function AbaOportunidadePropostaCliente(props: PropriedadesAbaDetalhesCli
                                     event.target.value,
                                   )
                                 }
-                                sx={textFieldSx}
+                                sx={[textFieldSx, campoPequenoClienteSx]} slotProps={{ inputLabel: { shrink: true } }}
                               />
 
                               <Button
@@ -2996,7 +2998,7 @@ export function AbaOportunidadePropostaCliente(props: PropriedadesAbaDetalhesCli
                               px: 1.75,
                               borderRadius: "10px",
                               fontSize: 12,
-                              fontWeight: 800,
+                              fontWeight: 700,
                               whiteSpace: "nowrap",
                             }}
                           >
@@ -3019,7 +3021,7 @@ export function AbaOportunidadePropostaCliente(props: PropriedadesAbaDetalhesCli
                               borderRadius: "10px",
                               bgcolor: crmPalette.orange,
                               fontSize: 12,
-                              fontWeight: 900,
+                              fontWeight: 700,
                               textTransform: "none",
                               whiteSpace: "nowrap",
                               boxShadow: "none",
@@ -3039,7 +3041,7 @@ export function AbaOportunidadePropostaCliente(props: PropriedadesAbaDetalhesCli
                           p: 1.25,
                           borderRadius: "10px",
                           border: `1px solid ${crmPalette.border}`,
-                          bgcolor: "#f8fafc",
+                          bgcolor: "#ffffff",
                         }}
                       >
                         <Typography
@@ -3074,7 +3076,7 @@ export function AbaOportunidadePropostaCliente(props: PropriedadesAbaDetalhesCli
                         borderColor: crmPalette.border,
                         bgcolor: "#ffffff",
                         overflow: "hidden",
-                        boxShadow: "0 10px 30px rgba(15, 23, 42, 0.05)",
+                        boxShadow: "none",
                       }}
                     >
                       <Stack spacing={1.1}>
@@ -3091,7 +3093,7 @@ export function AbaOportunidadePropostaCliente(props: PropriedadesAbaDetalhesCli
                               sx={{
                                 color: crmPalette.text,
                                 fontSize: 13,
-                                fontWeight: 900,
+                                fontWeight: 700,
                               }}
                             >
                               Anexos da proposta
@@ -3189,7 +3191,7 @@ export function AbaOportunidadePropostaCliente(props: PropriedadesAbaDetalhesCli
                                   borderRadius: "9px",
                                   bgcolor: crmPalette.orange,
                                   fontSize: 12,
-                                  fontWeight: 900,
+                                  fontWeight: 700,
                                   textTransform: "none",
                                   boxShadow: "none",
                                   whiteSpace: "nowrap",
@@ -3236,10 +3238,10 @@ export function AbaOportunidadePropostaCliente(props: PropriedadesAbaDetalhesCli
                                 sx={{
                                   maxWidth: "100%",
                                   borderRadius: "8px",
-                                  bgcolor: "#fff7ed",
+                                  bgcolor: "#ffffff",
                                   color: crmPalette.orangeDark,
                                   fontSize: 12,
-                                  fontWeight: 800,
+                                  fontWeight: 700,
                                   "& .MuiChip-label": {
                                     overflow: "hidden",
                                     textOverflow: "ellipsis",
@@ -3291,7 +3293,7 @@ export function AbaOportunidadePropostaCliente(props: PropriedadesAbaDetalhesCli
                                         sx={{
                                           color: crmPalette.text,
                                           fontSize: 12.5,
-                                          fontWeight: 900,
+                                          fontWeight: 700,
                                           overflowWrap: "anywhere",
                                         }}
                                       >
@@ -3335,7 +3337,7 @@ export function AbaOportunidadePropostaCliente(props: PropriedadesAbaDetalhesCli
                                         fontSize: 11.5,
                                       }}
                                     >
-                                      Abrir
+                                      Visualizar
                                     </Button>
 
                                     {canEditCommercialData ? (
@@ -3399,7 +3401,7 @@ export function AbaOportunidadePropostaCliente(props: PropriedadesAbaDetalhesCli
                   sx={{
                     color: crmPalette.text,
                     fontSize: 14,
-                    fontWeight: 900,
+                    fontWeight: 700,
                   }}
                 >
                   Anexar propostas
@@ -3475,7 +3477,7 @@ export function AbaOportunidadePropostaCliente(props: PropriedadesAbaDetalhesCli
                     borderRadius: "10px",
                     bgcolor: crmPalette.orange,
                     fontSize: 13,
-                    fontWeight: 900,
+                    fontWeight: 700,
                     textTransform: "none",
                     boxShadow: "none",
                     "&:hover": {
@@ -3541,7 +3543,7 @@ export function AbaOportunidadePropostaCliente(props: PropriedadesAbaDetalhesCli
               sx={{
                 color: crmPalette.text,
                 fontSize: 14,
-                fontWeight: 900,
+                fontWeight: 700,
               }}
             >
               Anexos sem proposta vinculada
@@ -3561,7 +3563,7 @@ export function AbaOportunidadePropostaCliente(props: PropriedadesAbaDetalhesCli
                   transition:
                     "background-color 160ms ease, border-color 160ms ease",
                   "&:hover": {
-                    bgcolor: "#fff7f2",
+                    bgcolor: "#ffffff",
                     borderColor: crmPalette.orange,
                   },
                 }}
@@ -3588,7 +3590,7 @@ export function AbaOportunidadePropostaCliente(props: PropriedadesAbaDetalhesCli
                         display: "grid",
                         placeItems: "center",
                         flexShrink: 0,
-                        color: crmPalette.orangeDark,
+                        color: "#64748b",
                       }}
                     >
                       <FileText size={18} />
@@ -3599,7 +3601,7 @@ export function AbaOportunidadePropostaCliente(props: PropriedadesAbaDetalhesCli
                         sx={{
                           color: crmPalette.text,
                           fontSize: 14,
-                          fontWeight: 900,
+                          fontWeight: 700,
                           overflowWrap: "anywhere",
                         }}
                       >
@@ -3628,7 +3630,7 @@ export function AbaOportunidadePropostaCliente(props: PropriedadesAbaDetalhesCli
                     }}
                   >
                     <Chip
-                      label="Abrir"
+                      label="Visualizar"
                       size="small"
                       onClick={(event) => {
                         event.stopPropagation();
@@ -3636,9 +3638,9 @@ export function AbaOportunidadePropostaCliente(props: PropriedadesAbaDetalhesCli
                       }}
                       sx={{
                         borderRadius: "8px",
-                        bgcolor: "#eaf4ff",
+                        bgcolor: "#ffffff",
                         color: crmPalette.blue,
-                        fontWeight: 900,
+                        fontWeight: 700,
                         cursor: "pointer",
                       }}
                     />

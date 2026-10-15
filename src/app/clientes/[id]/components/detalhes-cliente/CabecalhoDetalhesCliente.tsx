@@ -1,5 +1,6 @@
 'use client';
 
+import { IdentificacaoProspeccao } from "@/components/crm/prospeccao-consultora";
 import type { ReactNode } from 'react';
 
 import Link from 'next/link';
@@ -16,7 +17,26 @@ import Typography from '@mui/material/Typography';
 
 import { alpha } from '@mui/material/styles';
 
+// Icones 
+
+import { useState } from 'react';
+
+import {
+  Button,
+  Menu,
+  MenuItem,
+  ListItemIcon,
+  ListItemText,
+} from '@mui/material';
+
+import {
+
+
+  MoreVertical,
+} from 'lucide-react';
+
 import DeleteOutlineRoundedIcon from '@mui/icons-material/DeleteOutlineRounded';
+
 
 import {
   ArrowLeft,
@@ -43,6 +63,7 @@ import type {
 import {
   statusStyles,
 } from './detalhes-cliente-compartilhado';
+
 
 type PropriedadesCabecalhoDetalhesCliente = {
   lead: LeadDetail | null;
@@ -84,7 +105,7 @@ function getClientCreatedBy(
 
         return (
           event.type ===
-            'LEAD_CREATED' ||
+          'LEAD_CREATED' ||
           title.includes(
             'cliente criado',
           ) ||
@@ -241,6 +262,8 @@ function HeaderSummaryItem({
    COMPONENTE
 ===================================================== */
 
+
+
 export function CabecalhoDetalhesCliente({
   lead,
   loading,
@@ -252,6 +275,29 @@ export function CabecalhoDetalhesCliente({
   canRequestDeletion = false,
   onRequestDeletion,
 }: PropriedadesCabecalhoDetalhesCliente) {
+
+
+  const [menuAnchorEl, setMenuAnchorEl] =
+    useState<null | HTMLElement>(
+      null,
+    );
+
+  const menuAberto = Boolean(
+    menuAnchorEl,
+  );
+
+  function fecharMenu() {
+    setMenuAnchorEl(null);
+  }
+
+  function excluirPeloMenu() {
+    fecharMenu();
+
+    if (onRequestDeletion) {
+      onRequestDeletion();
+    }
+  }
+
   return (
     <CrmSection
       sx={{
@@ -275,21 +321,10 @@ export function CabecalhoDetalhesCliente({
         boxShadow:
           '0 14px 38px rgba(23, 33, 43, 0.05)',
 
-        '&::before': {
-          content: '""',
-
-          position: 'absolute',
-
-          top: 0,
-          left: 0,
-
-          width: 5,
-          height: '100%',
-
-          bgcolor: '#ff5805',
-        },
+       
       }}
     >
+
       {/* LOADING */}
 
       {loading ? (
@@ -527,7 +562,7 @@ export function CabecalhoDetalhesCliente({
                       )}
                       sx={{
                         ...statusStyles[
-                          lead.status
+                        lead.status
                         ],
 
                         height: 27,
@@ -572,6 +607,7 @@ export function CabecalhoDetalhesCliente({
                     {lead.company ||
                       'Cliente'}
                   </Typography>
+                  <IdentificacaoProspeccao registro={lead}/>
 
                   <Typography
                     sx={{
@@ -597,168 +633,147 @@ export function CabecalhoDetalhesCliente({
                 </Box>
               </Stack>
 
-              {/* =================================================
-                  AÇÕES
-              ================================================= */}
+              {/* ==========================================
+                    AÇÕES DO CLIENTE
+                ========================================== */}
 
               <Stack
                 direction="row"
-                spacing={1}
+                spacing={0}
                 sx={{
-                  alignItems:
-                    'center',
-
-                  flexWrap:
-                    'wrap',
-
-                  gap: 1,
+                  alignItems: 'center',
+                  justifyContent: 'flex-end',
+                  flexWrap: 'wrap',
+                  gap: 1.2,
                 }}
               >
                 {/* VOLTAR */}
+                <Button
+                  component={Link}
+                  href="/clientes"
+                  startIcon={<ArrowLeft size={18} />}
+                  sx={{
+                    height: 42,
+                    px: 2,
+                    borderRadius: '10px',
+                    border: '1px solid #cbd5e1',
+                    bgcolor: '#ffffff',
+                    color: '#334155',
+                    fontWeight: 600,
+                    textTransform: 'none',
+                    '&:hover': {
+                      borderColor: '#ff5805',
+                      bgcolor: '#fff7ed',
+                      color: '#e94f00',
+                    },
+                  }}
+                >
+                  Voltar
+                </Button>
 
-                <Tooltip title="Voltar para clientes">
-                  <IconButton
-                    component={Link}
-                    href="/clientes"
-                    aria-label="Voltar para clientes"
+                {/* EDITAR */}
+                {canEditClient && (
+                  <Button
+                    type="button"
+                    onClick={onEditClient}
+                    startIcon={<Edit3 size={18} />}
                     sx={{
-                      width: 42,
                       height: 42,
-
-                      borderRadius:
-                        2.25,
-
-                      border:
-                        '1px solid',
-
-                      borderColor:
-                        alpha(
-                          '#17212B',
-                          0.12,
-                        ),
-
-                      bgcolor:
-                        '#fff',
-
-                      color:
-                        '#334155',
-
+                      px: 2,
+                      borderRadius: '10px',
+                      border: '1px solid #ff5805',
+                      bgcolor: '#ff5805',
+                      color: '#ffffff',
+                      fontWeight: 600,
+                      textTransform: 'none',
                       '&:hover': {
-                        borderColor:
-                          '#ff5805',
-
-                        bgcolor:
-                          alpha(
-                            '#ff5805',
-                            0.06,
-                          ),
-
-                        color:
-                          '#ff5805',
+                        bgcolor: '#e94f00',
+                        borderColor: '#e94f00',
                       },
                     }}
                   >
-                    <ArrowLeft
-                      size={18}
-                    />
-                  </IconButton>
-                </Tooltip>
+                    Editar
+                  </Button>
+                )}
 
-                {/* EDITAR */}
+                {/* MENU DE TRÊS PONTINHOS */}
+                {canRequestDeletion && (
+                  <>
+                    <Tooltip title="Mais opções">
+                      <IconButton
+                        type="button"
+                        aria-label="Mais opções do cliente"
+                        aria-haspopup="menu"
+                        aria-controls={menuAberto ? 'menu-acoes-cliente' : undefined}
+                        aria-expanded={menuAberto ? true : undefined}
+                        onClick={(event) => setMenuAnchorEl(event.currentTarget)}
+                        sx={{
+                          width: 42,
+                          height: 42,
+                          borderRadius: '10px',
+                          border: '1px solid #cbd5e1',
+                          bgcolor: '#ffffff',
+                          color: '#334155',
+                          '&:hover': {
+                            borderColor: '#ff5805',
+                            bgcolor: '#fff7ed',
+                            color: '#e94f00',
+                          },
+                        }}
+                      >
+                        <MoreVertical size={20} />
+                      </IconButton>
+                    </Tooltip>
 
-                {canEditClient ? (
-                  <Tooltip title="Editar cliente">
-                    <IconButton
-                      type="button"
-                      onClick={
-                        onEditClient
-                      }
-                      aria-label="Editar cliente"
-                      sx={{
-                        width: 42,
-                        height: 42,
-
-                        borderRadius:
-                          2.25,
-
-                        bgcolor:
-                          '#ff5805',
-
-                        color:
-                          '#fff',
-
-                        border:
-                          '1px solid #ff5805',
-
-                        '&:hover': {
-                          bgcolor:
-                            '#e94f00',
-
-                          borderColor:
-                            '#e94f00',
+                    {/* MENU DE OPÇÕES */}
+                    <Menu
+                      id="menu-acoes-cliente"
+                      anchorEl={menuAnchorEl}
+                      open={menuAberto}
+                      onClose={fecharMenu}
+                      anchorOrigin={{
+                        vertical: 'bottom',
+                        horizontal: 'right',
+                      }}
+                      transformOrigin={{
+                        vertical: 'top',
+                        horizontal: 'right',
+                      }}
+                      slotProps={{
+                        paper: {
+                          sx: {
+                            mt: 1,
+                            minWidth: 180,
+                            borderRadius: '10px',
+                            boxShadow: '0 8px 24px rgba(0,0,0,0.10)',
+                          },
                         },
                       }}
                     >
-                      <Edit3
-                        size={18}
-                      />
-                    </IconButton>
-                  </Tooltip>
-                ) : null}
+                      <MenuItem
+                        onClick={excluirPeloMenu}
+                        sx={{
+                          color: '#dc2626',
+                          fontSize: 14,
+                          fontWeight: 500,
+                          py: 1.2,
+                          '&:hover': {
+                            bgcolor: '#fef2f2',
+                          },
+                        }}
+                      >
+                        <ListItemIcon>
+                          <DeleteOutlineRoundedIcon
+                            fontSize="small"
+                            sx={{ color: '#dc2626' }}
+                          />
+                        </ListItemIcon>
 
-                {/* EXCLUIR */}
-
-                {canRequestDeletion ? (
-                  <Tooltip title="Excluir cliente">
-                    <IconButton
-                      type="button"
-                      onClick={
-                        onRequestDeletion
-                      }
-                      aria-label="Excluir cliente"
-                      sx={{
-                        width: 42,
-                        height: 42,
-
-                        borderRadius:
-                          2.25,
-
-                        border:
-                          '1px solid',
-
-                        borderColor:
-                          alpha(
-                            '#dc2626',
-                            0.25,
-                          ),
-
-                        bgcolor:
-                          alpha(
-                            '#dc2626',
-                            0.03,
-                          ),
-
-                        color:
-                          '#dc2626',
-
-                        '&:hover': {
-                          borderColor:
-                            '#dc2626',
-
-                          bgcolor:
-                            alpha(
-                              '#dc2626',
-                              0.08,
-                            ),
-                        },
-                      }}
-                    >
-                      <DeleteOutlineRoundedIcon
-                        fontSize="small"
-                      />
-                    </IconButton>
-                  </Tooltip>
-                ) : null}
+                        <ListItemText primary="Excluir cliente" />
+                      </MenuItem>
+                    </Menu>
+                  </>
+                )}
               </Stack>
             </Stack>
 
@@ -771,11 +786,11 @@ export function CabecalhoDetalhesCliente({
                 display: 'grid',
 
                 gridTemplateColumns:
-                  {
-                    xs: '1fr',
+                {
+                  xs: '1fr',
 
-                    md: 'repeat(3, minmax(0, 1fr))',
-                  },
+                  md: 'repeat(3, minmax(0, 1fr))',
+                },
 
                 gap: 1.5,
               }}

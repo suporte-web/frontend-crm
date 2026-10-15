@@ -8,3 +8,11 @@ export function hasAnyRole(user: { role?: string; roles?: string[] } | null | un
 export function canUseInternalChat(user: { role?: string; roles?: string[] } | null | undefined): boolean {
   return hasAnyRole(user, ['ADMIN', 'GESTAO', 'COMERCIAL', 'MARKETING']);
 }
+
+export function selecionarPerfis(atuais: string[], proximos: string[]): string[] {
+  if (proximos.includes('CONSULTORA') && !atuais.includes('CONSULTORA')) return ['CONSULTORA'];
+  return proximos.filter(perfil => perfil !== 'CONSULTORA');
+}
+export function validarPerfis(perfis: string[]): boolean {
+  return perfis.length > 0 && (!perfis.includes('CONSULTORA') || perfis.length === 1);
+}

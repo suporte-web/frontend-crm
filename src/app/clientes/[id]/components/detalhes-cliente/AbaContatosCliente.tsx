@@ -1,5 +1,7 @@
 "use client";
 
+import { campoPequenoClienteSx, superficieAbasClienteSx, paletaAbasCliente as crmPalette } from "./estilos-abas-cliente";
+
 import Alert from "@mui/material/Alert";
 import Box from "@mui/material/Box";
 import Button from "@mui/material/Button";
@@ -16,10 +18,7 @@ import {
   X,
 } from "lucide-react";
 
-import {
-  CrmSection,
-  crmPalette,
-} from "@/components/mui/crm-primitives";
+import { CrmSection } from "@/components/mui/crm-primitives";
 
 import {
   CartaoContatoCliente,
@@ -71,7 +70,7 @@ export function AbaContatosCliente(
 
   return (
     <CrmSection
-      sx={{
+      sx={[{
         p: {
           xs: 2,
           md: 2.5,
@@ -85,7 +84,7 @@ export function AbaContatosCliente(
 
         boxShadow:
           "0 8px 24px rgba(15, 23, 42, 0.04)",
-      }}
+      }, superficieAbasClienteSx]}
     >
       <Stack spacing={2.5}>
         {/* =====================================
@@ -158,7 +157,7 @@ export function AbaContatosCliente(
 
                 fontSize: 12.5,
 
-                fontWeight: 900,
+                fontWeight: 700,
 
                 textTransform: "none",
 
@@ -218,7 +217,7 @@ export function AbaContatosCliente(
 
                 borderBottom: `1px solid ${crmPalette.border}`,
 
-                bgcolor: "#eff6ff",
+                bgcolor: "#ffffff",
               }}
             >
               <Stack
@@ -241,9 +240,9 @@ export function AbaContatosCliente(
 
                     borderRadius: "10px",
 
-                    bgcolor: "#dbeafe",
+                    bgcolor: "#ffffff",
 
-                    color: "#2563eb",
+                    color: "#64748b",
 
                     "& svg": {
                       width: 18,
@@ -257,11 +256,11 @@ export function AbaContatosCliente(
                 <Box sx={{ minWidth: 0 }}>
                   <Typography
                     sx={{
-                      color: "#1d4ed8",
+                      color: "#1f2937",
 
                       fontSize: 13.5,
 
-                      fontWeight: 900,
+                      fontWeight: 700,
 
                       lineHeight: 1.3,
                     }}
@@ -331,7 +330,7 @@ export function AbaContatosCliente(
                       }),
                     )
                   }
-                  sx={textFieldSx}
+                  sx={[textFieldSx, campoPequenoClienteSx]}
                 />
 
                 <TextField
@@ -349,7 +348,7 @@ export function AbaContatosCliente(
                       }),
                     )
                   }
-                  sx={textFieldSx}
+                  sx={[textFieldSx, campoPequenoClienteSx]}
                 />
 
                 <TextField
@@ -368,7 +367,7 @@ export function AbaContatosCliente(
                       }),
                     )
                   }
-                  sx={textFieldSx}
+                  sx={[textFieldSx, campoPequenoClienteSx]}
                 />
 
                 <TextField
@@ -388,7 +387,7 @@ export function AbaContatosCliente(
                       }),
                     )
                   }
-                  sx={textFieldSx}
+                  sx={[textFieldSx, campoPequenoClienteSx]}
                 />
 
                 <TextField
@@ -408,7 +407,7 @@ export function AbaContatosCliente(
                       }),
                     )
                   }
-                  sx={textFieldSx}
+                  sx={[textFieldSx, campoPequenoClienteSx]}
                 />
 
                 <TextField
@@ -428,7 +427,7 @@ export function AbaContatosCliente(
                       }),
                     )
                   }
-                  sx={textFieldSx}
+                  sx={[textFieldSx, campoPequenoClienteSx]}
                 />
               </Box>
 
@@ -495,7 +494,7 @@ export function AbaContatosCliente(
 
                     fontSize: 13,
 
-                    fontWeight: 900,
+                    fontWeight: 700,
 
                     textTransform: "none",
 
@@ -548,7 +547,7 @@ export function AbaContatosCliente(
                   ? `1px solid ${crmPalette.border}`
                   : 0,
 
-              bgcolor: "#f8fafc",
+              bgcolor: "#ffffff",
             }}
           >
             <Stack
@@ -574,7 +573,7 @@ export function AbaContatosCliente(
 
                     fontSize: 13.5,
 
-                    fontWeight: 900,
+                    fontWeight: 700,
 
                     lineHeight: 1.3,
                   }}
@@ -606,7 +605,7 @@ export function AbaContatosCliente(
 
                   fontSize: 11.5,
 
-                  fontWeight: 800,
+                  fontWeight: 700,
                 }}
               >
                 {totalContacts === 0

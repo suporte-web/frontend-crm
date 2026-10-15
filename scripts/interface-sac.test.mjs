@@ -9,7 +9,7 @@ function montar(arquivo,mocks={}){
   const valores=[],deps=[];let posicao=0;let efeitos=[];
   const hooks={useState(inicial){const i=posicao++;if(!(i in valores))valores[i]=inicial;return[valores[i],v=>{valores[i]=typeof v==='function'?v(valores[i]):v;}];},useRef(inicial){const i=posicao++;if(!(i in valores))valores[i]={current:inicial};return valores[i];},useCallback(cb){posicao++;return cb;},useEffect(cb,novos){const i=posicao++;if(!deps[i]||novos.some((v,j)=>!Object.is(v,deps[i][j]))){deps[i]=novos;efeitos.push(cb);}}};
   const mui=new Proxy({},{get:(_,nome)=>nome});
-  const modulos={react:hooks,'@mui/material':mui,'@/services/atendimento-sac.api':{},'@/components/layout/app-layout':{AppLayout:'AppLayout'},'@/components/ui/feedback-toast':{FeedbackToast:'FeedbackToast'},'next/link':{default:'Link'},'next/navigation':{useParams:()=>({id:'caso'})},'@/context/auth-context':{useAuth:()=>({token:'jwt-do-crm',user:{id:'atendente',role:'ATENDIMENTO'}})},...mocks};
+  const modulos={'@/components/anexos/VisualizadorDocumento':{VisualizadorDocumento:'VisualizadorDocumento'},react:hooks,'@mui/material':mui,'@/services/atendimento-sac.api':{},'@/components/layout/app-layout':{AppLayout:'AppLayout'},'@/components/ui/feedback-toast':{FeedbackToast:'FeedbackToast'},'next/link':{default:'Link'},'next/navigation':{useParams:()=>({id:'caso'})},'@/context/auth-context':{useAuth:()=>({token:'jwt-do-crm',user:{id:'atendente',role:'ATENDIMENTO'}})},...mocks};
   const cache={};function carregar(nome,caminho){const contexto={exports:{},require:n=>{if(n==='react/jsx-runtime')return require(n);if(n in modulos)return modulos[n];if(n==='@/types/atendimento-sac.types')return carregar(n,'../src/types/atendimento-sac.types.ts');if(n==='./ComponentesSac')return carregar(n,'../src/components/atendimento-sac/ComponentesSac.tsx');if(n==='./FormularioAcaoSac')return {FormularioAcaoSac:'FormularioAcaoSac'};if(n==='@/components/attachments/UploadAnexos')return carregar(n,'../src/components/attachments/UploadAnexos.tsx');if(n==='@/components/atendimento/HistoricoAtendimento')return carregar(n,'../src/components/atendimento/HistoricoAtendimento.tsx');throw new Error(`Import não previsto: ${n}`);},Date,JSON,URL,console,window:{location:{search:''}},setTimeout};if(!cache[nome]){vm.runInNewContext(compilar(caminho),contexto);cache[nome]=contexto.exports;}return cache[nome];}
   const componente=carregar('alvo',arquivo);
   function expandir(no){if(Array.isArray(no))return no.map(expandir);if(!no||typeof no!=='object')return no;if(typeof no.type==='function')return expandir(no.type(no.props));return {...no,props:{...no.props,children:expandir(no.props?.children)}};}
@@ -49,3 +49,22 @@ test('Atendimento fica imediatamente abaixo de Operação na sidebar', () => {
   const ids = contexto.exports.sidebarSections.map(secao => secao.id);
   assert.equal(ids.indexOf('atendimento-sac'), ids.indexOf('operacao') + 1);
 });
+
+for (const caminho of ['/atendimento-sac/caso/anexos', '/visitas/caso/anexos']) {
+  test('Visualizar abre anexo protegido sem baixar em ' + caminho, () => {
+    const instancia = montar('../src/components/atendimento-sac/ComponentesSac.tsx');
+    let downloads = 0;
+    const anexo = { id: 'arquivo', nome: 'evidencia.pdf', tipo: 'application/pdf', etapa: 'ACAO_CORRETIVA', criadoEm: '2026-10-14T12:00:00Z' };
+    const props = { anexos: [anexo], token: 'jwt', id: 'caso', erro: () => {}, caminhoAnexos: caminho, baixar: async () => { downloads++; } };
+    let arvore = instancia.renderizar('ListaAnexosSac', props);
+    buscar(arvore, 'Button', p => p.children === 'Visualizar').props.onClick();
+    arvore = instancia.renderizar('ListaAnexosSac', props);
+    const visualizador = buscar(arvore, 'VisualizadorDocumento');
+    assert.equal(visualizador.props.anexo.id, 'arquivo');
+    assert.equal(visualizador.props.caminho, caminho + '/arquivo');
+    assert.equal(downloads, 0);
+    visualizador.props.onClose();
+    arvore = instancia.renderizar('ListaAnexosSac', props);
+    assert.equal(buscar(arvore, 'VisualizadorDocumento').props.anexo, null);
+  });
+}

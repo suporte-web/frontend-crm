@@ -99,7 +99,7 @@ export function AppSidebar() {
   const filteredSections = buildSidebarSections(filteredMenu);
 
   useEffect(() => {
-    if (!token) {
+    if (!token || user?.role === 'CONSULTORA') {
       setUnreadChatCount(0);
       return;
     }

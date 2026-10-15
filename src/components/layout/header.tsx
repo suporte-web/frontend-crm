@@ -51,6 +51,7 @@ const headerColors = {
 };
 
 function getPageTitle(pathname: string, role?: string) {
+  if (pathname.startsWith('/gestao-prospeccoes')) return 'Gestão de Prospecções';
   if (pathname.startsWith('/atendimento/visitas')) return 'Visitas';
   if (pathname.startsWith("/painel")) {
     return role === "CLIENTE" ? "Canal do Cliente" : "Início";
@@ -86,6 +87,7 @@ function getRoleLabel(role?: string) {
     ADMIN: "Administrador",
     GESTAO: "Gestão",
     COMERCIAL: "Comercial",
+    CONSULTORA: "Consultora",
     MARKETING: "Marketing",
     CLIENTE: "Cliente",
   };
@@ -196,7 +198,7 @@ export function Header() {
   }
 
   async function loadNotifications() {
-    if (!token) {
+    if (!token || user?.role === 'CONSULTORA') {
       setNotifications([]);
       setUnreadCount(0);
       return;
@@ -216,7 +218,7 @@ export function Header() {
   }, [token, pathname]);
 
   useEffect(() => {
-    if (!token) return;
+    if (!token || user?.role === 'CONSULTORA') return;
 
     const interval = window.setInterval(() => {
       loadNotifications().catch(() => undefined);
@@ -339,7 +341,7 @@ export function Header() {
             </IconButton>
           </Tooltip>
 
-          <Tooltip title="Notificações" arrow>
+          {user?.role !== 'CONSULTORA' && <Tooltip title="Notificações" arrow>
             <IconButton
               onClick={(event) => {
                 setNotificationsAnchorEl(
@@ -387,7 +389,7 @@ export function Header() {
                 <NotificationsNoneRoundedIcon fontSize="small" />
               </Badge>
             </IconButton>
-          </Tooltip>
+          </Tooltip>}
 
           <ButtonBase
             onClick={(event) => {

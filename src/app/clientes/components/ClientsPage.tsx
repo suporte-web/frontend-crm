@@ -1,5 +1,6 @@
 "use client";
 
+import { IdentificacaoProspeccao } from "@/components/crm/prospeccao-consultora";
 import { hasAnyRole } from "@/lib/user-roles";
 import Link from "next/link";
 import { useEffect, useMemo, useState } from "react";
@@ -349,9 +350,10 @@ export default function ClientsPage() {
     message: string;
     variant: "success" | "error";
   } | null>(null);
-  const isManagement = hasAnyRole(user, ["GESTAO"]) || hasAnyRole(user, ["ADMIN"]);
+  const canDeleteDirectly = ["ADMIN", "GESTAO", "COMERCIAL"].includes(user?.role ?? "");
+  const canDecideDeletion = ["ADMIN", "GESTAO", "COMERCIAL"].includes(user?.role ?? "");
   const canManageClients = user?.role
-    ? hasAnyRole(user, ["ADMIN", "GESTAO", "COMERCIAL"])
+    ? hasAnyRole(user, ["ADMIN", "GESTAO", "COMERCIAL", "CONSULTORA"])
     : false;
 
   async function loadClients() {
@@ -364,8 +366,8 @@ export default function ClientsPage() {
       setLoading(true);
       setPageError("");
       const [data, requests] = await Promise.all([
-        getCrmClientSummaries(token),
-        canManageClients
+        getCrmClientSummaries(token, user?.role === 'CONSULTORA'),
+        canManageClients && user?.role !== 'CONSULTORA'
           ? getClientDeletionRequests(token).catch(() => [])
           : Promise.resolve([]),
       ]);
@@ -720,14 +722,16 @@ export default function ClientsPage() {
 
     try {
       setSaving(true);
-      await requestClientDeletion(
+      const result = await requestClientDeletion(
         deletionModalClient.id,
         { reason: deletionReason.trim() || undefined },
         token,
       );
       setToast({
-        title: "Solicitação enviada",
-        message: "A exclusão do cliente foi enviada para aprovação da Gestão.",
+        title: result.status === "APROVADA" ? "Cliente excluído" : "Solicitação enviada",
+        message: result.status === "APROVADA"
+          ? "Cliente excluído com sucesso."
+          : "A exclusão do cliente foi enviada para aprovação do Comercial ou Gestão.",
         variant: "success",
       });
       setDeletionModalClient(null);
@@ -735,11 +739,11 @@ export default function ClientsPage() {
       await loadClients();
     } catch (error) {
       setToast({
-        title: "Falha ao solicitar exclusão",
+        title: canDeleteDirectly ? "Falha ao excluir cliente" : "Falha ao solicitar exclusão",
         message:
           error instanceof Error
             ? error.message
-            : "Erro ao solicitar exclusão.",
+            : "Não foi possível concluir a exclusão do cliente.",
         variant: "error",
       });
     } finally {
@@ -925,7 +929,7 @@ export default function ClientsPage() {
             />
           </Box>
 
-        {isManagement && pendingDeletionRequests.length > 0 ? (
+        {canDecideDeletion && pendingDeletionRequests.length > 0 ? (
           <CrmSection
             sx={{
               overflow: "hidden",
@@ -962,7 +966,7 @@ export default function ClientsPage() {
                     fontSize: 13,
                   }}
                 >
-                  Gestão aprova ou recusa a remoção definitiva de clientes.
+                  Comercial, Gestão ou Admin aprovam ou recusam a remoção definitiva de clientes.
                 </Typography>
               </Box>
 
@@ -1157,7 +1161,7 @@ export default function ClientsPage() {
             <Box>
               <Typography
                 sx={{
-                  color: crmPalette.orangeDark,
+                   color: "#000000",
                   fontSize: 12,
                   fontWeight: 900,
                   letterSpacing: ".16em",
@@ -1166,12 +1170,7 @@ export default function ClientsPage() {
               >
                 Base comercial
               </Typography>
-              <Typography component="h2" sx={{ mt: 0.5, fontSize: 26, fontWeight: 900 }}>
-                Buscar clientes
-              </Typography>
-              <Typography sx={{ mt: 0.75, color: "text.secondary" }}>
-                Localize clientes por nome, e-mail, empresa, CNPJ ou segmento.
-              </Typography>
+            
             </Box>
 
             <Box
@@ -1352,6 +1351,7 @@ export default function ClientsPage() {
                           <Typography sx={{ color: "#020617", fontSize: 16, fontWeight: 900 }}>
                             {getClientDisplayName(client)}
                           </Typography>
+                          <IdentificacaoProspeccao registro={client}/>
                           {client.email ? (
                             <Typography
                               sx={{
@@ -1677,7 +1677,7 @@ export default function ClientsPage() {
                       lineHeight: 1.2,
                     }}
                   >
-                    Solicitar aprovação da Gestão
+                    {canDeleteDirectly ? "Confirmar exclusão" : "Solicitar aprovação do Comercial ou Gestão"}
                   </Typography>
 
                   <Typography
@@ -1698,7 +1698,7 @@ export default function ClientsPage() {
                     >
                       {deletionModalClient?.company || "selecionado"}
                     </Box>{" "}
-                    só será excluído após aprovação formal da Gestão.
+                    {canDeleteDirectly ? "será excluído ao confirmar esta ação." : "só será excluído após aprovação do Comercial ou Gestão."}
                   </Typography>
                 </Box>
 
@@ -1745,8 +1745,9 @@ export default function ClientsPage() {
                   },
                 }}
               >
-                Esta ação não exclui o cliente imediatamente. A solicitação será
-                enviada para análise da Gestão.
+                {canDeleteDirectly
+                  ? "A exclusão será imediata e não poderá ser desfeita. Confirme antes de continuar."
+                  : "Esta ação não exclui o cliente imediatamente. A solicitação será enviada para análise do Comercial ou Gestão."}
               </Alert>
 
               <TextField
@@ -1813,7 +1814,7 @@ export default function ClientsPage() {
                   },
                 }}
               >
-                {saving ? "Enviando..." : "Enviar para Gestão"}
+                {saving ? (canDeleteDirectly ? "Excluindo..." : "Enviando...") : (canDeleteDirectly ? "Excluir cliente" : "Solicitar exclusão")}
               </Button>
             </DialogActions>
           </Box>
@@ -1862,7 +1863,7 @@ export default function ClientsPage() {
                     textTransform: "uppercase",
                   }}
                 >
-                  Análise da Gestão
+                  Análise da solicitação
                 </Typography>
 
                 <Typography
@@ -1960,7 +1961,7 @@ export default function ClientsPage() {
               fullWidth
               multiline
               minRows={4}
-              label="Parecer da Gestão"
+              label="Parecer"
               value={decisionMessage}
               onChange={(event) => setDecisionMessage(event.target.value)}
               placeholder="Informe o motivo da aprovação ou da recusa"

@@ -3,24 +3,9 @@
 import { useEffect } from 'react';
 import { usePathname, useRouter } from 'next/navigation';
 import { useAuth } from '@/context/auth-context';
-import { appScreens, isScreenEnabledForRole } from '@/config/screens';
+import { appScreens, isScreenEnabledForRole, podeAcessarRota } from '@/config/screens';
 import type { RoleScreenPermission, UserRole } from '@/types/auth';
 
-function canAccessRoute(
-  pathname: string,
-  role?: UserRole | UserRole[],
-  permissions?: RoleScreenPermission[],
-) {
-  if (!role || pathname === '/alterar-senha') {
-    return true;
-  }
-
-  const route = appScreens.find(
-    (item) => pathname === item.href || pathname.startsWith(`${item.href}/`),
-  );
-
-  return route ? isScreenEnabledForRole(route, role, permissions) : true;
-}
 
 function getDefaultRoute(
   role?: UserRole | UserRole[],
@@ -57,7 +42,7 @@ export function ProtectedRoute({ children }: { children: React.ReactNode }) {
     if (
       !loading &&
       token &&
-      !canAccessRoute(pathname, user?.roles?.length ? user.roles : user?.role, user?.screenPermissions)
+      !podeAcessarRota(pathname, user?.roles?.length ? user.roles : user?.role, user?.screenPermissions)
     ) {
       router.replace(getDefaultRoute(user?.roles?.length ? user.roles : user?.role, user?.screenPermissions));
     }
@@ -84,7 +69,7 @@ export function ProtectedRoute({ children }: { children: React.ReactNode }) {
     return null;
   }
 
-  if (!canAccessRoute(pathname, user?.roles?.length ? user.roles : user?.role, user?.screenPermissions)) {
+  if (!podeAcessarRota(pathname, user?.roles?.length ? user.roles : user?.role, user?.screenPermissions)) {
     return null;
   }
 

@@ -51,6 +51,10 @@ export interface Opportunity {
 }
 
 export interface LeadSummary {
+  prospectedById?: string | null;
+  prospectedByName?: string | null;
+  sourceLeadId?: string | null;
+  sourceProspectId?: string | null;
   id: string;
   name: string;
   email: string;

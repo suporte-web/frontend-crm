@@ -1,1 +1,1 @@
-export { default } from './components/LeadDetailPage';
+export { default } from './componentes/DetalhesLead';

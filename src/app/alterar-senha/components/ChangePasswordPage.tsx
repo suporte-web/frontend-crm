@@ -1,6 +1,8 @@
+
 "use client";
 
 import { FormEvent, useState } from "react";
+import { useRouter } from "next/navigation";
 
 import Alert from "@mui/material/Alert";
 import Box from "@mui/material/Box";
@@ -13,7 +15,6 @@ import TextField from "@mui/material/TextField";
 import Typography from "@mui/material/Typography";
 
 import { Eye, EyeOff, KeyRound, LockKeyhole } from "lucide-react";
-import { useRouter } from "next/navigation";
 
 import { AppLayout } from "@/components/layout/app-layout";
 import {
@@ -24,38 +25,78 @@ import {
 } from "@/components/mui/crm-primitives";
 import { useAuth } from "@/context/auth-context";
 
+// PADRÃO VISUAL DOS CAMPOS
 const passwordFieldSx = {
+  width: "100%",
+  minWidth: 0,
+
   "& .MuiOutlinedInput-root": {
-    minHeight: 10,
+    height: 42,
     borderRadius: "10px",
     bgcolor: "#ffffff",
+
+    "& .MuiOutlinedInput-notchedOutline": {
+      borderColor: "#dce3eb",
+    },
+
+    "&:hover .MuiOutlinedInput-notchedOutline": {
+      borderColor: "#94a3b8",
+    },
+
+    "&.Mui-focused .MuiOutlinedInput-notchedOutline": {
+      borderColor: "#ff5805",
+    },
   },
+
   "& .MuiInputBase-input": {
-    py: "6px",
-    fontSize: 15,
+    py: "10px",
+    fontSize: 13,
+    fontWeight: 500,
   },
+
   "& .MuiInputLabel-root": {
-    fontSize: 18,
-    fontWeight: 800,
+    fontSize: 13,
+    fontWeight: 500,
   },
+
+  "& .MuiInputLabel-root.Mui-focused": {
+    color: "#ff5805",
+  },
+
+  "& .MuiInputAdornment-root": {
+    color: "#64748b",
+  },
+
   "& .MuiInputAdornment-root svg": {
-    width: 14,
-    height: 14,
+    width: 16,
+    height: 16,
+  },
+
+  "& .MuiIconButton-root": {
+    width: 30,
+    height: 30,
   },
 };
 
 export default function ChangePasswordPage() {
   const router = useRouter();
   const { changePassword } = useAuth();
+
+  // ESTADOS DOS CAMPOS
   const [currentPassword, setCurrentPassword] = useState("");
   const [newPassword, setNewPassword] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
+
+  // VISIBILIDADE DAS SENHAS
   const [showCurrentPassword, setShowCurrentPassword] = useState(false);
   const [showNewPassword, setShowNewPassword] = useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
+
+  // CONTROLE DO FORMULÁRIO
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState("");
 
+  // SALVAR NOVA SENHA
   async function handleSubmit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
     setError("");
@@ -72,30 +113,34 @@ export default function ChangePasswordPage() {
 
     try {
       setSaving(true);
+
       await changePassword(currentPassword, newPassword);
+
       router.replace("/painel");
     } catch (changeError) {
       setError(
         changeError instanceof Error
           ? changeError.message
-          : "Erro ao alterar senha.",
+          : "Erro ao alterar senha."
       );
     } finally {
       setSaving(false);
     }
   }
 
+  // ÍCONES DOS CAMPOS DE SENHA
   function passwordAdornment(
     visible: boolean,
     onToggle: () => void,
-    label: string,
+    label: string
   ) {
     return {
       startAdornment: (
         <InputAdornment position="start">
-          <LockKeyhole size={17} />
+          <LockKeyhole size={16} />
         </InputAdornment>
       ),
+
       endAdornment: (
         <InputAdornment position="end">
           <IconButton
@@ -103,8 +148,17 @@ export default function ChangePasswordPage() {
             aria-label={label}
             onClick={onToggle}
             edge="end"
+            size="small"
+            disabled={saving}
+            sx={{
+              color: "#64748b",
+              "&:hover": {
+                color: "#ff5805",
+                bgcolor: "#fff7ed",
+              },
+            }}
           >
-            {visible ? <EyeOff size={18} /> : <Eye size={18} />}
+            {visible ? <EyeOff size={16} /> : <Eye size={16} />}
           </IconButton>
         </InputAdornment>
       ),
@@ -114,6 +168,7 @@ export default function ChangePasswordPage() {
   return (
     <AppLayout>
       <CrmPageShell sx={{ maxWidth: 860 }}>
+        {/* CABEÇALHO DA PÁGINA */}
         <CrmPageHeader
           eyebrow="Primeiro acesso"
           title="Alterar senha inicial"
@@ -121,110 +176,184 @@ export default function ChangePasswordPage() {
           icon={<KeyRound size={30} />}
         />
 
-        <CrmSection sx={{ p: { xs: 2, md: 2.5 } }}>
-          <Box component="form" onSubmit={handleSubmit}>
-            <Stack spacing={1.75}>
+        {/* CARD PRINCIPAL */}
+        <CrmSection
+          sx={{
+            p: { xs: 2, md: 3 },
+            bgcolor: "#ffffff",
+            border: "1px solid #e2e8f0",
+            borderRadius: "14px",
+            boxShadow: "none",
+          }}
+        >
+          {/* FORMULÁRIO CENTRALIZADO */}
+          <Box
+            component="form"
+            onSubmit={handleSubmit}
+            sx={{
+              width: "100%",
+              maxWidth: 520,
+              mx: "auto",
+            }}
+          >
+            <Stack spacing={2.5}>
+              {/* TÍTULO */}
               <Box>
                 <Typography
                   component="h2"
                   sx={{
                     color: crmPalette.text,
                     fontSize: 18,
-                    fontWeight: 900,
+                    fontWeight: 800,
                   }}
                 >
                   Nova senha
                 </Typography>
-                <Typography sx={{ mt: 0.5, color: crmPalette.muted, fontSize: 13 }}>
-                  Use pelo menos 6 caracteres.
+
+                <Typography
+                  sx={{
+                    mt: 0.5,
+                    color: crmPalette.muted,
+                    fontSize: 13,
+                  }}
+                >
+                  Use pelo menos 6 caracteres para definir sua senha.
                 </Typography>
               </Box>
 
+              {/* SENHA ATUAL */}
               <TextField
                 fullWidth
                 required
+                size="small"
                 label="Senha atual"
                 type={showCurrentPassword ? "text" : "password"}
                 value={currentPassword}
-                onChange={(event) => setCurrentPassword(event.target.value)}
+                onChange={(event) =>
+                  setCurrentPassword(event.target.value)
+                }
                 autoComplete="current-password"
+                disabled={saving}
                 slotProps={{
                   input: passwordAdornment(
                     showCurrentPassword,
-                    () => setShowCurrentPassword((current) => !current),
+                    () =>
+                      setShowCurrentPassword((current) => !current),
                     showCurrentPassword
                       ? "Ocultar senha atual"
-                      : "Mostrar senha atual",
+                      : "Mostrar senha atual"
                   ),
                 }}
                 sx={passwordFieldSx}
               />
 
+              {/* NOVA SENHA */}
               <TextField
                 fullWidth
                 required
+                size="small"
                 label="Nova senha"
                 type={showNewPassword ? "text" : "password"}
                 value={newPassword}
-                onChange={(event) => setNewPassword(event.target.value)}
+                onChange={(event) =>
+                  setNewPassword(event.target.value)
+                }
                 autoComplete="new-password"
+                disabled={saving}
                 slotProps={{
                   input: passwordAdornment(
                     showNewPassword,
-                    () => setShowNewPassword((current) => !current),
-                    showNewPassword ? "Ocultar nova senha" : "Mostrar nova senha",
+                    () =>
+                      setShowNewPassword((current) => !current),
+                    showNewPassword
+                      ? "Ocultar nova senha"
+                      : "Mostrar nova senha"
                   ),
                 }}
                 sx={passwordFieldSx}
               />
 
+              {/* CONFIRMAR NOVA SENHA */}
               <TextField
                 fullWidth
                 required
+                size="small"
                 label="Confirmar nova senha"
                 type={showConfirmPassword ? "text" : "password"}
                 value={confirmPassword}
-                onChange={(event) => setConfirmPassword(event.target.value)}
+                onChange={(event) =>
+                  setConfirmPassword(event.target.value)
+                }
                 autoComplete="new-password"
+                disabled={saving}
                 slotProps={{
                   input: passwordAdornment(
                     showConfirmPassword,
-                    () => setShowConfirmPassword((current) => !current),
+                    () =>
+                      setShowConfirmPassword((current) => !current),
                     showConfirmPassword
                       ? "Ocultar confirmação de senha"
-                      : "Mostrar confirmação de senha",
+                      : "Mostrar confirmação de senha"
                   ),
                 }}
                 sx={passwordFieldSx}
               />
 
-              {error ? (
-                <Alert severity="error" sx={{ borderRadius: "10px" }}>
+              {/* MENSAGEM DE ERRO */}
+              {error && (
+                <Alert
+                  severity="error"
+                  sx={{
+                    borderRadius: "10px",
+                    fontSize: 13,
+                    alignItems: "center",
+                  }}
+                >
                   {error}
                 </Alert>
-              ) : null}
+              )}
 
-              <Stack direction={{ xs: "column", sm: "row" }} spacing={1.25}>
+              {/* BOTÃO SALVAR */}
+              <Stack
+                direction="row"
+                spacing={1.25}
+                sx={{
+                  justifyContent: "flex-end",
+                  alignItems: "center",
+                  pt: 1.5,
+                  borderTop: "1px solid #e2e8f0",
+                }}
+              >
                 <Button
                   type="submit"
                   variant="contained"
+                  size="small"
                   disabled={saving}
                   startIcon={
                     saving ? (
-                      <CircularProgress size={16} color="inherit" />
+                      <CircularProgress
+                        size={15}
+                        color="inherit"
+                      />
                     ) : (
-                      <KeyRound size={17} />
+                      <KeyRound size={15} />
                     )
                   }
                   sx={{
-                    minHeight: 40,
-                    borderRadius: "10px",
+                    height: 38,
+                    minHeight: 38,
                     px: 2.5,
-                    bgcolor: crmPalette.orange,
-                    fontWeight: 900,
+                    borderRadius: "10px",
+                    bgcolor: "#ff5805",
+                    color: "#ffffff",
+                    fontSize: 12,
+                    fontWeight: 700,
+                    textTransform: "none",
                     boxShadow: "none",
+                    whiteSpace: "nowrap",
+
                     "&:hover": {
-                      bgcolor: crmPalette.orangeDark,
+                      bgcolor: "#e94f00",
                       boxShadow: "none",
                     },
                   }}
