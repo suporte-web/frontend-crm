@@ -227,8 +227,8 @@ export async function simulateWhatsAppLead(
 export interface SolicitacaoExclusaoLead {
   id: string;
   leadId: string | null;
-  status: 'PENDENTE' | 'APROVADA' | 'RECUSADA';
-  clientNameSnapshot: string | null;
+  status: 'PENDENTE' | 'APROVADA' | 'RECUSADA' | 'CANCELADA';
+  leadNameSnapshot: string;
   reason: string | null;
   createdAt: string;
   requestedBy?: { id: string; name: string };

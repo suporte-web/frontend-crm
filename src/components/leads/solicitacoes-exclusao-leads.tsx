@@ -4,11 +4,12 @@ import { useCallback, useEffect, useState } from 'react';
 import { Alert, Button, Dialog, DialogActions, DialogContent, DialogTitle, Stack, TextField, Typography } from '@mui/material';
 import { CrmSection } from '@/components/mui/crm-primitives';
 import { useAuth } from '@/context/auth-context';
+import { hasAnyRole } from '@/lib/user-roles';
 import { decidirExclusaoLead, getSolicitacoesExclusaoLeads, type SolicitacaoExclusaoLead } from '@/services/leads.service';
 
 export function SolicitacoesExclusaoLeads({ onChanged }: { onChanged: () => Promise<void> }) {
   const { user, token } = useAuth();
-  const allowed = ['ADMIN', 'GESTAO', 'COMERCIAL'].includes(user?.role ?? '');
+  const allowed = hasAnyRole(user, ['ADMIN', 'GESTAO', 'COMERCIAL']);
   const [items, setItems] = useState<SolicitacaoExclusaoLead[]>([]);
   const [error, setError] = useState('');
   const [busy, setBusy] = useState(false);
@@ -38,7 +39,7 @@ export function SolicitacoesExclusaoLeads({ onChanged }: { onChanged: () => Prom
       <Stack spacing={2}>
         {items.map(item => <Stack key={item.id} direction={{ xs: 'column', md: 'row' }} spacing={2} sx={{ justifyContent: 'space-between', borderTop: '1px solid #e2e8f0', pt: 2 }}>
           <Stack spacing={0.5}>
-            <Typography sx={{ fontWeight: 700 }}>{item.clientNameSnapshot || 'Lead'}</Typography>
+            <Typography sx={{ fontWeight: 700 }}>{item.leadNameSnapshot || 'Lead'}</Typography>
             <Typography variant="body2">Solicitado por {item.requestedBy?.name || 'Consultora'} em {new Date(item.createdAt).toLocaleDateString('pt-BR')}</Typography>
             <Typography variant="body2" color="text.secondary">{item.reason || 'Motivo não informado.'}</Typography>
           </Stack>
