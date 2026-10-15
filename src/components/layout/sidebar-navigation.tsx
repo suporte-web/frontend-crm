@@ -12,6 +12,7 @@ import Tooltip from "@mui/material/Tooltip";
 import ExpandMoreRoundedIcon from "@mui/icons-material/ExpandMoreRounded";
 
 import Link from "next/link";
+import { UserSearch } from "lucide-react";
 
 import type { AppScreen } from "@/config/screens";
 import { screenIcons, type SidebarSectionConfig } from "./sidebar-config";
@@ -106,6 +107,7 @@ export function SidebarNavigation({
                     href={item.href}
                     selected={active}
                     sx={{
+                          ...(item.key === "prospectingManagement" ? { "&.Mui-selected .MuiListItemIcon-root": { color: "#ff5805" } } : {}),
                       position: "relative",
 
                       width: collapsed ? 48 : "100%",
@@ -346,6 +348,7 @@ export function SidebarNavigation({
               {sectionButton}
             </Tooltip>
 
+            {collapsed && section.items.some(item=>item.key==='prospectingManagement') && <Tooltip title="Gestão de Prospecções" placement="right" arrow><ListItemButton component={Link} href="/gestao-prospeccoes" selected={isScreenActive(pathname,'/gestao-prospeccoes')} aria-label="Gestão de Prospecções" sx={{width:48,minHeight:48,px:0,justifyContent:'center',borderRadius:'12px',color:sidebarColors.muted,'&.Mui-selected':{color:'#ff5805',bgcolor:sidebarColors.orangeSoft},'&:hover':{bgcolor:sidebarColors.orangeSoft}}}><ListItemIcon sx={{minWidth:0,color:'inherit'}}><UserSearch size={20}/></ListItemIcon></ListItemButton></Tooltip>}
             {!collapsed ? (
               <Collapse in={sectionOpen} timeout={180} unmountOnExit>
                 <List
@@ -381,6 +384,7 @@ export function SidebarNavigation({
                         href={item.href}
                         selected={active}
                         sx={{
+                          ...(item.key === "prospectingManagement" ? { "&.Mui-selected .MuiListItemIcon-root": { color: "#ff5805" } } : {}),
                           position: "relative",
 
                           minHeight: 42,

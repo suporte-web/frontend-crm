@@ -424,11 +424,11 @@ export default function MarketingMetricsPage() {
                       ],
                       ["Eventos", metrics.resumo.totais.eventos],
                     ].map(([label, value]) => (
-                      <CrmSection key={String(label)} sx={{ p: 3 }}>
-                        <Typography color="text.secondary">{label}</Typography>
+                      <CrmSection key={String(label)} sx={{ p: 3 }} className="crm-kpi-card" data-cartao-grupo>
+                        <Typography color="text.secondary" data-cartao-titulo>{label}</Typography>
                         <Typography
                           variant="h4"
-                          sx={{ mt: 1, fontWeight: 700 }}
+                          sx={{ mt: 1, fontWeight: 700 }} data-cartao-valor
                         >
                           {number.format(Number(value))}
                         </Typography>

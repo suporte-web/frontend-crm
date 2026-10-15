@@ -33,6 +33,7 @@ import RequestQuoteRoundedIcon from '@mui/icons-material/RequestQuoteRounded';
 import type { SolicitacaoSite } from '@/types/solicitacao-site';
 
 interface SolicitacoesSiteTabelaProps {
+  mode?: "queue" | "prospects";
   solicitacoes: SolicitacaoSite[];
 }
 

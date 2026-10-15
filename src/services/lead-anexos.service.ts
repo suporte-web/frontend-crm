@@ -52,15 +52,7 @@ export async function baixarAnexoLead(
   id: string,
   anexo: LeadAnexo,
 ) {
-  const response = await fetch(
-    `${API_BASE_URL}/leads/${id}/anexos/${anexo.id}`,
-    { headers: { Authorization: `Bearer ${token}` } },
-  );
-  if (!response.ok) {
-    await resposta(response);
-    return;
-  }
-  const url = URL.createObjectURL(await response.blob());
+  const url = URL.createObjectURL(await obterArquivoAnexoLead(token, id, anexo));
   const link = document.createElement("a");
   link.href = url;
   link.download = anexo.nome;
@@ -68,4 +60,12 @@ export async function baixarAnexoLead(
   link.click();
   link.remove();
   setTimeout(() => URL.revokeObjectURL(url), 1000);
+}
+
+export async function obterArquivoAnexoLead(token: string, id: string, anexo: LeadAnexo): Promise<Blob> {
+  const response = await fetch(`${API_BASE_URL}/leads/${id}/anexos/${anexo.id}`, {
+    headers: { Authorization: `Bearer ${token}` }, cache: "no-store",
+  });
+  if (!response.ok) await resposta(response);
+  return response.blob();
 }

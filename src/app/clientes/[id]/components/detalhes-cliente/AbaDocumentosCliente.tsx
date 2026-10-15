@@ -280,7 +280,7 @@ export function AbaDocumentosCliente(props: PropriedadesAbaDetalhesCliente) {
                       }}
                     >
                       <Chip
-                        label="Abrir"
+                        label="Visualizar"
                         size="small"
                         onClick={(event) => {
                           event.stopPropagation();

@@ -1,0 +1,52 @@
+TAP version 13
+# Subtest: lista de anexos oferece Visualizar e conserva Baixar e upload
+ok 1 - lista de anexos oferece Visualizar e conserva Baixar e upload
+  ---
+  duration_ms: 156.5577
+  type: 'test'
+  ...
+# Subtest: PDF abre no Dialog com download e libera a URL ao fechar
+ok 2 - PDF abre no Dialog com download e libera a URL ao fechar
+  ---
+  duration_ms: 52.784
+  type: 'test'
+  ...
+# Subtest: PNG e JPG aparecem como imagem, com nome acessivel
+ok 3 - PNG e JPG aparecem como imagem, com nome acessivel
+  ---
+  duration_ms: 46.4519
+  type: 'test'
+  ...
+# Subtest: trocar de documento ignora resposta atrasada, fechar evita criar URLs
+ok 4 - trocar de documento ignora resposta atrasada, fechar evita criar URLs
+  ---
+  duration_ms: 97.6154
+  type: 'test'
+  ...
+# Subtest: falha de acesso e formato nao suportado mostram mensagem e mantem download
+ok 5 - falha de acesso e formato nao suportado mostram mensagem e mantem download
+  ---
+  duration_ms: 50.1726
+  type: 'test'
+  ...
+# Subtest: visualizar e baixar usam arquivo protegido; download mantem o nome original
+ok 6 - visualizar e baixar usam arquivo protegido; download mantem o nome original
+  ---
+  duration_ms: 13.525
+  type: 'test'
+  ...
+# Subtest: arquivo negado pelo backend nao retorna blob nem inicia download
+ok 7 - arquivo negado pelo backend nao retorna blob nem inicia download
+  ---
+  duration_ms: 12.4988
+  type: 'test'
+  ...
+1..7
+# tests 7
+# suites 0
+# pass 7
+# fail 0
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 453.6022

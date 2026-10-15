@@ -175,19 +175,19 @@ body {
 
 @layer components {
   .crm-shell-card {
-    @apply rounded-[28px] border border-white/80 bg-white/88 shadow-[0_18px_50px_rgba(15,23,42,0.06)] backdrop-blur-xl;
+    @apply rounded-xl border border-slate-200 bg-white;
   }
 
   .crm-panel {
-    @apply rounded-[26px] border border-slate-200/80 bg-white/92 shadow-[0_14px_32px_rgba(15,23,42,0.05)];
+    @apply rounded-xl border border-slate-200 bg-white;
   }
 
   .crm-soft-panel {
-    @apply rounded-[24px] border border-slate-200/80 bg-slate-50/90;
+    @apply rounded-xl border border-slate-200 bg-white;
   }
 
   .crm-kpi-card {
-    @apply rounded-[26px] border border-white/80 bg-[linear-gradient(180deg,rgba(255,255,255,0.96)_0%,rgba(248,250,252,0.98)_100%)] p-5 shadow-[0_16px_38px_rgba(15,23,42,0.05)];
+    @apply rounded-xl border border-slate-200 bg-white p-4;
   }
 
   .crm-eyebrow {
@@ -212,7 +212,7 @@ body {
   }
 
   .crm-filter-card {
-    @apply rounded-[24px] border border-slate-200/80 bg-white/92 p-4 shadow-sm;
+    @apply rounded-xl border border-slate-200 bg-white p-4;
   }
 }
 
@@ -681,4 +681,61 @@ body {
   background-color: rgb(211 47 47 / 0.08) !important;
   border-color: #d32f2f !important;
   color: #7f1d1d !important;
+}
+
+/* Padrão de cards de Visitas, aplicado às superfícies do CRM. */
+.crm-app-surface { --crm-cartao-fundo: #fff; --crm-cartao-borda: rgba(0, 0, 0, 0.12); }
+/* Os cards permanecem claros como os de Visitas, inclusive no modo escuro. */
+.crm-app-surface :is(.crm-shell-card, .crm-panel, .crm-soft-panel, .crm-filter-card, [data-slot="card"], .crm-cartao-atalho),
+.crm-app-surface .MuiPaper-root:not(.MuiAlert-root):not(.MuiDialog-paper):not(.MuiPopover-paper):not(.MuiMenu-paper):not(.MuiDrawer-paper):not(.MuiAppBar-root):not(.MuiSnackbarContent-root),
+.crm-app-surface :where(section, article, div, form)[class*="border"][class*="bg-white"] {
+  background: var(--crm-cartao-fundo) !important;
+  border-radius: 12px !important;
+  border-width: 1px; border-style: solid;
+  box-shadow: none !important; backdrop-filter: none !important;
+}
+.crm-app-surface :is(.crm-shell-card, .crm-panel, .crm-soft-panel, .crm-filter-card, [data-slot="card"], .crm-cartao-atalho),
+.crm-app-surface :where(section, article, div, form)[class*="border"][class*="bg-white"] {
+  border-color: var(--crm-cartao-borda) !important;
+}
+.crm-kpi-card {
+  background: var(--crm-cartao-fundo, #fff) !important;
+  border: 1px solid var(--crm-cartao-borda, rgba(0, 0, 0, 0.12)) !important;
+  border-radius: 12px !important; box-shadow: none !important; backdrop-filter: none !important;
+  padding: 16px !important; min-height: 96px !important; transform: none !important;
+}
+.crm-kpi-card::before, .crm-kpi-card::after { content: none !important; }
+.crm-kpi-card[data-cartao-ativo="true"],
+.crm-app-surface .MuiPaper-root[aria-pressed="true"],
+.crm-app-surface [aria-pressed="true"] .crm-kpi-card { border-color: #ff5805 !important; }
+.crm-app-surface .MuiPaper-root[aria-pressed]:hover,
+.crm-kpi-card[data-cartao-interativo="true"]:hover,
+.crm-app-surface [aria-pressed] .crm-kpi-card:hover { background-color: #f8fafc !important; }
+.crm-kpi-card[data-cartao-grupo], .crm-kpi-card [data-cartao-grupo], .crm-kpi-card :where(div):has(> h2) {
+  display: flex; flex-direction: column; align-items: flex-start; margin-left: 0 !important;
+}
+.crm-kpi-card [data-cartao-valor], .crm-kpi-card h2 {
+  order: 0; color: #ff5805 !important; font-size: 34px !important; font-weight: 800 !important;
+  line-height: 1.235; margin: 0 !important;
+}
+.crm-kpi-card [data-cartao-titulo], .crm-kpi-card :where(div):has(> h2) > p {
+  order: 1; font-size: 14px !important; font-weight: 400 !important; margin-top: 4px;
+}
+.crm-kpi-card [data-cartao-legenda] { order: 2; }
+.crm-kpi-card [data-cartao-icone],
+.crm-kpi-card [class*="h-11"][class*="w-11"],
+.crm-kpi-card [class*="h-16"][class*="w-16"] { display: none !important; }
+
+/* Evita herdar texto claro dos antigos cards escuros sobre a superfície branca. */
+.dark .crm-app-surface :is(.crm-shell-card, .crm-panel, .crm-soft-panel, .crm-filter-card, .crm-kpi-card, [data-slot="card"]) {
+  color: #1f2937;
+}
+.dark .crm-app-surface :is(.crm-shell-card, .crm-panel, .crm-soft-panel, .crm-filter-card, .crm-kpi-card, [data-slot="card"]) :is(.crm-page-title, .text-slate-950, .text-slate-900, .text-slate-800, .text-slate-700) {
+  color: #1f2937 !important;
+}
+.dark .crm-app-surface :is(.crm-shell-card, .crm-panel, .crm-soft-panel, .crm-filter-card, .crm-kpi-card, [data-slot="card"]) :is(.crm-page-copy, .text-slate-600, .text-slate-500, .text-slate-400) {
+  color: #64748b !important;
+}
+.dark .crm-app-surface .crm-kpi-card :is(h2, [data-cartao-valor]) {
+  color: #ff5805 !important;
 }

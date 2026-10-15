@@ -22,6 +22,7 @@ type LeadFormProps = {
   onSubmit: (payload: CreateLeadPayload) => Promise<boolean>;
   initialValues?: Partial<CreateLeadPayload>;
   submitLabel?: string;
+  onCancelar?: () => void;
 };
 
 const initialState: CreateLeadPayload = {
@@ -53,6 +54,7 @@ const fieldSx = {
 
 export function LeadForm({
   loading,
+  onCancelar,
   onSubmit,
   initialValues,
   submitLabel = 'Criar lead',
@@ -404,7 +406,8 @@ export function LeadForm({
 
         {error ? <Alert severity="error">{error}</Alert> : null}
 
-        <Stack direction="row" sx={{ justifyContent: 'flex-end' }}>
+        <Stack direction="row" spacing={1} sx={{ justifyContent: 'flex-end' }}>
+          {onCancelar && <Button type="button" disabled={loading} onClick={onCancelar}>Cancelar</Button>}
           <Button
             type="submit"
             variant="contained"

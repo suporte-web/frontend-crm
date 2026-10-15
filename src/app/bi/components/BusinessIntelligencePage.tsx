@@ -297,7 +297,7 @@ function MetricCard({
           boxShadow:
             '0 14px 35px rgba(15, 23, 42, 0.10)',
         },
-      }}
+      }} className="crm-kpi-card"
     >
       <Stack
         direction="row"
@@ -322,7 +322,7 @@ function MetricCard({
 
             bgcolor: softAccent,
             color: accent,
-          }}
+          }} data-cartao-icone
         >
           {icon}
         </Box>
@@ -333,7 +333,7 @@ function MetricCard({
           sx={{
             minWidth: 0,
             flex: 1,
-          }}
+          }} data-cartao-grupo
         >
           <Typography
             sx={{
@@ -343,7 +343,7 @@ function MetricCard({
               fontWeight: 800,
 
               lineHeight: 1.2,
-            }}
+            }} data-cartao-titulo
           >
             {title}
           </Typography>
@@ -358,7 +358,7 @@ function MetricCard({
               fontWeight: 950,
 
               lineHeight: 1,
-            }}
+            }} data-cartao-valor
           >
             {value}
           </Typography>

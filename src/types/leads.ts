@@ -35,6 +35,10 @@ export type LeadTimelineEvent = {
 };
 
 export type Lead = {
+  prospectedById?: string | null;
+  prospectedByName?: string | null;
+  sourceLeadId?: string | null;
+  sourceProspectId?: string | null;
   id: string;
   name: string;
   email?: string | null;
@@ -183,6 +187,10 @@ export type ReceiveWhatsAppLeadPayload = {
 };
 
 export type LeadFilters = {
+  origemProspeccao?: string;
+  consultoraId?: string;
+  criadoDe?: string;
+  criadoAte?: string;
   q?: string;
   source?: string;
   status?: string;

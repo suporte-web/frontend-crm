@@ -1,6 +1,7 @@
 'use client';
 
 import { LeadAttachments } from "@/components/attachments/LeadAttachments";
+import { IdentificacaoProspeccao } from "@/components/crm/prospeccao-consultora";
 import { hasAnyRole } from "@/lib/user-roles";
 import Link from 'next/link';
 import { useParams, useRouter } from 'next/navigation';
@@ -26,10 +27,15 @@ import DeleteOutlineRoundedIcon from '@mui/icons-material/DeleteOutlineRounded';
 
 // ICONS
 
-import IconButton from '@mui/material/IconButton';
-import Tooltip from '@mui/material/Tooltip';
+import {
 
+  IconButton,
+  Menu,
+  ListItemIcon,
+  ListItemText,
+  Tooltip,
 
+} from '@mui/material';
 
 import {
   ArrowLeft,
@@ -38,7 +44,9 @@ import {
   Edit3,
   Mail,
   UserRoundCheck,
+  MoreVertical,
 } from 'lucide-react';
+
 
 import { AppLayout } from '@/components/layout/app-layout';
 import { LeadForm } from '@/components/leads/lead-form';
@@ -61,6 +69,7 @@ import {
   convertLeadToClient,
   createLeadObservation,
   excluirLead,
+  solicitarExclusaoLead,
   getLeadById,
   getLeadObservations,
   updateLead,
@@ -74,8 +83,9 @@ import type {
   LeadTimelineEvent,
 } from '@/types/leads';
 
-const internalRoles = new Set(['ADMIN', 'GESTAO', 'COMERCIAL', 'MARKETING']);
+const internalRoles = new Set(['ADMIN', 'GESTAO', 'COMERCIAL', 'MARKETING', 'CONSULTORA']);
 const converterRoles = new Set(['ADMIN', 'GESTAO', 'COMERCIAL']);
+
 
 
 const fieldSx = {
@@ -210,49 +220,46 @@ function DetailField({
   value?: string | null;
 }) {
   return (
-    <Box
+    <TextField
+      fullWidth
+      size="small"
+      label={label}
+      value={value || ""}
+      placeholder="Não informado"
+      slotProps={{
+        input: {
+          readOnly: true,
+        },
+        inputLabel: {
+          shrink: true,
+        },
+      }}
       sx={{
         minWidth: 0,
 
-        py: 1.5,
+        "& .MuiOutlinedInput-root": {
+          minHeight: 42,
+          borderRadius: "10px",
+          bgcolor: "#ffffff",
+        },
 
-        borderBottom: '1px solid rgba(15,23,42,0.08)',
+        "& .MuiInputBase-input": {
+          fontSize: 13,
+          fontWeight: 500,
+          color: "#334155",
+          textOverflow: "ellipsis",
+        },
+
+        "& .MuiInputLabel-root": {
+          fontSize: 13,
+          color: "#64748b",
+        },
+
+        "& .MuiOutlinedInput-notchedOutline": {
+          borderColor: "#e2e8f0",
+        },
       }}
-    >
-      <Typography
-        sx={{
-          color: '#64748b',
-
-          fontSize: 11,
-
-          fontWeight: 800,
-
-          letterSpacing: '.08em',
-
-          textTransform: 'uppercase',
-        }}
-      >
-        {label}
-      </Typography>
-
-      <Typography
-        sx={{
-          mt: 0.6,
-
-          color: '#1f2937',
-
-          fontSize: 14,
-
-          fontWeight: 700,
-
-          lineHeight: 1.5,
-
-          overflowWrap: 'anywhere',
-        }}
-      >
-        {value || '-'}
-      </Typography>
-    </Box>
+    />
   );
 }
 
@@ -576,302 +583,198 @@ function LeadStagePipeline({
   const normalizedStatus = normalizeLeadFunnelStage(currentStatus);
 
   const currentIndex = LEAD_FUNNEL_STAGES.findIndex(
-    (stage) => stage.value === normalizedStatus,
+    (stage) => stage.value === normalizedStatus
   );
 
   return (
     <CrmSection
       sx={{
-        p: {
-          xs: 6,
-          md: 5,
-        },
-
-        bgcolor: '#ffffff',
-
-        border: '1px solid rgba(15,23,42,0.08)',
-
-        boxShadow: 'none',
-
-        overflow: 'hidden',
+        p: { xs: 2, md: 2.5 },
+        bgcolor: "#ffffff",
+        border: "1px solid #e2e8f0",
+        borderRadius: "14px",
+        boxShadow: "none",
+        overflow: "hidden",
       }}
     >
-      {/* CABEÇALHO DO FUNIL */}
-      <Stack
-        direction={{
-          xs: 'column',
-          sm: 'row',
-        }}
-        spacing={1.5}
-        sx={{
-          alignItems: {
-            xs: 'flex-start',
-            sm: 'center',
-          },
-
-          justifyContent: 'space-between',
-        }}
-      >
-        <Box>
-          <Typography
-            sx={{
-              color: crmPalette.orangeDark,
-
-              fontSize: 11,
-
-              fontWeight: 900,
-
-              letterSpacing: '.14em',
-
-              textTransform: 'uppercase',
-            }}
-          >
-            Funil comercial
-          </Typography>
-
-          <Typography
-            component="h2"
-            sx={{
-              mt: 0.5,
-
-              color: '#1f2937',
-
-              fontSize: {
-                xs: 20,
-                md: 23,
-              },
-
-              fontWeight: 900,
-            }}
-          >
-            Etapa atual do lead
-          </Typography>
-
-          <Typography
-            sx={{
-              mt: 0.5,
-
-              color: '#64748b',
-
-              fontSize: 14,
-            }}
-          >
-            Clique em uma etapa para movimentar o lead no processo comercial.
-          </Typography>
-        </Box>
-
-        <Chip
-          label={
-            loading
-              ? 'Atualizando etapa...'
-              : `Atual: ${getLeadStatusLabel(currentStatus)}`
-          }
-          variant="outlined"
+      <Stack spacing={2}>
+        {/* CABEÇALHO */}
+        <Stack
+          direction={{ xs: "column", sm: "row" }}
+          spacing={1.5}
           sx={{
-            height: 38,
-
-            bgcolor: '#fff7ed',
-
-            color: crmPalette.orangeDark,
-
-            borderColor: '#fed7aa',
-
-            fontWeight: 900,
-          }}
-        />
-      </Stack>
-
-      {/* ETAPAS */}
-      <Box
-        sx={{
-          mt: 2.5,
-
-          display: 'flex',
-
-          gap: 1,
-
-          overflowX: 'auto',
-
-          // ADICIONE ISSO
-          pt: 1,
-
-          pb: 1,
-
-          scrollbarWidth: 'thin',
-        }}
-      >
-        {LEAD_FUNNEL_STAGES.map((stage, index) => {
-          const isActive = stage.value === normalizedStatus;
-
-          const isPrevious =
-            currentIndex >= 0 && index < currentIndex;
-
-          const stageColor =
-            leadStageColors[index] ?? leadStageColors[0];
-
-          return (
-            <Button
-              key={stage.value}
-              type="button"
-              aria-current={isActive ? 'step' : undefined}
-              disabled={!canEdit || loading}
-              onClick={() => {
-                if (!isActive) {
-                  void onChange(stage.value);
-                }
-              }}
-              sx={{
-                flex: '1 0 185px',
-
-                minWidth: 185,
-                minHeight: 90,
-
-                px: 2,
-
-                border: '1px solid',
-
-                borderColor: isActive
-                  ? stageColor.active
-                  : stageColor.border,
-
-                borderRadius: '12px',
-
-                bgcolor: isActive
-                  ? stageColor.active
-                  : stageColor.background,
-
-                color: isActive
-                  ? '#ffffff'
-                  : stageColor.text,
-
-                display: 'flex',
-
-                justifyContent: 'flex-start',
-
-                gap: 1.25,
-
-                textTransform: 'none',
-
-                boxShadow: isActive
-                  ? `0 8px 20px ${stageColor.active}30`
-                  : 'none',
-
-                transition: 'all 0.2s ease',
-
-                '&:hover': {
-                  bgcolor: isActive
-                    ? stageColor.active
-                    : stageColor.background,
-
-                  borderColor: stageColor.active,
-
-                  transform: 'translateY(-2px)',
-
-                  boxShadow: `0 6px 16px ${stageColor.active}20`,
-                },
-              }}
-            >
-              {/* NÚMERO DA ETAPA */}
-              <Box
-                sx={{
-                  width: 36,
-                  height: 36,
-
-                  flex: '0 0 auto',
-
-                  display: 'grid',
-                  placeItems: 'center',
-
-                  borderRadius: '50%',
-
-                  bgcolor: isActive
-                    ? 'rgba(255,255,255,0.18)'
-                    : '#ffffff',
-
-                  border: '1px solid',
-
-                  borderColor: isActive
-                    ? 'rgba(255,255,255,0.35)'
-                    : stageColor.border,
-
-                  color: isActive
-                    ? '#ffffff'
-                    : stageColor.text,
-
-                  fontSize: 13,
-
-                  fontWeight: 900,
-                }}
-              >
-                {index + 1}
-              </Box>
-
-              {/* TEXTO DA ETAPA */}
-              <Box
-                sx={{
-                  minWidth: 0,
-
-                  textAlign: 'left',
-                }}
-              >
-                <Typography
-                  sx={{
-                    color: 'inherit',
-
-                    fontSize: 13,
-
-                    fontWeight: 900,
-
-                    lineHeight: 1.25,
-
-                    whiteSpace: 'nowrap',
-
-                    overflow: 'hidden',
-
-                    textOverflow: 'ellipsis',
-                  }}
-                >
-                  {stage.label}
-                </Typography>
-
-                <Typography
-                  sx={{
-                    mt: 0.35,
-
-                    color: isActive
-                      ? 'rgba(255,255,255,0.80)'
-                      : '#94a3b8',
-
-                    fontSize: 10.5,
-
-                    fontWeight: 700,
-                  }}
-                >
-                  {isActive
-                    ? 'Etapa atual'
-                    : isPrevious
-                      ? 'Etapa anterior'
-                      : 'Próxima etapa'}
-                </Typography>
-              </Box>
-            </Button>
-          );
-        })}
-      </Box>
-
-      {!canEdit ? (
-        <Typography
-          sx={{
-            mt: 1,
-
-            color: '#94a3b8',
-
-            fontSize: 12,
+            alignItems: { xs: "flex-start", sm: "center" },
+            justifyContent: "space-between",
           }}
         >
-          Seu perfil pode visualizar o funil, mas não pode alterar a etapa.
-        </Typography>
-      ) : null}
+          <Box>
+            <Typography
+              component="h2"
+              sx={{
+                fontSize: 18,
+                fontWeight: 800,
+                color: "#1f2937",
+              }}
+            >
+              Etapas do funil comercial
+            </Typography>
+
+            <Typography
+              sx={{
+                mt: 0.5,
+                fontSize: 13,
+                color: "#64748b",
+              }}
+            >
+              Acompanhe a evolução do lead no processo comercial.
+            </Typography>
+          </Box>
+
+          <Chip
+            size="small"
+            label={
+              loading
+                ? "Atualizando etapa..."
+                : `Atual: ${getLeadStatusLabel(currentStatus)}`
+            }
+            sx={{
+              height: 30,
+              borderRadius: "8px",
+              bgcolor: "#fff7ed",
+              color: "#c2410c",
+              border: "1px solid #fed7aa",
+              fontSize: 12,
+              fontWeight: 700,
+            }}
+          />
+        </Stack>
+
+        {/* ETAPAS ORIGINAIS DO CRM */}
+        <Box
+          sx={{
+            display: "flex",
+            gap: 1,
+            overflowX: "auto",
+            pt: 1,
+            pb: 1.5,
+            scrollbarWidth: "thin",
+          }}
+        >
+          {LEAD_FUNNEL_STAGES.map((stage, index) => {
+            const isActive = stage.value === normalizedStatus;
+            const isPrevious =
+              currentIndex >= 0 && index < currentIndex;
+
+            return (
+              <Button
+                key={stage.value}
+                type="button"
+                aria-current={isActive ? "step" : undefined}
+                disabled={!canEdit || loading}
+                onClick={() => {
+                  if (!isActive) {
+                    void onChange(stage.value);
+                  }
+                }}
+                sx={{
+                  flex: "1 0 155px",
+                  minWidth: 155,
+                  minHeight: 72,
+                  px: 1.5,
+                  py: 1.25,
+                  borderRadius: "10px",
+                  border: "1px solid",
+                  borderColor: isActive ? "#ff5805" : "#e2e8f0",
+                  bgcolor: isActive ? "#fff7ed" : "#ffffff",
+                  color: isActive ? "#c2410c" : "#475569",
+                  textTransform: "none",
+                  boxShadow: "none",
+                  justifyContent: "flex-start",
+                  gap: 1.25,
+                  transition: "all 0.2s ease",
+
+                  "&:hover": {
+                    bgcolor: isActive ? "#ffedd5" : "#f8fafc",
+                    borderColor: "#ff5805",
+                    boxShadow: "none",
+                  },
+
+                  "&.Mui-disabled": {
+                    opacity: 0.85,
+                    color: isActive ? "#c2410c" : "#64748b",
+                    bgcolor: isActive ? "#fff7ed" : "#f8fafc",
+                    borderColor: isActive ? "#ff5805" : "#e2e8f0",
+                  },
+                }}
+              >
+                {/* INDICADOR DA ETAPA */}
+                <Box
+                  sx={{
+                    width: 30,
+                    height: 30,
+                    flexShrink: 0,
+                    borderRadius: "50%",
+                    display: "grid",
+                    placeItems: "center",
+                    bgcolor: isActive
+                      ? "#ff5805"
+                      : isPrevious
+                        ? "#e2e8f0"
+                        : "#f1f5f9",
+                    color: isActive ? "#ffffff" : "#64748b",
+                    fontSize: 12,
+                    fontWeight: 800,
+                  }}
+                >
+                  {index + 1}
+                </Box>
+
+                {/* NOME ORIGINAL DA ETAPA */}
+                <Box sx={{ minWidth: 0, textAlign: "left" }}>
+                  <Typography
+                    sx={{
+                      color: "inherit",
+                      fontSize: 12.5,
+                      fontWeight: isActive ? 800 : 600,
+                      lineHeight: 1.4,
+                      whiteSpace: "normal",
+                      overflowWrap: "break-word",
+                    }}
+                  >
+                    {stage.label}
+                  </Typography>
+
+                  <Typography
+                    sx={{
+                      mt: 0.4,
+                      color: isActive ? "#c2410c" : "#94a3b8",
+                      fontSize: 10.5,
+                      fontWeight: 600,
+                    }}
+                  >
+                    {isActive
+                      ? "Etapa atual"
+                      : isPrevious
+                        ? "Etapa anterior"
+                        : "Próxima etapa"}
+                  </Typography>
+                </Box>
+              </Button>
+            );
+          })}
+        </Box>
+
+        {!canEdit && (
+          <Typography
+            sx={{
+              color: "#94a3b8",
+              fontSize: 12,
+            }}
+          >
+            Seu perfil pode visualizar o funil, mas não pode alterar a etapa.
+          </Typography>
+        )}
+      </Stack>
     </CrmSection>
   );
 }
@@ -884,19 +787,19 @@ function LeadObservationsList({
     return (
       <Box
         sx={{
-          py: 5,
+          py: 3,
           px: 2,
-          textAlign: 'center',
-          borderRadius: '12px',
-          bgcolor: '#f8fafc',
-          border: '1px dashed #cbd5e1',
+          textAlign: "center",
+          borderRadius: "10px",
+          bgcolor: "#f8fafc",
+          border: "1px dashed #dce3eb",
         }}
       >
         <Typography
           sx={{
-            color: '#475569',
-            fontSize: 14,
-            fontWeight: 800,
+            color: "#475569",
+            fontSize: 13,
+            fontWeight: 700,
           }}
         >
           Nenhuma observação registrada
@@ -905,11 +808,11 @@ function LeadObservationsList({
         <Typography
           sx={{
             mt: 0.5,
-            color: '#94a3b8',
-            fontSize: 13,
+            color: "#94a3b8",
+            fontSize: 12,
           }}
         >
-          As observações comerciais deste lead aparecerão aqui.
+          O histórico de observações aparecerá aqui.
         </Typography>
       </Box>
     );
@@ -1089,10 +992,13 @@ function LeadObservationsList({
   );
 }
 
-export default function LeadDetailPage() {
+export default function DetalhesLead() {
   const { id } = useParams<{ id: string }>();
   const router = useRouter();
   const { user, token } = useAuth();
+  const [deletingLead, setDeletingLead] = useState(false);
+  const [leadDeletionRequestOpen, setLeadDeletionRequestOpen] = useState(false);
+  const [leadDeletionReason, setLeadDeletionReason] = useState("");
   const [lead, setLead] = useState<Lead | null>(null);
   const [loading, setLoading] = useState(true);
   const [observations, setObservations] = useState<LeadObservation[]>([]);
@@ -1103,6 +1009,24 @@ export default function LeadDetailPage() {
   const [convertOpen, setConvertOpen] = useState(false);
   const [converting, setConverting] = useState(false);
   const [editOpen, setEditOpen] = useState(false);
+  const [menuAnchorEl, setMenuAnchorEl] =
+    useState<HTMLElement | null>(null);
+
+  const menuAberto = Boolean(menuAnchorEl);
+
+  const fecharMenu = () => {
+    setMenuAnchorEl(null);
+  };
+
+  const excluirPeloMenu = () => {
+    fecharMenu();
+    if (user?.role === "CONSULTORA") {
+      setLeadDeletionReason("");
+      setLeadDeletionRequestOpen(true);
+      return;
+    }
+    void handleExcluirLead();
+  };
   const [editing, setEditing] = useState(false);
   const [updatingStage, setUpdatingStage] = useState(false);
   const [convertForm, setConvertForm] = useState({
@@ -1152,7 +1076,7 @@ export default function LeadDetailPage() {
   }, [lead]);
 
   const isConvertedToClient =
-  lead?.convertidoParaCliente ?? false;
+    lead?.convertidoParaCliente ?? false;
 
   useEffect(() => {
     async function loadLead() {
@@ -1394,11 +1318,12 @@ export default function LeadDetailPage() {
   // Excluir lead
 
   async function handleExcluirLead() {
-    if (!token || !lead) {
+    if (!token || !lead || deletingLead) {
       return;
     }
 
-    const confirmou = window.confirm(
+    const consultora = user?.role === "CONSULTORA";
+    const confirmou = consultora || window.confirm(
       `Tem certeza que deseja excluir o lead "${lead.company || lead.name}"?\n\nEssa ação não poderá ser desfeita.`,
     );
 
@@ -1407,6 +1332,19 @@ export default function LeadDetailPage() {
     }
 
     try {
+      setDeletingLead(true);
+      if (consultora) {
+        const reason = leadDeletionReason;
+        if (!reason.trim()) {
+          setToast({ title: 'Motivo obrigatório', message: 'Informe o motivo para solicitar a exclusão.', variant: 'error' });
+          return;
+        }
+        await solicitarExclusaoLead(lead.id, reason.trim(), token);
+        setLeadDeletionRequestOpen(false);
+        setLeadDeletionReason("");
+        setToast({ title: 'Solicitação enviada', message: 'A exclusão será analisada pelo Comercial ou Gestão.', variant: 'success' });
+        return;
+      }
       await excluirLead(lead.id, token);
 
       router.push('/leads');
@@ -1417,9 +1355,11 @@ export default function LeadDetailPage() {
         message:
           deleteError instanceof Error
             ? deleteError.message
-            : 'Não foi possível excluir o lead.',
+            : 'Não foi possível concluir a exclusão do lead.',
         variant: 'error',
       });
+    } finally {
+      setDeletingLead(false);
     }
   }
 
@@ -1622,7 +1562,7 @@ export default function LeadDetailPage() {
                           : lead.email ||
                           lead.phone ||
                           'Sem contato principal cadastrado'}
-                      </Typography>
+                      </Typography><IdentificacaoProspeccao registro={lead} />
 
                       {/* CHIPS DO LEAD */}
                       <Box
@@ -1683,19 +1623,91 @@ export default function LeadDetailPage() {
                   <Box
                     sx={{
                       display: 'flex',
+                      alignItems: 'center',
+                      justifyContent: 'flex-end',
                       flexWrap: 'wrap',
-                      gap: 1,
-                      justifyContent: {
-                        xs: 'flex-start',
-                        xl: 'flex-end',
-                      },
+                      gap: 1.2,
                     }}
                   >
-                    <Tooltip title="Voltar para leads">
+                    {/* VOLTAR */}
+                    <Button
+                      component={Link}
+                      href="/leads"
+                      startIcon={<ArrowLeft size={18} />}
+                      sx={{
+                        height: 42,
+                        px: 2,
+                        borderRadius: '10px',
+                        border: '1px solid #cbd5e1',
+                        bgcolor: '#ffffff',
+                        color: '#334155',
+                        fontWeight: 600,
+                        textTransform: 'none',
+                        '&:hover': {
+                          borderColor: '#ff5805',
+                          bgcolor: '#fff7ed',
+                        },
+                      }}
+                    >
+                      Voltar
+                    </Button>
+
+                    {/* EDITAR */}
+                    {canConvert && (
+                      <Button
+                        type="button"
+                        onClick={() => setEditOpen(true)}
+                        startIcon={<Edit3 size={18} />}
+                        sx={{
+                          height: 42,
+                          px: 2,
+                          borderRadius: '10px',
+                          bgcolor: '#ff5805',
+                          color: '#ffffff',
+                          fontWeight: 600,
+                          textTransform: 'none',
+                          '&:hover': {
+                            bgcolor: '#e94f00',
+                          },
+                        }}
+                      >
+                        Editar
+                      </Button>
+                    )}
+
+                    {/* CONVERTER */}
+                    {canConvert && !isConvertedToClient && (
+                      <Button
+                        type="button"
+                        onClick={openConvertModal}
+                        startIcon={<UserRoundCheck size={18} />}
+                        sx={{
+                          height: 42,
+                          px: 2,
+                          borderRadius: '10px',
+                          border: '1px solid #ff5805',
+                          bgcolor: '#ffffff',
+                          color: '#ff5805',
+                          fontWeight: 600,
+                          textTransform: 'none',
+                          '&:hover': {
+                            bgcolor: '#fff7ed',
+                            borderColor: '#e94f00',
+                          },
+                        }}
+                      >
+                        Converter
+                      </Button>
+                    )}
+
+                    {/* MENU DE TRÊS PONTINHOS */}
+                    <Tooltip title="Mais opções">
                       <IconButton
-                        component={Link}
-                        href="/leads"
-                        aria-label="Voltar para leads"
+                        type="button"
+                        aria-label="Mais opções"
+                        aria-haspopup="menu"
+                        aria-expanded={menuAberto ? true : undefined}
+                        onClick={(event) => setMenuAnchorEl(event.currentTarget)}
                         sx={{
                           width: 42,
                           height: 42,
@@ -1703,93 +1715,63 @@ export default function LeadDetailPage() {
                           border: '1px solid #cbd5e1',
                           bgcolor: '#ffffff',
                           color: '#334155',
-                          boxShadow: 'none',
                           '&:hover': {
+                            bgcolor: '#f8fafc',
                             borderColor: '#ff5805',
-                            bgcolor: '#fff7ed',
-                            color: '#e94f00',
                           },
                         }}
                       >
-                        <ArrowLeft size={18} />
+                        <MoreVertical size={20} />
                       </IconButton>
                     </Tooltip>
 
-                    {canConvert ? (
-                      <Tooltip title="Editar lead">
-                        <IconButton
-                          type="button"
-                          onClick={() => setEditOpen(true)}
-                          aria-label="Editar lead"
-                          sx={{
-                            width: 42,
-                            height: 42,
+                    {/* OPÇÕES DO MENU */}
+                    <Menu
+                      anchorEl={menuAnchorEl}
+                      open={menuAberto}
+                      onClose={fecharMenu}
+                      anchorOrigin={{
+                        vertical: 'bottom',
+                        horizontal: 'right',
+                      }}
+                      transformOrigin={{
+                        vertical: 'top',
+                        horizontal: 'right',
+                      }}
+                      slotProps={{
+                        paper: {
+                          sx: {
+                            mt: 1,
+                            minWidth: 170,
                             borderRadius: '10px',
-                            border: '1px solid #ff5805',
-                            bgcolor: '#ff5805',
-                            color: '#ffffff',
-                            boxShadow: 'none',
-                            '&:hover': {
-                              borderColor: '#e94f00',
-                              bgcolor: '#e94f00',
-                              color: '#ffffff',
-                            },
-                          }}
-                        >
-                          <Edit3 size={18} />
-                        </IconButton>
-                      </Tooltip>
-                    ) : null}
-
-                    <Tooltip title="Excluir lead">
-                      <IconButton
-                        type="button"
-                        onClick={handleExcluirLead}
-                        aria-label="Excluir lead"
+                            boxShadow: '0 8px 24px rgba(0,0,0,0.10)',
+                          },
+                        },
+                      }}
+                    >
+                      <MenuItem
+                        onClick={excluirPeloMenu}
+                        disabled={deletingLead || !["ADMIN", "GESTAO", "COMERCIAL", "CONSULTORA"].includes(user?.role ?? "")}
                         sx={{
-                          width: 42,
-                          height: 42,
-                          borderRadius: '10px',
-                          border: '1px solid #ef4444',
-                          bgcolor: '#ffffff',
                           color: '#dc2626',
-                          boxShadow: 'none',
+                          fontWeight: 500,
+                          fontSize: 14,
+                          py: 1.2,
                           '&:hover': {
-                            borderColor: '#dc2626',
                             bgcolor: '#fef2f2',
-                            color: '#b91c1c',
                           },
                         }}
                       >
-                        <DeleteOutlineRoundedIcon fontSize="small" />
-                      </IconButton>
-                    </Tooltip>
+                        <ListItemIcon>
+                          <DeleteOutlineRoundedIcon
+                            fontSize="small"
+                            sx={{ color: '#dc2626' }}
+                          />
+                        </ListItemIcon>
 
-                    {canConvert && !isConvertedToClient ? (
-                      <Tooltip title="Converter para cliente">
-                        <IconButton
-                          type="button"
-                          onClick={openConvertModal}
-                          aria-label="Converter para cliente"
-                          sx={{
-                            width: 42,
-                            height: 42,
-                            borderRadius: '10px',
-                            border: '1px solid #ff5805',
-                            bgcolor: '#ffffff',
-                            color: '#e94f00',
-                            boxShadow: 'none',
-                            '&:hover': {
-                              borderColor: '#e94f00',
-                              bgcolor: '#fff7ed',
-                              color: '#c2410c',
-                            },
-                          }}
-                        >
-                          <UserRoundCheck size={18} />
-                        </IconButton>
-                      </Tooltip>
-                    ) : null}
+                        <ListItemText primary={user?.role === "CONSULTORA" ? "Solicitar exclusão" : "Excluir lead"} />
+                      </MenuItem>
+                    </Menu>
                   </Box>
 
 
@@ -1971,205 +1953,293 @@ export default function LeadDetailPage() {
             >
               <CrmSection
                 sx={{
-                  p: { xs: 2, md: 3 },
-                  height: '100%',
+                  p: { xs: 2, md: 2.5 },
+                  height: "100%",
+                  bgcolor: "#ffffff",
+                  border: "1px solid #e2e8f0",
+                  borderRadius: "14px",
+                  boxShadow: "none",
                 }}
               >
-                <Stack direction="row" spacing={1.5} sx={{ alignItems: 'center' }}>
-                  <Avatar
-                    variant="rounded"
+                <Stack spacing={2.5}>
+                  {/* CABEÇALHO */}
+                  <Stack
+                    direction="row"
+                    spacing={1.5}
                     sx={{
-                      width: 46,
-                      height: 46,
-                      borderRadius: '12px',
-                      bgcolor: '#fff0e8',
-                      color: crmPalette.orange,
+                      alignItems: "center",
                     }}
                   >
-                    <UserRoundCheck size={22} />
-                  </Avatar>
-                  <Box>
-                    <Typography component="h2" sx={{ fontSize: 22, fontWeight: 900 }}>
-                      Dados do lead
-                    </Typography>
-                    <Typography sx={{ color: 'text.secondary', fontSize: 14 }}>
-                      Informações principais para atendimento comercial.
-                    </Typography>
-                  </Box>
-                </Stack>
-
-                <Box
-                  sx={{
-                    mt: 3,
-
-                    p: {
-                      xs: 2,
-                      md: 2.5,
-                    },
-
-                    bgcolor: '#fff7ed',
-
-                    borderLeft: `4px solid ${crmPalette.orange}`,
-
-                    borderRadius: '0 12px 12px 0',
-                  }}
-                >
-                  <Typography
-                    sx={{
-                      color: crmPalette.orangeDark,
-
-                      fontSize: 11,
-
-                      fontWeight: 900,
-
-                      letterSpacing: '.12em',
-
-                      textTransform: 'uppercase',
-                    }}
-                  >
-                    Orientação da etapa atual
-                  </Typography>
-
-                  <Box
-                    sx={{
-                      mt: 1.5,
-
-                      display: 'grid',
-
-                      gap: 2,
-
-                      gridTemplateColumns: {
-                        xs: '1fr',
-                        md: 'repeat(2, minmax(0, 1fr))',
-                      },
-                    }}
-                  >
-                    <Box>
-                      <Typography
-                        sx={{
-                          color: '#64748b',
-
-                          fontSize: 12,
-
-                          fontWeight: 900,
-                        }}
-                      >
-                        Critério
-                      </Typography>
-
-                      <Typography
-                        sx={{
-                          mt: 0.5,
-
-                          color: '#1f2937',
-
-                          fontSize: 13,
-
-                          lineHeight: 1.6,
-                        }}
-                      >
-                        {currentStageInfo.criterion}
-                      </Typography>
-                    </Box>
-
-                    <Box>
-                      <Typography
-                        sx={{
-                          color: '#64748b',
-
-                          fontSize: 12,
-
-                          fontWeight: 900,
-                        }}
-                      >
-                        Ação recomendada
-                      </Typography>
-
-                      <Typography
-                        sx={{
-                          mt: 0.5,
-
-                          color: '#1f2937',
-
-                          fontSize: 13,
-
-                          lineHeight: 1.6,
-                        }}
-                      >
-                        {currentStageInfo.action}
-                      </Typography>
-                    </Box>
-                  </Box>
-                </Box>
-
-                <Box
-                  sx={{
-                    mt: 3,
-                    display: 'grid',
-                    gap: 2,
-                    gridTemplateColumns: {
-                      xs: '1fr',
-                      md: 'repeat(2, minmax(0, 1fr))',
-                    },
-                  }}
-                >
-                  <DetailField label="E-mail" value={lead.email} />
-                  <DetailField label="Telefone" value={lead.phone} />
-                  {/* <DetailField label="Canal" value={lead.channel} /> */}
-                  <DetailField label="Criado em" value={formatDate(lead.createdAt)} />
-                </Box>
-
-                <Divider sx={{ my: 2.5 }} />
-
-                <Typography component="h3" sx={{ mb: 2, fontSize: 16, fontWeight: 900 }}>
-                  Informações comerciais
-                </Typography>
-                <Box
-                  sx={{
-                    display: 'grid',
-                    gap: 2,
-                    gridTemplateColumns: {
-                      xs: '1fr',
-                      md: 'repeat(2, minmax(0, 1fr))',
-                    },
-                  }}
-                >
-                  <DetailField label="Segmento" value={commercialInfo.segment} />
-                  <DetailField label="Transporte" value={commercialInfo.transport} />
-                  <DetailField label="Armazenagem" value={commercialInfo.storage} />
-                  <DetailField label="Data de entrada" value={commercialInfo.entryDate} />
-                  <DetailField
-                    label="Última interação"
-                    value={commercialInfo.lastInteractionDate}
-                  />
-                  <DetailField
-                    label="Volume mensal estimado"
-                    value={commercialInfo.monthlyEstimatedValue}
-                  />
-                  <DetailField label="Responsável" value={commercialInfo.responsible} />
-                  <DetailField label="Status atual" value={commercialInfo.currentStatus} />
-                  <DetailField label="Próxima ação" value={commercialInfo.nextAction} />
-                </Box>
-
-                {lead.externalContactId || lead.externalMessageId || lead.sourcePhone ? (
-                  <>
-                    <Divider sx={{ my: 2.5 }} />
                     <Box
                       sx={{
-                        display: 'grid',
-                        gap: 2,
-                        gridTemplateColumns: {
-                          xs: '1fr',
-                          md: 'repeat(3, minmax(0, 1fr))',
-                        },
+                        width: 40,
+                        height: 40,
+                        borderRadius: "10px",
+                        bgcolor: "#fff7ed",
+                        color: "#ff5805",
+                        display: "grid",
+                        placeItems: "center",
                       }}
                     >
-                      <DetailField label="Contato externo" value={lead.externalContactId} />
-                      <DetailField label="Mensagem externa" value={lead.externalMessageId} />
-                      <DetailField label="Número de origem" value={lead.sourcePhone} />
+                      <UserRoundCheck size={20} />
                     </Box>
-                  </>
-                ) : null}
+
+                    <Box>
+                      <Typography
+                        component="h2"
+                        sx={{
+                          fontSize: 18,
+                          fontWeight: 800,
+                          color: "#1f2937",
+                        }}
+                      >
+                        Dados do lead
+                      </Typography>
+
+                      <Typography
+                        sx={{
+                          fontSize: 13,
+                          color: "#64748b",
+                        }}
+                      >
+                        Informações cadastrais e comerciais.
+                      </Typography>
+                    </Box>
+                  </Stack>
+
+
+                  {/* DADOS DE CONTATO */}
+                  <Box>
+                    <Typography
+                      sx={{
+                        mb: 2,
+                        fontSize: 14,
+                        fontWeight: 800,
+                        color: "#334155",
+                      }}
+                    >
+                      Dados de contato
+                    </Typography>
+
+                    <Box
+                      sx={{
+                        display: "grid",
+                        gridTemplateColumns: {
+                          xs: "1fr",
+                          sm: "repeat(2, minmax(0, 1fr))",
+                        },
+                        gap: 2,
+                      }}
+                    >
+                      <DetailField label="E-mail" value={lead.email} />
+                      <DetailField label="Telefone" value={lead.phone} />
+                      <DetailField
+                        label="Criado em"
+                        value={formatDate(lead.createdAt)}
+                      />
+                    </Box>
+                  </Box>
+
+                  <Divider />
+
+                  {/* INFORMAÇÕES COMERCIAIS */}
+                  <Box>
+                    <Typography
+                      sx={{
+                        mb: 2,
+                        fontSize: 14,
+                        fontWeight: 800,
+                        color: "#334155",
+                      }}
+                    >
+                      Informações comerciais
+                    </Typography>
+
+                    <Box
+                      sx={{
+                        display: "grid",
+                        gridTemplateColumns: {
+                          xs: "1fr",
+                          sm: "repeat(2, minmax(0, 1fr))",
+                        },
+                        gap: 2,
+                      }}
+                    >
+                      <DetailField
+                        label="Segmento"
+                        value={commercialInfo.segment}
+                      />
+
+                      <DetailField
+                        label="Transporte"
+                        value={commercialInfo.transport}
+                      />
+
+                      <DetailField
+                        label="Armazenagem"
+                        value={commercialInfo.storage}
+                      />
+
+                      <DetailField
+                        label="Data de entrada"
+                        value={commercialInfo.entryDate}
+                      />
+
+                      <DetailField
+                        label="Última interação"
+                        value={commercialInfo.lastInteractionDate}
+                      />
+
+                      <DetailField
+                        label="Volume mensal estimado"
+                        value={commercialInfo.monthlyEstimatedValue}
+                      />
+
+                      <DetailField
+                        label="Responsável"
+                        value={commercialInfo.responsible}
+                      />
+
+                      <DetailField
+                        label="Status atual"
+                        value={commercialInfo.currentStatus}
+                      />
+
+                      <DetailField
+                        label="Próxima ação"
+                        value={commercialInfo.nextAction}
+                      />
+                    </Box>
+                  </Box>
+
+                  {/* DADOS EXTERNOS */}
+                  {(lead.externalContactId ||
+                    lead.externalMessageId ||
+                    lead.sourcePhone) && (
+                      <>
+                        <Divider />
+
+                        <Box>
+                          <Typography
+                            sx={{
+                              mb: 2,
+                              fontSize: 14,
+                              fontWeight: 800,
+                              color: "#334155",
+                            }}
+                          >
+                            Informações de origem
+                          </Typography>
+
+                          <Box
+                            sx={{
+                              display: "grid",
+                              gridTemplateColumns: {
+                                xs: "1fr",
+                                sm: "repeat(2, minmax(0, 1fr))",
+                              },
+                              gap: 2,
+                            }}
+                          >
+                            <DetailField
+                              label="Contato externo"
+                              value={lead.externalContactId}
+                            />
+
+                            <DetailField
+                              label="Mensagem externa"
+                              value={lead.externalMessageId}
+                            />
+
+                            <DetailField
+                              label="Número de origem"
+                              value={lead.sourcePhone}
+                            />
+                          </Box>
+                        </Box>
+                      </>
+                    )}
+
+                  <Divider />
+
+                  {/* ORIENTAÇÃO DA ETAPA ATUAL */}
+                  <Box
+                    sx={{
+                      p: 2,
+                      bgcolor: "#f8fafc",
+                      border: "1px solid #e2e8f0",
+                      borderRadius: "10px",
+                    }}
+                  >
+                    <Typography
+                      sx={{
+                        mb: 1.5,
+                        fontSize: 14,
+                        fontWeight: 800,
+                        color: "#334155",
+                      }}
+                    >
+                      Orientação da etapa atual
+                    </Typography>
+
+                    <Box
+                      sx={{
+                        display: "grid",
+                        gridTemplateColumns: {
+                          xs: "1fr",
+                          sm: "repeat(2, minmax(0, 1fr))",
+                        },
+                        gap: 2,
+                      }}
+                    >
+                      <Box>
+                        <Typography
+                          sx={{
+                            fontSize: 12,
+                            color: "#64748b",
+                            fontWeight: 700,
+                          }}
+                        >
+                          Critério
+                        </Typography>
+
+                        <Typography
+                          sx={{
+                            mt: 0.5,
+                            fontSize: 13,
+                            color: "#334155",
+                            lineHeight: 1.6,
+                          }}
+                        >
+                          {currentStageInfo.criterion}
+                        </Typography>
+                      </Box>
+
+                      <Box>
+                        <Typography
+                          sx={{
+                            fontSize: 12,
+                            color: "#64748b",
+                            fontWeight: 700,
+                          }}
+                        >
+                          Ação recomendada
+                        </Typography>
+
+                        <Typography
+                          sx={{
+                            mt: 0.5,
+                            fontSize: 13,
+                            color: "#334155",
+                            lineHeight: 1.6,
+                          }}
+                        >
+                          {currentStageInfo.action}
+                        </Typography>
+                      </Box>
+                    </Box>
+                  </Box>
+                </Stack>
               </CrmSection>
 
               <CrmSection
@@ -2413,8 +2483,9 @@ export default function LeadDetailPage() {
                   <TextField
                     fullWidth
                     multiline
-                    minRows={3}
-                    maxRows={6}
+                    minRows={2}
+                    maxRows={4}
+                    size="small"
                     value={observationText}
                     disabled={savingObservation}
                     onChange={(event) =>
@@ -2429,13 +2500,14 @@ export default function LeadDetailPage() {
                       },
                     }}
                     sx={{
-                      '& .MuiOutlinedInput-root': {
-                        bgcolor: '#ffffff',
+                      "& .MuiOutlinedInput-root": {
+                        bgcolor: "#ffffff",
+                        borderRadius: "10px",
+                        fontSize: 13,
+                        minHeight: 80,
 
-                        borderRadius: '10px',
-
-                        '&.Mui-focused fieldset': {
-                          borderColor: '#ff5805',
+                        "&.Mui-focused .MuiOutlinedInput-notchedOutline": {
+                          borderColor: "#ff5805",
                         },
                       },
                     }}
@@ -2448,14 +2520,10 @@ export default function LeadDetailPage() {
                     }}
                     spacing={1.5}
                     sx={{
-                      mt: 1.5,
-
-                      justifyContent: 'space-between',
-
-                      alignItems: {
-                        xs: 'stretch',
-                        sm: 'center',
-                      },
+                      p: 1.5,
+                      borderRadius: "10px",
+                      bgcolor: "#f8fafc",
+                      border: "1px solid #e2e8f0",
                     }}
                   >
                     <Typography
@@ -2477,25 +2545,20 @@ export default function LeadDetailPage() {
                         !observationText.trim()
                       }
                       sx={{
-                        minHeight: 40,
+                        height: 36,
+                        minHeight: 36,
+                        px: 2,
+                        borderRadius: "10px",
+                        bgcolor: "#ff5805",
+                        color: "#ffffff",
+                        fontSize: 12,
+                        fontWeight: 700,
+                        textTransform: "none",
+                        boxShadow: "none",
 
-                        px: 2.25,
-
-                        borderRadius: '10px',
-
-                        bgcolor: '#ff5805',
-
-                        fontSize: 13,
-
-                        fontWeight: 900,
-
-                        textTransform: 'none',
-
-                        boxShadow: 'none',
-
-                        '&:hover': {
-                          bgcolor: '#e94f00',
-                          boxShadow: 'none',
+                        "&:hover": {
+                          bgcolor: "#e94f00",
+                          boxShadow: "none",
                         },
                       }}
                     >
@@ -2507,7 +2570,7 @@ export default function LeadDetailPage() {
                 </Box>
 
                 {/* HISTÓRICO */}
-                <Divider sx={{ my: 3 }} />
+              <Divider sx={{ my: 2 }} />
 
                 <Stack
                   direction="row"
@@ -2636,6 +2699,7 @@ export default function LeadDetailPage() {
             loading={editing}
             initialValues={editInitialValues}
             submitLabel="Salvar alterações"
+            onCancelar={() => setEditOpen(false)}
             onSubmit={handleEditLead}
           />
         </DialogContent>
@@ -2798,6 +2862,18 @@ export default function LeadDetailPage() {
         </Box>
       </Dialog>
 
+      <Dialog open={leadDeletionRequestOpen} onClose={() => { if (!deletingLead) setLeadDeletionRequestOpen(false); }} fullWidth maxWidth="sm">
+        <DialogTitle>Solicitar exclusão do lead</DialogTitle>
+        <DialogContent>
+          <Alert severity="info" sx={{ mb: 2 }}>O lead continuará disponível até que o Comercial ou a Gestão aprove a exclusão.</Alert>
+          <TextField label="Motivo da exclusão" fullWidth multiline minRows={3} required value={leadDeletionReason} disabled={deletingLead} onChange={event => setLeadDeletionReason(event.target.value)} slotProps={{ htmlInput: { maxLength: 500 } }} />
+        </DialogContent>
+        <DialogActions>
+          <Button disabled={deletingLead} onClick={() => setLeadDeletionRequestOpen(false)}>Cancelar</Button>
+          <Button color="error" variant="contained" disabled={deletingLead || !leadDeletionReason.trim()} onClick={() => void handleExcluirLead()}>{deletingLead ? "Enviando..." : "Solicitar exclusão"}</Button>
+        </DialogActions>
+      </Dialog>
+
       <FeedbackToast
         open={!!toast}
         title={toast?.title ?? ''}
@@ -2808,3 +2884,7 @@ export default function LeadDetailPage() {
     </AppLayout >
   );
 }
+function handleExcluirLead() {
+  throw new Error("Function not implemented.");
+}
+

@@ -1,4 +1,6 @@
 "use client";
+import { useState } from "react";
+import { VisualizadorDocumento } from "@/components/anexos/VisualizadorDocumento";
 import { UploadAnexos } from "@/components/attachments/UploadAnexos";
 import {
   Alert,
@@ -142,13 +144,16 @@ export function ListaAnexosSac({
   id,
   erro,
   baixar,
+  caminhoAnexos = `/atendimento-sac/${id}/anexos`,
 }: {
   anexos: AnexoSac[];
+  caminhoAnexos?: string;
   baixar?: (anexo: AnexoSac) => Promise<void>;
   token: string;
   id: string;
   erro: (m: string) => void;
 }) {
+  const [anexoVisualizado, setAnexoVisualizado] = useState<AnexoSac | null>(null);
   return (
     <Stack spacing={1}>
       {!anexos.length && (
@@ -176,6 +181,8 @@ export function ListaAnexosSac({
                 </Typography>
               )}
             </Box>
+            <Stack direction="row" spacing={1}>
+            <Button onClick={() => setAnexoVisualizado(a)}>Visualizar</Button>
             <Button
               onClick={() =>
                 (baixar ? baixar(a) : baixarAnexoSac(token, id, a.id, a.nome)).catch((e) =>
@@ -185,9 +192,11 @@ export function ListaAnexosSac({
             >
               Baixar
             </Button>
+            </Stack>
           </Stack>
         </Paper>
       ))}
+      <VisualizadorDocumento token={token} caminho={anexoVisualizado ? `${caminhoAnexos}/${anexoVisualizado.id}` : ""} anexo={anexoVisualizado} onClose={() => setAnexoVisualizado(null)} />
     </Stack>
   );
 }

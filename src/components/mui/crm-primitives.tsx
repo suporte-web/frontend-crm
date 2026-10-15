@@ -1,5 +1,6 @@
 "use client";
 
+import { cartaoCrmSx, indicadorCrmSx } from "./estilos-cartoes-crm";
 import Avatar from "@mui/material/Avatar";
 import Box from "@mui/material/Box";
 import Paper from "@mui/material/Paper";
@@ -22,11 +23,7 @@ export const crmPalette = {
   blue: "#1f76c9",
 };
 
-export const crmPaperSx: SxProps<Theme> = {
-  border: `1px solid ${crmPalette.border}`,
-  borderRadius: "14px",
-  boxShadow: "0 8px 24px rgba(15, 23, 42, 0.05)",
-};
+export const crmPaperSx: SxProps<Theme> = cartaoCrmSx;
 
 function mergeSx(base: SxProps<Theme>, sx?: SxProps<Theme>): SxProps<Theme> {
   if (!sx) {
@@ -62,13 +59,17 @@ export function CrmPageShell({ children, sx }: CrmPageShellProps) {
 }
 
 type CrmSectionProps = {
+  "data-cartao-grupo"?: boolean;
+  className?: string;
   children: ReactNode;
   sx?: SxProps<Theme>;
 };
 
-export function CrmSection({ children, sx }: CrmSectionProps) {
+export function CrmSection({ children, sx, className, "data-cartao-grupo": grupoIndicador }: CrmSectionProps) {
   return (
     <Paper
+      className={className}
+      data-cartao-grupo={grupoIndicador}
       elevation={0}
       sx={mergeSx(
         {
@@ -191,131 +192,24 @@ type CrmKpiCardProps = {
 };
 
 export function CrmKpiCard({
-  title,
-  value,
-  caption,
-  icon,
-  accent = crmPalette.orange,
-  softColor = "#fff0e8",
-  active,
-  hideAccentBar,
-  onClick,
-  ariaLabel,
-  ariaPressed,
-  sx,
+  title, value, caption, active, onClick, ariaLabel, ariaPressed, sx,
 }: CrmKpiCardProps) {
   const card = (
-    <Paper
-      elevation={0}
-      sx={mergeSx(
-        {
-          ...crmPaperSx,
-          position: "relative",
-          minHeight: 160,
-          overflow: "hidden",
-          p: 3,
-          bgcolor: "#fff",
-          boxShadow: active
-            ? `0 18px 34px ${accent}22`
-            : "0 12px 30px rgba(15,23,42,0.05)",
-          outline: active ? `2px solid ${accent}80` : "0 solid transparent",
-          transition:
-            "transform 160ms ease, box-shadow 160ms ease, outline-color 160ms ease",
-          cursor: onClick ? "pointer" : "default",
-          "&:hover": onClick
-            ? {
-                transform: "translateY(-2px)",
-                boxShadow: "0 18px 42px rgba(15,23,42,0.10)",
-              }
-            : undefined,
-        },
-        sx,
-      )}
-    >
-      {!hideAccentBar ? (
-        <Box
-          sx={{
-            position: "absolute",
-            insetInline: 24,
-            top: 0,
-            height: 4,
-            bgcolor: accent,
-            borderBottomLeftRadius: 8,
-            borderBottomRightRadius: 8,
-          }}
-        />
-      ) : null}
-
-      <Stack
-        direction="row"
-        spacing={2}
-        sx={{ alignItems: "flex-start", justifyContent: "space-between" }}
-      >
-        <Box>
-          <Typography sx={{ color: "#475569", fontSize: 14, fontWeight: 800 }}>
-            {title}
-          </Typography>
-
-          <Typography
-            component="div"
-            sx={{
-              mt: 1,
-              color: "#020617",
-              fontSize: 34,
-              fontWeight: 900,
-              lineHeight: 1,
-            }}
-          >
-            {value}
-          </Typography>
-
-          {caption ? (
-            <Typography
-              component="div"
-              sx={{ mt: 1.5, color: crmPalette.muted, fontSize: 13 }}
-            >
-              {caption}
-            </Typography>
-          ) : null}
-        </Box>
-
-        <Avatar
-          variant="rounded"
-          sx={{
-            width: 48,
-            height: 48,
-            bgcolor: softColor,
-            color: accent,
-            borderRadius: "14px",
-            border: `1px solid ${accent}25`,
-          }}
-        >
-          {icon}
-        </Avatar>
-      </Stack>
+    <Paper className="crm-kpi-card" elevation={0} data-cartao-ativo={!!active} data-cartao-interativo={!!onClick}
+      sx={mergeSx({ ...indicadorCrmSx,
+        borderColor: active ? "#ff5805" : "divider", cursor: onClick ? "pointer" : "default",
+        "&:hover": onClick ? { bgcolor: "action.hover" } : undefined,
+      }, sx)}>
+      <Typography component="div" data-cartao-valor sx={{ color: "#ff5805", fontSize: 34, fontWeight: 800, lineHeight: 1.235, overflowWrap: "anywhere" }}>{value}</Typography>
+      <Typography variant="body2" data-cartao-titulo sx={{ mt: 0.5, color: "text.primary" }}>{title}</Typography>
+      {caption && <Typography component="div" data-cartao-legenda sx={{ mt: 1, color: crmPalette.muted, fontSize: 13 }}>{caption}</Typography>}
     </Paper>
   );
-
-  if (!onClick) {
-    return card;
-  }
-
+  if (!onClick) return card;
   return (
-    <Box
-      component="button"
-      type="button"
-      onClick={onClick}
-      aria-label={ariaLabel}
-      aria-pressed={ariaPressed}
-      sx={{
-        width: "100%",
-        height: "100%",
-        p: 0,
-        border: 0,
-        bgcolor: "transparent",
-        textAlign: "left",
-      }}
-    >
+    <Box component="button" type="button" onClick={onClick} aria-label={ariaLabel} aria-pressed={ariaPressed}
+      sx={{ width: "100%", height: "100%", p: 0, border: 0, bgcolor: "transparent", textAlign: "left", borderRadius: 3,
+        "&:focus-visible": { outline: "2px solid #ff5805", outlineOffset: 3 } }}>
       {card}
     </Box>
   );

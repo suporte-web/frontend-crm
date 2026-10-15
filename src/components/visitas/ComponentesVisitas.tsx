@@ -88,6 +88,7 @@ export function AnexosVisita({
         anexos={visita.anexos.filter((a) => a.etapa === etapa)}
         token={token}
         id={visita.id}
+        caminhoAnexos={`/visitas/${visita.id}/anexos`}
         erro={erro}
         baixar={(anexo) =>
           baixarAnexoVisita(token, visita.id, anexo.id, anexo.nome)

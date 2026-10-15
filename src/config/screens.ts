@@ -11,12 +11,14 @@ export type ScreenKey =
   | 'quotes'
   | 'clients'
   | 'leads'
+  | 'prospectingManagement'
   | 'entradas'
   | 'tickets'
   | 'helpCenter'
   | 'chat'
   | 'suppliers'
   | 'users'
+  | 'profilePermissions'
   | 'marketing'
   | 'marketingIntegrations'
   | 'marketingMetrics'
@@ -90,13 +92,16 @@ export const appScreens: AppScreen[] = [
     key: 'clients',
     href: '/clientes',
     label: 'Clientes',
-    roles: ['ADMIN', 'GESTAO', 'COMERCIAL', 'MARKETING'],
+    roles: ['ADMIN', 'GESTAO', 'COMERCIAL', 'MARKETING', 'CONSULTORA'],
   },
   {
     key: 'leads',
     href: '/leads',
     label: 'Leads',
-    roles: ['ADMIN', 'GESTAO', 'COMERCIAL', 'MARKETING'],
+    roles: ['ADMIN', 'GESTAO', 'COMERCIAL', 'MARKETING', 'CONSULTORA'],
+  },
+  {
+    key: 'prospectingManagement', href: '/gestao-prospeccoes', label: 'Gestão de Prospecções', roles: ['ADMIN','GESTAO','COMERCIAL'],
   },
   {
     key: 'entradas',
@@ -133,6 +138,9 @@ export const appScreens: AppScreen[] = [
     href: '/usuarios',
     label: 'Usuários',
     roles: ['ADMIN', 'GESTAO'],
+  },
+  {
+    key: 'profilePermissions', href: '/permissoes-por-perfil', label: 'Permissões por perfil', roles: ['ADMIN', 'GESTAO'],
   },
   {
     key: 'informativo',
@@ -223,7 +231,9 @@ export function isPermissionEnabledForRole(
     return false;
   }
 
-  const roles = Array.isArray(role) ? role : [role];
+  const perfis = Array.isArray(role) ? role : [role];
+  const roles = perfis.includes('CONSULTORA') ? ['CONSULTORA' as UserRole] : perfis;
+  if (permissionItem.key === 'prospectingManagement' && !roles.some(r=>['ADMIN','GESTAO','COMERCIAL'].includes(r))) return false;
   return roles.some((profile) => {
     const permission = permissions?.find(
       (item) => item.screenKey === permissionItem.key && (!item.role || item.role === profile),
@@ -238,4 +248,11 @@ export function isScreenEnabledForRole(
   permissions?: Array<{ role?: UserRole; screenKey: string; isEnabled: boolean }>,
 ) {
   return isPermissionEnabledForRole(screen, role, permissions);
+}
+
+export function podeAcessarRota(pathname: string, role?: UserRole | UserRole[], permissions?: Array<{ role?: UserRole; screenKey: string; isEnabled: boolean }>) {
+  if (!role || pathname === '/alterar-senha') return true;
+  const roles = Array.isArray(role) ? role : [role];
+  const route = [...appScreens].sort((a,b) => b.href.length-a.href.length).find(item => pathname === item.href || pathname.startsWith(`${item.href}/`));
+  return route ? isScreenEnabledForRole(route, role, permissions) : !roles.includes('CONSULTORA');
 }

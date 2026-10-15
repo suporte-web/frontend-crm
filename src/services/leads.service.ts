@@ -37,6 +37,7 @@ function buildQuery(filters: LeadFilters = {}) {
 }
 
 
+  for (const key of ['origemProspeccao','consultoraId','criadoDe','criadoAte'] as const) { if(filters[key]) searchParams.set(key,filters[key]!); }
   const query = searchParams.toString();
   return query ? `?${query}` : '';
 }
@@ -56,9 +57,9 @@ export function getLeads(
 
 // resumo leads
 
-export function getLeadsResumo(token: string) {
+export function getLeadsResumo(token: string, filters: LeadFilters = {}) {
   return apiFetch<LeadsResumo>(
-    '/leads/resumo',
+    `/leads/resumo${buildQuery(filters)}`,
     {},
     token,
   );
@@ -220,4 +221,24 @@ export async function simulateWhatsAppLead(
   };
 
   
+}
+
+
+export interface SolicitacaoExclusaoLead {
+  id: string;
+  leadId: string | null;
+  status: 'PENDENTE' | 'APROVADA' | 'RECUSADA';
+  clientNameSnapshot: string | null;
+  reason: string | null;
+  createdAt: string;
+  requestedBy?: { id: string; name: string };
+}
+export function solicitarExclusaoLead(id: string, reason: string, token: string) {
+  return apiFetch<SolicitacaoExclusaoLead>(`/leads/${id}/deletion-request`, { method: 'POST', body: JSON.stringify({ reason }) }, token);
+}
+export function getSolicitacoesExclusaoLeads(token: string) {
+  return apiFetch<SolicitacaoExclusaoLead[]>('/leads/deletion-requests', { cache: 'no-store' }, token);
+}
+export function decidirExclusaoLead(id: string, payload: { action: 'APPROVE' | 'REJECT'; message?: string }, token: string) {
+  return apiFetch<{ message: string }>(`/leads/deletion-requests/${id}/decision`, { method: 'POST', body: JSON.stringify(payload) }, token);
 }

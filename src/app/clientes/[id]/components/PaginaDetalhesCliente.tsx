@@ -1,8 +1,8 @@
-﻿"use client";
+"use client";
 
 import { hasAnyRole } from "@/lib/user-roles";
 import Link from "next/link";
-import { useSearchParams } from "next/navigation";
+import { useRouter, useSearchParams } from "next/navigation";
 import { useEffect, useMemo, useState } from "react";
 
 import Alert from "@mui/material/Alert";
@@ -27,6 +27,7 @@ import { AppLayout } from "@/components/layout/app-layout";
 import { TimelineSection } from "@/components/crm/timeline-section";
 import { FeedbackToast } from "@/components/ui/feedback-toast";
 import { useAuth } from "@/context/auth-context";
+import { VisualizadorDocumento } from "@/components/anexos/VisualizadorDocumento";
 import { API_BASE_URL } from "@/services/api";
 import {
   addClientContact as createClientContactRecord,
@@ -87,6 +88,8 @@ export default function PaginaDetalhesCliente({
   params: Promise<{ id: string }>;
 }) {
   const { token, user } = useAuth();
+  const router = useRouter();
+  const canDeleteDirectly = ["ADMIN", "GESTAO", "COMERCIAL"].includes(user?.role ?? "");
   const searchParams = useSearchParams();
   const abaRecebida = searchParams.get("aba");
   const [lead, setLead] = useState<LeadDetail | null>(null);
@@ -168,6 +171,7 @@ export default function PaginaDetalhesCliente({
   const [deletingContactId, setDeletingContactId] = useState<string | null>(
     null,
   );
+  const [documentoVisualizado, setDocumentoVisualizado] = useState<LeadDetail["documents"][number] | null>(null);
   const [documentFiles, setDocumentFiles] = useState<File[]>([]);
   const [proposalFiles, setProposalFiles] = useState<Record<string, File[]>>({});
 
@@ -193,7 +197,7 @@ export default function PaginaDetalhesCliente({
   } | null>(null);
 
   const canEditCommercialData = user?.role
-    ? hasAnyRole(user, ["ADMIN", "GESTAO", "COMERCIAL"])
+    ? hasAnyRole(user, ["ADMIN", "GESTAO", "COMERCIAL", "CONSULTORA"])
     : false;
 
   const canEditClient = canEditCommercialData;
@@ -791,34 +795,7 @@ export default function PaginaDetalhesCliente({
       setOpportunityProposalError("Selecione ao menos uma opção da proposta.");
       return;
     }
-
-    // if (opportunityProposalForm.proposalType === "TRANSPORTE_RODOVIARIO") {
-    //   if (
-    //     !opportunityProposalForm.origin.trim() ||
-    //     !opportunityProposalForm.destination.trim() ||
-    //     !opportunityProposalForm.vehicleType ||
-    //     !opportunityProposalForm.cargoType.trim() ||
-    //     !opportunityProposalForm.averageWeight.trim() ||
-    //     !opportunityProposalForm.aggregateValue.trim() ||
-    //     !opportunityProposalForm.dangerousGoods
-    //   ) {
-    //     setOpportunityProposalError(
-    //       "Preencha origem, destino, veículo, tipo de carga, peso médio, valor agregado e produto perigoso.",
-    //     );
-    //     return;
-    //   }
-
-    //   if (
-    //     opportunityProposalForm.dangerousGoods === "SIM" &&
-    //     !opportunityProposalForm.dangerousGoodsInfo.trim()
-    //   ) {
-    //     setOpportunityProposalError(
-    //       "Informe os dados de FDS/Ficha de Emergência para produto perigoso.",
-    //     );
-    //     return;
-    //   }
-    // }
-
+    
     const proposalTypeLabel =
       opportunityProposalForm.proposalType === "ARMAZENAGEM"
         ? "Armazenagem"
@@ -1086,54 +1063,8 @@ export default function PaginaDetalhesCliente({
     }
   }
 
-  async function handleOpenDocument(
-    clientDocument: LeadDetail["documents"][number],
-  ) {
-    if (!token || !lead) {
-      return;
-    }
-
-    try {
-      const response = await fetch(
-        `${API_BASE_URL}/clients/${lead.id}/documents/${clientDocument.id}/download`,
-        {
-          headers: {
-            Authorization: `Bearer ${token}`,
-          },
-        },
-      );
-
-      if (!response.ok) {
-        const data = await response.json().catch(() => null);
-
-        throw new Error(
-          data?.message || data?.error || "Erro ao abrir documento.",
-        );
-      }
-
-      const blob = await response.blob();
-      const url = URL.createObjectURL(blob);
-      const link = window.document.createElement("a");
-
-      link.href = url;
-      link.download = clientDocument.originalName || clientDocument.fileName;
-      link.rel = "noreferrer";
-
-      window.document.body.appendChild(link);
-      link.click();
-      window.document.body.removeChild(link);
-
-      URL.revokeObjectURL(url);
-    } catch (openError) {
-      setToast({
-        title: "Falha ao abrir documento",
-        message:
-          openError instanceof Error
-            ? openError.message
-            : "Erro ao abrir documento.",
-        variant: "error",
-      });
-    }
+  async function handleOpenDocument(documento: LeadDetail["documents"][number]) {
+    if (token && lead) setDocumentoVisualizado(documento);
   }
 
   function openDeleteDocumentDialog(
@@ -1251,7 +1182,7 @@ export default function PaginaDetalhesCliente({
     try {
       setRequestingDeletion(true);
 
-      await requestClientDeletion(
+      const result = await requestClientDeletion(
         lead.id,
         {
           reason: deletionReason.trim(),
@@ -1263,18 +1194,20 @@ export default function PaginaDetalhesCliente({
       setDeletionReason("");
 
       setToast({
-        title: "Solicitação enviada",
-        message:
-          "A exclusão do cliente foi enviada para aprovação da Gestão.",
+        title: result.status === "APROVADA" ? "Cliente excluído" : "Solicitação enviada",
+        message: result.status === "APROVADA"
+          ? "Cliente excluído com sucesso."
+          : "A exclusão do cliente foi enviada para aprovação do Comercial ou Gestão.",
         variant: "success",
       });
+      if (result.status === "APROVADA") router.replace("/clientes");
     } catch (deleteError) {
       setToast({
-        title: "Falha ao solicitar exclusão",
+        title: canDeleteDirectly ? "Falha ao excluir cliente" : "Falha ao solicitar exclusão",
         message:
           deleteError instanceof Error
             ? deleteError.message
-            : "Não foi possível solicitar a exclusão do cliente.",
+            : "Não foi possível concluir a exclusão do cliente.",
         variant: "error",
       });
     } finally {
@@ -1464,6 +1397,12 @@ export default function PaginaDetalhesCliente({
         )}
       </CrmPageShell>
 
+      {token && lead && <VisualizadorDocumento
+        token={token}
+        caminho={documentoVisualizado ? `/clients/${lead.id}/documents/${documentoVisualizado.id}/download` : ""}
+        anexo={documentoVisualizado ? { id: documentoVisualizado.id, nome: documentoVisualizado.originalName || documentoVisualizado.fileName, tipo: documentoVisualizado.mimeType } : null}
+        onClose={() => setDocumentoVisualizado(null)}
+      />}
       <Dialog
         open={!!documentToDelete}
         onClose={closeDeleteDocumentDialog}
@@ -1674,7 +1613,7 @@ export default function PaginaDetalhesCliente({
                   lineHeight: 1.4,
                 }}
               >
-                A solicitação será enviada para aprovação da Gestão.
+                {canDeleteDirectly ? "O cliente será excluído ao confirmar esta ação." : "A solicitação será enviada para aprovação do Comercial ou Gestão."}
               </Typography>
             </Stack>
           </Stack>
@@ -1807,8 +1746,9 @@ export default function PaginaDetalhesCliente({
                 lineHeight: 1.6,
               }}
             >
-              O cliente continuará disponível no CRM até que a solicitação
-              seja analisada e aprovada.
+              {canDeleteDirectly
+                ? "A exclusão será imediata e não poderá ser desfeita. Confirme antes de continuar."
+                : "O cliente continuará disponível no CRM até que a solicitação seja analisada e aprovada."}
             </Typography>
           </Stack>
         </DialogContent>
@@ -1900,8 +1840,8 @@ export default function PaginaDetalhesCliente({
             }}
           >
             {requestingDeletion
-              ? "Enviando..."
-              : "Solicitar exclusão"}
+              ? (canDeleteDirectly ? "Excluindo..." : "Enviando...")
+              : (canDeleteDirectly ? "Excluir cliente" : "Solicitar exclusão")}
           </Button>
         </DialogActions>
       </Dialog>

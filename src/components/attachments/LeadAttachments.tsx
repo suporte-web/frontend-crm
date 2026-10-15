@@ -12,6 +12,7 @@ import {
 import AttachFileIcon from "@mui/icons-material/AttachFile";
 import DownloadIcon from "@mui/icons-material/Download";
 import { UploadAnexos } from "./UploadAnexos";
+import { LeadAttachmentPreview } from "./LeadAttachmentPreview";
 import {
   baixarAnexoLead,
   enviarAnexoLead,
@@ -28,6 +29,7 @@ export function LeadAttachments({
 }) {
   const [anexos, setAnexos] = useState<LeadAnexo[]>([]);
   const [erro, setErro] = useState("");
+  const [anexoVisualizado, setAnexoVisualizado] = useState<LeadAnexo | null>(null);
   const [carregando, setCarregando] = useState(true);
   const carregar = useCallback(async () => {
     const lista = await listarAnexosLead(token, leadId);
@@ -38,6 +40,7 @@ export function LeadAttachments({
     setCarregando(true);
     setErro("");
     setAnexos([]);
+    setAnexoVisualizado(null);
     listarAnexosLead(token, leadId)
       .then((lista) => {
         if (ativo) setAnexos(lista);
@@ -113,6 +116,8 @@ export function LeadAttachments({
                     </Typography>
                   )}
                 </Box>
+                <Stack direction="row" spacing={1}>
+                <Button size="small" onClick={() => setAnexoVisualizado(anexo)}>Visualizar</Button>
                 <Button
                   size="small"
                   startIcon={<DownloadIcon />}
@@ -126,11 +131,13 @@ export function LeadAttachments({
                 >
                   Baixar
                 </Button>
+                </Stack>
               </Stack>
             </Box>
           ))}
         </Stack>
       )}
+      <LeadAttachmentPreview token={token} leadId={leadId} anexo={anexoVisualizado} onClose={() => setAnexoVisualizado(null)} />
       <UploadAnexos
         enviarArquivo={(arquivo, comentario) =>
           enviarAnexoLead(token, leadId, arquivo, comentario)

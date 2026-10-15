@@ -47,3 +47,11 @@ export async function baixarAnexo(
   a.remove();
   setTimeout(() => URL.revokeObjectURL(url), 1000);
 }
+
+export async function obterArquivoAnexo(token: string, caminho: string): Promise<Blob> {
+  const resposta = await fetch(API_BASE_URL + caminho, {
+    headers: { Authorization: "Bearer " + token }, cache: "no-store",
+  });
+  await respostaAnexo(resposta);
+  return resposta.blob();
+}

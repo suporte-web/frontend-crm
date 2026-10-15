@@ -88,3 +88,15 @@ export async function buscarAnexoSolicitacaoSite(
 
   return response.blob();
 }
+
+async function acaoCotacaoSite<T>(path: string, method = 'GET', payload?: unknown): Promise<T> {
+ const token=localStorage.getItem('crm_token');
+ const response=await fetch(`/api/integracoes/site/solicitacoes/${path}`,{method,headers:{'Content-Type':'application/json',...(token?{Authorization:`Bearer ${token}`}:{})},...(payload===undefined?{}:{body:JSON.stringify(payload)})});
+ const data=await response.json().catch(()=>null);
+ if(!response.ok)throw new Error(typeof data?.message==='string'?data.message:'Não foi possível atualizar a cotação do site.');
+ return data as T;
+}
+export function listarComerciaisCotacaoSite(){return acaoCotacaoSite<Array<{id:string;name:string}>>('responsaveis-comerciais');}
+export function direcionarCotacaoSite(id:string,responsavelId:string){return acaoCotacaoSite<BuscarSolicitacaoSiteResponse>(`${id}/direcionar`,'POST',{responsavelId});}
+export function atualizarCotacaoSite(id:string,payload:import('@/types/solicitacao-site').AtualizarCotacaoSitePayload){return acaoCotacaoSite<BuscarSolicitacaoSiteResponse>(`${id}/prospect`,'PATCH',payload);}
+export function converterCotacaoSiteCliente(id:string,document:string){return acaoCotacaoSite<BuscarSolicitacaoSiteResponse>(`${id}/converter-cliente`,'POST',{document});}

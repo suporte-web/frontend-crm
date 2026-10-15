@@ -1,5 +1,7 @@
 "use client";
 
+import { campoPequenoClienteSx, superficieAbasClienteSx, paletaAbasCliente as crmPalette } from "./estilos-abas-cliente";
+
 import Alert from "@mui/material/Alert";
 import Box from "@mui/material/Box";
 import Button from "@mui/material/Button";
@@ -28,7 +30,7 @@ import {
   X,
 } from "lucide-react";
 
-import { CrmSection, crmPalette } from "@/components/mui/crm-primitives";
+import { CrmSection } from "@/components/mui/crm-primitives";
 
 import {
   ACCOUNT_TYPE_OPTIONS,
@@ -136,13 +138,13 @@ export function AbaCondicoesComerciaisCliente(props: PropriedadesAbaDetalhesClie
 
   return (
     <CrmSection
-      sx={{
+      sx={[{
         p: { xs: 2, md: 2.5 },
         borderRadius: "14px",
         border: `1px solid ${crmPalette.border}`,
         bgcolor: "#ffffff",
         boxShadow: "0 8px 24px rgba(15, 23, 42, 0.04)",
-      }}
+      }, superficieAbasClienteSx]}
     >
       <Stack spacing={2.5}>
         <Stack
@@ -161,7 +163,7 @@ export function AbaCondicoesComerciaisCliente(props: PropriedadesAbaDetalhesClie
           {canEditCommercialData ? (
             <Button
               type="button"
-              variant="outlined"
+              variant={isEditingCommercialTerms ? "outlined" : "contained"}
               startIcon={
                 isEditingCommercialTerms ? (
                   <X size={16} />
@@ -201,7 +203,7 @@ export function AbaCondicoesComerciaisCliente(props: PropriedadesAbaDetalhesClie
             <Box sx={editFormSectionSx}>
               <TituloSecaoFormulario
                 icon={<CreditCard size={18} />}
-                title="Condições de pagamento"
+                title="Condições de pagamento" iconColor="#64748b" iconBg="#f8fafc" headerColor="#1f2937" headerBg="#ffffff"
               // description="Dados usados pelo financeiro e pelo histórico comercial."
               />
 
@@ -212,7 +214,7 @@ export function AbaCondicoesComerciaisCliente(props: PropriedadesAbaDetalhesClie
                   p: { xs: 1.25, md: 1.5 },
                   borderRadius: "12px",
                   borderColor: crmPalette.border,
-                  bgcolor: "#f8fafc",
+                  bgcolor: "#ffffff",
                 }}
               >
                 <Stack spacing={1.25}>
@@ -249,7 +251,7 @@ export function AbaCondicoesComerciaisCliente(props: PropriedadesAbaDetalhesClie
                               : "",
                         }));
                       }}
-                      sx={textFieldSx}
+                      sx={[textFieldSx, campoPequenoClienteSx]}
                     >
                       <MenuItem value="">Selecione</MenuItem>
                       {PAYMENT_METHOD_OPTIONS.map((option) => (
@@ -279,7 +281,7 @@ export function AbaCondicoesComerciaisCliente(props: PropriedadesAbaDetalhesClie
                             adicionarFormaPagamentoPersonalizada();
                           }
                         }}
-                        sx={textFieldSx}
+                        sx={[textFieldSx, campoPequenoClienteSx]} slotProps={{ inputLabel: { shrink: true } }}
                       />
                     ) : null}
                   </Stack>
@@ -300,11 +302,11 @@ export function AbaCondicoesComerciaisCliente(props: PropriedadesAbaDetalhesClie
                             deleteIcon={<Trash2 size={14} />}
                             sx={{
                               borderRadius: "9px",
-                              bgcolor: "#fff7ed",
+                              bgcolor: "#ffffff",
                               color: crmPalette.orangeDark,
-                              border: "1px solid #fed7c3",
+                              border: "1px solid #e2e8f0",
                               fontSize: 12,
-                              fontWeight: 900,
+                              fontWeight: 700,
                               "& .MuiChip-deleteIcon": {
                                 color: crmPalette.orangeDark,
                               },
@@ -339,7 +341,7 @@ export function AbaCondicoesComerciaisCliente(props: PropriedadesAbaDetalhesClie
                     paymentTerm: event.target.value,
                   }))
                 }
-                sx={textFieldSx}
+                sx={[textFieldSx, campoPequenoClienteSx]} slotProps={{ inputLabel: { shrink: true } }}
               />
 
               <TextField
@@ -354,7 +356,7 @@ export function AbaCondicoesComerciaisCliente(props: PropriedadesAbaDetalhesClie
                     contractValidity: event.target.value,
                   }))
                 }
-                sx={textFieldSx}
+                sx={[textFieldSx, campoPequenoClienteSx]} slotProps={{ inputLabel: { shrink: true } }}
               />
 
               <TextField
@@ -369,7 +371,7 @@ export function AbaCondicoesComerciaisCliente(props: PropriedadesAbaDetalhesClie
                     priceAdjustment: event.target.value,
                   }))
                 }
-                sx={textFieldSx}
+                sx={[textFieldSx, campoPequenoClienteSx]} slotProps={{ inputLabel: { shrink: true } }}
               />
 
               <TextField
@@ -383,7 +385,7 @@ export function AbaCondicoesComerciaisCliente(props: PropriedadesAbaDetalhesClie
                     invoiceContactName: event.target.value,
                   }))
                 }
-                sx={textFieldSx}
+                sx={[textFieldSx, campoPequenoClienteSx]}
               />
 
               <TextField
@@ -398,7 +400,7 @@ export function AbaCondicoesComerciaisCliente(props: PropriedadesAbaDetalhesClie
                     invoiceContactEmail: event.target.value,
                   }))
                 }
-                sx={textFieldSx}
+                sx={[textFieldSx, campoPequenoClienteSx]}
               />
 
               <TextField
@@ -412,7 +414,7 @@ export function AbaCondicoesComerciaisCliente(props: PropriedadesAbaDetalhesClie
                     invoiceContactPhone: event.target.value,
                   }))
                 }
-                sx={textFieldSx}
+                sx={[textFieldSx, campoPequenoClienteSx]}
               />
 
               <Paper
@@ -422,7 +424,7 @@ export function AbaCondicoesComerciaisCliente(props: PropriedadesAbaDetalhesClie
                   p: { xs: 1.25, md: 1.5 },
                   borderRadius: "12px",
                   borderColor: crmPalette.border,
-                  bgcolor: "#f8fafc",
+                  bgcolor: "#ffffff",
                 }}
               >
                 <Typography
@@ -430,7 +432,7 @@ export function AbaCondicoesComerciaisCliente(props: PropriedadesAbaDetalhesClie
                     mb: 1.25,
                     color: crmPalette.text,
                     fontSize: 13,
-                    fontWeight: 900,
+                    fontWeight: 700,
                   }}
                 >
                   Dados bancários
@@ -463,7 +465,7 @@ export function AbaCondicoesComerciaisCliente(props: PropriedadesAbaDetalhesClie
                             : "",
                       }))
                     }
-                    sx={textFieldSx}
+                    sx={[textFieldSx, campoPequenoClienteSx]}
                   >
                     <MenuItem value="">Selecione</MenuItem>
                     {BANK_OPTIONS.map((bank) => (
@@ -491,7 +493,7 @@ export function AbaCondicoesComerciaisCliente(props: PropriedadesAbaDetalhesClie
                             customBankName: event.target.value,
                           }))
                         }
-                        sx={textFieldSx}
+                        sx={[textFieldSx, campoPequenoClienteSx]} slotProps={{ inputLabel: { shrink: true } }}
                       />
                     </Stack>
                   ) : null}
@@ -507,7 +509,7 @@ export function AbaCondicoesComerciaisCliente(props: PropriedadesAbaDetalhesClie
                         bankAgency: event.target.value,
                       }))
                     }
-                    sx={textFieldSx}
+                    sx={[textFieldSx, campoPequenoClienteSx]}
                   />
 
                   <TextField
@@ -521,7 +523,7 @@ export function AbaCondicoesComerciaisCliente(props: PropriedadesAbaDetalhesClie
                         bankAccount: event.target.value,
                       }))
                     }
-                    sx={textFieldSx}
+                    sx={[textFieldSx, campoPequenoClienteSx]}
                   />
 
                   <TextField
@@ -536,7 +538,7 @@ export function AbaCondicoesComerciaisCliente(props: PropriedadesAbaDetalhesClie
                         bankAccountType: event.target.value,
                       }))
                     }
-                    sx={textFieldSx}
+                    sx={[textFieldSx, campoPequenoClienteSx]}
                   >
                     <MenuItem value="">Selecione</MenuItem>
                     {ACCOUNT_TYPE_OPTIONS.map((accountType) => (
@@ -578,14 +580,14 @@ export function AbaCondicoesComerciaisCliente(props: PropriedadesAbaDetalhesClie
                       borderRadius: "10px",
                       borderColor: "#fed7c3",
                       color: crmPalette.orangeDark,
-                      bgcolor: "#fff7ed",
+                      bgcolor: "#ffffff",
                       fontSize: 13,
-                      fontWeight: 900,
+                      fontWeight: 700,
                       textTransform: "none",
                       whiteSpace: "nowrap",
                       "&:hover": {
                         borderColor: crmPalette.orange,
-                        bgcolor: "#ffede3",
+                        bgcolor: "#ffffff",
                       },
                     }}
                   >
@@ -635,7 +637,7 @@ export function AbaCondicoesComerciaisCliente(props: PropriedadesAbaDetalhesClie
                                 sx={{
                                   color: crmPalette.text,
                                   fontSize: 13,
-                                  fontWeight: 900,
+                                  fontWeight: 700,
                                   overflowWrap: "anywhere",
                                 }}
                               >
@@ -694,10 +696,10 @@ export function AbaCondicoesComerciaisCliente(props: PropriedadesAbaDetalhesClie
                     commercialTermsNotes: event.target.value,
                   }))
                 }
-                sx={{
+                sx={[{
                   ...textFieldSx,
                   gridColumn: { xs: "auto", md: "1 / -1" },
-                }}
+                }, campoPequenoClienteSx]} size="small" slotProps={{ inputLabel: { shrink: true } }}
               />
             </Box>
 
@@ -718,7 +720,7 @@ export function AbaCondicoesComerciaisCliente(props: PropriedadesAbaDetalhesClie
                   minHeight: 40,
                   borderRadius: "10px",
                   bgcolor: crmPalette.orange,
-                  fontWeight: 800,
+                  fontWeight: 700,
                   boxShadow: "none",
                   "&:hover": {
                     bgcolor: crmPalette.orangeDark,
@@ -764,10 +766,10 @@ export function AbaCondicoesComerciaisCliente(props: PropriedadesAbaDetalhesClie
                 <ListaInformacoes
                   icon={<CreditCard />}
                   title="Condições de pagamento"
-                  headerBg="#fff7ed"
-                  headerColor="#c2410c"
-                  iconBg="#ffedd5"
-                  iconColor="#ea580c"
+                  headerBg="#ffffff"
+                  headerColor="#1f2937"
+                  iconBg="#f8fafc"
+                  iconColor="#64748b"
                   items={[
                     [
                       "Formas de pagamento",
@@ -792,17 +794,17 @@ export function AbaCondicoesComerciaisCliente(props: PropriedadesAbaDetalhesClie
 
                                   borderRadius: "7px",
 
-                                  bgcolor: "#fff7ed",
+                                  bgcolor: "#ffffff",
 
                                   color:
                                     crmPalette.orangeDark,
 
                                   border:
-                                    "1px solid #fed7c3",
+                                    "1px solid #e2e8f0",
 
                                   fontSize: 10.5,
 
-                                  fontWeight: 900,
+                                  fontWeight: 700,
                                 }}
                               />
                             ),
@@ -860,10 +862,10 @@ export function AbaCondicoesComerciaisCliente(props: PropriedadesAbaDetalhesClie
                 <ListaInformacoes
                   icon={<UserRound />}
                   title="Faturamento"
-                  headerBg="#eff6ff"
-                  headerColor="#1d4ed8"
-                  iconBg="#dbeafe"
-                  iconColor="#2563eb"
+                  headerBg="#ffffff"
+                  headerColor="#1f2937"
+                  iconBg="#f8fafc"
+                  iconColor="#64748b"
                   items={[
                     [
                       "Contato",
@@ -902,10 +904,10 @@ export function AbaCondicoesComerciaisCliente(props: PropriedadesAbaDetalhesClie
             <ListaInformacoes
               icon={<Landmark />}
               title="Dados bancários"
-              headerBg="#ecfdf5"
-              headerColor="#047857"
-              iconBg="#d1fae5"
-              iconColor="#059669"
+              headerBg="#ffffff"
+              headerColor="#1f2937"
+              iconBg="#f8fafc"
+              iconColor="#64748b"
               items={
                 bancosExibicao.length > 0
                   ? bancosExibicao.map(
@@ -1034,10 +1036,10 @@ export function AbaCondicoesComerciaisCliente(props: PropriedadesAbaDetalhesClie
             <ListaInformacoes
               icon={<StickyNote />}
               title="Observações comerciais"
-              headerBg="#fffbeb"
-              headerColor="#a16207"
-              iconBg="#fef3c7"
-              iconColor="#d97706"
+              headerBg="#ffffff"
+              headerColor="#1f2937"
+              iconBg="#f8fafc"
+              iconColor="#64748b"
               items={[
                 [
                   "Informações adicionais",

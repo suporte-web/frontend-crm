@@ -22,6 +22,10 @@ type BackendUser = {
 };
 
 type BackendClient = {
+  prospectedById?: string | null;
+  prospectedByName?: string | null;
+  sourceLeadId?: string | null;
+  sourceProspectId?: string | null;
   id: string;
   document?: string | null;
   phone?: string | null;
@@ -155,6 +159,10 @@ function mapClientSummary(client: BackendClient, owners: Map<string, string>): L
 
   return {
     id: client.id,
+    prospectedById: client.prospectedById,
+    prospectedByName: client.prospectedByName,
+    sourceLeadId: client.sourceLeadId,
+    sourceProspectId: client.sourceProspectId,
     name: clientName,
     email: isTechnicalNoAccessEmail(clientEmail) ? '' : clientEmail,
     company:
@@ -219,10 +227,10 @@ function mapClientContact(
   };
 }
 
-export async function getCrmClientSummaries(token: string): Promise<LeadSummary[]> {
+export async function getCrmClientSummaries(token: string, consultora = false, filtros: Record<string, string | undefined> = {}): Promise<LeadSummary[]> {
   const [clients, owners] = await Promise.all([
-    apiFetch<BackendClient[]>('/clients', {}, token),
-    apiFetch<OwnerSummary[]>('/clients/owners/summary', {}, token),
+    apiFetch<BackendClient[]>(`/clients?${new URLSearchParams(Object.entries(filtros).filter(([,v])=>v) as [string,string][]).toString()}`, {}, token),
+    consultora ? Promise.resolve([] as OwnerSummary[]) : apiFetch<OwnerSummary[]>('/clients/owners/summary', {}, token),
   ]);
   const ownerMap = new Map(owners.map((item) => [item.owner.id, item.owner.name]));
 

@@ -3,6 +3,7 @@ export type UserRole =
   | 'ATENDIMENTO'
   | 'ADMIN'
   | 'GESTAO'
+  | 'CONSULTORA'
   | 'COMERCIAL'
   | 'OPERACAO'
   | 'MARKETING'

@@ -246,9 +246,49 @@ export default function SiteInstitucionalPage() {
                         />
                     </Stack>
 
-                    <TextField label="Buscar página" placeholder="Ex.: Soluções, Carreiras, ESG"
-                        value={search} onChange={event => setSearch(event.target.value)} fullWidth
-                        sx={{ mt: 3, '& .MuiOutlinedInput-root': { borderRadius: 2.5 } }} />
+                    <TextField
+                        fullWidth
+                        size="small"
+                        label="Buscar página"
+                        placeholder="Ex.: Soluções, Carreiras, ESG"
+                        value={search}
+                        onChange={(event) => setSearch(event.target.value)}
+                        sx={{
+                            mt: 2,
+                            width: "100%",
+
+                            "& .MuiOutlinedInput-root": {
+                                height: 42,
+                                borderRadius: "10px",
+                                bgcolor: "#ffffff",
+
+                                "& .MuiOutlinedInput-notchedOutline": {
+                                    borderColor: "#dce3eb",
+                                },
+
+                                "&:hover .MuiOutlinedInput-notchedOutline": {
+                                    borderColor: "#94a3b8",
+                                },
+
+                                "&.Mui-focused .MuiOutlinedInput-notchedOutline": {
+                                    borderColor: "#ff5805",
+                                },
+                            },
+
+                            "& .MuiInputBase-input": {
+                                fontSize: 13,
+                                fontWeight: 500,
+                            },
+
+                            "& .MuiInputLabel-root": {
+                                fontSize: 13,
+                            },
+
+                            "& .MuiInputLabel-root.Mui-focused": {
+                                color: "#ff5805",
+                            },
+                        }}
+                    />
                     {filteredPages.length === 0 ? <Alert severity="info" sx={{ mt: 2 }}>Nenhuma página encontrada.</Alert> : null}
                     <Box
                         sx={{
