@@ -17,7 +17,7 @@ export function VisualizadorDocumento({ token, caminho, anexo, onClose }: {
 }) {
   const [preview, setPreview] = useState<{
     id: string; caminho: string; token: string;
-    url?: string; tipo?: string; erro?: string;
+    url?: string; tipo?: string; erro?: string; aviso?: string;
   } | null>(null);
   const [erroDownload, setErroDownload] = useState("");
 
@@ -32,6 +32,10 @@ export function VisualizadorDocumento({ token, caminho, anexo, onClose }: {
         if (!ativo) return;
         const tipoRecebido = blob.type.split(";")[0].toLowerCase();
         const tipo = (!tipoRecebido || tipoRecebido === "application/octet-stream") ? (anexo.tipo?.toLowerCase() || "") : tipoRecebido;
+        if (/\.xlsx?$/i.test(anexo.nome) || ["application/vnd.ms-excel", "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"].includes(tipo)) {
+          setPreview({ id: anexo.id, caminho, token, aviso: "Planilha Excel anexada. Clique em Baixar para abrir no Excel ou no seu aplicativo de planilhas." });
+          return;
+        }
         if (!["application/pdf", "image/jpeg", "image/png"].includes(tipo)) {
           setPreview({ id: anexo.id, caminho, token, erro: "Este formato não permite pré-visualização. Use Baixar para abrir o arquivo." });
           return;
@@ -55,7 +59,7 @@ export function VisualizadorDocumento({ token, caminho, anexo, onClose }: {
       <DialogTitle id="visualizacao-documento-titulo" sx={{ overflowWrap: "anywhere" }}>{anexo?.nome}</DialogTitle>
       <DialogContent dividers>
         {erroDownload && <Alert severity="error" sx={{ mb: 2 }}>{erroDownload}</Alert>}
-        {atual?.erro ? <Alert severity="error">{atual.erro}</Alert> : atual?.url ? (
+        {atual?.aviso ? <Alert severity="info">{atual.aviso}</Alert> : atual?.erro ? <Alert severity="error">{atual.erro}</Alert> : atual?.url ? (
           atual.tipo === "application/pdf" ? (
             <Box component="iframe" src={atual.url} title={"Pré-visualização: " + anexo?.nome} sx={{ width: "100%", height: "70vh", minHeight: 360, border: 0 }} />
           ) : (

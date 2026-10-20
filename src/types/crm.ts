@@ -51,6 +51,11 @@ export interface Opportunity {
 }
 
 export interface LeadSummary {
+  fotoUrl?: string | null;
+  proximaAcao?: string | null;
+  responsavel?: string | null;
+  volumeMensalEstimado?: string | null;
+  modalidadeCadastro?: 'CLIENTE' | 'LEAD';
   prospectedById?: string | null;
   prospectedByName?: string | null;
   sourceLeadId?: string | null;

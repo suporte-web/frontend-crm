@@ -7,11 +7,15 @@ export type StatusSolicitacaoSite =
   | 'NOVO'
   | 'EM_ATENDIMENTO'
   | 'CONCLUIDO'
-  | 'CANCELADO';
+  | 'CANCELADO'
+  | 'REPROVADO';
 
 export interface SolicitacaoSite {
   etapaCotacao?: EtapaCotacaoSite | null;
   leadId?: string | null;
+  cadastroId?: string | null;
+  oportunidadeId?: string | null;
+  motivoReprovacao?: string | null;
   prospectId?: string | null;
   clientId?: string | null;
   responsavel?: {id:string;name:string} | null;
@@ -87,6 +91,6 @@ export interface ListarSolicitacoesSiteFiltros {
   busca?: string;
 }
 
-export type EtapaCotacaoSite = 'LEAD' | 'PROSPECT' | 'CLIENTE';
+export type EtapaCotacaoSite = 'LEAD' | 'OPORTUNIDADE' | 'REPROVADO' | 'PROSPECT' | 'CLIENTE';
 export type CotacaoSiteHistorico = {id:string;title:string;description:string;createdAt:string;createdBy?:{id:string;name:string}|null;metadata?:Record<string,unknown>|null};
 export type AtualizarCotacaoSitePayload = {nome?:string;empresa?:string;email?:string;telefone?:string;cnpj?:string;cidade?:string;solucao?:string;observacaoInterna?:string};

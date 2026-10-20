@@ -127,6 +127,9 @@ function obterStatusConfig(status: string) {
         fundo: alpha('#2E7D32', 0.1),
       };
 
+    case 'REPROVADO':
+      return { label: 'Reprovada', cor: '#D32F2F', fundo: alpha('#D32F2F', 0.1) };
+
     case 'CANCELADO':
       return {
         label: 'Cancelado',

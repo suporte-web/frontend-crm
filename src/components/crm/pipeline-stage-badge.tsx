@@ -1,4 +1,4 @@
-import { formatOpportunityStage } from '@/services/crm.service';
+import { formatarEtapaOportunidade } from '@/services/crm.service';
 import type { OpportunityStage } from '@/types/crm';
 
 const stageClasses: Record<OpportunityStage, string> = {
@@ -19,7 +19,7 @@ export function PipelineStageBadge({
     <span
       className={`inline-flex rounded-full border px-3 py-1 text-xs font-semibold ${stageClasses[stage]}`}
     >
-      {formatOpportunityStage(stage)}
+      {formatarEtapaOportunidade(stage)}
     </span>
   );
 }

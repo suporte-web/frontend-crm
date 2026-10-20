@@ -1,9 +1,12 @@
 "use client";
 
+import Link from "next/link";
+import Button from "@mui/material/Button";
+import Stack from "@mui/material/Stack";
 import Tab from "@mui/material/Tab";
+import SwapHorizOutlinedIcon from "@mui/icons-material/SwapHorizOutlined";
 import Tabs from "@mui/material/Tabs";
 
-import GridViewRoundedIcon from "@mui/icons-material/GridViewRounded";
 import BusinessOutlinedIcon from "@mui/icons-material/BusinessOutlined";
 import GroupsOutlinedIcon from "@mui/icons-material/GroupsOutlined";
 import AccountBalanceWalletOutlinedIcon from "@mui/icons-material/AccountBalanceWalletOutlined";
@@ -28,32 +31,39 @@ type PropriedadesAbasDetalhesCliente = {
 
 const tabsDetalhesCliente = [
   {
-    label: "Visão geral",
-    icon: <GridViewRoundedIcon />,
-  },
-  {
     label: "Cadastro",
     icon: <BusinessOutlinedIcon />,
+    value: 0,
   },
   {
     label: "Contatos",
+    value: 2,
     icon: <GroupsOutlinedIcon />,
   },
   {
     label: "Condições comerciais",
+    value: 3,
     icon: <AccountBalanceWalletOutlinedIcon />,
   },
   {
-    label: "Oportunidade/Proposta",
+    label: "Acesso às oportunidades",
+    value: 4,
     icon: <AutoGraphOutlinedIcon />,
   },
   {
     label: "Documentos",
+    value: 5,
     icon: <DescriptionOutlinedIcon />,
   },
   {
     label: "Histórico",
+    value: 6,
     icon: <ManageHistoryOutlinedIcon />,
+  },
+  {
+    label: "Modalidade",
+    value: 7,
+    icon: <SwapHorizOutlinedIcon />,
   },
 ];
 
@@ -83,6 +93,7 @@ export function AbasDetalhesCliente({
           "0 4px 14px rgba(15, 23, 42, 0.03)",
       }}
     >
+      <Stack direction={{ xs: "column", xl: "row" }} spacing={1} sx={{ alignItems: { xs: "stretch", xl: "center" } }}>
       <Tabs
         value={activeTab}
         onChange={(_, newValue: number) =>
@@ -100,6 +111,8 @@ export function AbasDetalhesCliente({
         }}
         sx={{
           minHeight: 0,
+          minWidth: 0,
+          flex: 1,
 
           "& .MuiTabs-flexContainer": {
             gap: 0.75,
@@ -205,10 +218,10 @@ export function AbasDetalhesCliente({
           },
         }}
       >
-        {tabsDetalhesCliente.map((tab, index) => (
+        {tabsDetalhesCliente.map((tab) => tab.value === 4 ? null : (
           <Tab
             key={tab.label}
-            value={index}
+            value={tab.value}
             disableRipple
             icon={tab.icon}
             iconPosition="start"
@@ -216,6 +229,29 @@ export function AbasDetalhesCliente({
           />
         ))}
       </Tabs>
+      <Button
+        component={Link}
+        href={`/oportunidades/cadastro/${lead.id}`}
+        variant="outlined"
+        size="small"
+        startIcon={<AutoGraphOutlinedIcon />}
+        sx={{
+          flexShrink: 0,
+          alignSelf: { xs: "flex-start", xl: "center" },
+          minHeight: 40,
+          px: 1.5,
+          borderRadius: "10px",
+          textTransform: "none",
+          fontSize: 12,
+          fontWeight: 700,
+          color: crmPalette.orangeDark,
+          borderColor: "#fed7aa",
+          "&:hover": { bgcolor: "#fff7ed", borderColor: "#fdba74" },
+        }}
+      >
+        Oportunidades/propostas
+      </Button>
+      </Stack>
     </CrmSection>
   );
 }

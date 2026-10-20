@@ -12,7 +12,7 @@ import {
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import {
-  formatOpportunityStage,
+  formatarEtapaOportunidade,
   getOpportunityStatusFromStage,
 } from '@/services/crm.service';
 import type { Opportunity, OpportunityStage } from '@/types/crm';
@@ -142,7 +142,7 @@ export function OpportunityList({
               {String(index + 1).padStart(2, '0')}
             </p>
             <p className={`mt-1 text-sm font-semibold ${darkMode ? 'text-white' : 'text-slate-800'}`}>
-              {formatOpportunityStage(stage)}
+              {formatarEtapaOportunidade(stage)}
             </p>
           </div>
         ))}
@@ -391,7 +391,7 @@ export function OpportunityList({
                   >
                     {pipelineStages.map((stage) => (
                       <option key={stage} value={stage}>
-                        {formatOpportunityStage(stage)}
+                        {formatarEtapaOportunidade(stage)}
                       </option>
                     ))}
                   </select>

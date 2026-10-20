@@ -1,5 +1,8 @@
 "use client";
 
+import { useEffect, useState } from "react";
+import Menu from "@mui/material/Menu";
+import MenuItem from "@mui/material/MenuItem";
 import Badge from "@mui/material/Badge";
 import Box from "@mui/material/Box";
 import Collapse from "@mui/material/Collapse";
@@ -60,6 +63,11 @@ export function SidebarNavigation({
   onToggleSection,
 }: SidebarNavigationProps) {
   const chatBadgeLabel = unreadChatCount > 9 ? "9+" : String(unreadChatCount);
+  const [menuRecolhido, setMenuRecolhido] = useState<{ secao: string; ancora: HTMLElement } | null>(null);
+
+  useEffect(() => {
+    setMenuRecolhido(null);
+  }, [pathname, collapsed]);
 
   return (
     <Box
@@ -220,9 +228,15 @@ export function SidebarNavigation({
         const sectionButton = (
           <ListItemButton
             selected={sectionActive}
-            aria-expanded={collapsed ? undefined : sectionOpen}
-            onClick={() => {
-              if (!collapsed) {
+            id={`botao-secao-${section.id}`}
+            aria-label={section.title}
+            aria-haspopup={collapsed ? "menu" : undefined}
+            aria-controls={collapsed && menuRecolhido?.secao === section.id ? `menu-lateral-${section.id}` : undefined}
+            aria-expanded={collapsed ? menuRecolhido?.secao === section.id : sectionOpen}
+            onClick={(evento) => {
+              if (collapsed) {
+                setMenuRecolhido({ secao: section.id, ancora: evento.currentTarget });
+              } else {
                 onToggleSection(section.id, sectionActive);
               }
             }}
@@ -341,12 +355,50 @@ export function SidebarNavigation({
             }}
           >
             <Tooltip
-              title={collapsed ? section.title : ""}
+              title={collapsed && menuRecolhido?.secao !== section.id ? section.title : ""}
               placement="right"
               arrow
             >
               {sectionButton}
             </Tooltip>
+
+            <Menu
+              id={`menu-lateral-${section.id}`}
+              anchorEl={menuRecolhido?.secao === section.id ? menuRecolhido.ancora : null}
+              open={collapsed && menuRecolhido?.secao === section.id}
+              onClose={() => setMenuRecolhido(null)}
+              anchorOrigin={{ vertical: "top", horizontal: "right" }}
+              transformOrigin={{ vertical: "top", horizontal: "left" }}
+              slotProps={{
+                list: { "aria-labelledby": `botao-secao-${section.id}`, sx: { p: 0.75 } },
+                paper: { sx: { ml: 1, minWidth: 220, maxWidth: 320, maxHeight: "calc(100vh - 32px)", borderRadius: "12px", border: "1px solid #e2e8f0", boxShadow: "0 8px 28px rgba(15, 23, 42, 0.16)" } },
+              }}
+            >
+              {section.items.map((item) => {
+                const Icon = screenIcons[item.key];
+                const active = isScreenActive(pathname, item.href);
+                return (
+                  <MenuItem
+                    key={item.key}
+                    component={Link}
+                    href={item.href}
+                    selected={active}
+                    onClick={() => setMenuRecolhido(null)}
+                    sx={{
+                      minHeight: 44, gap: 1, px: 1.5, borderRadius: "8px",
+                      color: active ? sidebarColors.orangeDark : sidebarColors.text,
+                      fontSize: 13, fontWeight: active ? 700 : 500,
+                      "&.Mui-selected, &:hover": { bgcolor: sidebarColors.orangeSoft },
+                      "&.Mui-selected:hover": { bgcolor: sidebarColors.orangeHover },
+                    }}
+                  >
+                    <ListItemIcon sx={{ minWidth: "28px !important", color: "inherit", "& svg": { width: 18, height: 18 } }}><Icon /></ListItemIcon>
+                    <ListItemText primary={getScreenLabel(item, role)} slotProps={{ primary: { sx: { fontSize: 13, fontWeight: "inherit", whiteSpace: "normal" } } }} />
+                    {item.key === "chat" && unreadChatCount > 0 ? <Box component="span" sx={{ bgcolor: sidebarColors.danger, color: "#fff", px: 0.75, borderRadius: 2, fontSize: 11 }}>{chatBadgeLabel}</Box> : null}
+                  </MenuItem>
+                );
+              })}
+            </Menu>
 
             {collapsed && section.items.some(item=>item.key==='prospectingManagement') && <Tooltip title="Gestão de Prospecções" placement="right" arrow><ListItemButton component={Link} href="/gestao-prospeccoes" selected={isScreenActive(pathname,'/gestao-prospeccoes')} aria-label="Gestão de Prospecções" sx={{width:48,minHeight:48,px:0,justifyContent:'center',borderRadius:'12px',color:sidebarColors.muted,'&.Mui-selected':{color:'#ff5805',bgcolor:sidebarColors.orangeSoft},'&:hover':{bgcolor:sidebarColors.orangeSoft}}}><ListItemIcon sx={{minWidth:0,color:'inherit'}}><UserSearch size={20}/></ListItemIcon></ListItemButton></Tooltip>}
             {!collapsed ? (

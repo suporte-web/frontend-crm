@@ -50,34 +50,6 @@ const headerColors = {
   yellow: "#fab519",
 };
 
-function getPageTitle(pathname: string, role?: string) {
-  if (pathname.startsWith('/gestao-prospeccoes')) return 'Gestão de Prospecções';
-  if (pathname.startsWith('/atendimento/visitas')) return 'Visitas';
-  if (pathname.startsWith("/painel")) {
-    return role === "CLIENTE" ? "Canal do Cliente" : "Início";
-  }
-
-  // if (pathname.startsWith("/bi")) return "BI Comercial";
-  // if (pathname.startsWith("/rastreamentos")) return "Rastreamento";
-  // if (pathname.startsWith("/cotacoes")) return "Cotações";
-  // if (pathname.startsWith("/clientes")) return "Clientes";
-  // if (pathname.startsWith("/leads")) return "Leads";
-  // if (pathname.startsWith("/chamados")) return "Chamados";
-  // if (pathname.startsWith("/usuarios")) return "Usuários";
-  // if (pathname.startsWith("/solicitacoes-site")) return "Fila do site";
-  // if (pathname.startsWith("/marketing/informativo")) return "";
-  // if (pathname.startsWith("/marketing/metricas")) return "Métricas de Marketing";
-
-  // if (pathname.startsWith("/marketing")) return "Criação de conteúdo";
-  // if (pathname.startsWith("/entregas")) return "Entregas";
-  // if (pathname.startsWith("/entradas")) return "Central de Entradas";
-  // if (pathname.startsWith("/fornecedores")) return "Fornecedores";
-  // if (pathname.startsWith("/chat")) return "Chat";
-  // if (pathname.startsWith("/logs")) return "Logs";
-
-  return "CRM";
-}
-
 function getRoleLabel(role?: string) {
   if (!role) return "Perfil";
 
@@ -182,7 +154,6 @@ export function Header() {
   const [unreadCount, setUnreadCount] = useState(0);
 
   const userFirstName = user?.name?.split(" ").filter(Boolean)[0] ?? "Usuário";
-  const pageTitle = getPageTitle(pathname, user?.role);
   const appsOpen = Boolean(appsAnchorEl);
   const notificationsOpen = Boolean(notificationsAnchorEl);
   const profileOpen = Boolean(profileAnchorEl);
@@ -290,18 +261,7 @@ export function Header() {
         <Stack direction="row" spacing={1.5} sx={{ minWidth: 0, alignItems: "center" }}>
           <SidebarTrigger className="h-10 w-10 rounded-md text-[#343434] hover:bg-[#343434]/8" />
 
-          <Typography
-            component="h1"
-            noWrap
-            sx={{
-              color: headerColors.text,
-              fontSize: 18,
-              fontWeight: 900,
-              lineHeight: 1,
-            }}
-          >
-            {pageTitle}
-          </Typography>
+
         </Stack>
 
         <Stack direction="row" spacing={1} sx={{ alignItems: "center" }}>

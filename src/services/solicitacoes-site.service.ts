@@ -100,3 +100,7 @@ export function listarComerciaisCotacaoSite(){return acaoCotacaoSite<Array<{id:s
 export function direcionarCotacaoSite(id:string,responsavelId:string){return acaoCotacaoSite<BuscarSolicitacaoSiteResponse>(`${id}/direcionar`,'POST',{responsavelId});}
 export function atualizarCotacaoSite(id:string,payload:import('@/types/solicitacao-site').AtualizarCotacaoSitePayload){return acaoCotacaoSite<BuscarSolicitacaoSiteResponse>(`${id}/prospect`,'PATCH',payload);}
 export function converterCotacaoSiteCliente(id:string,document:string){return acaoCotacaoSite<BuscarSolicitacaoSiteResponse>(`${id}/converter-cliente`,'POST',{document});}
+
+export function reprovarCotacaoSite(id: string, motivo: string) {
+  return acaoCotacaoSite<BuscarSolicitacaoSiteResponse>(`${id}/reprovar`, 'POST', { motivo });
+}

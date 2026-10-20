@@ -24,7 +24,7 @@ import { cartaoCrmSx } from "@/components/mui/estilos-cartoes-crm";
 import { useAuth } from "@/context/auth-context";
 import { hasAnyRole } from "@/lib/user-roles";
 import { roles, roleMeta } from "@/lib/user-role-presentation";
-import { profilePermissionItems } from "@/config/screens";
+import { profilePermissionItems, cadastroModalidadePermissionItems, isPermissionEnabledForRole, montarPermissoesPerfil } from "@/config/screens";
 import {
   getScreenPermissions,
   updateRoleScreenPermissions,
@@ -64,11 +64,7 @@ export default function PermissionsPage() {
   function isPermissionItemChecked(
     permissionItem: (typeof profilePermissionItems)[number],
   ) {
-    const permission = selectedRolePermissions.get(permissionItem.key);
-
-    return permission
-      ? permission.isEnabled
-      : permissionItem.roles.includes(selectedPermissionRole);
+    return isPermissionEnabledForRole(permissionItem, selectedPermissionRole, Array.from(selectedRolePermissions.values()));
   }
 
   const selectedEnabledCount = useMemo(
@@ -87,7 +83,7 @@ export default function PermissionsPage() {
   }
 
   async function handleTogglePermissionItem(screenKey: string) {
-    const permissionItem = profilePermissionItems.find(
+    const permissionItem = [...profilePermissionItems, ...cadastroModalidadePermissionItems].find(
       (item) => item.key === screenKey,
     );
 
@@ -100,18 +96,11 @@ export default function PermissionsPage() {
       return;
     }
 
-    const nextPermissions = profilePermissionItems.map((item) => {
-      const existingPermission = selectedRolePermissions.get(item.key);
-      const currentValue = existingPermission
-        ? existingPermission.isEnabled
-        : item.roles.includes(selectedPermissionRole);
-
-      return {
-        screenKey: item.key,
-        screenLabel: item.label,
-        isEnabled: item.key === screenKey ? !currentValue : currentValue,
-      };
-    });
+    const nextPermissions = montarPermissoesPerfil(
+      selectedPermissionRole,
+      Array.from(selectedRolePermissions.values()),
+      screenKey,
+    );
 
     try {
       setSavingPermissions(true);
@@ -290,6 +279,26 @@ export default function PermissionsPage() {
                     permissionItem.key,
                   );
 
+                  if (permissionItem.key === 'cadastros') {
+                    return (
+                      <Paper key={permissionItem.key} variant="outlined" sx={{ ...cartaoCrmSx, p: 1.5, borderRadius: '8px', gridColumn: { sm: 'span 2' } }}>
+                        <Stack spacing={1.25}>
+                          <Stack direction="row" sx={{ alignItems: 'center', justifyContent: 'space-between' }}>
+                            <Typography sx={{ fontSize: 13, fontWeight: 700 }}>Cadastros</Typography>
+                            <Switch checked={checked} disabled={savingPermissions} onChange={() => handleTogglePermissionItem('cadastros')} slotProps={{ input: { 'aria-label': 'Permitir acesso a Cadastros' } }} />
+                          </Stack>
+                          <Typography sx={{ fontSize: 12, color: 'text.secondary' }}>Defina quais modalidades este perfil pode acessar na base unificada.</Typography>
+                          {cadastroModalidadePermissionItems.map(modalidade => (
+                            <Stack key={modalidade.key} direction="row" sx={{ alignItems: 'center', justifyContent: 'space-between', pl: 1, borderLeft: '2px solid', borderColor: 'divider' }}>
+                              <Typography sx={{ fontSize: 12.5 }}>{modalidade.label}</Typography>
+                              <Switch size="small" checked={isPermissionItemChecked(modalidade)} disabled={savingPermissions || !checked} onChange={() => handleTogglePermissionItem(modalidade.key)} slotProps={{ input: { 'aria-label': `Permitir ${modalidade.label} em Cadastros` } }} />
+                            </Stack>
+                          ))}
+                        </Stack>
+                      </Paper>
+                    );
+                  }
+
                   return (
                     <Paper
                       key={permissionItem.key}
@@ -345,7 +354,7 @@ export default function PermissionsPage() {
                             }}
                           >
                             {selectedPermissionRole === "CONSULTORA"
-                              ? "Acesso restrito a Clientes e Leads"
+                              ? "Acesso restrito aos próprios cadastros"
                               : "Obrigatória para Admin"}
                           </Typography>
                         ) : null}

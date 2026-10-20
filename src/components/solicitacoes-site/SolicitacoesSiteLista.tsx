@@ -176,6 +176,8 @@ export function SolicitacoesSiteLista({ mode = 'queue' }: { mode?: 'queue' | 'pr
               onChange={(event) => { setEtapa(event.target.value as EtapaCotacaoSite | ''); setPagina(1); }}>
               <MenuItem value="">Todas</MenuItem>
               {mode === 'queue' ? <MenuItem value="LEAD">Novo Lead</MenuItem> : null}
+              <MenuItem value="OPORTUNIDADE">Enviada ao Comercial</MenuItem>
+              <MenuItem value="REPROVADO">Reprovada</MenuItem>
               <MenuItem value="PROSPECT">Prospect</MenuItem>
               <MenuItem value="CLIENTE">Cliente</MenuItem>
             </TextField>

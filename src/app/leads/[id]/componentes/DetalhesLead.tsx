@@ -1087,12 +1087,12 @@ export default function DetalhesLead() {
       try {
         setLoading(true);
         setError('');
-        const [leadData, observationsData] = await Promise.all([
+        const [dadosLead, observationsData] = await Promise.all([
           getLeadById(id, token),
           getLeadObservations(id, token),
         ]);
 
-        setLead(leadData);
+        setLead(dadosLead);
         setObservations(observationsData);
       } catch (loadError) {
         setError(
@@ -1322,7 +1322,7 @@ export default function DetalhesLead() {
       return;
     }
 
-    const consultora = user?.role === "CONSULTORA";
+    const consultora = hasAnyRole(user, ["CONSULTORA"]) && !hasAnyRole(user, ["ADMIN", "GESTAO", "COMERCIAL"]);
     const confirmou = consultora || window.confirm(
       `Tem certeza que deseja excluir o lead "${lead.company || lead.name}"?\n\nEssa ação não poderá ser desfeita.`,
     );
@@ -1751,7 +1751,7 @@ export default function DetalhesLead() {
                     >
                       <MenuItem
                         onClick={excluirPeloMenu}
-                        disabled={deletingLead || !["ADMIN", "GESTAO", "COMERCIAL", "CONSULTORA"].includes(user?.role ?? "")}
+                        disabled={deletingLead || !hasAnyRole(user, ["ADMIN", "GESTAO", "COMERCIAL", "CONSULTORA"])}
                         sx={{
                           color: '#dc2626',
                           fontWeight: 500,

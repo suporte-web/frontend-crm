@@ -11,8 +11,6 @@ import Paper from "@mui/material/Paper";
 import Stack from "@mui/material/Stack";
 import TextField from "@mui/material/TextField";
 import Typography from "@mui/material/Typography";
-import CloseRoundedIcon from "@mui/icons-material/CloseRounded";
-import EditRoundedIcon from "@mui/icons-material/EditRounded";
 import { Building2, FileText, MapPin, ReceiptText, Save, StickyNote } from "lucide-react";
 import { CrmSection } from "@/components/mui/crm-primitives";
 import { formatLeadStatus } from "@/services/crm.service";
@@ -21,7 +19,6 @@ import {
   CabecalhoSecao,
   UF_OPTIONS,
   clienteParaFormularioCliente,
-  contatosClienteParaFormulario,
   formatarData,
 } from "./detalhes-cliente-compartilhado";
 import type { FormularioCliente, PropriedadesAbaDetalhesCliente } from "./detalhes-cliente-compartilhado";
@@ -136,9 +133,8 @@ function SecaoCadastro({ titulo, descricao, icone, ampla = false, children }: {
 
 export function AbaCadastroCliente(props: PropriedadesAbaDetalhesCliente) {
   const {
-    currentLead, canEditClient, clientForm, setFormularioCliente, clientFormError,
-    setFormularioClienteError, isEditingClient, setIsEditingClient, savingClient,
-    handleUpdateClient, setClientContacts,
+    currentLead, clientForm, setFormularioCliente, clientFormError,
+    isEditingClient, savingClient, handleUpdateClient,
   } = props;
   const dadosCadastro = clienteParaFormularioCliente(currentLead);
 
@@ -191,26 +187,7 @@ export function AbaCadastroCliente(props: PropriedadesAbaDetalhesCliente) {
   return (
     <CrmSection sx={{ p: { xs: 2, md: 2.5 }, border: "1px solid #e2e8f0", borderRadius: "14px", bgcolor: "#fff", boxShadow: "none" }}>
       <Stack spacing={2.5}>
-        <Stack direction={{ xs: "column", sm: "row" }} spacing={2} sx={{ alignItems: { xs: "stretch", sm: "center" }, justifyContent: "space-between" }}>
-          <CabecalhoSecao title="Dados do cliente" description="Informações cadastrais, fiscais e comerciais organizadas em um só lugar." />
-          {canEditClient && (
-            <Button type="button" variant={isEditingClient ? "outlined" : "contained"}
-              disabled={savingClient}
-              startIcon={isEditingClient ? <CloseRoundedIcon /> : <EditRoundedIcon />}
-              onClick={() => {
-                setIsEditingClient(current => !current);
-                setFormularioCliente(clienteParaFormularioCliente(currentLead));
-                setClientContacts(contatosClienteParaFormulario(currentLead));
-                setFormularioClienteError("");
-              }}
-              sx={isEditingClient ? {
-                minHeight: 40, px: 2, borderRadius: "8px", borderColor: "#cbd5e1",
-                color: "#475569", bgcolor: "#fff", textTransform: "none", fontWeight: 700,
-                whiteSpace: "nowrap", "&:hover": { borderColor: "#94a3b8", bgcolor: "#f8fafc" },
-              } : { ...botaoPrincipalSx, whiteSpace: "nowrap" }}
-            >{isEditingClient ? "Cancelar edição" : "Editar cadastro"}</Button>
-          )}
-        </Stack>
+        <CabecalhoSecao title="Cadastro" description="Informações gerais, cadastrais, fiscais e comerciais em um só lugar." />
         <Box component={isEditingClient ? "form" : "div"} onSubmit={isEditingClient ? handleUpdateClient : undefined}>
           {isEditingClient && clientFormError && <Alert severity="error" sx={{ mb: 2, borderRadius: "8px" }}>{clientFormError}</Alert>}
           <Box sx={{ display: "grid", gridTemplateColumns: { xs: "minmax(0, 1fr)", md: "repeat(2, minmax(0, 1fr))" }, gap: 2, alignItems: "start" }}>
@@ -222,6 +199,12 @@ export function AbaCadastroCliente(props: PropriedadesAbaDetalhesCliente) {
             </SecaoCadastro>
             <SecaoCadastro titulo="Comercial" descricao="Segmento, contato e situação do cadastro." icone={<FileText />} ampla>
               {renderizarCampos(comercial, true)}
+              <Box sx={{ mt: 2, minWidth: 0 }}>
+                <Typography sx={{ color: "#64748b", fontSize: 12, mb: 0.5 }}>E-mail</Typography>
+                <Typography sx={{ color: "#1f2937", fontSize: 14, fontWeight: 500, overflowWrap: "anywhere", lineHeight: 1.6 }}>
+                  {currentLead.email?.trim() || "Não informado"}
+                </Typography>
+              </Box>
             </SecaoCadastro>
             <SecaoCadastro titulo="Endereço" descricao="Localização e endereço da empresa." icone={<MapPin />} ampla>
               {renderizarCampos(endereco, true)}

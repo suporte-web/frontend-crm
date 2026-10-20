@@ -8,6 +8,7 @@ import {
   HandshakeRounded,
   LocalShippingRounded,
   ReceiptLongRounded,
+  RequestQuoteRounded,
   ViewListRounded,
 } from '@mui/icons-material';
 
@@ -28,6 +29,7 @@ interface SolicitacoesSiteCardsProps {
 }
 
 const categorias = [
+  { tipo: 'COTACAO', titulo: 'Cotações', descricao: 'Leads para triagem de Marketing', cor: '#17456B', icone: RequestQuoteRounded },
   {
     tipo: 'AGREGADO',
     titulo: 'Agregados',

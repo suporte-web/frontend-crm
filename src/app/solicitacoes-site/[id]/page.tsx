@@ -42,6 +42,7 @@ import {
   Inbox,
 } from 'lucide-react';
 
+import { CotacaoSiteWorkflow } from '@/components/solicitacoes-site/CotacaoSiteWorkflow';
 import { AppLayout } from '@/components/layout/app-layout';
 
 import {
@@ -189,6 +190,9 @@ function getStatusConfig(
           0.1,
         ),
       };
+
+    case 'REPROVADO':
+      return { label: 'Reprovada pelo Marketing', cor: '#D32F2F', fundo: alpha('#D32F2F', 0.1) };
 
     case 'CANCELADO':
       return {
@@ -590,6 +594,7 @@ export default function SolicitacaoSiteDetalhePage() {
         {!loading &&
         solicitacao ? (
           <Stack spacing={3}>
+            <CotacaoSiteWorkflow solicitacao={solicitacao} onChange={setSolicitacao} />
             {/* RESUMO */}
             <Paper
               elevation={0}

@@ -39,7 +39,7 @@ export function UploadAnexos({
   return (
     <Stack spacing={1}>
       <Alert severity="info">
-        Sem limite de quantidade. PDF, JPG ou PNG, até 10 MB cada. Adicione um
+        Sem limite de quantidade. PDF, JPG, PNG ou Excel (.xls e .xlsx), até 10 MB cada. Adicione um
         comentário a cada arquivo, se desejar.
       </Alert>
       <Button
@@ -76,7 +76,7 @@ export function UploadAnexos({
         <input
           type="file"
           multiple
-          accept="application/pdf,image/jpeg,image/png"
+          accept="application/pdf,image/jpeg,image/png,.xls,.xlsx,application/vnd.ms-excel,application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
           hidden
           onChange={(e) => {
             const selecionados = Array.from(e.target.files || []);

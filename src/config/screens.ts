@@ -6,9 +6,12 @@ export type ScreenKey =
   | 'acoesSac'
   | 'dashboard'
   | 'bi'
+  | 'commercialBi'
   | 'entregas'
   | 'trackings'
   | 'quotes'
+  | 'cadastros'
+  | 'opportunities'
   | 'clients'
   | 'leads'
   | 'prospectingManagement'
@@ -44,6 +47,8 @@ export type ProfilePermissionItem = {
 };
 
 export const appScreens: AppScreen[] = [
+  { key: 'cadastros', href: '/cadastros', label: 'Cadastros', roles: ['ADMIN', 'GESTAO', 'COMERCIAL', 'MARKETING', 'CONSULTORA'] },
+  { key: 'opportunities', href: '/oportunidades', label: 'Oportunidades', roles: ['ADMIN', 'GESTAO', 'COMERCIAL'] },
   {
     key: 'dashboard',
     href: '/painel',
@@ -58,6 +63,7 @@ export const appScreens: AppScreen[] = [
     label: 'Funil de Vendas',
     roles: ['ADMIN', 'GESTAO', 'COMERCIAL'],
   },
+  { key: 'commercialBi', href: '/bi-comercial', label: 'BI Comercial', roles: ['ADMIN', 'GESTAO', 'COMERCIAL'] },
   {
     key: 'entregas',
     href: '/entregas',
@@ -206,7 +212,7 @@ export const appScreens: AppScreen[] = [
 ];
 
 export const profilePermissionItems: ProfilePermissionItem[] = [
-  ...appScreens.map(({ key, label, roles }) => ({
+  ...appScreens.filter(screen => screen.key !== 'clients' && screen.key !== 'leads').map(({ key, label, roles }) => ({
     key,
     label,
     roles,
@@ -226,14 +232,23 @@ export function isPermissionEnabledForRole(
   permissionItem: ProfilePermissionItem,
   role?: UserRole | UserRole[],
   permissions?: Array<{ role?: UserRole; screenKey: string; isEnabled: boolean }>,
-) {
+): boolean {
   if (!role) {
     return false;
   }
+  if (permissionItem.key === 'cadastros') {
+    const perfis = Array.isArray(role) ? role : [role];
+    return perfis.some(perfil => {
+      const explicita = permissions?.find(item => item.screenKey === 'cadastros' && (!item.role || item.role === perfil));
+      if (explicita && !explicita.isEnabled) return false;
+      return appScreens.filter(item => item.key === 'clients' || item.key === 'leads').some(item => isScreenEnabledForRole(item, perfil, permissions));
+    });
+  }
+
 
   const perfis = Array.isArray(role) ? role : [role];
   const roles = perfis.includes('CONSULTORA') ? ['CONSULTORA' as UserRole] : perfis;
-  if (permissionItem.key === 'prospectingManagement' && !roles.some(r=>['ADMIN','GESTAO','COMERCIAL'].includes(r))) return false;
+  if (['prospectingManagement', 'commercialBi'].includes(permissionItem.key) && !roles.some(r=>['ADMIN','GESTAO','COMERCIAL'].includes(r))) return false;
   return roles.some((profile) => {
     const permission = permissions?.find(
       (item) => item.screenKey === permissionItem.key && (!item.role || item.role === profile),
@@ -246,7 +261,7 @@ export function isScreenEnabledForRole(
   screen: AppScreen,
   role?: UserRole | UserRole[],
   permissions?: Array<{ role?: UserRole; screenKey: string; isEnabled: boolean }>,
-) {
+): boolean {
   return isPermissionEnabledForRole(screen, role, permissions);
 }
 
@@ -255,4 +270,31 @@ export function podeAcessarRota(pathname: string, role?: UserRole | UserRole[], 
   const roles = Array.isArray(role) ? role : [role];
   const route = [...appScreens].sort((a,b) => b.href.length-a.href.length).find(item => pathname === item.href || pathname.startsWith(`${item.href}/`));
   return route ? isScreenEnabledForRole(route, role, permissions) : !roles.includes('CONSULTORA');
+}
+
+
+// Mantém as chaves antigas como modalidades da base unificada, sem duplicar telas.
+export const cadastroModalidadePermissionItems: ProfilePermissionItem[] = appScreens
+  .filter(screen => screen.key === 'clients' || screen.key === 'leads')
+  .map(({ key, label, roles }) => ({ key, label, roles }));
+
+type PermissaoPerfil = { role?: UserRole; screenKey: string; screenLabel?: string | null; isEnabled: boolean };
+
+export function montarPermissoesPerfil(role: UserRole, permissoes: PermissaoPerfil[], chaveAlterada: string) {
+  const itens = [...profilePermissionItems, ...cadastroModalidadePermissionItems];
+  const alterada = itens.find(item => item.key === chaveAlterada);
+  if (!alterada) throw new Error('Permissão de perfil inválida.');
+  const novoValor = !isPermissionEnabledForRole(alterada, role, permissoes);
+  const resultado = itens.map(item => ({
+    screenKey: item.key,
+    screenLabel: item.label,
+    isEnabled: item.key === chaveAlterada ? novoValor :
+      permissoes.find(valor => valor.screenKey === item.key && (!valor.role || valor.role === role))?.isEnabled ??
+      isPermissionEnabledForRole(item, role, permissoes),
+  }));
+  // Uma ativação explícita precisa conceder pelo menos uma modalidade utilizável.
+  if (chaveAlterada === 'cadastros' && novoValor && !resultado.some(item => ['clients', 'leads'].includes(item.screenKey) && item.isEnabled)) {
+    for (const item of resultado) if (['clients', 'leads'].includes(item.screenKey)) item.isEnabled = true;
+  }
+  return resultado;
 }

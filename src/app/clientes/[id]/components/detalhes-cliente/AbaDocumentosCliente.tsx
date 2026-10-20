@@ -83,7 +83,7 @@ export function AbaDocumentosCliente(props: PropriedadesAbaDetalhesCliente) {
                       lineHeight: 1.5,
                     }}
                   >
-                    Selecione um ou vários arquivos para incluir no cadastro.
+                    Selecione um ou vários arquivos, incluindo Excel (.xls e .xlsx), para incluir no cadastro.
                   </Typography>
                 </Box>
 

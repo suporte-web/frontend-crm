@@ -21,7 +21,12 @@ type BackendUser = {
   role?: string;
 };
 
-type BackendClient = {
+export type BackendClient = {
+  fotoUrl?: string | null;
+  proximaAcao?: string | null;
+  responsavel?: string | null;
+  volumeMensalEstimado?: string | null;
+  modalidadeCadastro?: 'CLIENTE' | 'LEAD';
   prospectedById?: string | null;
   prospectedByName?: string | null;
   sourceLeadId?: string | null;
@@ -147,7 +152,7 @@ function mapOpportunity(opportunity: BackendOpportunity): Opportunity {
   };
 }
 
-function mapClientSummary(client: BackendClient, owners: Map<string, string>): LeadSummary {
+export function mapClientSummary(client: BackendClient, owners: Map<string, string>): LeadSummary {
   const clientName =
     client.tradeName ||
     client.legalName ||
@@ -155,10 +160,11 @@ function mapClientSummary(client: BackendClient, owners: Map<string, string>): L
     client.user?.name ||
     client.document ||
     'Cliente';
-  const clientEmail = client.user?.email ?? '';
+  const clientEmail = client.contacts?.find(contato => contato.isPrimary)?.email || client.contacts?.[0]?.email || client.user?.email || '';
 
   return {
     id: client.id,
+    modalidadeCadastro: client.modalidadeCadastro || 'CLIENTE',
     prospectedById: client.prospectedById,
     prospectedByName: client.prospectedByName,
     sourceLeadId: client.sourceLeadId,
@@ -246,6 +252,10 @@ export async function getCrmLeadById(
 
   return {
     ...summary,
+    fotoUrl: detail.client.fotoUrl,
+    proximaAcao: detail.client.proximaAcao,
+    responsavel: detail.client.responsavel,
+    volumeMensalEstimado: detail.client.volumeMensalEstimado,
     userId: detail.client.user?.id ?? detail.client.id,
     internalOwnerId: detail.client.internalOwnerId ?? null,
     document: detail.client.document ?? null,
@@ -533,7 +543,7 @@ export async function deleteClientContact(
   );
 }
 
-export async function uploadOpportunityProposalDocuments(
+export async function enviarDocumentosPropostaOportunidade(
   clientId: string,
   files: File[],
   token: string,
@@ -573,7 +583,7 @@ export async function uploadOpportunityProposalDocuments(
   return Array.isArray(data) ? data as ClientDocument[] : [data as ClientDocument];
 }
 
-export async function deleteOpportunityProposalDocument(
+export async function excluirDocumentoPropostaOportunidade(
   clientId: string,
   documentId: string,
   token: string,
@@ -665,23 +675,23 @@ export async function decideClientDeletionRequest(
   );
 }
 
-export async function updateOpportunityStage(
-  opportunityId: string,
-  stage: OpportunityStage,
+export async function atualizarEtapaOportunidade(
+  oportunidadeId: string,
+  etapa: OpportunityStage,
   token: string,
-  lostReason?: string,
+  motivoPerda?: string,
 ) {
   return apiFetch<Opportunity>(
-    `/opportunities/${opportunityId}/stage`,
+    `/oportunidades/${oportunidadeId}/etapa`,
     {
       method: 'PATCH',
-      body: JSON.stringify({ stage, lostReason }),
+      body: JSON.stringify({ etapa, motivoPerda }),
     },
     token,
   );
 }
 
-export async function updateOpportunity(
+export async function atualizarOportunidade(
   opportunityId: string,
   payload: {
     quoteId?: string | null;
@@ -696,18 +706,18 @@ export async function updateOpportunity(
   token: string,
 ) {
   return apiFetch<Opportunity>(
-    `/opportunities/${opportunityId}`,
+    `/oportunidades/${opportunityId}`,
     {
       method: 'PATCH',
-      body: JSON.stringify(payload),
+      body: JSON.stringify(dadosOportunidadeEmPortugues(payload)),
     },
     token,
   );
 }
 
-export async function deleteOpportunity(opportunityId: string, token: string) {
+export async function excluirOportunidade(opportunityId: string, token: string) {
   return apiFetch<{ message: string }>(
-    `/opportunities/${opportunityId}`,
+    `/oportunidades/${opportunityId}`,
     {
       method: 'DELETE',
     },
@@ -715,7 +725,7 @@ export async function deleteOpportunity(opportunityId: string, token: string) {
   );
 }
 
-export async function createOpportunity(
+export async function criarOportunidade(
   payload: {
     clientId: string;
     quoteId?: string;
@@ -729,10 +739,10 @@ export async function createOpportunity(
   token: string,
 ) {
   return apiFetch<Opportunity>(
-    '/opportunities',
+    '/oportunidades',
     {
       method: 'POST',
-      body: JSON.stringify(payload),
+      body: JSON.stringify(dadosOportunidadeEmPortugues(payload)),
     },
     token,
   );
@@ -748,7 +758,7 @@ export function formatLeadStatus(status: LeadStatus) {
   return labels[status];
 }
 
-export function formatOpportunityStage(stage: OpportunityStage) {
+export function formatarEtapaOportunidade(stage: OpportunityStage) {
   const labels: Record<OpportunityStage, string> = {
     NOVO: 'Novo',
     QUALIFICADO: 'Qualificado',
@@ -819,4 +829,23 @@ export async function updateOpportunityStatus(
   }
 
   return data;
+}
+
+
+function dadosOportunidadeEmPortugues(dados: {
+  clientId?: string; quoteId?: string | null; title?: string; value?: number | null;
+  stage?: OpportunityStage; expectedCloseDate?: string | null; preContract?: boolean;
+  preContractNotes?: string | null; lostReason?: string | null;
+}) {
+  return {
+    clienteId: dados.clientId,
+    cotacaoId: dados.quoteId,
+    titulo: dados.title,
+    valor: dados.value,
+    etapa: dados.stage,
+    previsaoFechamento: dados.expectedCloseDate,
+    preContrato: dados.preContract,
+    observacoesPreContrato: dados.preContractNotes,
+    motivoPerda: dados.lostReason,
+  };
 }

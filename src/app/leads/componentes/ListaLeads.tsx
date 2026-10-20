@@ -163,7 +163,7 @@ export default function ListaLeads() {
       setLoading(true);
       setPageError('');
 
-      const [leadData, resumoData] = await Promise.all([
+      const [dadosLead, resumoData] = await Promise.all([
         getLeads(token, {
           ...filters,
           convertidoParaCliente: visao === 'convertidos',
@@ -172,7 +172,7 @@ export default function ListaLeads() {
         getLeadsResumo(token),
       ]);
 
-      setLeads(leadData);
+      setLeads(dadosLead);
       setResumoLeads(resumoData);
     } catch (error) {
       setPageError(

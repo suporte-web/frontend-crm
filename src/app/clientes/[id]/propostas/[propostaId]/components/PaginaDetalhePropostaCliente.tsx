@@ -40,12 +40,12 @@ import { FeedbackToast } from "@/components/ui/feedback-toast";
 import { useAuth } from "@/context/auth-context";
 import { API_BASE_URL } from "@/services/api";
 import {
-  deleteOpportunityProposalDocument,
-  formatOpportunityStage,
+  excluirDocumentoPropostaOportunidade,
+  formatarEtapaOportunidade,
   formatOpportunityStatus,
   getCrmLeadById,
   updateOpportunityStatus,
-  uploadOpportunityProposalDocuments,
+  enviarDocumentosPropostaOportunidade,
 } from "@/services/crm.service";
 import type { ClientDocument, LeadDetail, OpportunityStatus } from "@/types/crm";
 
@@ -226,7 +226,7 @@ export default function PaginaDetalhePropostaCliente({
 
     try {
       setUploading(true);
-      await uploadOpportunityProposalDocuments(
+      await enviarDocumentosPropostaOportunidade(
         clientId,
         selectedFiles,
         token,
@@ -324,7 +324,7 @@ export default function PaginaDetalhePropostaCliente({
 
     try {
       setDeletingDocumentId(document.id);
-      await deleteOpportunityProposalDocument(
+      await excluirDocumentoPropostaOportunidade(
         clientId,
         document.id,
         token,
@@ -398,7 +398,7 @@ export default function PaginaDetalhePropostaCliente({
         <Stack spacing={2.5}>
           <Button
             component={Link}
-            href={`/clientes/${clientId}?aba=propostas`}
+            href={`/oportunidades/cadastro/${clientId}`}
             variant="outlined"
             startIcon={<ArrowLeft size={16} />}
             sx={{
@@ -566,7 +566,7 @@ export default function PaginaDetalhePropostaCliente({
                         }}
                       >
                         <Chip
-                          label={formatOpportunityStage(opportunity.stage)}
+                          label={formatarEtapaOportunidade(opportunity.stage)}
                           sx={{
                             height: 32,
                             borderRadius: "9px",

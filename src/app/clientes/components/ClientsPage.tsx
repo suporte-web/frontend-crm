@@ -1,6 +1,10 @@
 "use client";
 
+import { getCadastrosResumos as getCrmClientSummaries, criarCadastro, type ModalidadeCadastro } from "@/services/cadastros.service";
+
 import { IdentificacaoProspeccao } from "@/components/crm/prospeccao-consultora";
+import { CamposComplementaresCadastro } from "@/components/cadastros/campos-complementares-cadastro";
+import { type LeadFunnelStage } from "@/constants/lead-funnel";
 import { hasAnyRole } from "@/lib/user-roles";
 import Link from "next/link";
 import { useEffect, useMemo, useState } from "react";
@@ -55,8 +59,6 @@ import { useAuth } from "@/context/auth-context";
 import {
   decideClientDeletionRequest,
   getClientDeletionRequests,
-  getCrmClientSummaries,
-  createClient,
   requestClientDeletion,
   uploadClientDocuments,
 } from "@/services/crm.service";
@@ -323,6 +325,11 @@ export default function ClientsPage() {
   const [loading, setLoading] = useState(true);
   const [pageError, setPageError] = useState("");
   const [search, setSearch] = useState("");
+  const [modalidadeFiltro, setModalidadeFiltro] = useState("");
+  const [modalidadeNovo, setModalidadeNovo] = useState<ModalidadeCadastro>("CLIENTE");
+  const [etapaNovo, setEtapaNovo] = useState<LeadFunnelStage>("venda_efetivada");
+  const [fotoNovo, setFotoNovo] = useState("");
+  const [comerciaisNovo, setComerciaisNovo] = useState({ proximaAcao: "", responsavel: "", volumeMensalEstimado: "" });
   const [statusFilter, setStatusFilter] = useState<"TODOS" | LeadStatus>(
     "TODOS",
   );
@@ -350,7 +357,7 @@ export default function ClientsPage() {
     message: string;
     variant: "success" | "error";
   } | null>(null);
-  const canDeleteDirectly = ["ADMIN", "GESTAO", "COMERCIAL"].includes(user?.role ?? "");
+  const canDeleteDirectly = hasAnyRole(user, ["ADMIN", "GESTAO", "COMERCIAL"]);
   const canDecideDeletion = ["ADMIN", "GESTAO", "COMERCIAL"].includes(user?.role ?? "");
   const canManageClients = user?.role
     ? hasAnyRole(user, ["ADMIN", "GESTAO", "COMERCIAL", "CONSULTORA"])
@@ -409,7 +416,7 @@ export default function ClientsPage() {
             .toLowerCase()
             .includes(query);
 
-        return matchesStatus && matchesSearch;
+        return matchesStatus && matchesSearch && (!modalidadeFiltro || client.modalidadeCadastro === modalidadeFiltro);
       })
       .sort((first, second) =>
         getClientDisplayName(first).localeCompare(
@@ -418,7 +425,7 @@ export default function ClientsPage() {
           { sensitivity: "base" },
         ),
       );
-  }, [clients, search, statusFilter]);
+  }, [clients, search, statusFilter, modalidadeFiltro]);
 
   const totalPages = Math.max(
     1,
@@ -441,7 +448,7 @@ export default function ClientsPage() {
 
   useEffect(() => {
     setPage(1);
-  }, [rowsPerPage, search, statusFilter]);
+  }, [rowsPerPage, search, statusFilter, modalidadeFiltro]);
 
   useEffect(() => {
     if (page > totalPages) {
@@ -450,7 +457,7 @@ export default function ClientsPage() {
   }, [page, totalPages]);
 
   const summary = useMemo(() => {
-    const active = clients.filter((client) => client.status === "ATIVO").length;
+    const active = clients.filter((client) => client.status === "ATIVO" && client.modalidadeCadastro !== "LEAD").length;
     const pending = clients.filter(
       (client) => client.status === "PENDENTE",
     ).length;
@@ -631,9 +638,11 @@ export default function ClientsPage() {
 
     try {
       setSaving(true);
-      const createdClient = await createClient(
+      const createdClient = await criarCadastro(
         {
           name: displayName,
+          notes: form.notes.trim() || undefined,
+          address: fullAddress || form.address.trim() || undefined,
           companyName:
             form.companyName.trim() ||
             form.tradeName.trim() ||
@@ -641,7 +650,7 @@ export default function ClientsPage() {
             displayName,
           legalName: form.legalName.trim() || undefined,
           tradeName: form.tradeName.trim() || undefined,
-          phone: primaryContact?.phone || undefined,
+          phone: primaryContact?.phone || form.phone.trim() || undefined,
           document: form.document.trim() || undefined,
           cnae: form.cnae.trim() || undefined,
           stateRegistration: form.stateRegistration.trim() || undefined,
@@ -654,10 +663,14 @@ export default function ClientsPage() {
           segment:
             form.segment.trim() || form.businessActivity.trim() || undefined,
           status: form.status,
+          etapaFunil: etapaNovo,
+          fotoUrl: fotoNovo,
+          ...comerciaisNovo,
           internalOwnerId: user?.id,
           contacts: validContacts,
         },
         token,
+        modalidadeNovo,
       );
 
       const clientId =
@@ -686,15 +699,17 @@ export default function ClientsPage() {
 
       setToast({
         title: documentUploadFailed
-          ? "Cliente criado com aviso"
-          : "Cliente criado",
+          ? "Cadastro criado com aviso"
+          : "Cadastro criado",
         message: documentUploadFailed
           ? "O cliente foi criado, mas um ou mais documentos não foram anexados."
-          : "Novo cliente registrado na base com os documentos.",
+          : "Novo cadastro registrado na base com os documentos.",
         variant: documentUploadFailed ? "error" : "success",
       });
 
       setForm(initialClientForm);
+      setFotoNovo("");
+      setComerciaisNovo({ proximaAcao: "", responsavel: "", volumeMensalEstimado: "" });
       setContacts([emptyClientContact()]);
       setDocumentFiles([]);
       setIsModalOpen(false);
@@ -804,8 +819,8 @@ export default function ClientsPage() {
       <CrmPageShell>
         <CrmPageHeader
           eyebrow="CRM"
-          title="Gestão de clientes"
-          description="Base de clientes do sistema."
+          title="Cadastros"
+          description="Clientes e Leads em uma única base, com contatos, documentos e acompanhamento comercial."
           icon={<UsersRound size={30} />}
           aside={
             <Stack
@@ -861,7 +876,7 @@ export default function ClientsPage() {
                     },
                   }}
                 >
-                  Novo cliente
+                  Novo cadastro
                 </Button>
               ) : null}
             </Stack>
@@ -878,56 +893,56 @@ export default function ClientsPage() {
             },
             gap: 2,
             alignItems: "stretch",
+          }}
+        >
+          <CrmKpiCard
+            title="Total de cadastros"
+            value={summary.total}
+            icon={<UsersRound size={22} />}
+            accent="#ff5805"
+            softColor="#ff58051a"
+            sx={{
+              minHeight: 140,
+              height: "100%",
             }}
-          >
-            <CrmKpiCard
-              title="Total de clientes"
-              value={summary.total}
-              icon={<UsersRound size={22} />}
-              accent="#ff5805"
-              softColor="#ff58051a"
-              sx={{
-                minHeight: 140,
-                height: "100%",
-              }}
-            />
+          />
 
-            <CrmKpiCard
-              title="Clientes ativos"
-              value={summary.active}
-              icon={<UsersRound size={22} />}
-              accent="#f59e0b"
-              softColor="#f59e0b1a"
-              sx={{
-                minHeight: 140,
-                height: "100%",
-              }}
-            />
+          <CrmKpiCard
+            title="Clientes ativos"
+            value={summary.active}
+            icon={<UsersRound size={22} />}
+            accent="#f59e0b"
+            softColor="#f59e0b1a"
+            sx={{
+              minHeight: 140,
+              height: "100%",
+            }}
+          />
 
-            <CrmKpiCard
-              title="Pendentes"
-              value={summary.pending}
-              icon={<UsersRound size={22} />}
-              accent="#f97316"
-              softColor="#f973161a"
-              sx={{
-                minHeight: 140,
-                height: "100%",
-              }}
-            />
+          <CrmKpiCard
+            title="Pendentes"
+            value={summary.pending}
+            icon={<UsersRound size={22} />}
+            accent="#f97316"
+            softColor="#f973161a"
+            sx={{
+              minHeight: 140,
+              height: "100%",
+            }}
+          />
 
-            <CrmKpiCard
-              title="Novos no mês"
-              value={summary.newThisMonth}
-              icon={<PlusCircle size={22} />}
-              accent="#ef4444"
-              softColor="#ef44441a"
-              sx={{
-                minHeight: 140,
-                height: "100%",
-              }}
-            />
-          </Box>
+          <CrmKpiCard
+            title="Novos no mês"
+            value={summary.newThisMonth}
+            icon={<PlusCircle size={22} />}
+            accent="#ef4444"
+            softColor="#ef44441a"
+            sx={{
+              minHeight: 140,
+              height: "100%",
+            }}
+          />
+        </Box>
 
         {canDecideDeletion && pendingDeletionRequests.length > 0 ? (
           <CrmSection
@@ -971,11 +986,10 @@ export default function ClientsPage() {
               </Box>
 
               <Chip
-                label={`${pendingDeletionRequests.length} ${
-                  pendingDeletionRequests.length === 1
-                    ? "solicitação"
-                    : "solicitações"
-                }`}
+                label={`${pendingDeletionRequests.length} ${pendingDeletionRequests.length === 1
+                  ? "solicitação"
+                  : "solicitações"
+                  }`}
                 size="small"
                 sx={{
                   height: 28,
@@ -1161,7 +1175,7 @@ export default function ClientsPage() {
             <Box>
               <Typography
                 sx={{
-                   color: "#000000",
+                  color: "#000000",
                   fontSize: 12,
                   fontWeight: 900,
                   letterSpacing: ".16em",
@@ -1170,7 +1184,7 @@ export default function ClientsPage() {
               >
                 Base comercial
               </Typography>
-            
+
             </Box>
 
             <Box
@@ -1178,12 +1192,14 @@ export default function ClientsPage() {
                 width: "100%",
                 display: "grid",
                 gap: 1.5,
+
                 gridTemplateColumns: {
                   xs: "1fr",
                   sm: "repeat(2, minmax(0, 1fr))",
-                  lg: "minmax(260px, 2fr) minmax(170px, 1fr)",
+                  md: "minmax(0, 2fr) repeat(2, minmax(0, 1fr))",
                 },
-                alignItems: "end",
+                alignItems: "center",
+
               }}
             >
               <TextField
@@ -1221,6 +1237,24 @@ export default function ClientsPage() {
                 <MenuItem value="PENDENTE">Pendente</MenuItem>
                 <MenuItem value="INATIVO">Inativo</MenuItem>
               </TextField>
+
+
+              <TextField
+                select
+                size="small"
+                fullWidth
+                label="Modalidade"
+                value={modalidadeFiltro}
+                onChange={(event) =>
+                  setModalidadeFiltro(event.target.value)
+                }
+                sx={filterFieldSx}
+              >
+                <MenuItem value="">Todos os cadastros</MenuItem>
+                <MenuItem value="CLIENTE">Clientes</MenuItem>
+                <MenuItem value="LEAD">Leads</MenuItem>
+              </TextField>
+
             </Box>
           </Stack>
         </CrmSection>
@@ -1265,7 +1299,7 @@ export default function ClientsPage() {
                   lineHeight: 1.2,
                 }}
               >
-                Base de clientes
+                Base de cadastros
               </Typography>
 
               <Typography
@@ -1276,7 +1310,7 @@ export default function ClientsPage() {
                   lineHeight: 1.4,
                 }}
               >
-                {filteredClients.length} cliente(s) encontrados
+                {filteredClients.length} cadastro(s) encontrado(s)
               </Typography>
             </Box>
           </Stack>
@@ -1299,7 +1333,7 @@ export default function ClientsPage() {
                   fontWeight: 700,
                 }}
               >
-                Carregando clientes...
+                Carregando cadastros...
               </Typography>
             </Stack>
           ) : pageError ? (
@@ -1308,199 +1342,229 @@ export default function ClientsPage() {
             </Box>
           ) : (
             <>
-            {filteredClients.length === 0 ? (
-              <Box sx={{ p: { xs: 2, md: 3 } }}>
-                <Alert severity="info">
-                  Nenhum cliente encontrado com os filtros atuais.
-                </Alert>
-              </Box>
-            ) : (
-              <Stack spacing={1.5} sx={{ p: { xs: 2, md: 2.5 } }}>
-                {paginatedClients.map((client) => {
-                  return (
-                    <Paper
-                      key={client.id}
-                      elevation={0}
-                      sx={{
-                        p: { xs: 2, md: 2.25 },
-                        border: `1px solid ${crmPalette.border}`,
-                        borderRadius: "14px",
-                        bgcolor: "#ffffff",
-                        transition:
-                          "border-color 160ms ease, box-shadow 160ms ease, transform 160ms ease",
+              {filteredClients.length === 0 ? (
+                <Box sx={{ p: { xs: 2, md: 3 } }}>
+                  <Alert severity="info">
+                    Nenhum cliente encontrado com os filtros atuais.
+                  </Alert>
+                </Box>
+              ) : (
+                <Stack spacing={1.5} sx={{ p: { xs: 2, md: 2.5 } }}>
+                  {paginatedClients.map((client) => {
+                    return (
+                      <Paper
+                        key={client.id}
+                        elevation={0}
+                        sx={{
+                          p: { xs: 2, md: 2.25 },
+                          border: `1px solid ${crmPalette.border}`,
+                          borderRadius: "14px",
+                          bgcolor: "#ffffff",
+                          transition:
+                            "border-color 160ms ease, box-shadow 160ms ease, transform 160ms ease",
 
-                        "&:hover": {
-                          transform: "translateY(-1px)",
-                          borderColor: "rgba(255,77,0,0.35)",
-                          boxShadow: "0 16px 36px rgba(15,23,42,0.08)",
+                          "&:hover": {
+                            transform: "translateY(-1px)",
+                            borderColor: "rgba(255,77,0,0.35)",
+                            boxShadow: "0 16px 36px rgba(15,23,42,0.08)",
+                          },
+                        }}
+                      >
+                        <Box
+                          sx={{
+                            display: "grid",
+                            gap: 2,
+                            gridTemplateColumns: {
+                              xs: "1fr",
+                              lg: "1.6fr .8fr .8fr 1fr auto",
+                            },
+                            alignItems: "center",
+                          }}
+                        >
+                          <Box sx={{ minWidth: 0 }}>
+                            <Typography sx={{ color: "#020617", fontSize: 16, fontWeight: 900 }}>
+                              {getClientDisplayName(client)}
+                            </Typography>
+
+                            <Chip
+                              label={
+                                client.modalidadeCadastro === "LEAD"
+                                  ? "Lead"
+                                  : "Cliente"
+                              }
+                              size="small"
+                              sx={{
+                                height: 24,
+                                borderRadius: "7px",
+                                fontSize: 11,
+                                fontWeight: 800,
+
+                                bgcolor:
+                                  client.modalidadeCadastro === "LEAD"
+                                    ? "#dbeafe"
+                                    : "#dcfce7",
+
+                                color:
+                                  client.modalidadeCadastro === "LEAD"
+                                    ? "#1d4ed8"
+                                    : "#15803d",
+
+                                border:
+                                  client.modalidadeCadastro === "LEAD"
+                                    ? "1px solid #bfdbfe"
+                                    : "1px solid #bbf7d0",
+                              }}
+                            />
+
+                            {client.email ? (
+                              <Typography
+                                sx={{
+                                  mt: 0.5,
+                                  color: "text.secondary",
+                                  fontSize: 13,
+                                  overflowWrap: "anywhere",
+                                }}
+                              >
+                                {client.email}
+                              </Typography>
+                            ) : null}
+                            {client.company && client.company !== getClientDisplayName(client) ? (
+                              <Typography sx={{ mt: 0.25, color: "text.disabled", fontSize: 13 }}>
+                                {client.company}
+                              </Typography>
+                            ) : null}
+                          </Box>
+
+                          <Box>
+                            <Typography sx={{ color: crmPalette.muted, fontSize: 11, fontWeight: 900, letterSpacing: ".12em", textTransform: "uppercase" }}>
+                              CNPJ
+                            </Typography>
+                            <Typography sx={{ mt: 0.75, color: crmPalette.text, fontSize: 13, fontWeight: 800 }}>
+                              {client.document || "-"}
+                            </Typography>
+                          </Box>
+
+                          <Box>
+                            <Typography sx={{ color: crmPalette.muted, fontSize: 11, fontWeight: 900, letterSpacing: ".12em", textTransform: "uppercase" }}>
+                              Cidade
+                            </Typography>
+                            <Typography sx={{ mt: 0.75, color: crmPalette.text, fontSize: 13, fontWeight: 800 }}>
+                              {client.city || "-"}
+                            </Typography>
+                          </Box>
+
+                          <Box sx={{ minWidth: 0 }}>
+                            <Typography sx={{ color: crmPalette.muted, fontSize: 11, fontWeight: 900, letterSpacing: ".12em", textTransform: "uppercase" }}>
+                              Segmento
+                            </Typography>
+                            <Typography
+                              sx={{
+                                mt: 0.75,
+                                color: crmPalette.text,
+                                fontSize: 13,
+                                lineHeight: 1.5,
+                                display: "-webkit-box",
+                                WebkitLineClamp: 2,
+                                WebkitBoxOrient: "vertical",
+                                overflow: "hidden",
+                              }}
+                            >
+                              {client.segment || "-"}
+                            </Typography>
+                          </Box>
+
+                          <Stack direction="row" spacing={1} sx={{ justifyContent: "flex-end" }}>
+                            <Button
+                              component={Link}
+                              href={`/cadastros/${client.id}`}
+                              type="button"
+                              variant="outlined"
+                              endIcon={<ArrowRight size={16} />}
+                              sx={{
+                                borderRadius: "10px",
+                                fontWeight: 800,
+                                textTransform: "none",
+                              }}
+                            >
+                              Detalhes
+                            </Button>
+                          </Stack>
+                        </Box>
+                      </Paper>
+                    );
+                  })}
+                </Stack>
+              )}
+              {filteredClients.length > 0 ? (
+                <Stack
+                  direction={{ xs: "column", md: "row" }}
+                  spacing={1.5}
+                  sx={{
+                    px: 2,
+                    py: 1.5,
+                    alignItems: { xs: "stretch", md: "center" },
+                    justifyContent: "space-between",
+                    borderTop: `1px solid ${crmPalette.border}`,
+                    bgcolor: "#ffffff",
+                  }}
+                >
+                  <Typography
+                    sx={{
+                      color: crmPalette.muted,
+                      fontSize: 13,
+                      fontWeight: 700,
+                    }}
+                  >
+                    Mostrando {paginationStart}-{paginationEnd} de{" "}
+                    {filteredClients.length}
+                  </Typography>
+
+                  <Stack
+                    direction={{ xs: "column", sm: "row" }}
+                    spacing={1.25}
+                    sx={{ alignItems: { xs: "stretch", sm: "center" } }}
+                  >
+                    <TextField
+                      select
+                      size="small"
+                      label="Por página"
+                      value={rowsPerPage}
+                      onChange={(event) =>
+                        setRowsPerPage(Number(event.target.value))
+                      }
+                      sx={{
+                        minWidth: 132,
+                        "& .MuiOutlinedInput-root": {
+                          borderRadius: "10px",
+                          fontSize: 13,
+                          fontWeight: 800,
+                        },
+                        "& .MuiInputLabel-root": {
+                          fontSize: 12,
+                          fontWeight: 800,
                         },
                       }}
                     >
-                      <Box
-                        sx={{
-                          display: "grid",
-                          gap: 2,
-                          gridTemplateColumns: {
-                            xs: "1fr",
-                            lg: "1.6fr .8fr .8fr 1fr auto",
-                          },
-                          alignItems: "center",
-                        }}
-                      >
-                        <Box sx={{ minWidth: 0 }}>
-                          <Typography sx={{ color: "#020617", fontSize: 16, fontWeight: 900 }}>
-                            {getClientDisplayName(client)}
-                          </Typography>
-                          <IdentificacaoProspeccao registro={client}/>
-                          {client.email ? (
-                            <Typography
-                              sx={{
-                                mt: 0.5,
-                                color: "text.secondary",
-                                fontSize: 13,
-                                overflowWrap: "anywhere",
-                              }}
-                            >
-                              {client.email}
-                            </Typography>
-                          ) : null}
-                          {client.company && client.company !== getClientDisplayName(client) ? (
-                            <Typography sx={{ mt: 0.25, color: "text.disabled", fontSize: 13 }}>
-                              {client.company}
-                            </Typography>
-                          ) : null}
-                        </Box>
+                      {PAGE_SIZE_OPTIONS.map((option) => (
+                        <MenuItem key={option} value={option}>
+                          {option}
+                        </MenuItem>
+                      ))}
+                    </TextField>
 
-                        <Box>
-                          <Typography sx={{ color: crmPalette.muted, fontSize: 11, fontWeight: 900, letterSpacing: ".12em", textTransform: "uppercase" }}>
-                            CNPJ
-                          </Typography>
-                          <Typography sx={{ mt: 0.75, color: crmPalette.text, fontSize: 13, fontWeight: 800 }}>
-                            {client.document || "-"}
-                          </Typography>
-                        </Box>
-
-                        <Box>
-                          <Typography sx={{ color: crmPalette.muted, fontSize: 11, fontWeight: 900, letterSpacing: ".12em", textTransform: "uppercase" }}>
-                            Cidade
-                          </Typography>
-                          <Typography sx={{ mt: 0.75, color: crmPalette.text, fontSize: 13, fontWeight: 800 }}>
-                            {client.city || "-"}
-                          </Typography>
-                        </Box>
-
-                        <Box sx={{ minWidth: 0 }}>
-                          <Typography sx={{ color: crmPalette.muted, fontSize: 11, fontWeight: 900, letterSpacing: ".12em", textTransform: "uppercase" }}>
-                            Segmento
-                          </Typography>
-                          <Typography
-                            sx={{
-                              mt: 0.75,
-                              color: crmPalette.text,
-                              fontSize: 13,
-                              lineHeight: 1.5,
-                              display: "-webkit-box",
-                              WebkitLineClamp: 2,
-                              WebkitBoxOrient: "vertical",
-                              overflow: "hidden",
-                            }}
-                          >
-                            {client.segment || "-"}
-                          </Typography>
-                        </Box>
-
-                        <Stack direction="row" spacing={1} sx={{ justifyContent: "flex-end" }}>
-                          <Button
-                            component={Link}
-                            href={`/clientes/${client.id}`}
-                            type="button"
-                            variant="outlined"
-                            endIcon={<ArrowRight size={16} />}
-                            sx={{
-                              borderRadius: "10px",
-                              fontWeight: 800,
-                              textTransform: "none",
-                            }}
-                          >
-                            Detalhes
-                          </Button>
-                        </Stack>
-                      </Box>
-                    </Paper>
-                  );
-                })}
-              </Stack>
-            )}
-            {filteredClients.length > 0 ? (
-              <Stack
-                direction={{ xs: "column", md: "row" }}
-                spacing={1.5}
-                sx={{
-                  px: 2,
-                  py: 1.5,
-                  alignItems: { xs: "stretch", md: "center" },
-                  justifyContent: "space-between",
-                  borderTop: `1px solid ${crmPalette.border}`,
-                  bgcolor: "#ffffff",
-                }}
-              >
-                <Typography
-                  sx={{
-                    color: crmPalette.muted,
-                    fontSize: 13,
-                    fontWeight: 700,
-                  }}
-                >
-                  Mostrando {paginationStart}-{paginationEnd} de{" "}
-                  {filteredClients.length}
-                </Typography>
-
-                <Stack
-                  direction={{ xs: "column", sm: "row" }}
-                  spacing={1.25}
-                  sx={{ alignItems: { xs: "stretch", sm: "center" } }}
-                >
-                  <TextField
-                    select
-                    size="small"
-                    label="Por página"
-                    value={rowsPerPage}
-                    onChange={(event) =>
-                      setRowsPerPage(Number(event.target.value))
-                    }
-                    sx={{
-                      minWidth: 132,
-                      "& .MuiOutlinedInput-root": {
-                        borderRadius: "10px",
-                        fontSize: 13,
-                        fontWeight: 800,
-                      },
-                      "& .MuiInputLabel-root": {
-                        fontSize: 12,
-                        fontWeight: 800,
-                      },
-                    }}
-                  >
-                    {PAGE_SIZE_OPTIONS.map((option) => (
-                      <MenuItem key={option} value={option}>
-                        {option}
-                      </MenuItem>
-                    ))}
-                  </TextField>
-
-                  <Pagination
-                    page={page}
-                    count={totalPages}
-                    onChange={(_, nextPage) => setPage(nextPage)}
-                    color="primary"
-                    shape="rounded"
-                    size="small"
-                    siblingCount={1}
-                    boundaryCount={1}
-                  />
+                    <Pagination
+                      page={page}
+                      count={totalPages}
+                      onChange={(_, nextPage) => setPage(nextPage)}
+                      color="primary"
+                      shape="rounded"
+                      size="small"
+                      siblingCount={1}
+                      boundaryCount={1}
+                    />
+                  </Stack>
                 </Stack>
-              </Stack>
-            ) : null}
+              ) : null}
             </>
           )}
         </CrmSection>
@@ -1539,29 +1603,19 @@ export default function ClientsPage() {
               }}
             >
               <Box>
-                <Typography
-                  sx={{
-                    color: crmPalette.orangeDark,
-                    fontSize: 10,
-                    fontWeight: 900,
-                    letterSpacing: ".16em",
-                    textTransform: "uppercase",
-                  }}
-                >
-                  Novo cliente
-                </Typography>
+
 
                 <Typography
                   component="h2"
                   sx={{
                     mt: 0.5,
                     color: crmPalette.text,
-                    fontSize: { xs: 21, md: 25 },
-                    fontWeight: 900,
+                    fontSize: { xs: 20, md: 22 },
+                    fontWeight: 700,
                     lineHeight: 1.2,
                   }}
                 >
-                  Cadastro completo do cliente
+                  Novo cadastro
                 </Typography>
 
                 <Typography
@@ -1600,11 +1654,12 @@ export default function ClientsPage() {
           <DialogContent
             sx={{
               px: { xs: 2.5, md: 3 },
-              py: 3,
+              py: 2.5,
               bgcolor: "#f8fafc",
             }}
           >
             <ClientForm
+              camposIniciais={<CamposComplementaresCadastro modalidade={modalidadeNovo} setModalidade={modalidade => { setModalidadeNovo(modalidade); setEtapaNovo(modalidade === "CLIENTE" ? "venda_efetivada" : "entrada_leads"); }} etapa={etapaNovo} setEtapa={setEtapaNovo} comerciais={comerciaisNovo} setComerciais={setComerciaisNovo} foto={fotoNovo} setFoto={setFotoNovo} desabilitado={saving || searchingCnpj} />}
               form={form}
               setForm={setForm}
               contacts={contacts}

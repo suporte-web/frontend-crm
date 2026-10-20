@@ -1,5 +1,7 @@
 "use client";
 
+import { EditarCadastroDialog } from "@/components/cadastros/editar-cadastro-dialog";
+import { ModalidadeCadastro } from "@/components/cadastros/modalidade-cadastro";
 import { hasAnyRole } from "@/lib/user-roles";
 import Link from "next/link";
 import { useRouter, useSearchParams } from "next/navigation";
@@ -31,16 +33,16 @@ import { VisualizadorDocumento } from "@/components/anexos/VisualizadorDocumento
 import { API_BASE_URL } from "@/services/api";
 import {
   addClientContact as createClientContactRecord,
-  createOpportunity,
-  deleteOpportunity,
+  criarOportunidade,
+  excluirOportunidade,
   deleteClientContact,
-  deleteOpportunityProposalDocument,
+  excluirDocumentoPropostaOportunidade,
   getCrmLeadById,
   updateClient,
   updateClientContactRecord,
-  updateOpportunity,
+  atualizarOportunidade,
   uploadClientDocuments,
-  uploadOpportunityProposalDocuments,
+  enviarDocumentosPropostaOportunidade,
   requestClientDeletion,
 
 } from "@/services/crm.service";
@@ -53,7 +55,6 @@ import { CabecalhoSecao } from "./detalhes-cliente/detalhes-cliente-compartilhad
 import { AbasDetalhesCliente } from "./detalhes-cliente/AbasDetalhesCliente";
 import { AbaDocumentosCliente } from "./detalhes-cliente/AbaDocumentosCliente";
 import { AbaOportunidadePropostaCliente } from "./detalhes-cliente/AbaOportunidadePropostaCliente";
-import { AbaVisaoGeralCliente } from "./detalhes-cliente/AbaVisaoGeralCliente";
 import {
   OPPORTUNITY_PROPOSAL_DOCUMENT_CATEGORY,
   montarEnderecoCliente,
@@ -84,12 +85,14 @@ import type {
 
 export default function PaginaDetalhesCliente({
   params,
+  somenteOportunidades = false,
 }: {
   params: Promise<{ id: string }>;
+  somenteOportunidades?: boolean;
 }) {
   const { token, user } = useAuth();
   const router = useRouter();
-  const canDeleteDirectly = ["ADMIN", "GESTAO", "COMERCIAL"].includes(user?.role ?? "");
+  const canDeleteDirectly = hasAnyRole(user, ["ADMIN", "GESTAO", "COMERCIAL"]);
   const searchParams = useSearchParams();
   const abaRecebida = searchParams.get("aba");
   const [lead, setLead] = useState<LeadDetail | null>(null);
@@ -100,6 +103,7 @@ export default function PaginaDetalhesCliente({
   const [deletionReason, setDeletionReason] = useState("");
   const [requestingDeletion, setRequestingDeletion] = useState(false);
   const [isEditingClient, setIsEditingClient] = useState(false);
+  const [edicaoCadastroAberta, setEdicaoCadastroAberta] = useState(false);
   const [activeTab, setActiveTab] = useState(0);
   const [savingClient, setSavingClient] = useState(false);
   const [clientFormError, setFormularioClienteError] = useState("");
@@ -686,7 +690,7 @@ export default function PaginaDetalhesCliente({
 
     try {
       setUploadingProposalOpportunityId(opportunityId);
-      await uploadOpportunityProposalDocuments(
+      await enviarDocumentosPropostaOportunidade(
         lead.id,
         selectedProposalFiles,
         token,
@@ -795,7 +799,7 @@ export default function PaginaDetalhesCliente({
       setOpportunityProposalError("Selecione ao menos uma opção da proposta.");
       return;
     }
-    
+
     const proposalTypeLabel =
       opportunityProposalForm.proposalType === "ARMAZENAGEM"
         ? "Armazenagem"
@@ -834,7 +838,7 @@ export default function PaginaDetalhesCliente({
     try {
       setSavingOpportunityProposal(true);
       setOpportunityProposalError("");
-      await createOpportunity(
+      await criarOportunidade(
         {
           clientId: lead.id,
           title,
@@ -980,7 +984,7 @@ export default function PaginaDetalhesCliente({
     try {
       setSavingEditingOpportunityId(opportunityId);
 
-      await updateOpportunity(
+      await atualizarOportunidade(
         opportunityId,
         {
           title,
@@ -1034,7 +1038,7 @@ export default function PaginaDetalhesCliente({
     try {
       setDeletingOpportunityId(opportunityId);
 
-      await deleteOpportunity(opportunityId, token);
+      await excluirOportunidade(opportunityId, token);
 
       if (editingOpportunityId === opportunityId) {
         setEditingOpportunityId(null);
@@ -1105,7 +1109,7 @@ export default function PaginaDetalhesCliente({
 
       const data =
         documentToDelete.category === OPPORTUNITY_PROPOSAL_DOCUMENT_CATEGORY
-          ? await deleteOpportunityProposalDocument(
+          ? await excluirDocumentoPropostaOportunidade(
             lead.id,
             documentToDelete.id,
             token,
@@ -1200,7 +1204,7 @@ export default function PaginaDetalhesCliente({
           : "A exclusão do cliente foi enviada para aprovação do Comercial ou Gestão.",
         variant: "success",
       });
-      if (result.status === "APROVADA") router.replace("/clientes");
+      if (result.status === "APROVADA") router.replace("/cadastros");
     } catch (deleteError) {
       setToast({
         title: canDeleteDirectly ? "Falha ao excluir cliente" : "Falha ao solicitar exclusão",
@@ -1216,8 +1220,8 @@ export default function PaginaDetalhesCliente({
   }
 
   function startEditingClient(nextLead: LeadDetail) {
-    setActiveTab(1);
-    setIsEditingClient(true);
+    setActiveTab(0);
+    setEdicaoCadastroAberta(true);
     setFormularioCliente(clienteParaFormularioCliente(nextLead));
     setClientContacts(contatosClienteParaFormulario(nextLead));
     setFormularioClienteError("");
@@ -1240,8 +1244,8 @@ export default function PaginaDetalhesCliente({
       setFormularioCliente,
       clientFormError,
       setFormularioClienteError,
-      isEditingClient,
-      setIsEditingClient,
+      isEditingClient: false,
+      setIsEditingClient: (valor) => setEdicaoCadastroAberta(typeof valor === "function" ? valor(false) : valor),
       savingClient,
       handleUpdateClient,
       setClientContacts,
@@ -1301,11 +1305,9 @@ export default function PaginaDetalhesCliente({
       addCustomProposalOption,
     };
 
-    if (activeTab === 0) {
-      return <AbaVisaoGeralCliente {...tabProps} />;
-    }
+    if (somenteOportunidades) { return <AbaOportunidadePropostaCliente {...tabProps} />; }
 
-    if (activeTab === 1) {
+    if (activeTab === 0 || activeTab === 1) {
       return <AbaCadastroCliente {...tabProps} />;
     }
 
@@ -1318,11 +1320,24 @@ export default function PaginaDetalhesCliente({
     }
 
     if (activeTab === 4) {
-      return <AbaOportunidadePropostaCliente {...tabProps} />;
+      return <Button component={Link} href={`/oportunidades/cadastro/${currentLead.id}`} variant="contained">Abrir oportunidades/propostas</Button>;
     }
 
     if (activeTab === 5) {
       return <AbaDocumentosCliente {...tabProps} />;
+    }
+
+    if (activeTab === 7) {
+      return token ? (
+        <ModalidadeCadastro
+          id={currentLead.id}
+          modalidade={currentLead.modalidadeCadastro || 'CLIENTE'}
+          documento={currentLead.document}
+          token={token}
+          podeEditar={canEditClient}
+          aoSalvar={reloadClient}
+        />
+      ) : null;
     }
 
     return (
@@ -1351,23 +1366,49 @@ export default function PaginaDetalhesCliente({
   return (
     <AppLayout>
       <CrmPageShell>
+        {edicaoCadastroAberta && lead && token && canEditClient && <EditarCadastroDialog cadastro={lead} token={token} aoFechar={() => setEdicaoCadastroAberta(false)} aoSalvar={async () => { await reloadClient(); setToast({ title: "Cadastro atualizado", message: "Alterações salvas com sucesso.", variant: "success" }); }} />}
         <CabecalhoDetalhesCliente
           lead={lead}
           loading={loading}
           error={error}
-          canEditClient={canEditClient}
+          canEditClient={somenteOportunidades ? false : canEditClient}
           onEditClient={() => {
             if (lead) {
               startEditingClient(lead);
             }
           }}
-          canRequestDeletion={canRequestDeletion}
+          canRequestDeletion={somenteOportunidades ? false : canRequestDeletion}
           onRequestDeletion={() => {
             setDeletionReason("");
             setDeletionDialogOpen(true);
           }}
         />
-        <AbasDetalhesCliente lead={lead} activeTab={activeTab} setActiveTab={setActiveTab} />
+        {somenteOportunidades ? (
+          <Stack
+            direction={{ xs: "column", sm: "row" }}
+            spacing={1.5}
+            sx={{
+              alignItems: { xs: "stretch", sm: "center" },
+              "& .MuiButton-root": {
+                minHeight: 40,
+                px: 2,
+                borderRadius: "8px",
+                bgcolor: "#ff5805",
+                color: "#fff",
+                fontSize: 13,
+                fontWeight: 700,
+                textTransform: "none",
+                boxShadow: "none",
+                "&:hover": { bgcolor: "#e94f00", boxShadow: "none" },
+              },
+            }}
+          >
+            <Button component={Link} href="/oportunidades" variant="contained">Todas as oportunidades</Button>
+            <Button component={Link} href={`/cadastros/${clientId}`} variant="contained">Abrir cadastro</Button>
+          </Stack>
+        ) : (
+          <AbasDetalhesCliente lead={lead} activeTab={activeTab} setActiveTab={setActiveTab} />
+        )}
 
         {lead ? (
           renderActiveTab(lead)
@@ -1379,7 +1420,7 @@ export default function PaginaDetalhesCliente({
 
             <Button
               component={Link}
-              href={`/clientes/${clientId}?aba=propostas`}
+              href={`/oportunidades/cadastro/${clientId}`}
               variant="outlined"
               startIcon={<ArrowLeft size={16} />}
               sx={{

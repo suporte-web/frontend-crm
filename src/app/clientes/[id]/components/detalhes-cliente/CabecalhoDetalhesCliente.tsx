@@ -20,6 +20,7 @@ import { alpha } from '@mui/material/styles';
 // Icones 
 
 import { useState } from 'react';
+import { moeda, valorMonetario } from '@/lib/bi-comercial';
 
 import {
   Button,
@@ -41,6 +42,8 @@ import DeleteOutlineRoundedIcon from '@mui/icons-material/DeleteOutlineRounded';
 import {
   ArrowLeft,
   Building2,
+  CalendarDays,
+  Wallet,
   Clock,
   Edit3,
   Mail,
@@ -436,6 +439,8 @@ export function CabecalhoDetalhesCliente({
                 {/* AVATAR */}
 
                 <Avatar
+                  src={lead.fotoUrl || undefined}
+                  alt={lead.company || 'Foto do cadastro'}
                   variant="rounded"
                   sx={{
                     width: {
@@ -550,7 +555,7 @@ export function CabecalhoDetalhesCliente({
                             0.7,
                         }}
                       >
-                        Cliente
+                        {lead.modalidadeCadastro === 'LEAD' ? 'Lead' : 'Cliente'}
                       </Typography>
                     </Box>
 
@@ -650,7 +655,7 @@ export function CabecalhoDetalhesCliente({
                 {/* VOLTAR */}
                 <Button
                   component={Link}
-                  href="/clientes"
+                  href="/cadastros"
                   startIcon={<ArrowLeft size={18} />}
                   sx={{
                     height: 42,
@@ -790,6 +795,7 @@ export function CabecalhoDetalhesCliente({
                   xs: '1fr',
 
                   md: 'repeat(3, minmax(0, 1fr))',
+                  xl: 'repeat(5, minmax(0, 1fr))',
                 },
 
                 gap: 1.5,
@@ -815,9 +821,7 @@ export function CabecalhoDetalhesCliente({
                   />
                 }
                 label="Responsável"
-                value={getClientCreatedBy(
-                  lead,
-                )}
+                value={lead.responsavel || getClientCreatedBy(lead)}
                 color="#2E7D32"
               />
 
@@ -831,6 +835,8 @@ export function CabecalhoDetalhesCliente({
                 )}
                 color="#A35A00"
               />
+              <HeaderSummaryItem icon={<CalendarDays size={20} />} label="Próxima ação" value={lead.proximaAcao || 'Não informada'} color="#ea580c" />
+              <HeaderSummaryItem icon={<Wallet size={20} />} label="Volume mensal estimado" value={lead.volumeMensalEstimado ? moeda(valorMonetario(lead.volumeMensalEstimado)) : 'Não informado'} color="#64748b" />
             </Box>
           </Stack>
         </Box>
