@@ -1,8 +1,12 @@
 "use client";
 
+import { FeedbackToast } from '@/components/ui/feedback-toast';
+
+import { notificarCrm } from '@/lib/feedback-crm';
+
 import Link from 'next/link';
 import { useEffect, useRef, useState } from 'react';
-import { Alert, Button, Chip, Dialog, DialogActions, DialogContent, DialogTitle, MenuItem, Paper, Stack, TextField, Typography } from '@mui/material';
+import { Button, Chip, Dialog, DialogActions, DialogContent, DialogTitle, MenuItem, Paper, Stack, TextField, Typography } from '@mui/material';
 import { useAuth } from '@/context/auth-context';
 import { hasAnyRole } from '@/lib/user-roles';
 import { direcionarCotacaoSite, listarComerciaisCotacaoSite, reprovarCotacaoSite } from '@/services/solicitacoes-site.service';
@@ -44,6 +48,7 @@ export function CotacaoSiteWorkflow({ solicitacao, onChange }: {
     try {
       const response = await work();
       onChange(response.solicitacao);
+      notificarCrm(response.solicitacao.status === 'REPROVADO' ? 'Cotação reprovada com sucesso.' : 'Cotação enviada ao Comercial com sucesso.');
       setReprovando(false);
     } catch (error: unknown) {
       setErro(error instanceof Error ? error.message : 'Não foi possível concluir a triagem.');
@@ -55,6 +60,7 @@ export function CotacaoSiteWorkflow({ solicitacao, onChange }: {
 
   if (solicitacao.tipo !== 'COTACAO') return null;
   return <Stack spacing={3}>
+    <FeedbackToast open={Boolean(erro)} title="Não foi possível concluir a triagem" message={erro} variant="error" onClose={() => setErro('')} />
     <Paper variant="outlined" sx={{ p: { xs: 2.5, md: 3.5 }, borderRadius: 3 }}>
       <Stack spacing={2}>
         <Stack direction="row" spacing={1} sx={{ alignItems: 'center', flexWrap: 'wrap', gap: 1 }}>
@@ -66,7 +72,7 @@ export function CotacaoSiteWorkflow({ solicitacao, onChange }: {
           ? 'Cotação recebida como lead do site. Analise os dados e reprove ou envie ao Comercial para criar uma oportunidade.'
           : reprovada ? 'A cotação foi reprovada na triagem e não gerou oportunidade comercial.'
           : `Responsável Comercial: ${solicitacao.responsavel?.name ?? 'Designado'}`}</Typography>
-        {erro && !reprovando ? <Alert severity="error">{erro}</Alert> : null}
+
         {solicitacao.motivoReprovacao ? <Typography sx={{ whiteSpace: 'pre-wrap' }}>Motivo: {solicitacao.motivoReprovacao}</Typography> : null}
         {triagem && pendente ? <>
           <TextField select label="Comercial responsável" value={responsavelId} onChange={event => setResponsavelId(event.target.value)}
@@ -98,7 +104,7 @@ export function CotacaoSiteWorkflow({ solicitacao, onChange }: {
       <DialogTitle id="reprovar-cotacao-title">Reprovar cotação</DialogTitle>
       <DialogContent dividers><Stack spacing={2}>
         <Typography>O lead e o histórico serão preservados. Esta ação não envia a cotação ao Comercial.</Typography>
-        {erro ? <Alert severity="error">{erro}</Alert> : null}
+
         <TextField label="Motivo da reprovação" required multiline minRows={3} value={motivo} disabled={ocupado}
           onChange={event => setMotivo(event.target.value)} slotProps={{ htmlInput: { maxLength: 2000 } }} />
       </Stack></DialogContent>

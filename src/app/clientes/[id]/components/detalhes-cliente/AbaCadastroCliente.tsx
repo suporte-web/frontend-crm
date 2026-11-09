@@ -5,29 +5,40 @@ import Alert from "@mui/material/Alert";
 import Box from "@mui/material/Box";
 import Button from "@mui/material/Button";
 import CircularProgress from "@mui/material/CircularProgress";
-import Divider from "@mui/material/Divider";
 import MenuItem from "@mui/material/MenuItem";
-import Paper from "@mui/material/Paper";
 import Stack from "@mui/material/Stack";
 import TextField from "@mui/material/TextField";
 import Typography from "@mui/material/Typography";
-import { Building2, FileText, MapPin, ReceiptText, Save, StickyNote } from "lucide-react";
+import {
+  Building2,
+  FileText,
+  MapPin,
+  ReceiptText,
+  Save,
+  StickyNote,
+} from "lucide-react";
 import { CrmSection } from "@/components/mui/crm-primitives";
 import { formatLeadStatus } from "@/services/crm.service";
 import type { LeadStatus } from "@/types/crm";
 import {
-  CabecalhoSecao,
   UF_OPTIONS,
   clienteParaFormularioCliente,
   formatarData,
 } from "./detalhes-cliente-compartilhado";
-import type { FormularioCliente, PropriedadesAbaDetalhesCliente } from "./detalhes-cliente-compartilhado";
+import type {
+  FormularioCliente,
+  PropriedadesAbaDetalhesCliente,
+} from "./detalhes-cliente-compartilhado";
 
 const laranja = "#ff5805";
 const gradeCamposSx = {
   display: "grid",
-  gridTemplateColumns: { xs: "minmax(0, 1fr)", sm: "repeat(2, minmax(0, 1fr))" },
-  gap: 2,
+  gridTemplateColumns: {
+    xs: "minmax(0, 1fr)",
+    sm: "repeat(2, minmax(0, 1fr))",
+  },
+  rowGap: 2.5,
+  columnGap: 3,
   alignItems: "start",
 };
 const campoSx = {
@@ -66,7 +77,10 @@ type CampoFormulario = {
 const regimes: OpcaoCampo[] = [
   { valor: "", rotulo: "Selecione" },
   { valor: "SIMPLES_NACIONAL", rotulo: "Simples Nacional" },
-  { valor: "SIMPLES_NACIONAL_EXCESSO_SUBLIMITE", rotulo: "Simples Nacional — excesso de sublimite" },
+  {
+    valor: "SIMPLES_NACIONAL_EXCESSO_SUBLIMITE",
+    rotulo: "Simples Nacional — excesso de sublimite",
+  },
   { valor: "REGIME_NORMAL", rotulo: "Regime Normal" },
   { valor: "MEI", rotulo: "MEI" },
 ];
@@ -93,11 +107,15 @@ const comercial: CampoFormulario[] = [
   { chave: "segment", rotulo: "Segmento" },
   { chave: "phone", rotulo: "Telefone", tipo: "tel" },
   { chave: "registrationDate", rotulo: "Data do cadastro", tipo: "date" },
-  { chave: "status", rotulo: "Status", opcoes: [
-    { valor: "PENDENTE", rotulo: "Pendente" },
-    { valor: "ATIVO", rotulo: "Ativo" },
-    { valor: "INATIVO", rotulo: "Inativo" },
-  ] },
+  {
+    chave: "status",
+    rotulo: "Status",
+    opcoes: [
+      { valor: "PENDENTE", rotulo: "Pendente" },
+      { valor: "ATIVO", rotulo: "Ativo" },
+      { valor: "INATIVO", rotulo: "Inativo" },
+    ],
+  },
 ];
 const endereco: CampoFormulario[] = [
   { chave: "zipCode", rotulo: "CEP" },
@@ -106,122 +124,336 @@ const endereco: CampoFormulario[] = [
   { chave: "complement", rotulo: "Complemento" },
   { chave: "neighborhood", rotulo: "Bairro" },
   { chave: "city", rotulo: "Cidade" },
-  { chave: "state", rotulo: "UF", opcoes: UF_OPTIONS.map(uf => ({ valor: uf, rotulo: uf })) },
+  {
+    chave: "state",
+    rotulo: "UF",
+    opcoes: UF_OPTIONS.map((uf) => ({ valor: uf, rotulo: uf })),
+  },
 ];
 
-function SecaoCadastro({ titulo, descricao, icone, ampla = false, children }: {
-  titulo: string; descricao: string; icone: ReactNode; ampla?: boolean; children: ReactNode;
+function SecaoCadastro({
+  titulo,
+  descricao,
+  icone,
+  ampla = false,
+  children,
+}: {
+  titulo: string;
+  descricao: string;
+  icone: ReactNode;
+  ampla?: boolean;
+  children: ReactNode;
 }) {
   return (
-    <Paper component="section" elevation={0} sx={{
-      p: { xs: 2, md: 2.5 }, minWidth: 0, border: "1px solid #e2e8f0",
-      borderRadius: "14px", bgcolor: "#fff", boxShadow: "none",
-      ...(ampla ? { gridColumn: "1 / -1" } : {}),
-    }}>
-      <Stack direction="row" spacing={1.25} sx={{ alignItems: "center", mb: 2 }}>
-        <Box sx={{ display: "flex", color: "#64748b", "& svg": { width: 20, height: 20, strokeWidth: 1.8 } }}>{icone}</Box>
+    <Box
+      component="section"
+      sx={{
+        pt: { xs: 2.5, md: 3 },
+        pb: 1,
+        minWidth: 0,
+        borderTop: `2px solid ${laranja}`,
+        ...(ampla ? { gridColumn: "1 / -1" } : {}),
+      }}
+    >
+      <Stack
+        direction="row"
+        spacing={1}
+        sx={{ alignItems: "center", mb: 2.5 }}
+      >
+        <Box
+          sx={{
+            display: "flex",
+            color: "#94a3b8",
+            "& svg": { width: 16, height: 16, strokeWidth: 1.6 },
+          }}
+        >
+          {icone}
+        </Box>
         <Box sx={{ minWidth: 0 }}>
-          <Typography component="h3" sx={{ color: "#1f2937", fontSize: 16, fontWeight: 700 }}>{titulo}</Typography>
-          <Typography sx={{ color: "#64748b", fontSize: 12.5, mt: 0.25 }}>{descricao}</Typography>
+          <Typography
+            component="h3"
+            sx={{ color: "#1f2937", fontSize: 14, fontWeight: 600 }}
+          >
+            {titulo}
+          </Typography>
+          <Typography sx={{ color: "#64748b", fontSize: 12, mt: 0.25 }}>
+            {descricao}
+          </Typography>
         </Box>
       </Stack>
-      <Divider sx={{ mb: 2, borderColor: "#f1f5f9" }} />
       {children}
-    </Paper>
+    </Box>
   );
 }
 
 export function AbaCadastroCliente(props: PropriedadesAbaDetalhesCliente) {
   const {
-    currentLead, clientForm, setFormularioCliente, clientFormError,
-    isEditingClient, savingClient, handleUpdateClient,
+    currentLead,
+    clientForm,
+    setFormularioCliente,
+    clientFormError,
+    isEditingClient,
+    savingClient,
+    handleUpdateClient,
   } = props;
   const dadosCadastro = clienteParaFormularioCliente(currentLead);
 
   function atualizarCampo(chave: keyof FormularioCliente, valor: string) {
-    setFormularioCliente(current => {
-      if (chave === "taxRegime") return {
-        ...current, taxRegime: valor, taxation: valor === "REGIME_NORMAL" ? current.taxation : "",
-      };
-      if (chave === "status") return { ...current, status: valor as LeadStatus };
+    setFormularioCliente((current) => {
+      if (chave === "taxRegime")
+        return {
+          ...current,
+          taxRegime: valor,
+          taxation: valor === "REGIME_NORMAL" ? current.taxation : "",
+        };
+      if (chave === "status")
+        return { ...current, status: valor as LeadStatus };
       return { ...current, [chave]: valor };
     });
   }
 
   function renderizarCampos(campos: CampoFormulario[], ampla = false) {
     return (
-      <Box sx={{ ...gradeCamposSx, ...(ampla ? { gridTemplateColumns: { xs: "minmax(0, 1fr)", sm: "repeat(2, minmax(0, 1fr))", lg: "repeat(4, minmax(0, 1fr))" } } : {}) }}>
-        {campos.filter(campo => !isEditingClient || campo.chave !== "taxation" || clientForm.taxRegime === "REGIME_NORMAL").map(campo => {
-          const { chave, rotulo, opcoes, tipo, multiline } = campo;
-          if (isEditingClient) return (
-            <TextField
-              key={chave} fullWidth size="small" label={rotulo}
-              value={clientForm[chave]} type={tipo} select={!!opcoes}
-              required={chave === "taxation" && clientForm.taxRegime === "REGIME_NORMAL"}
-              disabled={savingClient} multiline={multiline} minRows={multiline ? 3 : undefined}
-              onChange={event => atualizarCampo(chave, event.target.value)}
-              slotProps={tipo === "date" ? { inputLabel: { shrink: true } } : undefined}
-              helperText={chave === "taxation" ? "Obrigatório para empresas do Regime Normal." : undefined}
-              sx={{ ...campoSx, ...(multiline ? { gridColumn: "1 / -1" } : {}) }}
-            >
-              {opcoes?.map(opcao => <MenuItem key={opcao.valor} value={opcao.valor}>{opcao.rotulo}</MenuItem>)}
-            </TextField>
-          );
-          let valor: string = dadosCadastro[chave] || "";
-          if (chave === "registrationDate") valor = formatarData(currentLead.registrationDate ?? currentLead.createdAt);
-          else if (chave === "status") valor = formatLeadStatus(currentLead.status);
-          else if (opcoes) valor = opcoes.find(opcao => opcao.valor === valor)?.rotulo || valor;
-          return (
-            <Box key={chave} sx={{ minWidth: 0, ...(multiline ? { gridColumn: "1 / -1" } : {}) }}>
-              <Typography sx={{ color: "#64748b", fontSize: 12, mb: 0.5 }}>{rotulo}</Typography>
-              <Typography sx={{ color: "#1f2937", fontSize: 14, fontWeight: 500, overflowWrap: "anywhere", whiteSpace: "pre-wrap", lineHeight: 1.6 }}>
-                {valor.trim() || "Não informado"}
-              </Typography>
-            </Box>
-          );
-        })}
+      <Box
+        sx={{
+          ...gradeCamposSx,
+          ...(ampla
+            ? {
+                gridTemplateColumns: {
+                  xs: "minmax(0, 1fr)",
+                  sm: "repeat(2, minmax(0, 1fr))",
+                  lg: "repeat(4, minmax(0, 1fr))",
+                },
+              }
+            : {}),
+        }}
+      >
+        {campos
+          .filter(
+            (campo) =>
+              !isEditingClient ||
+              campo.chave !== "taxation" ||
+              clientForm.taxRegime === "REGIME_NORMAL",
+          )
+          .map((campo) => {
+            const { chave, rotulo, opcoes, tipo, multiline } = campo;
+            if (isEditingClient)
+              return (
+                <TextField
+                  key={chave}
+                  fullWidth
+                  size="small"
+                  label={rotulo}
+                  value={clientForm[chave]}
+                  type={tipo}
+                  select={!!opcoes}
+                  required={
+                    chave === "taxation" &&
+                    clientForm.taxRegime === "REGIME_NORMAL"
+                  }
+                  disabled={savingClient}
+                  multiline={multiline}
+                  minRows={multiline ? 3 : undefined}
+                  onChange={(event) =>
+                    atualizarCampo(chave, event.target.value)
+                  }
+                  slotProps={
+                    tipo === "date"
+                      ? { inputLabel: { shrink: true } }
+                      : undefined
+                  }
+                  helperText={
+                    chave === "taxation"
+                      ? "Obrigatório para empresas do Regime Normal."
+                      : undefined
+                  }
+                  sx={{
+                    ...campoSx,
+                    ...(multiline ? { gridColumn: "1 / -1" } : {}),
+                  }}
+                >
+                  {opcoes?.map((opcao) => (
+                    <MenuItem key={opcao.valor} value={opcao.valor}>
+                      {opcao.rotulo}
+                    </MenuItem>
+                  ))}
+                </TextField>
+              );
+            let valor: string = dadosCadastro[chave] || "";
+            if (chave === "registrationDate")
+              valor = formatarData(
+                currentLead.registrationDate ?? currentLead.createdAt,
+              );
+            else if (chave === "status")
+              valor = formatLeadStatus(currentLead.status);
+            else if (opcoes)
+              valor =
+                opcoes.find((opcao) => opcao.valor === valor)?.rotulo || valor;
+            return (
+              <Box
+                key={chave}
+                sx={{
+                  minWidth: 0,
+                  ...(multiline ? { gridColumn: "1 / -1" } : {}),
+                }}
+              >
+                <Typography sx={{ color: "#64748b", fontSize: 12, mb: 0.75 }}>
+                  {rotulo}
+                </Typography>
+                <Typography
+                  sx={{
+                    color: "#1f2937",
+                    fontSize: 13.5,
+                    fontWeight: 500,
+                    overflowWrap: "anywhere",
+                    whiteSpace: "pre-wrap",
+                    lineHeight: 1.5,
+                  }}
+                >
+                  {valor.trim() || "Não informado"}
+                </Typography>
+              </Box>
+            );
+          })}
       </Box>
     );
   }
 
   return (
-    <CrmSection sx={{ p: { xs: 2, md: 2.5 }, border: "1px solid #e2e8f0", borderRadius: "14px", bgcolor: "#fff", boxShadow: "none" }}>
-      <Stack spacing={2.5}>
-        <CabecalhoSecao title="Cadastro" description="Informações gerais, cadastrais, fiscais e comerciais em um só lugar." />
-        <Box component={isEditingClient ? "form" : "div"} onSubmit={isEditingClient ? handleUpdateClient : undefined}>
-          {isEditingClient && clientFormError && <Alert severity="error" sx={{ mb: 2, borderRadius: "8px" }}>{clientFormError}</Alert>}
-          <Box sx={{ display: "grid", gridTemplateColumns: { xs: "minmax(0, 1fr)", md: "repeat(2, minmax(0, 1fr))" }, gap: 2, alignItems: "start" }}>
-            <SecaoCadastro titulo="Identificação" descricao="Dados da empresa e identificação cadastral." icone={<Building2 />}>
+    <CrmSection
+      sx={{
+        p: { xs: 2, md: 2.5 },
+        border: "1px solid #e2e8f0",
+        borderRadius: "12px",
+        bgcolor: "#fff",
+        boxShadow: "none",
+      }}
+    >
+      <Stack spacing={1.75}>
+        <Box>
+          <Typography
+            component="h2"
+            sx={{ color: "#1f2937", fontSize: 17, fontWeight: 600 }}
+          >
+            Cadastro
+          </Typography>
+          <Typography sx={{ mt: 0.5, color: "#64748b", fontSize: 12.5 }}>
+            Informações gerais, cadastrais, fiscais e comerciais.
+          </Typography>
+        </Box>
+        <Box
+          component={isEditingClient ? "form" : "div"}
+          onSubmit={isEditingClient ? handleUpdateClient : undefined}
+        >
+          {isEditingClient && clientFormError && (
+            <Alert severity="error" sx={{ mb: 2, borderRadius: "8px" }}>
+              {clientFormError}
+            </Alert>
+          )}
+          <Box
+            sx={{
+              display: "grid",
+              gridTemplateColumns: {
+                xs: "minmax(0, 1fr)",
+                md: "repeat(2, minmax(0, 1fr))",
+              },
+              rowGap: 3,
+              columnGap: 3,
+              alignItems: "start",
+            }}
+          >
+            <SecaoCadastro
+              titulo="Identificação"
+              descricao="Dados da empresa e identificação cadastral."
+              icone={<Building2 />}
+            >
               {renderizarCampos(identificacao)}
             </SecaoCadastro>
-            <SecaoCadastro titulo="Fiscal" descricao="Inscrição, atividade e enquadramento tributário." icone={<ReceiptText />}>
+            <SecaoCadastro
+              titulo="Fiscal"
+              descricao="Inscrição, atividade e enquadramento tributário."
+              icone={<ReceiptText />}
+            >
               {renderizarCampos(fiscal)}
             </SecaoCadastro>
-            <SecaoCadastro titulo="Comercial" descricao="Segmento, contato e situação do cadastro." icone={<FileText />} ampla>
+            <SecaoCadastro
+              titulo="Comercial"
+              descricao="Segmento, contato e situação do cadastro."
+              icone={<FileText />}
+              ampla
+            >
               {renderizarCampos(comercial, true)}
-              <Box sx={{ mt: 2, minWidth: 0 }}>
-                <Typography sx={{ color: "#64748b", fontSize: 12, mb: 0.5 }}>E-mail</Typography>
-                <Typography sx={{ color: "#1f2937", fontSize: 14, fontWeight: 500, overflowWrap: "anywhere", lineHeight: 1.6 }}>
+              <Box sx={{ mt: 2.5, minWidth: 0 }}>
+                <Typography sx={{ color: "#64748b", fontSize: 12, mb: 0.75 }}>
+                  E-mail
+                </Typography>
+                <Typography
+                  sx={{
+                    color: "#1f2937",
+                    fontSize: 14,
+                    fontWeight: 500,
+                    overflowWrap: "anywhere",
+                    lineHeight: 1.6,
+                  }}
+                >
                   {currentLead.email?.trim() || "Não informado"}
                 </Typography>
               </Box>
             </SecaoCadastro>
-            <SecaoCadastro titulo="Endereço" descricao="Localização e endereço da empresa." icone={<MapPin />} ampla>
+            <SecaoCadastro
+              titulo="Endereço"
+              descricao="Localização e endereço da empresa."
+              icone={<MapPin />}
+              ampla
+            >
               {renderizarCampos(endereco, true)}
-              {!isEditingClient && !dadosCadastro.street && currentLead.address && (
-                <Typography sx={{ mt: 2, color: "#475569", fontSize: 14, overflowWrap: "anywhere" }}>{currentLead.address}</Typography>
-              )}
+              {!isEditingClient &&
+                !dadosCadastro.street &&
+                currentLead.address && (
+                  <Typography
+                    sx={{
+                      mt: 2,
+                      color: "#475569",
+                      fontSize: 14,
+                      overflowWrap: "anywhere",
+                    }}
+                  >
+                    {currentLead.address}
+                  </Typography>
+                )}
             </SecaoCadastro>
-            <SecaoCadastro titulo="Informações complementares" descricao="Observações e informações adicionais do cadastro." icone={<StickyNote />} ampla>
-              {renderizarCampos([{ chave: "notes", rotulo: "Observações cadastrais", multiline: true }])}
+            <SecaoCadastro
+              titulo="Informações complementares"
+              descricao="Observações e informações adicionais do cadastro."
+              icone={<StickyNote />}
+              ampla
+            >
+              {renderizarCampos([
+                {
+                  chave: "notes",
+                  rotulo: "Observações cadastrais",
+                  multiline: true,
+                },
+              ])}
             </SecaoCadastro>
           </Box>
           {isEditingClient && (
             <Stack direction="row" sx={{ mt: 2.5, justifyContent: "flex-end" }}>
-              <Button type="submit" variant="contained" disabled={savingClient}
-                startIcon={savingClient ? <CircularProgress size={16} color="inherit" /> : <Save size={16} />}
+              <Button
+                type="submit"
+                variant="contained"
+                disabled={savingClient}
+                startIcon={
+                  savingClient ? (
+                    <CircularProgress size={16} color="inherit" />
+                  ) : (
+                    <Save size={16} />
+                  )
+                }
                 sx={{ ...botaoPrincipalSx, width: { xs: "100%", sm: "auto" } }}
-              >{savingClient ? "Salvando..." : "Salvar cadastro"}</Button>
+              >
+                {savingClient ? "Salvando..." : "Salvar cadastro"}
+              </Button>
             </Stack>
           )}
         </Box>

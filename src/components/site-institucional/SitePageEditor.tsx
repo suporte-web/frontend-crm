@@ -1,5 +1,7 @@
 'use client';
 
+import { FeedbackToast } from '@/components/ui/feedback-toast';
+
 import { hasAnyRole } from '@/lib/user-roles';
 import Link from 'next/link';
 
@@ -17,7 +19,6 @@ import { getSitePageUrl, getSitePhotoCount } from '@/config/site-institucional/s
 import Button from '@mui/material/Button';
 import Chip from '@mui/material/Chip';
 import CircularProgress from '@mui/material/CircularProgress';
-import Snackbar from '@mui/material/Snackbar';
 import Stack from '@mui/material/Stack';
 import Typography from '@mui/material/Typography';
 
@@ -1256,42 +1257,7 @@ export function SitePageEditor({
         ) : null}
       </CrmPageShell>
 
-      <Snackbar
-        open={Boolean(
-          successMessage,
-        )}
-        autoHideDuration={5000}
-        onClose={() =>
-          setSuccessMessage('')
-        }
-        anchorOrigin={{
-          vertical: 'bottom',
-          horizontal: 'right',
-        }}
-      >
-        <Alert
-          severity="success"
-          variant="filled"
-          onClose={() =>
-            setSuccessMessage('')
-          }
-          sx={{
-            minWidth: {
-              xs: 'auto',
-              sm: 320,
-            },
-
-            borderRadius: 2.5,
-
-            fontWeight: 750,
-
-            boxShadow:
-              '0 12px 30px rgba(15, 23, 42, 0.18)',
-          }}
-        >
-          {successMessage}
-        </Alert>
-      </Snackbar>
+      <FeedbackToast open={Boolean(successMessage)} title="Página atualizada" message={successMessage} variant="success" onClose={() => setSuccessMessage('')} />
     </AppLayout>
   )
 }

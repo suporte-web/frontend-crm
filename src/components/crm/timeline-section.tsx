@@ -107,9 +107,11 @@ function isContactEvent(event: TimelineEvent) {
 export function TimelineSection({
   events,
   darkMode = false,
+  compacto = false,
 }: {
   events: TimelineEvent[];
   darkMode?: boolean;
+  compacto?: boolean;
 }) {
   const itemsPerPage = 5;
   const [page, setPage] = useState(1);
@@ -144,17 +146,18 @@ export function TimelineSection({
         bgcolor: isDark ? '#020617' : '#ffffff',
         color: isDark ? '#ffffff' : crmPalette.text,
         boxShadow: 'none',
+        ...(compacto ? { p: 0, border: 0, borderRadius: 0, '& .MuiAvatar-root': { width: 30, height: 30 }, '& .MuiChip-root': { fontWeight: 500, maxWidth: '100%', height: 'auto', minHeight: 24, '& .MuiChip-label': { whiteSpace: 'normal', overflowWrap: 'anywhere' } } } : {}),
       }}
     >
       <Stack spacing={2.5}>
-        <Box>
+        {!compacto && <Box>
           <Typography
             sx={{
               color: crmPalette.orangeDark,
               fontSize: 11,
-              fontWeight: 900,
+              fontWeight: compacto ? 600 : 900,
               letterSpacing: '.14em',
-              textTransform: 'uppercase',
+              textTransform: compacto ? 'none' : 'uppercase',
             }}
           >
             Histórico de contatos
@@ -180,7 +183,8 @@ export function TimelineSection({
           >
             {contactEvents} contatos registrados, com responsável, canal e data do contato.
           </Typography>
-        </Box>
+        </Box>}
+        {compacto && sortedEvents.length === 0 && <Typography sx={{ color: '#64748b', fontSize: 13 }}>Nenhum registro no histórico.</Typography>}
 
         <Box
           sx={{
@@ -193,8 +197,8 @@ export function TimelineSection({
               position: 'absolute',
               top: 8,
               bottom: 8,
-              left: 19,
-              width: 1,
+              left: compacto ? 15 : 19,
+              width: compacto ? '1px' : 1,
               bgcolor: isDark ? '#334155' : crmPalette.border,
             },
           }}
@@ -227,7 +231,7 @@ export function TimelineSection({
                   p: 1.75,
                   borderRadius: '12px',
                   borderColor: isDark ? '#334155' : crmPalette.border,
-                  bgcolor: isDark ? '#0f172a' : '#f8fafc',
+                  bgcolor: isDark ? '#0f172a' : compacto ? '#fff' : '#f8fafc',
                 }}
               >
                 <Stack direction="row" spacing={1.5} sx={{ minWidth: 0 }}>
@@ -293,7 +297,7 @@ export function TimelineSection({
                               borderRadius: '8px',
                               bgcolor: '#ecfeff',
                               color: '#0e7490',
-                              fontWeight: 800,
+                              fontWeight: compacto ? 500 : 800,
                             }}
                           />
                         ) : null}
@@ -305,7 +309,7 @@ export function TimelineSection({
                               borderRadius: '8px',
                               bgcolor: '#f1f5f9',
                               color: crmPalette.text,
-                              fontWeight: 800,
+                              fontWeight: compacto ? 500 : 800,
                             }}
                           />
                         ) : null}
@@ -317,7 +321,7 @@ export function TimelineSection({
                               borderRadius: '8px',
                               bgcolor: '#f1f5f9',
                               color: crmPalette.text,
-                              fontWeight: 800,
+                              fontWeight: compacto ? 500 : 800,
                             }}
                           />
                         ) : null}
@@ -331,6 +335,7 @@ export function TimelineSection({
                         fontSize: 13,
                         lineHeight: 1.65,
                         overflowWrap: 'anywhere',
+                        whiteSpace: 'pre-wrap',
                       }}
                     >
                       {event.description}
@@ -342,9 +347,9 @@ export function TimelineSection({
                           mt: 1,
                           color: isDark ? '#64748b' : '#94a3b8',
                           fontSize: 11,
-                          fontWeight: 800,
-                          letterSpacing: '.1em',
-                          textTransform: 'uppercase',
+                          fontWeight: compacto ? 500 : 800,
+                          letterSpacing: compacto ? 0 : '.1em',
+                          textTransform: compacto ? 'none' : 'uppercase',
                         }}
                       >
                         Registrado por {event.createdBy}
@@ -372,7 +377,7 @@ export function TimelineSection({
               sx={{
                 color: isDark ? '#94a3b8' : crmPalette.muted,
                 fontSize: 12,
-                fontWeight: 800,
+                fontWeight: compacto ? 500 : 800,
               }}
             >
               Mostrando {pageStart + 1}-
@@ -390,7 +395,7 @@ export function TimelineSection({
                 '& .MuiPaginationItem-root': {
                   borderRadius: '8px',
                   fontSize: 12,
-                  fontWeight: 800,
+                  fontWeight: compacto ? 500 : 800,
                   color: isDark ? '#cbd5e1' : crmPalette.text,
                 },
                 '& .Mui-selected': {

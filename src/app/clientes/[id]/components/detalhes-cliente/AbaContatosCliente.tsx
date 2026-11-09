@@ -1,6 +1,6 @@
 "use client";
 
-import { campoPequenoClienteSx, superficieAbasClienteSx, paletaAbasCliente as crmPalette } from "./estilos-abas-cliente";
+import { campoPequenoClienteSx, superficieAbasCadastroSx as superficieAbasClienteSx, paletaAbasCliente as crmPalette } from "./estilos-abas-cliente";
 
 import Alert from "@mui/material/Alert";
 import Box from "@mui/material/Box";
@@ -13,7 +13,6 @@ import TextField from "@mui/material/TextField";
 import Typography from "@mui/material/Typography";
 
 import {
-  ContactRound,
   PlusCircle,
   X,
 } from "lucide-react";
@@ -105,9 +104,8 @@ export function AbaContatosCliente(
             justifyContent: "space-between",
           }}
         >
-          <CabecalhoSecao
-            title="Contatos do cliente"
-            description="Pessoas e responsáveis vinculados a este cliente."
+          <CabecalhoSecao compacto
+            title="Contatos"
           />
 
           {canEditClient ? (
@@ -188,111 +186,12 @@ export function AbaContatosCliente(
         ====================================== */}
         {showNewContactForm &&
         canEditClient ? (
-          <Paper
-            component="form"
-            variant="outlined"
-            onSubmit={handleCreateContact}
-            sx={{
-              overflow: "hidden",
-
-              borderRadius: "14px",
-
-              borderColor:
-                crmPalette.border,
-
-              bgcolor: "#ffffff",
-
-              boxShadow: "none",
-            }}
-          >
-            {/* CABEÇALHO DO FORM */}
-            <Box
-              sx={{
-                px: {
-                  xs: 1.75,
-                  md: 2,
-                },
-
-                py: 1.4,
-
-                borderBottom: `1px solid ${crmPalette.border}`,
-
-                bgcolor: "#ffffff",
-              }}
-            >
-              <Stack
-                direction="row"
-                spacing={1.25}
-                sx={{
-                  alignItems: "center",
-                }}
-              >
-                <Box
-                  sx={{
-                    width: 36,
-                    height: 36,
-
-                    display: "grid",
-
-                    placeItems: "center",
-
-                    flexShrink: 0,
-
-                    borderRadius: "10px",
-
-                    bgcolor: "#ffffff",
-
-                    color: "#64748b",
-
-                    "& svg": {
-                      width: 18,
-                      height: 18,
-                    },
-                  }}
-                >
-                  <ContactRound />
-                </Box>
-
-                <Box sx={{ minWidth: 0 }}>
-                  <Typography
-                    sx={{
-                      color: "#1f2937",
-
-                      fontSize: 13.5,
-
-                      fontWeight: 700,
-
-                      lineHeight: 1.3,
-                    }}
-                  >
-                    Novo contato
-                  </Typography>
-
-                  <Typography
-                    sx={{
-                      mt: 0.2,
-
-                      color: "#64748b",
-
-                      fontSize: 11.5,
-
-                      lineHeight: 1.4,
-                    }}
-                  >
-                    Cadastre uma nova pessoa
-                    vinculada ao cliente.
-                  </Typography>
-                </Box>
-              </Stack>
-            </Box>
-
+          <Box component="form" onSubmit={handleCreateContact} sx={{ borderTop: '2px solid #ff5805', pt: 2.5 }}>
+            <Typography component="h3" sx={{ fontSize: 14, fontWeight: 600, color: '#1f2937', mb: 2.5 }}>Novo contato</Typography>
             {/* CAMPOS */}
             <Box
               sx={{
-                p: {
-                  xs: 1.75,
-                  md: 2,
-                },
+                p: 0,
               }}
             >
               <Box
@@ -305,11 +204,11 @@ export function AbaContatosCliente(
                     md:
                       "repeat(2, minmax(0, 1fr))",
 
-                    xl:
-                      "repeat(3, minmax(0, 1fr))",
+
                   },
 
-                  gap: 1.25,
+                  rowGap: 2.5,
+                  columnGap: 2,
                 }}
               >
                 <TextField
@@ -439,7 +338,7 @@ export function AbaContatosCliente(
                 }}
                 spacing={1}
                 sx={{
-                  mt: 1.75,
+                  mt: 2.5,
 
                   justifyContent:
                     "flex-end",
@@ -514,7 +413,7 @@ export function AbaContatosCliente(
                 </Button>
               </Stack>
             </Box>
-          </Paper>
+          </Box>
         ) : null}
 
         {/* =====================================
@@ -524,98 +423,15 @@ export function AbaContatosCliente(
           sx={{
             overflow: "hidden",
 
-            border:
-              `1px solid ${crmPalette.border}`,
+            border: 0,
+            borderTop: "2px solid #ff5805",
 
-            borderRadius: "14px",
+            borderRadius: 0,
 
             bgcolor: "#ffffff",
           }}
         >
-          {/* CABEÇALHO DA LISTA */}
-          <Box
-            sx={{
-              px: {
-                xs: 1.75,
-                md: 2,
-              },
-
-              py: 1.4,
-
-              borderBottom:
-                totalContacts > 0
-                  ? `1px solid ${crmPalette.border}`
-                  : 0,
-
-              bgcolor: "#ffffff",
-            }}
-          >
-            <Stack
-              direction={{
-                xs: "column",
-                sm: "row",
-              }}
-              spacing={0.5}
-              sx={{
-                alignItems: {
-                  xs: "flex-start",
-                  sm: "center",
-                },
-
-                justifyContent:
-                  "space-between",
-              }}
-            >
-              <Box>
-                <Typography
-                  sx={{
-                    color: crmPalette.text,
-
-                    fontSize: 13.5,
-
-                    fontWeight: 700,
-
-                    lineHeight: 1.3,
-                  }}
-                >
-                  Contatos cadastrados
-                </Typography>
-
-                <Typography
-                  sx={{
-                    mt: 0.25,
-
-                    color:
-                      crmPalette.muted,
-
-                    fontSize: 11.5,
-
-                    lineHeight: 1.4,
-                  }}
-                >
-                  Pessoas vinculadas a este
-                  cliente.
-                </Typography>
-              </Box>
-
-              <Typography
-                sx={{
-                  color:
-                    crmPalette.muted,
-
-                  fontSize: 11.5,
-
-                  fontWeight: 700,
-                }}
-              >
-                {totalContacts === 0
-                  ? "Nenhum contato"
-                  : totalContacts === 1
-                    ? "1 contato"
-                    : `${totalContacts} contatos`}
-              </Typography>
-            </Stack>
-          </Box>
+          <Typography sx={{ px: 2, py: 1.5, fontSize: 12, color: '#64748b', borderBottom: totalContacts ? '1px solid #f1f5f9' : 0 }}>{totalContacts === 1 ? '1 contato' : totalContacts+' contatos'}</Typography>
 
           {/* LISTA */}
           {totalContacts > 0 ? (
@@ -638,7 +454,7 @@ export function AbaContatosCliente(
             >
               {currentLead.contacts.map(
                 (contact, index) => (
-                  <CartaoContatoCliente
+                  <CartaoContatoCliente compacto
                     key={contact.id}
                     contact={contact}
                     index={index}

@@ -34,6 +34,7 @@ export interface TimelineEvent {
 }
 
 export interface Opportunity {
+  valorPropostaComercial?: number | null;
   id: string;
   leadId: string;
   clientId?: string;
@@ -46,6 +47,8 @@ export interface Opportunity {
   preContractNotes?: string | null;
   expectedCloseDate?: string | null;
   lostReason?: string | null;
+  motivoPerda?: string | null;
+  observacaoPerda?: string | null;
   createdAt: string;
   updatedAt: string;
 }

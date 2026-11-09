@@ -1,5 +1,7 @@
 'use client';
 
+import { notificarCrm } from '@/lib/feedback-crm';
+
 import { LeadAttachments } from "@/components/attachments/LeadAttachments";
 import { IdentificacaoProspeccao } from "@/components/crm/prospeccao-consultora";
 import { hasAnyRole } from "@/lib/user-roles";
@@ -1346,6 +1348,7 @@ export default function DetalhesLead() {
         return;
       }
       await excluirLead(lead.id, token);
+      notificarCrm('Lead excluído com sucesso.');
 
       router.push('/leads');
       router.refresh();

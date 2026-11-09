@@ -1,5 +1,7 @@
 "use client";
 
+import { notificarCrm } from '@/lib/feedback-crm';
+
 import { FormEvent, Suspense, useState } from "react";
 
 import Alert from "@mui/material/Alert";
@@ -88,6 +90,7 @@ function ResetPasswordContent() {
       });
 
       setSuccessMessage(response.message);
+      notificarCrm(response.message);
 
       setTimeout(() => {
         router.push("/entrar");
@@ -246,9 +249,7 @@ function ResetPasswordContent() {
           />
 
           {successMessage ? (
-            <Alert severity="success" sx={{ borderRadius: "10px" }}>
-              {successMessage} Redirecionando para o login...
-            </Alert>
+            <Typography role="status" sx={{ fontSize: 13 }}>Redirecionando para o login...</Typography>
           ) : null}
 
           {error ? (

@@ -1,5 +1,9 @@
 "use client";
 
+import { FeedbackToast } from '@/components/ui/feedback-toast';
+import { notificarCrm } from '@/lib/feedback-crm';
+import { useRouter } from 'next/navigation';
+
 import { hasAnyRole } from "@/lib/user-roles";
 import Link from "next/link";
 import { useEffect, useMemo, useState } from "react";
@@ -223,7 +227,10 @@ export default function QuoteDetailsPage({
   const [form, setForm] = useState<QuoteFormState>(emptyFormState);
   const [isEditing, setIsEditing] = useState(false);
   const [saving, setSaving] = useState(false);
-  const [actionMessage, setActionMessage] = useState("");
+  const router = useRouter();
+  const [actionMessage, definirActionMessage] = useState("");
+  const [actionVariant, setActionVariant] = useState<'success' | 'error'>('error');
+  function setActionMessage(message: string, variant: 'success' | 'error' = 'error') { definirActionMessage(message); setActionVariant(variant); }
 
   const canRespond =
     !!user?.role && hasAnyRole(user, ["ADMIN", "GESTAO", "COMERCIAL"]);
@@ -330,8 +337,8 @@ export default function QuoteDetailsPage({
                       try {
                         setSaving(true);
                         const result = await deleteQuote(quote.id, token);
-                        setActionMessage(result.message);
-                        window.location.href = "/cotacoes";
+                        notificarCrm(result.message);
+                        router.push('/cotacoes');
                       } catch (deleteError) {
                         setActionMessage(
                           deleteError instanceof Error
@@ -547,7 +554,7 @@ export default function QuoteDetailsPage({
                           setQuote(updated);
                           setForm(quoteToFormState(updated));
                           setIsEditing(false);
-                          setActionMessage("Cotação atualizada com sucesso.");
+                          setActionMessage("Cotação atualizada com sucesso.", "success");
                         } catch (saveError) {
                           setActionMessage(
                             saveError instanceof Error
@@ -772,7 +779,7 @@ export default function QuoteDetailsPage({
                                 );
                                 setQuote(updated);
                                 setActionMessage(
-                                  "Proposta enviada e registrada na cotação.",
+                                  "Proposta enviada e registrada na cotação.", "success",
                                 );
                                 setResponseForm({
                                   price: "",
@@ -819,7 +826,7 @@ export default function QuoteDetailsPage({
                                 setQuote(updated);
                                 setStatusNotes("");
                                 setActionMessage(
-                                  "Status atualizado com sucesso.",
+                                  "Status atualizado com sucesso.", "success",
                                 );
                               } catch (statusError) {
                                 setActionMessage(
@@ -852,11 +859,7 @@ export default function QuoteDetailsPage({
                     </>
                   ) : null}
 
-                  {actionMessage ? (
-                    <div className="rounded-2xl border border-slate-200 bg-slate-50 p-4 text-sm text-slate-700">
-                      {actionMessage}
-                    </div>
-                  ) : null}
+                  <FeedbackToast open={Boolean(actionMessage)} title={actionVariant === 'success' ? 'Cotação atualizada' : 'Não foi possível concluir'} message={actionMessage} variant={actionVariant} onClose={() => setActionMessage('')} />
                 </div>
               </article>
             </section>

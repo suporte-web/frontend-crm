@@ -1,6 +1,6 @@
 "use client";
 
-import { campoPequenoClienteSx, superficieAbasClienteSx, paletaAbasCliente as crmPalette } from "./estilos-abas-cliente";
+import { campoPequenoClienteSx, superficieAbasCadastroSx as superficieAbasClienteSx, paletaAbasCliente as crmPalette } from "./estilos-abas-cliente";
 
 import Alert from "@mui/material/Alert";
 import Box from "@mui/material/Box";
@@ -155,9 +155,8 @@ export function AbaCondicoesComerciaisCliente(props: PropriedadesAbaDetalhesClie
             justifyContent: "space-between",
           }}
         >
-          <CabecalhoSecao
-            title="Pagamentos e faturamento"
-            description="Condições comerciais, cobrança e dados financeiros do cliente."
+          <CabecalhoSecao compacto
+            title="Condições comerciais"
           />
 
           {canEditCommercialData ? (
@@ -200,19 +199,20 @@ export function AbaCondicoesComerciaisCliente(props: PropriedadesAbaDetalhesClie
               </Alert>
             ) : null}
 
-            <Box sx={editFormSectionSx}>
-              <TituloSecaoFormulario
+            <Box sx={{ ...editFormSectionSx, p: 0, border: 0, borderRadius: 0, boxShadow: "none", "&:hover": { boxShadow: "none" } }}>
+              <TituloSecaoFormulario compacto
                 icon={<CreditCard size={18} />}
                 title="Condições de pagamento" iconColor="#64748b" iconBg="#f8fafc" headerColor="#1f2937" headerBg="#ffffff"
               // description="Dados usados pelo financeiro e pelo histórico comercial."
               />
 
-              <Paper
-                variant="outlined"
+              <Box
+
                 sx={{
                   gridColumn: "1 / -1",
-                  p: { xs: 1.25, md: 1.5 },
-                  borderRadius: "12px",
+                  p: 0,
+                  border: 0,
+                  borderRadius: 0,
                   borderColor: crmPalette.border,
                   bgcolor: "#ffffff",
                 }}
@@ -327,7 +327,7 @@ export function AbaCondicoesComerciaisCliente(props: PropriedadesAbaDetalhesClie
                     </Typography>
                   )}
                 </Stack>
-              </Paper>
+              </Box>
 
               <TextField
                 fullWidth
@@ -374,6 +374,7 @@ export function AbaCondicoesComerciaisCliente(props: PropriedadesAbaDetalhesClie
                 sx={[textFieldSx, campoPequenoClienteSx]} slotProps={{ inputLabel: { shrink: true } }}
               />
 
+              <TituloSecaoFormulario compacto title="Faturamento" icon={<Mail size={18} />} />
               <TextField
                 fullWidth
                 size="small"
@@ -417,26 +418,18 @@ export function AbaCondicoesComerciaisCliente(props: PropriedadesAbaDetalhesClie
                 sx={[textFieldSx, campoPequenoClienteSx]}
               />
 
-              <Paper
-                variant="outlined"
+              <Box
+
                 sx={{
                   gridColumn: "1 / -1",
-                  p: { xs: 1.25, md: 1.5 },
-                  borderRadius: "12px",
+                  p: 0,
+                  border: 0,
+                  borderRadius: 0,
                   borderColor: crmPalette.border,
                   bgcolor: "#ffffff",
                 }}
               >
-                <Typography
-                  sx={{
-                    mb: 1.25,
-                    color: crmPalette.text,
-                    fontSize: 13,
-                    fontWeight: 700,
-                  }}
-                >
-                  Dados bancários
-                </Typography>
+                <TituloSecaoFormulario compacto title="Dados bancários" icon={<Landmark size={18} />} />
 
                 <Box
                   sx={{
@@ -558,15 +551,7 @@ export function AbaCondicoesComerciaisCliente(props: PropriedadesAbaDetalhesClie
                     justifyContent: "space-between",
                   }}
                 >
-                  <Typography
-                    sx={{
-                      color: crmPalette.muted,
-                      fontSize: 12,
-                      fontWeight: 700,
-                    }}
-                  >
-                    Adicione um ou mais dados bancários para este cliente.
-                  </Typography>
+
 
                   <Button
                     type="button"
@@ -681,14 +666,15 @@ export function AbaCondicoesComerciaisCliente(props: PropriedadesAbaDetalhesClie
                     })}
                   </Box>
                 ) : null}
-              </Paper>
+              </Box>
 
+              <TituloSecaoFormulario compacto title="Observações" icon={<StickyNote size={18} />} />
               <TextField
                 fullWidth
                 multiline
                 minRows={1}
                 label="Informações adicionais"
-                placeholder="Escreva instruções de faturamento, exceções, acordos comerciais e observações internas."
+                placeholder="Observações comerciais"
                 value={commercialTermsForm.commercialTermsNotes}
                 onChange={(event) =>
                   setFormularioCondicoesComerciais((current) => ({
@@ -763,7 +749,7 @@ export function AbaCondicoesComerciaisCliente(props: PropriedadesAbaDetalhesClie
                   },
                 }}
               >
-                <ListaInformacoes
+                <ListaInformacoes compacto
                   icon={<CreditCard />}
                   title="Condições de pagamento"
                   headerBg="#ffffff"
@@ -859,7 +845,7 @@ export function AbaCondicoesComerciaisCliente(props: PropriedadesAbaDetalhesClie
                   },
                 }}
               >
-                <ListaInformacoes
+                <ListaInformacoes compacto
                   icon={<UserRound />}
                   title="Faturamento"
                   headerBg="#ffffff"
@@ -901,7 +887,7 @@ export function AbaCondicoesComerciaisCliente(props: PropriedadesAbaDetalhesClie
             {/* ========================================
       DADOS BANCÁRIOS
   ========================================= */}
-            <ListaInformacoes
+            <ListaInformacoes compacto
               icon={<Landmark />}
               title="Dados bancários"
               headerBg="#ffffff"
@@ -1033,7 +1019,7 @@ export function AbaCondicoesComerciaisCliente(props: PropriedadesAbaDetalhesClie
             {/* ========================================
       OBSERVAÇÕES COMERCIAIS
   ========================================= */}
-            <ListaInformacoes
+            <ListaInformacoes compacto
               icon={<StickyNote />}
               title="Observações comerciais"
               headerBg="#ffffff"

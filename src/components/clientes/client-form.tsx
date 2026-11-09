@@ -31,6 +31,7 @@ import {
   UsersRound,
 } from 'lucide-react';
 
+import { formatarNomeCadastro } from '@/lib/nome-cadastro';
 import { crmPalette } from '@/components/mui/crm-primitives';
 import type { LeadStatus } from '@/types/crm';
 
@@ -77,11 +78,13 @@ type ClientFormProps = {
   setDocumentFiles: Dispatch<SetStateAction<File[]>>;
   loading: boolean;
   searchingCnpj: boolean;
+  cnpjError?: string;
   onSearchCnpj: () => void;
   onCancel: () => void;
   onSubmit: (event: FormEvent<HTMLFormElement>) => void | Promise<void>;
   submitLabel?: string;
   camposIniciais?: ReactNode;
+  compacto?: boolean;
 };
 
 const brazilianStates = [
@@ -153,11 +156,13 @@ function formatCnpj(value: string) {
 }
 
 function ClientFormSection({
+  compacto = false,
   title,
   description,
   icon,
   children,
 }: {
+  compacto?: boolean;
   title: string;
   description?: string;
   icon: ReactNode;
@@ -172,6 +177,7 @@ function ClientFormSection({
         borderColor: '#e2e8f0',
         borderRadius: '12px',
         bgcolor: '#ffffff',
+        ...(compacto ? { p: 0, pt: 2, border: 0, borderTop: '1px solid #f1f5f9', borderRadius: 0 } : {}),
       }}
     >
       <Stack
@@ -182,7 +188,7 @@ function ClientFormSection({
           alignItems: 'flex-start',
         }}
       >
-        <Box
+        {!compacto && <Box
           sx={{
             width: 36,
             height: 36,
@@ -195,14 +201,14 @@ function ClientFormSection({
           }}
         >
           {icon}
-        </Box>
+        </Box>}
 
         <Box sx={{ minWidth: 0 }}>
-          <Typography sx={{ color: '#1f2937', fontSize: 15, fontWeight: 700 }}>
+          <Typography sx={{ color: '#1f2937', fontSize: compacto ? 14 : 15, fontWeight: compacto ? 600 : 700 }}>
             {title}
           </Typography>
-          {description ? (
-            <Typography sx={{ mt: 0.35, color: '#64748b', fontSize: 13 }}>
+          {description && !compacto ? (
+            <Typography sx={{ mt: 0.35, color: '#64748b', fontSize: compacto ? 12 : 13 }}>
               {description}
             </Typography>
           ) : null}
@@ -237,11 +243,13 @@ export function ClientForm({
   setDocumentFiles,
   loading,
   searchingCnpj,
+  cnpjError,
   onSearchCnpj,
   onCancel,
   onSubmit,
   submitLabel = 'Salvar cadastro',
   camposIniciais,
+  compacto = false,
 }: ClientFormProps) {
   const disabled = loading || searchingCnpj;
 
@@ -270,18 +278,27 @@ export function ClientForm({
   }
 
   return (
-    <Box component="form" onSubmit={onSubmit}>
+    <Box component="form" onSubmit={onSubmit} sx={compacto ? {
+      '& .MuiPaper-root': { boxShadow: 'none', bgcolor: '#fff' },
+      '&& .MuiTextField-root .MuiOutlinedInput-root': { borderRadius: '8px' },
+      '&& .MuiTextField-root .MuiOutlinedInput-root:not(.MuiInputBase-multiline)': { height: 40 },
+      '& .MuiButton-root': { minHeight: 40, borderRadius: '8px', fontWeight: 600 },
+      '&& .MuiInputLabel-root': { fontSize: 13, fontWeight: 400 },
+      '&& .MuiInputBase-input, && .MuiSelect-select': { fontSize: 13.5, fontWeight: 400 },
+      '& .MuiButton-outlined': { color: '#475569', bgcolor: '#fff', borderColor: '#cbd5e1', '&:hover': { bgcolor: '#f8fafc', borderColor: '#94a3b8' } },
+      '& .MuiButton-contained:not(.Mui-disabled)': { bgcolor: '#ff5805', boxShadow: 'none', '&:hover': { bgcolor: '#e94f00', boxShadow: 'none' } },
+    } : undefined}>
       <Stack spacing={2}>
-        <Paper elevation={0} sx={{ p: { xs: 2, md: 2.5 }, border: '1px solid #e2e8f0', borderRadius: '12px', bgcolor: '#f8fafc' }}>
+        <Paper elevation={0} sx={{ p: { xs: 2, md: 2.5 }, border: '1px solid #e2e8f0', borderRadius: '12px', bgcolor: '#f8fafc', ...(compacto ? { p: 0, border: 0, borderRadius: 0, bgcolor: '#fff' } : {}) }}>
           <Stack spacing={2}>
-            <Box>
+            {!compacto && <Box>
               <Typography sx={{ color: '#1f2937', fontSize: 14, fontWeight: 700 }}>Preenchimento por CNPJ</Typography>
               <Typography sx={{ mt: 0.5, color: '#64748b', fontSize: 12.5 }}>Consulte os dados da empresa ou preencha os campos abaixo manualmente.</Typography>
-            </Box>
+            </Box>}
             <Box sx={{ display: 'grid', gridTemplateColumns: { xs: 'minmax(0, 1fr)', sm: 'minmax(0, 1fr) auto' }, gap: 1.5, alignItems: 'start' }}>
               <TextField
               size="small"
-                label="CNPJ (opcional)"
+                label={compacto ? "CNPJ" : "CNPJ (opcional)"}
                 value={form.document}
                 onChange={(event) =>
                   setForm((current) => ({
@@ -295,7 +312,7 @@ export function ClientForm({
 
               <Button
                 type="button"
-                variant="contained"
+                variant={compacto ? "outlined" : "contained"}
                 disabled={disabled}
                 startIcon={
                   searchingCnpj ? (
@@ -326,10 +343,12 @@ export function ClientForm({
           </Stack>
         </Paper>
 
+        {cnpjError && <Alert severity="warning">{cnpjError}</Alert>}
         {camposIniciais}
 
         <ClientFormSection
-          title="Dados fiscais e cadastrais"
+          compacto={compacto}
+          title={compacto ? "Dados da empresa" : "Dados fiscais e cadastrais"}
           description="Informações principais da empresa."
           icon={<Building2 size={20} />}
         >
@@ -338,6 +357,7 @@ export function ClientForm({
               size="small"
               label="Razão social"
               value={form.legalName}
+              onBlur={() => setForm(current => ({ ...current, legalName: formatarNomeCadastro(current.legalName) }))}
               onChange={(event) =>
                 setForm((current) => ({
                   ...current,
@@ -351,6 +371,7 @@ export function ClientForm({
               size="small"
               label="Nome fantasia"
               value={form.tradeName}
+              onBlur={() => setForm(current => ({ ...current, tradeName: formatarNomeCadastro(current.tradeName) }))}
               onChange={(event) =>
                 setForm((current) => ({
                   ...current,
@@ -364,6 +385,7 @@ export function ClientForm({
               size="small"
               label="Empresa / Grupo"
               value={form.companyName}
+              onBlur={() => setForm(current => ({ ...current, companyName: formatarNomeCadastro(current.companyName) }))}
               onChange={(event) =>
                 setForm((current) => ({
                   ...current,
@@ -474,6 +496,7 @@ export function ClientForm({
         </ClientFormSection>
 
         <ClientFormSection
+          compacto={compacto}
           title="Endereço"
           description="Localização fiscal ou operacional."
           icon={<MapPin size={20} />}
@@ -583,6 +606,7 @@ export function ClientForm({
         </ClientFormSection>
 
         <ClientFormSection
+          compacto={compacto}
           title="Contatos"
           description="O primeiro contato será tratado como principal."
           icon={<UsersRound size={20} />}
@@ -724,6 +748,7 @@ export function ClientForm({
         </ClientFormSection>
 
         <ClientFormSection
+          compacto={compacto}
           title="Documentos"
           description="Contratos, cartões CNPJ, comprovantes ou planilhas."
           icon={<FileText size={20} />}
@@ -743,9 +768,9 @@ export function ClientForm({
               sx={{ alignItems: { xs: 'stretch', sm: 'center' } }}
             >
               <Box sx={{ flex: 1, minWidth: 0 }}>
-                <Typography sx={{ color: '#334155', fontSize: 14, fontWeight: 700 }}>
+                {!compacto && <Typography sx={{ color: '#334155', fontSize: 14, fontWeight: 700 }}>
                   Inserir documentos
-                </Typography>
+                </Typography>}
                 <Typography sx={{ mt: 0.35, color: '#64748b', fontSize: 13 }}>
                   {documentFiles.length > 0
                     ? `${documentFiles.length} arquivo(s) selecionado(s).`
@@ -843,7 +868,7 @@ export function ClientForm({
           sx={campoCadastroSx}
         />
 
-        <Alert
+        {!compacto && <Alert
           severity="info"
           sx={{
             borderRadius: '12px',
@@ -853,7 +878,7 @@ export function ClientForm({
           }}
         >
           Revise os dados da empresa e os contatos antes de salvar o cadastro.
-        </Alert>
+        </Alert>}
 
         <Stack
           direction={{ xs: 'column-reverse', sm: 'row' }}

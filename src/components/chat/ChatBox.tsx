@@ -1,5 +1,7 @@
 'use client';
 
+import { notificarCrm } from '@/lib/feedback-crm';
+
 import { canUseInternalChat } from "@/lib/user-roles";
 import { useEffect, useMemo, useState } from 'react';
 
@@ -138,6 +140,7 @@ export function ChatBox({ entityType, entityId, title }: ChatBoxProps) {
 
       setMessages((currentMessages) => [...currentMessages, message]);
       setContent('');
+      notificarCrm('Mensagem enviada com sucesso.');
     } catch (err) {
       const message =
         err instanceof Error

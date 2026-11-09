@@ -1,3 +1,4 @@
+import { normalizarNomesCadastro, normalizarEmpresaLead } from '@/lib/nome-cadastro';
 import type { LeadFunnelStage } from '@/constants/lead-funnel';
 import { apiFetch } from './api';
 import { mapClientSummary, type BackendClient } from './crm.service';
@@ -7,10 +8,16 @@ import type { Lead, UpdateLeadPayload } from '@/types/leads';
 export type DadosComerciaisCadastro = { fotoUrl?: string; proximaAcao?: string; responsavel?: string; volumeMensalEstimado?: string };
 
 export type ModalidadeCadastro = 'CLIENTE' | 'LEAD';
-export type Cadastro = BackendClient & { modalidadeCadastro: ModalidadeCadastro; leadCadastro?: { id: string; source: string; status: string; email?: string | null } | null };
+export type Cadastro = BackendClient & {
+  modalidadeCadastro: ModalidadeCadastro;
+  etapaFunil?: LeadFunnelStage | null;
+  metadata?: Record<string, unknown> | null;
+  lastInteractionAt?: string | null;
+  leadCadastro?: Pick<Lead, 'id' | 'source' | 'status'> & Partial<Lead> | null;
+};
 
 export function listarCadastros(token: string) {
-  return apiFetch<Cadastro[]>('/cadastros', {}, token);
+  return apiFetch<Cadastro[]>('/cadastros', {}, token).then(registros => Array.isArray(registros) ? registros.map(registro => normalizarNomesCadastro(registro)) : registros);
 }
 
 export async function getCadastrosResumos(token: string, _consultora = false) {
@@ -20,7 +27,7 @@ export async function getCadastrosResumos(token: string, _consultora = false) {
 }
 
 export function criarCadastro(payload: Parameters<typeof createClient>[0] & { etapaFunil?: LeadFunnelStage } & DadosComerciaisCadastro, token: string, modalidadeCadastro: ModalidadeCadastro) {
-  return apiFetch<{ id: string; client?: { id: string }; clientProfile?: { id: string } }>('/cadastros', { method: 'POST', body: JSON.stringify({ ...payload, modalidadeCadastro }) }, token);
+  return apiFetch<{ id: string; client?: { id: string }; clientProfile?: { id: string } }>('/cadastros', { method: 'POST', body: JSON.stringify(normalizarNomesCadastro({ ...payload, modalidadeCadastro })) }, token);
 }
 
 export function alterarModalidade(id: string, modalidadeCadastro: ModalidadeCadastro, document: string | undefined, token: string) {
@@ -28,11 +35,11 @@ export function alterarModalidade(id: string, modalidadeCadastro: ModalidadeCada
 }
 
 export function obterDadosLead(id: string, token: string) {
-  return apiFetch<Lead | null>(`/cadastros/${id}/lead`, {}, token);
+  return apiFetch<Lead | null>(`/cadastros/${id}/lead`, {}, token).then(registro => registro ? normalizarEmpresaLead(registro) : registro);
 }
 
 export function atualizarDadosLead(id: string, payload: UpdateLeadPayload, token: string) {
-  return apiFetch<Lead>(`/cadastros/${id}/lead`, { method: 'PATCH', body: JSON.stringify(payload) }, token);
+  return apiFetch<Lead>(`/cadastros/${id}/lead`, { method: 'PATCH', body: JSON.stringify(normalizarEmpresaLead(payload)) }, token).then(normalizarEmpresaLead);
 }
 
 export function registrarObservacaoCadastro(id: string, content: string, token: string) {
@@ -40,7 +47,7 @@ export function registrarObservacaoCadastro(id: string, content: string, token: 
 }
 
 export function atualizarEtapaCadastro(id: string, etapa: LeadFunnelStage, token: string, dados: DadosComerciaisCadastro = {}) {
-  return apiFetch<Lead>(`/cadastros/${id}/etapa`, { method: 'PATCH', body: JSON.stringify({ etapa, ...dados }) }, token);
+  return apiFetch<Lead>(`/cadastros/${id}/etapa`, { method: 'PATCH', body: JSON.stringify({ etapa, ...dados }) }, token).then(normalizarEmpresaLead);
 }
 
 export function atualizarFotoCadastro(id: string, fotoUrl: string, token: string) {

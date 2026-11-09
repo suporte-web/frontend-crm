@@ -1,4 +1,5 @@
 "use client";
+import { superficieAbasCadastroSx } from './estilos-abas-cliente';
 
 import Alert from "@mui/material/Alert";
 import Box from "@mui/material/Box";
@@ -30,20 +31,11 @@ export function AbaDocumentosCliente(props: PropriedadesAbaDetalhesCliente) {
   const { canEditCommercialData, documentFiles, setDocumentFiles, uploadingDocuments, handleUploadDocuments, handleOpenDocument, openDeleteDocumentDialog, cadastralDocuments } = props;
     return (
       <CrmSection
-        sx={{
-          p: { xs: 2, md: 2.5 },
-          borderRadius: "14px",
-          border: `1px solid ${crmPalette.border}`,
-          bgcolor: "#ffffff",
-          boxShadow: "0 8px 24px rgba(15, 23, 42, 0.04)",
-        }}
+        sx={superficieAbasCadastroSx}
       >
         <Stack spacing={2.5}>
-          <CabecalhoSecao
-            eyebrow="Documentos"
-            title="Histórico documental"
-            description="Arquivos cadastrados no histórico deste cliente."
-            icon={<FileText size={20} />}
+          <CabecalhoSecao compacto
+            title="Documentos"
           />
 
           {canEditCommercialData ? (
@@ -65,27 +57,6 @@ export function AbaDocumentosCliente(props: PropriedadesAbaDetalhesCliente) {
                   justifyContent: "space-between",
                 }}
               >
-                <Box sx={{ minWidth: 0 }}>
-                  <Typography
-                    sx={{
-                      color: crmPalette.text,
-                      fontSize: 14,
-                      fontWeight: 900,
-                    }}
-                  >
-                    Anexar documentos
-                  </Typography>
-                  <Typography
-                    sx={{
-                      mt: 0.35,
-                      color: crmPalette.muted,
-                      fontSize: 12,
-                      lineHeight: 1.5,
-                    }}
-                  >
-                    Selecione um ou vários arquivos, incluindo Excel (.xls e .xlsx), para incluir no cadastro.
-                  </Typography>
-                </Box>
 
                 <Stack
                   direction={{ xs: "column", sm: "row" }}
@@ -140,7 +111,7 @@ export function AbaDocumentosCliente(props: PropriedadesAbaDetalhesCliente) {
                       borderRadius: "10px",
                       bgcolor: crmPalette.orange,
                       fontSize: 13,
-                      fontWeight: 900,
+                      fontWeight: 600,
                       textTransform: "none",
                       boxShadow: "none",
                       "&:hover": {
@@ -251,7 +222,7 @@ export function AbaDocumentosCliente(props: PropriedadesAbaDetalhesCliente) {
                           sx={{
                             color: crmPalette.text,
                             fontSize: 14,
-                            fontWeight: 900,
+                            fontWeight: 600,
                             overflowWrap: "anywhere",
                           }}
                         >
@@ -288,9 +259,9 @@ export function AbaDocumentosCliente(props: PropriedadesAbaDetalhesCliente) {
                         }}
                         sx={{
                           borderRadius: "8px",
-                          bgcolor: "#eaf4ff",
-                          color: crmPalette.blue,
-                          fontWeight: 900,
+                          bgcolor: "#f1f5f9",
+                          color: "#475569",
+                          fontWeight: 600,
                           cursor: "pointer",
                         }}
                       />

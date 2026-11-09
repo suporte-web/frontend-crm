@@ -3,20 +3,10 @@
 import { useEffect } from 'react';
 import { usePathname, useRouter } from 'next/navigation';
 import { useAuth } from '@/context/auth-context';
-import { appScreens, isScreenEnabledForRole, podeAcessarRota } from '@/config/screens';
+import { podeAcessarRota } from '@/config/screens';
+import { getRotaInicial } from '@/lib/rota-inicial';
 import type { RoleScreenPermission, UserRole } from '@/types/auth';
 
-
-function getDefaultRoute(
-  role?: UserRole | UserRole[],
-  permissions?: RoleScreenPermission[],
-) {
-  return (
-    appScreens.find((screen) =>
-      isScreenEnabledForRole(screen, role, permissions),
-    )?.href ?? '/alterar-senha'
-  );
-}
 
 export function ProtectedRoute({ children }: { children: React.ReactNode }) {
   const router = useRouter();
@@ -44,7 +34,7 @@ export function ProtectedRoute({ children }: { children: React.ReactNode }) {
       token &&
       !podeAcessarRota(pathname, user?.roles?.length ? user.roles : user?.role, user?.screenPermissions)
     ) {
-      router.replace(getDefaultRoute(user?.roles?.length ? user.roles : user?.role, user?.screenPermissions));
+      router.replace(getRotaInicial(user));
     }
   }, [
     loading,

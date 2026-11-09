@@ -1,844 +1,398 @@
-'use client';
+"use client";
 
-import { IdentificacaoProspeccao } from "@/components/crm/prospeccao-consultora";
-import type { ReactNode } from 'react';
-
-import Link from 'next/link';
-
-import Alert from '@mui/material/Alert';
-import Avatar from '@mui/material/Avatar';
-import Box from '@mui/material/Box';
-import Chip from '@mui/material/Chip';
-import CircularProgress from '@mui/material/CircularProgress';
-import IconButton from '@mui/material/IconButton';
-import Stack from '@mui/material/Stack';
-import Tooltip from '@mui/material/Tooltip';
-import Typography from '@mui/material/Typography';
-
-import { alpha } from '@mui/material/styles';
-
-// Icones 
-
-import { useState } from 'react';
-import { moeda, valorMonetario } from '@/lib/bi-comercial';
-
+import { useState, type ReactNode } from "react";
+import Link from "next/link";
 import {
+  Alert,
+  Avatar,
+  Box,
   Button,
-  Menu,
-  MenuItem,
+  Chip,
+  CircularProgress,
+  IconButton,
   ListItemIcon,
   ListItemText,
-} from '@mui/material';
-
-import {
-
-
-  MoreVertical,
-} from 'lucide-react';
-
-import DeleteOutlineRoundedIcon from '@mui/icons-material/DeleteOutlineRounded';
-
-
-import {
-  ArrowLeft,
-  Building2,
-  CalendarDays,
-  Wallet,
-  Clock,
-  Edit3,
-  Mail,
-  UserRoundCheck,
-} from 'lucide-react';
-
-import {
-  CrmSection,
-  crmPalette,
-} from '@/components/mui/crm-primitives';
-
-import {
-  formatLeadStatus,
-} from '@/services/crm.service';
-
-import type {
-  LeadDetail,
-} from '@/types/crm';
-
-import {
-  statusStyles,
-} from './detalhes-cliente-compartilhado';
-
+  Menu,
+  MenuItem,
+  Stack,
+  Tooltip,
+  Typography,
+} from "@mui/material";
+import DeleteOutlineRoundedIcon from "@mui/icons-material/DeleteOutlineRounded";
+import { ArrowLeft, Edit3, MoreVertical } from "lucide-react";
+import { IdentificacaoProspeccao } from "@/components/crm/prospeccao-consultora";
+import { CrmSection } from "@/components/mui/crm-primitives";
+import { obterContatoPrincipal } from "@/lib/contato-principal";
+import { moeda, valorMonetario } from "@/lib/bi-comercial";
+import { formatLeadStatus } from "@/services/crm.service";
+import type { LeadDetail } from "@/types/crm";
+import { statusStyles } from "./detalhes-cliente-compartilhado";
 
 type PropriedadesCabecalhoDetalhesCliente = {
+  hrefVoltar?: string;
   lead: LeadDetail | null;
   loading: boolean;
   error: string;
-
   canEditClient?: boolean;
   onEditClient?: () => void;
-
   canRequestDeletion?: boolean;
   onRequestDeletion?: () => void;
 };
 
-function formatDate(
-  date?: string | null,
-) {
-  if (!date) {
-    return 'Não informado';
-  }
-
-  return new Intl.DateTimeFormat(
-    'pt-BR',
-    {
-      dateStyle: 'short',
-      timeStyle: 'short',
-    },
-  ).format(new Date(date));
+function formatDate(date?: string | null) {
+  if (!date) return "Não informado";
+  return new Intl.DateTimeFormat("pt-BR", {
+    dateStyle: "short",
+    timeStyle: "short",
+  }).format(new Date(date));
 }
 
-function getClientCreatedBy(
-  lead: LeadDetail,
-) {
-  const creationEvent =
-    lead.timeline?.find(
-      (event) => {
-        const title =
-          event.title?.toLowerCase() ??
-          '';
-
-        return (
-          event.type ===
-          'LEAD_CREATED' ||
-          title.includes(
-            'cliente criado',
-          ) ||
-          title.includes(
-            'cliente convertido',
-          )
-        );
-      },
+function getClientCreatedBy(lead: LeadDetail) {
+  const creationEvent = lead.timeline?.find((event) => {
+    const title = event.title?.toLowerCase() ?? "";
+    return (
+      event.type === "LEAD_CREATED" ||
+      title.includes("cliente criado") ||
+      title.includes("cliente convertido")
     );
-
-  return (
-    creationEvent?.createdBy ||
-    'Não informado'
-  );
+  });
+  return creationEvent?.createdBy || "Não informado";
 }
 
-/* =====================================================
-   CARD RESUMO
-===================================================== */
-
-function HeaderSummaryItem({
-  icon,
-  label,
-  value,
-  color,
+function InformacaoResumo({
+  titulo,
+  area,
+  children,
 }: {
-  icon: ReactNode;
-  label: string;
-  value: ReactNode;
-  color: string;
+  titulo: string;
+  area: string;
+  children: ReactNode;
 }) {
   return (
-    <Box
-      sx={{
-        minWidth: 0,
-
-        p: 2,
-
-        borderRadius: 2.5,
-
-        border: '1px solid',
-
-        borderColor: alpha(
-          '#17212B',
-          0.07,
-        ),
-
-        bgcolor: '#F8F9FA',
-
-        transition:
-          'transform 0.2s ease, border-color 0.2s ease, background-color 0.2s ease',
-
-        '&:hover': {
-          transform:
-            'translateY(-1px)',
-
-          bgcolor: '#fff',
-
-          borderColor: alpha(
-            color,
-            0.2,
-          ),
-        },
-      }}
-    >
-      <Stack
-        direction="row"
-        spacing={1.5}
+    <Box sx={{ minWidth: 0, gridArea: area }}>
+      <Typography
+        component="dt"
+        sx={{ color: "#64748b", fontSize: 11.5, mb: 0.4 }}
+      >
+        {titulo}
+      </Typography>
+      <Typography
+        component="dd"
         sx={{
-          alignItems: 'center',
+          m: 0,
+          color: "#334155",
+          fontSize: 13,
+          fontWeight: 500,
+          lineHeight: 1.5,
+          overflowWrap: "anywhere",
         }}
       >
-        <Box
-          sx={{
-            width: 42,
-            height: 42,
-
-            display: 'grid',
-            placeItems: 'center',
-
-            flexShrink: 0,
-
-            borderRadius: 2.25,
-
-            bgcolor: alpha(
-              color,
-              0.1,
-            ),
-
-            color,
-
-            '& svg': {
-              width: 20,
-              height: 20,
-              strokeWidth: 2.2,
-            },
-          }}
-        >
-          {icon}
-        </Box>
-
-        <Box
-          sx={{
-            minWidth: 0,
-          }}
-        >
-          <Typography
-            sx={{
-              color:
-                'text.secondary',
-
-              fontSize: 10.5,
-
-              fontWeight: 900,
-
-              lineHeight: 1.2,
-
-              textTransform:
-                'uppercase',
-
-              letterSpacing: 0.45,
-            }}
-          >
-            {label}
-          </Typography>
-
-          <Typography
-            component="div"
-            sx={{
-              mt: 0.55,
-
-              color:
-                'text.primary',
-
-              fontSize: 14,
-
-              fontWeight: 850,
-
-              lineHeight: 1.4,
-
-              overflowWrap:
-                'anywhere',
-            }}
-          >
-            {value}
-          </Typography>
-        </Box>
-      </Stack>
+        {children}
+      </Typography>
     </Box>
   );
 }
 
-/* =====================================================
-   COMPONENTE
-===================================================== */
-
-
-
 export function CabecalhoDetalhesCliente({
+  hrefVoltar = "/cadastros",
   lead,
   loading,
   error,
-
   canEditClient = false,
   onEditClient,
-
   canRequestDeletion = false,
   onRequestDeletion,
 }: PropriedadesCabecalhoDetalhesCliente) {
-
-
-  const [menuAnchorEl, setMenuAnchorEl] =
-    useState<null | HTMLElement>(
-      null,
-    );
-
-  const menuAberto = Boolean(
-    menuAnchorEl,
-  );
-
+  const [menuAnchorEl, setMenuAnchorEl] = useState<null | HTMLElement>(null);
+  const menuAberto = Boolean(menuAnchorEl);
+  const contatoPrincipal = lead ? obterContatoPrincipal(lead) : { nome: "", email: "", telefone: "" };
+  const identificacaoContato = contatoPrincipal.nome || contatoPrincipal.email || contatoPrincipal.telefone;
   function fecharMenu() {
     setMenuAnchorEl(null);
   }
-
   function excluirPeloMenu() {
     fecharMenu();
-
-    if (onRequestDeletion) {
-      onRequestDeletion();
-    }
+    onRequestDeletion?.();
   }
 
   return (
     <CrmSection
       sx={{
-        position: 'relative',
-
-        overflow: 'hidden',
-
         p: 0,
-
-        borderRadius: 3,
-
-        border: '1px solid',
-
-        borderColor: alpha(
-          '#17212B',
-          0.08,
-        ),
-
-        bgcolor: '#fff',
-
-        boxShadow:
-          '0 14px 38px rgba(23, 33, 43, 0.05)',
-
-       
+        borderRadius: "12px",
+        border: "1px solid #e2e8f0",
+        bgcolor: "#fff",
+        boxShadow: "none",
       }}
     >
-
-      {/* LOADING */}
-
       {loading ? (
-        <Box
+        <Stack
+          direction="row"
+          spacing={1.25}
           sx={{
-            minHeight: 220,
-
-            display: 'grid',
-
-            placeItems: 'center',
+            minHeight: 144,
+            alignItems: "center",
+            justifyContent: "center",
           }}
         >
-          <Stack
-            direction="row"
-            spacing={1.5}
-            sx={{
-              alignItems: 'center',
-            }}
-          >
-            <CircularProgress
-              size={24}
-              sx={{
-                color:
-                  crmPalette.orange,
-              }}
-            />
-
-            <Typography
-              sx={{
-                color:
-                  'text.secondary',
-
-                fontSize: 14,
-
-                fontWeight: 700,
-              }}
-            >
-              Carregando cliente...
-            </Typography>
-          </Stack>
-        </Box>
+          <CircularProgress size={22} sx={{ color: "#ff5805" }} />
+          <Typography sx={{ color: "#64748b", fontSize: 13 }}>
+            Carregando cliente...
+          </Typography>
+        </Stack>
       ) : error ? (
-        /* ERRO */
-
-        <Box
-          sx={{
-            p: {
-              xs: 2,
-              md: 3,
-            },
-          }}
-        >
-          <Alert
-            severity="error"
-            sx={{
-              borderRadius: 2.5,
-            }}
-          >
-            {error}
-          </Alert>
+        <Box sx={{ p: 2 }}>
+          <Alert severity="error">{error}</Alert>
         </Box>
       ) : lead ? (
-        <Box
-          sx={{
-            p: {
-              xs: 2.5,
-              md: 3.5,
-            },
-          }}
-        >
-          <Stack spacing={3}>
-            {/* =================================================
-                TOPO
-            ================================================= */}
-
+        <Box sx={{ p: { xs: 2, md: 2.5 } }}>
+          <Stack
+            direction={{ xs: "column", md: "row" }}
+            spacing={1.75}
+            sx={{
+              justifyContent: "space-between",
+              alignItems: { xs: "stretch", md: "flex-start" },
+            }}
+          >
             <Stack
-              direction={{
-                xs: 'column',
-                lg: 'row',
-              }}
-              spacing={2.5}
-              sx={{
-                alignItems: {
-                  xs: 'stretch',
-                  lg: 'center',
-                },
-
-                justifyContent:
-                  'space-between',
-              }}
+              direction="row"
+              spacing={1.5}
+              sx={{ minWidth: 0, alignItems: "flex-start", flex: 1 }}
             >
-              {/* EMPRESA */}
-
-              <Stack
-                direction={{
-                  xs: 'column',
-                  sm: 'row',
-                }}
-                spacing={2}
+              <Avatar
+                src={lead.fotoUrl || undefined}
+                alt={lead.company || "Foto do cadastro"}
+                variant="rounded"
                 sx={{
-                  alignItems: {
-                    xs: 'flex-start',
-                    sm: 'center',
-                  },
-
-                  minWidth: 0,
+                  width: 54,
+                  height: 54,
+                  flexShrink: 0,
+                  borderRadius: "10px",
+                  bgcolor: "#f1f5f9",
+                  color: "#475569",
+                  border: "1px solid #e2e8f0",
+                  fontSize: 23,
+                  fontWeight: 600,
                 }}
               >
-                {/* AVATAR */}
-
-                <Avatar
-                  src={lead.fotoUrl || undefined}
-                  alt={lead.company || 'Foto do cadastro'}
-                  variant="rounded"
+                {(lead.company || "C").slice(0, 1).toUpperCase()}
+              </Avatar>
+              <Box sx={{ minWidth: 0, flex: 1 }}>
+                <Typography
+                  component="h1"
                   sx={{
-                    width: {
-                      xs: 76,
-                      md: 86,
-                    },
-
-                    height: {
-                      xs: 76,
-                      md: 86,
-                    },
-
-                    flexShrink: 0,
-
-                    borderRadius: 3,
-
-                    bgcolor:
-                      alpha(
-                        '#ff5805',
-                        0.09,
-                      ),
-
-                    color:
-                      '#ff5805',
-
-                    border:
-                      '1px solid',
-
-                    borderColor:
-                      alpha(
-                        '#ff5805',
-                        0.17,
-                      ),
-
-                    fontSize: {
-                      xs: 28,
-                      md: 32,
-                    },
-
-                    fontWeight: 950,
+                    color: "#1f2937",
+                    fontSize: { xs: 20, md: 22 },
+                    fontWeight: 700,
+                    lineHeight: 1.3,
+                    letterSpacing: "-0.02em",
+                    overflowWrap: "anywhere",
                   }}
                 >
-                  {(lead.company ||
-                    'C')
-                    .slice(0, 1)
-                    .toUpperCase()}
-                </Avatar>
-
-                {/* DADOS */}
-
-                <Box
-                  sx={{
-                    minWidth: 0,
-                  }}
+                  {lead.company || "Cliente"}
+                </Typography>
+                <Stack
+                  direction="row"
+                  spacing={0.75}
+                  useFlexGap
+                  sx={{ mt: 0.75, flexWrap: "wrap", alignItems: "center" }}
                 >
-                  <Stack
-                    direction="row"
-                    spacing={1}
-                    sx={{
-                      alignItems:
-                        'center',
-
-                      flexWrap:
-                        'wrap',
-
-                      gap: 1,
-                    }}
-                  >
-                    <Box
-                      sx={{
-                        display:
-                          'inline-flex',
-
-                        alignItems:
-                          'center',
-
-                        gap: 0.75,
-
-                        px: 1.25,
-
-                        py: 0.55,
-
-                        borderRadius:
-                          999,
-
-                        bgcolor:
-                          alpha(
-                            '#ff5805',
-                            0.08,
-                          ),
-
-                        color:
-                          '#e94f00',
-                      }}
-                    >
-                      <Building2
-                        size={14}
-                      />
-
-                      <Typography
-                        sx={{
-                          fontSize:
-                            11,
-
-                          fontWeight:
-                            900,
-
-                          textTransform:
-                            'uppercase',
-
-                          letterSpacing:
-                            0.7,
-                        }}
-                      >
-                        {lead.modalidadeCadastro === 'LEAD' ? 'Lead' : 'Cliente'}
-                      </Typography>
-                    </Box>
-
-                    <Chip
-                      size="small"
-                      variant="outlined"
-                      label={formatLeadStatus(
-                        lead.status,
-                      )}
-                      sx={{
-                        ...statusStyles[
-                        lead.status
-                        ],
-
-                        height: 27,
-
-                        borderRadius:
-                          2,
-
-                        fontSize: 11,
-
-                        fontWeight:
-                          900,
-                      }}
-                    />
-                  </Stack>
-
-                  <Typography
-                    component="h1"
-                    sx={{
-                      mt: 1,
-
-                      color:
-                        'text.primary',
-
-                      fontSize: {
-                        xs: 25,
-                        md: 30,
-                      },
-
-                      fontWeight:
-                        950,
-
-                      lineHeight:
-                        1.12,
-
-                      letterSpacing:
-                        '-0.025em',
-
-                      overflowWrap:
-                        'anywhere',
-                    }}
-                  >
-                    {lead.company ||
-                      'Cliente'}
-                  </Typography>
-                  <IdentificacaoProspeccao registro={lead}/>
-
                   <Typography
                     sx={{
-                      mt: 0.75,
-
-                      color:
-                        'text.secondary',
-
-                      fontSize:
-                        13.5,
-
-                      lineHeight:
-                        1.5,
-
-                      fontWeight:
-                        650,
+                      mr: 0.5,
+                      color: "#64748b",
+                      fontSize: 12.5,
+                      overflowWrap: "anywhere",
                     }}
                   >
-                    CNPJ:{' '}
-                    {lead.document ||
-                      'Não informado'}
+                    CNPJ: {lead.document || "Não informado"}
                   </Typography>
-                </Box>
-              </Stack>
-
-              {/* ==========================================
-                    AÇÕES DO CLIENTE
-                ========================================== */}
-
-              <Stack
-                direction="row"
-                spacing={0}
-                sx={{
-                  alignItems: 'center',
-                  justifyContent: 'flex-end',
-                  flexWrap: 'wrap',
-                  gap: 1.2,
-                }}
-              >
-                {/* VOLTAR */}
-                <Button
-                  component={Link}
-                  href="/cadastros"
-                  startIcon={<ArrowLeft size={18} />}
-                  sx={{
-                    height: 42,
-                    px: 2,
-                    borderRadius: '10px',
-                    border: '1px solid #cbd5e1',
-                    bgcolor: '#ffffff',
-                    color: '#334155',
-                    fontWeight: 600,
-                    textTransform: 'none',
-                    '&:hover': {
-                      borderColor: '#ff5805',
-                      bgcolor: '#fff7ed',
-                      color: '#e94f00',
-                    },
-                  }}
-                >
-                  Voltar
-                </Button>
-
-                {/* EDITAR */}
-                {canEditClient && (
-                  <Button
-                    type="button"
-                    onClick={onEditClient}
-                    startIcon={<Edit3 size={18} />}
+                  <Chip
+                    size="small"
+                    label={
+                      lead.modalidadeCadastro === "LEAD" ? "Lead" : "Cliente"
+                    }
                     sx={{
-                      height: 42,
-                      px: 2,
-                      borderRadius: '10px',
-                      border: '1px solid #ff5805',
-                      bgcolor: '#ff5805',
-                      color: '#ffffff',
-                      fontWeight: 600,
-                      textTransform: 'none',
-                      '&:hover': {
-                        bgcolor: '#e94f00',
-                        borderColor: '#e94f00',
-                      },
+                      height: 23,
+                      borderRadius: "6px",
+                      bgcolor: "#f1f5f9",
+                      color: "#475569",
+                      fontSize: 11.5,
+                      fontWeight: 500,
                     }}
-                  >
-                    Editar
-                  </Button>
-                )}
-
-                {/* MENU DE TRÊS PONTINHOS */}
-                {canRequestDeletion && (
-                  <>
-                    <Tooltip title="Mais opções">
-                      <IconButton
-                        type="button"
-                        aria-label="Mais opções do cliente"
-                        aria-haspopup="menu"
-                        aria-controls={menuAberto ? 'menu-acoes-cliente' : undefined}
-                        aria-expanded={menuAberto ? true : undefined}
-                        onClick={(event) => setMenuAnchorEl(event.currentTarget)}
-                        sx={{
-                          width: 42,
-                          height: 42,
-                          borderRadius: '10px',
-                          border: '1px solid #cbd5e1',
-                          bgcolor: '#ffffff',
-                          color: '#334155',
-                          '&:hover': {
-                            borderColor: '#ff5805',
-                            bgcolor: '#fff7ed',
-                            color: '#e94f00',
-                          },
-                        }}
-                      >
-                        <MoreVertical size={20} />
-                      </IconButton>
-                    </Tooltip>
-
-                    {/* MENU DE OPÇÕES */}
-                    <Menu
-                      id="menu-acoes-cliente"
-                      anchorEl={menuAnchorEl}
-                      open={menuAberto}
-                      onClose={fecharMenu}
-                      anchorOrigin={{
-                        vertical: 'bottom',
-                        horizontal: 'right',
-                      }}
-                      transformOrigin={{
-                        vertical: 'top',
-                        horizontal: 'right',
-                      }}
-                      slotProps={{
-                        paper: {
-                          sx: {
-                            mt: 1,
-                            minWidth: 180,
-                            borderRadius: '10px',
-                            boxShadow: '0 8px 24px rgba(0,0,0,0.10)',
-                          },
-                        },
-                      }}
-                    >
-                      <MenuItem
-                        onClick={excluirPeloMenu}
-                        sx={{
-                          color: '#dc2626',
-                          fontSize: 14,
-                          fontWeight: 500,
-                          py: 1.2,
-                          '&:hover': {
-                            bgcolor: '#fef2f2',
-                          },
-                        }}
-                      >
-                        <ListItemIcon>
-                          <DeleteOutlineRoundedIcon
-                            fontSize="small"
-                            sx={{ color: '#dc2626' }}
-                          />
-                        </ListItemIcon>
-
-                        <ListItemText primary="Excluir cliente" />
-                      </MenuItem>
-                    </Menu>
-                  </>
-                )}
-              </Stack>
-            </Stack>
-
-            {/* =================================================
-                RESUMO
-            ================================================= */}
-
-            <Box
-              sx={{
-                display: 'grid',
-
-                gridTemplateColumns:
-                {
-                  xs: '1fr',
-
-                  md: 'repeat(3, minmax(0, 1fr))',
-                  xl: 'repeat(5, minmax(0, 1fr))',
-                },
-
-                gap: 1.5,
-              }}
-            >
-              <HeaderSummaryItem
-                icon={
-                  <Mail size={20} />
-                }
-                label="Contato"
-                value={
-                  lead.email ||
-                  lead.phone ||
-                  'Não informado'
-                }
-                color="#17456B"
-              />
-
-              <HeaderSummaryItem
-                icon={
-                  <UserRoundCheck
-                    size={20}
                   />
-                }
-                label="Responsável"
-                value={lead.responsavel || getClientCreatedBy(lead)}
-                color="#2E7D32"
-              />
-
-              <HeaderSummaryItem
-                icon={
-                  <Clock size={20} />
-                }
-                label="Última interação"
-                value={formatDate(
-                  lead.lastContactAt,
-                )}
-                color="#A35A00"
-              />
-              <HeaderSummaryItem icon={<CalendarDays size={20} />} label="Próxima ação" value={lead.proximaAcao || 'Não informada'} color="#ea580c" />
-              <HeaderSummaryItem icon={<Wallet size={20} />} label="Volume mensal estimado" value={lead.volumeMensalEstimado ? moeda(valorMonetario(lead.volumeMensalEstimado)) : 'Não informado'} color="#64748b" />
-            </Box>
+                  <Chip
+                    size="small"
+                    variant="outlined"
+                    label={formatLeadStatus(lead.status)}
+                    sx={{
+                      ...statusStyles[lead.status],
+                      height: 23,
+                      borderRadius: "6px",
+                      fontSize: 11.5,
+                      fontWeight: 500,
+                    }}
+                  />
+                </Stack>
+                <IdentificacaoProspeccao registro={lead} />
+              </Box>
+            </Stack>
+            <Stack
+              direction="row"
+              spacing={0.75}
+              sx={{
+                alignItems: "center",
+                justifyContent: "flex-end",
+                flexShrink: 0,
+              }}
+            >
+              <Button
+                component={Link}
+                href={hrefVoltar}
+                variant="outlined"
+                size="small"
+                startIcon={<ArrowLeft size={15} />}
+                sx={{
+                  minHeight: 40,
+                  px: 1.75,
+                  borderRadius: "8px",
+                  color: "#334155",
+                  bgcolor: "#f8fafc",
+                  borderColor: "#cbd5e1",
+                  fontSize: 13,
+                  fontWeight: 600,
+                  textTransform: "none",
+                  "&:hover": { bgcolor: "#f1f5f9", borderColor: "#94a3b8" },
+                  "&.Mui-focusVisible": { outline: "2px solid #ff5805", outlineOffset: 2 },
+                }}
+              >
+                Voltar
+              </Button>
+              {canEditClient && (
+                <Button
+                  type="button"
+                  variant="contained"
+                  size="small"
+                  onClick={onEditClient}
+                  startIcon={<Edit3 size={15} />}
+                  sx={{
+                    minHeight: 36,
+                    px: 1.75,
+                    borderRadius: "8px",
+                    bgcolor: "#ff5805",
+                    color: "#fff",
+                    fontSize: 12.5,
+                    fontWeight: 600,
+                    textTransform: "none",
+                    boxShadow: "none",
+                    "&:hover": { bgcolor: "#e94f00", boxShadow: "none" },
+                  }}
+                >
+                  Editar
+                </Button>
+              )}
+              {canRequestDeletion && (
+                <>
+                  <Tooltip title="Mais opções">
+                    <IconButton
+                      type="button"
+                      size="small"
+                      aria-label="Mais opções do cliente"
+                      aria-haspopup="menu"
+                      aria-controls={
+                        menuAberto ? "menu-acoes-cliente" : undefined
+                      }
+                      aria-expanded={menuAberto ? true : undefined}
+                      onClick={(event) => setMenuAnchorEl(event.currentTarget)}
+                      sx={{
+                        width: 36,
+                        height: 36,
+                        borderRadius: "8px",
+                        color: "#64748b",
+                        "&:hover": { bgcolor: "#f8fafc" },
+                      }}
+                    >
+                      <MoreVertical size={18} />
+                    </IconButton>
+                  </Tooltip>
+                  <Menu
+                    id="menu-acoes-cliente"
+                    anchorEl={menuAnchorEl}
+                    open={menuAberto}
+                    onClose={fecharMenu}
+                    anchorOrigin={{ vertical: "bottom", horizontal: "right" }}
+                    transformOrigin={{ vertical: "top", horizontal: "right" }}
+                    slotProps={{
+                      paper: {
+                        sx: {
+                          mt: 0.75,
+                          minWidth: 180,
+                          borderRadius: "8px",
+                          boxShadow: "0 4px 16px rgba(15,23,42,.08)",
+                        },
+                      },
+                    }}
+                  >
+                    <MenuItem
+                      onClick={excluirPeloMenu}
+                      sx={{ color: "#dc2626", fontSize: 13 }}
+                    >
+                      <ListItemIcon sx={{ color: "inherit", minWidth: 30 }}>
+                        <DeleteOutlineRoundedIcon fontSize="small" />
+                      </ListItemIcon>
+                      <ListItemText
+                        primary="Excluir cliente"
+                        slotProps={{ primary: { sx: { fontSize: 13 } } }}
+                      />
+                    </MenuItem>
+                  </Menu>
+                </>
+              )}
+            </Stack>
           </Stack>
+          <Box
+            component="dl"
+            sx={{
+              m: 0,
+              mt: 2,
+              pt: 1.5,
+              borderTop: "1px solid #f1f5f9",
+              display: "grid",
+              gridTemplateColumns: {
+                xs: "repeat(2,minmax(0,1fr))",
+                lg: "1.25fr 1fr 1fr 1.25fr 1fr",
+              },
+              gridTemplateAreas: {
+                xs: '"contato responsavel" "interacao volume" "acao acao"',
+                lg: '"contato responsavel interacao acao volume"',
+              },
+              gap: { xs: 1.25, md: 2 },
+            }}
+          >
+            <InformacaoResumo titulo="Contato principal" area="contato">
+              {identificacaoContato || "Não informado"}
+              {contatoPrincipal.nome && contatoPrincipal.email && (
+                <Box component="span" sx={{ display: "block", color: "#64748b", fontSize: 12 }}>{contatoPrincipal.email}</Box>
+              )}
+              {(contatoPrincipal.nome || contatoPrincipal.email) && contatoPrincipal.telefone && (
+                <Box component="span" sx={{ display: "block", color: "#64748b", fontSize: 12 }}>{contatoPrincipal.telefone}</Box>
+              )}
+            </InformacaoResumo>
+            <InformacaoResumo titulo="Responsável" area="responsavel">
+              {lead.responsavel || getClientCreatedBy(lead)}
+            </InformacaoResumo>
+            <InformacaoResumo titulo="Última interação" area="interacao">
+              {formatDate(lead.lastContactAt)}
+            </InformacaoResumo>
+            <InformacaoResumo titulo="Próxima ação" area="acao">
+              {lead.proximaAcao || "Não informada"}
+            </InformacaoResumo>
+            <InformacaoResumo titulo="Volume mensal estimado" area="volume">
+              {lead.volumeMensalEstimado
+                ? moeda(valorMonetario(lead.volumeMensalEstimado))
+                : "Não informado"}
+            </InformacaoResumo>
+          </Box>
         </Box>
       ) : null}
     </CrmSection>

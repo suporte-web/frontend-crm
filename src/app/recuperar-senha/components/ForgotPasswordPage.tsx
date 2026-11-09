@@ -1,5 +1,7 @@
 'use client';
 
+import { FeedbackToast } from '@/components/ui/feedback-toast';
+
 import { FormEvent, useState } from 'react';
 import Link from 'next/link';
 import { ArrowLeft, Mail, ShieldCheck } from 'lucide-react';
@@ -86,17 +88,7 @@ export default function ForgotPasswordPage() {
                 </div>
               </div>
 
-              {message ? (
-                <div className="rounded-xl border border-green-400/30 bg-green-500/10 px-4 py-3 text-sm font-medium text-green-100">
-                  {message}
-                </div>
-              ) : null}
-
-              {error ? (
-                <div className="rounded-xl border border-[#ec3139]/30 bg-[#ec3139]/10 px-4 py-3 text-sm font-medium text-red-100">
-                  {error}
-                </div>
-              ) : null}
+              <FeedbackToast open={Boolean(error || message)} title={error ? 'Falha na recuperação' : 'Recuperação solicitada'} message={error || message} variant={error ? 'error' : 'success'} onClose={() => { setError(''); setMessage(''); }} />
 
               <button
                 type="submit"

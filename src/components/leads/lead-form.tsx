@@ -1,4 +1,6 @@
 'use client';
+import { mascararValorMonetario, formatarValorMonetarioSalvo } from '@/lib/valor-oportunidade';
+
 
 import { useEffect, useState } from 'react';
 
@@ -353,11 +355,12 @@ export function LeadForm({
 
           <TextField
             label="Volume mensal estimado (R$)"
-            value={form.monthlyEstimatedValue}
+            value={formatarValorMonetarioSalvo(form.monthlyEstimatedValue)}
             onChange={(event) =>
-              setForm((prev) => ({ ...prev, monthlyEstimatedValue: event.target.value }))
+              setForm((prev) => ({ ...prev, monthlyEstimatedValue: mascararValorMonetario(event.target.value) }))
             }
-            placeholder="Ex: 57900"
+            placeholder="0,00"
+            slotProps={{ htmlInput: { inputMode: "numeric" } }}
             sx={fieldSx}
           />
 

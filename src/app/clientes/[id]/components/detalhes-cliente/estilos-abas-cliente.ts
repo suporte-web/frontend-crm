@@ -26,3 +26,17 @@ export const campoPequenoClienteSx = {
   "& .MuiInputLabel-root.Mui-focused": { color: "#ff5805" },
   "& .MuiSelect-select": { fontWeight: 400 },
 } satisfies SxProps<Theme>;
+
+/** Padrão das abas cadastrais, sem alterar a apresentação de oportunidades. */
+export const superficieAbasCadastroSx = {
+  ...superficieAbasClienteSx,
+  borderRadius: '12px',
+  '&& .MuiTextField-root .MuiOutlinedInput-root': { borderRadius: '8px', bgcolor: '#fff' },
+  '&& .MuiTextField-root .MuiOutlinedInput-root:not(.MuiInputBase-multiline)': { minHeight: 40, height: 40 },
+  '&& .MuiInputLabel-root': { fontSize: 13, fontWeight: 400 },
+  '&& .MuiInputBase-input, && .MuiSelect-select': { fontSize: 13.5, fontWeight: 400 },
+  '&& .MuiButton-root': { fontWeight: 600, borderRadius: '8px' },
+  '& .MuiListItem-root .MuiTypography-root': { fontWeight: 500 },
+  '& .MuiListItemText-primary': { fontSize: 12, color: '#64748b' },
+  '& .MuiListItemText-secondary': { fontSize: 13.5, fontWeight: 500 },
+} satisfies SxProps<Theme>;

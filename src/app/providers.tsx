@@ -2,6 +2,7 @@
 
 import { AppRouterCacheProvider } from '@mui/material-nextjs/v16-appRouter';
 
+import { GlobalFeedback } from '@/components/ui/global-feedback';
 import { AuthProvider } from '@/context/auth-context';
 import { ThemeProvider } from '@/context/theme-context';
 
@@ -13,7 +14,10 @@ export function Providers({ children }: ProvidersProps) {
   return (
     <AppRouterCacheProvider>
       <ThemeProvider>
-        <AuthProvider>{children}</AuthProvider>
+        <AuthProvider>
+          {children}
+          <GlobalFeedback />
+        </AuthProvider>
       </ThemeProvider>
     </AppRouterCacheProvider>
   );

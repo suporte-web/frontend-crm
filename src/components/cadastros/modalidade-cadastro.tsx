@@ -1,8 +1,11 @@
 "use client";
 
+import { FeedbackToast } from '@/components/ui/feedback-toast';
+
+import { notificarCrm } from '@/lib/feedback-crm';
+
 import { useEffect, useState } from "react";
-import { Alert, Box, Button, Chip, MenuItem, Paper, Stack, TextField, Typography } from "@mui/material";
-import SwapHorizOutlinedIcon from "@mui/icons-material/SwapHorizOutlined";
+import { Box, Button, Chip, MenuItem, Paper, Stack, TextField, Typography } from "@mui/material";
 import { alterarModalidade, type ModalidadeCadastro } from "@/services/cadastros.service";
 
 export function ModalidadeCadastro({ id, modalidade, documento, token, podeEditar, aoSalvar }: {
@@ -30,6 +33,7 @@ export function ModalidadeCadastro({ id, modalidade, documento, token, podeEdita
       setErro("");
       await alterarModalidade(id, tipo, documentoInformado || undefined, token);
       await aoSalvar();
+      notificarCrm('Modalidade do cadastro atualizada com sucesso.');
     } catch (erro) {
       setErro(erro instanceof Error ? erro.message : "Não foi possível alterar a modalidade.");
     } finally {
@@ -38,39 +42,20 @@ export function ModalidadeCadastro({ id, modalidade, documento, token, podeEdita
   }
 
   return (
-    <Paper variant="outlined" sx={{ p: { xs: 2, md: 2.5 }, borderRadius: "14px", borderColor: "#e2e8f0", boxShadow: "none" }}>
-      <Stack spacing={3}>
-        <Stack direction={{ xs: "column", sm: "row" }} spacing={2} sx={{ justifyContent: "space-between", alignItems: { sm: "center" } }}>
-          <Stack direction="row" spacing={1.5} sx={{ alignItems: "center" }}>
-            <Box sx={{ display: "grid", placeItems: "center", width: 42, height: 42, flexShrink: 0, borderRadius: "10px", bgcolor: "#fff7ed", color: "#ea580c" }}>
-              <SwapHorizOutlinedIcon />
-            </Box>
-            <Box>
-              <Typography component="h2" sx={{ fontSize: 18, fontWeight: 800, color: "#1f2937" }}>Modalidade do cadastro</Typography>
-              <Typography sx={{ mt: 0.5, fontSize: 13, color: "#64748b" }}>Defina se este cadastro é um Cliente ou um Lead.</Typography>
-            </Box>
-          </Stack>
-          <Chip label={`Modalidade atual: ${modalidade === "CLIENTE" ? "Cliente" : "Lead"}`} size="small" sx={{ alignSelf: { xs: "flex-start", sm: "center" }, bgcolor: "#fff7ed", color: "#c2410c", fontWeight: 700 }} />
+    <Paper variant="outlined" sx={{ p: { xs: 2, md: 2.5 }, borderRadius: '12px', borderColor: '#e2e8f0', bgcolor: '#fff', boxShadow: 'none', '&& .MuiOutlinedInput-root': { borderRadius: '8px' }, '&& .MuiOutlinedInput-root:not(.MuiInputBase-multiline)': { height: 40 }, '&& .MuiInputLabel-root': { fontSize: 13, fontWeight: 400 }, '&& .MuiInputBase-input, && .MuiSelect-select': { fontSize: 13.5, fontWeight: 400 } }}>
+      <Stack spacing={2.5}>
+        <Stack direction="row" spacing={1.5} sx={{ justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: 1 }}>
+          <Typography component="h2" sx={{ fontSize: 17, fontWeight: 600, color: '#1f2937' }}>Modalidade</Typography>
+          <Chip label={'Atual: '+(modalidade === 'CLIENTE' ? 'Cliente' : 'Lead')} size="small" sx={{ bgcolor: '#f1f5f9', color: '#475569', fontWeight: 500, borderRadius: '6px' }} />
         </Stack>
-        {erro && <Alert severity="error">{erro}</Alert>}
-        {podeEditar ? (
-          <Box component="form" onSubmit={evento => { evento.preventDefault(); void salvar(); }} sx={{ p: { xs: 2, md: 2.5 }, border: "1px solid #e2e8f0", borderRadius: "12px", bgcolor: "#f8fafc" }}>
-            <Stack spacing={2} sx={{ maxWidth: 560 }}>
-              <TextField select label="Modalidade" size="small" fullWidth value={tipo} onChange={evento => setTipo(evento.target.value as ModalidadeCadastro)} disabled={salvando} sx={{ bgcolor: "#fff" }}>
-                <MenuItem value="CLIENTE">Cliente</MenuItem>
-                <MenuItem value="LEAD">Lead</MenuItem>
-              </TextField>
-              {tipo === "CLIENTE" && !documento && (
-                <TextField label="CPF ou CNPJ (opcional)" size="small" fullWidth value={documentoInformado} onChange={evento => setDocumento(evento.target.value)} disabled={salvando} sx={{ bgcolor: "#fff" }} />
-              )}
-              <Button type="submit" variant="contained" disabled={salvando || tipo === modalidade} sx={{ alignSelf: { xs: "stretch", sm: "flex-start" }, minHeight: 40, borderRadius: "8px", textTransform: "none", fontWeight: 700, bgcolor: "#ff5805", boxShadow: "none", "&:hover": { bgcolor: "#e94f00", boxShadow: "none" } }}>
-                {salvando ? "Salvando..." : "Salvar modalidade"}
-              </Button>
-            </Stack>
-          </Box>
-        ) : (
-          <Typography sx={{ color: "#64748b", fontSize: 13 }}>Seu perfil permite apenas consultar a modalidade deste cadastro.</Typography>
-        )}
+        <FeedbackToast open={Boolean(erro)} title="Não foi possível salvar" message={erro} variant="error" onClose={() => setErro('')} />
+        {podeEditar ? <Box component="form" onSubmit={evento => { evento.preventDefault(); void salvar(); }} sx={{ borderTop: '2px solid #ff5805', pt: 2.5 }}>
+          <Stack spacing={2} sx={{ maxWidth: 560 }}>
+            <TextField select label="Modalidade" size="small" fullWidth value={tipo} onChange={evento => setTipo(evento.target.value as ModalidadeCadastro)} disabled={salvando}><MenuItem value="CLIENTE">Cliente</MenuItem><MenuItem value="LEAD">Lead</MenuItem></TextField>
+            {tipo === 'CLIENTE' && !documento && <TextField label="CPF ou CNPJ (opcional)" size="small" fullWidth value={documentoInformado} onChange={evento => setDocumento(evento.target.value)} disabled={salvando} />}
+            <Button type="submit" variant="contained" disabled={salvando || tipo === modalidade} sx={{ alignSelf: { xs: 'stretch', sm: 'flex-start' }, minHeight: 40, borderRadius: '8px', textTransform: 'none', fontWeight: 600, bgcolor: '#ff5805', boxShadow: 'none', '&:hover': { bgcolor: '#e94f00', boxShadow: 'none' } }}>{salvando ? 'Salvando...' : 'Salvar modalidade'}</Button>
+          </Stack>
+        </Box> : <Typography sx={{ color: '#64748b', fontSize: 13 }}>Somente leitura para o seu perfil.</Typography>}
       </Stack>
     </Paper>
   );

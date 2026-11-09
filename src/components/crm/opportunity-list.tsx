@@ -1,4 +1,7 @@
 'use client';
+import { mascararValorMonetario, formatarValorMonetarioSalvo } from '@/lib/valor-oportunidade';
+import { converterValorTotalOportunidade, formatarCampoValorTotal } from '@/lib/valor-oportunidade';
+
 
 import { useEffect, useState } from 'react';
 import Link from 'next/link';
@@ -16,6 +19,7 @@ import {
   getOpportunityStatusFromStage,
 } from '@/services/crm.service';
 import type { Opportunity, OpportunityStage } from '@/types/crm';
+import { CamposPerdaOportunidade, DetalhesPerdaOportunidade } from './campos-perda-oportunidade';
 import { PipelineStageBadge } from './pipeline-stage-badge';
 
 const pipelineStages: OpportunityStage[] = [
@@ -73,7 +77,7 @@ function opportunityToEditForm(opportunity: Opportunity): OpportunityEditForm {
     title: opportunity.title,
     value:
       opportunity.value !== null && opportunity.value !== undefined
-        ? String(opportunity.value)
+        ? formatarCampoValorTotal(opportunity.value)
         : '',
     expectedCloseDate: formatDateInput(opportunity.expectedCloseDate),
     preContract: opportunity.preContract ?? false,
@@ -91,7 +95,7 @@ export function OpportunityList({
 }: {
   opportunities: Opportunity[];
   onStageChange: (opportunityId: string, stage: OpportunityStage) => void | Promise<void>;
-  onMarkLost: (opportunityId: string, reason: string) => void | Promise<void>;
+  onMarkLost: (opportunityId: string, reason: string, notes?: string) => void | Promise<void>;
   canEdit?: boolean;
   onEdit?: (opportunityId: string, payload: OpportunityEditPayload) => void | Promise<void>;
   darkMode?: boolean;
@@ -100,6 +104,7 @@ export function OpportunityList({
     {},
   );
   const [lostReasons, setLostReasons] = useState<Record<string, string>>({});
+  const [lostNotes, setLostNotes] = useState<Record<string,string>>({});
   const [editingId, setEditingId] = useState<string | null>(null);
   const [editForm, setEditForm] = useState<OpportunityEditForm | null>(null);
 
@@ -192,16 +197,17 @@ export function OpportunityList({
                       <label className="text-sm font-semibold text-slate-700">
                         Valor
                         <input
-                          value={editForm.value}
+                          value={formatarValorMonetarioSalvo(editForm.value)}
                           onChange={(event) =>
                             setEditForm((current) =>
                               current
-                                ? { ...current, value: event.target.value }
+                                ? { ...current, value: mascararValorMonetario(event.target.value) }
                                 : current,
                             )
                           }
                           className="mt-2 w-full rounded-2xl border border-slate-300 bg-white px-4 py-3 text-sm font-normal text-slate-900 outline-none transition focus:border-blue-400"
                           placeholder="0,00"
+                          inputMode="numeric"
                         />
                       </label>
                       <label className="text-sm font-semibold text-slate-700">
@@ -276,11 +282,7 @@ export function OpportunityList({
                     </div>
                   )}
 
-                  {opportunity.lostReason ? (
-                    <div className="mt-3 rounded-2xl border border-rose-200 bg-rose-50 px-4 py-3 text-sm text-rose-700">
-                      Motivo da perda: {opportunity.lostReason}
-                    </div>
-                  ) : null}
+                  <DetalhesPerdaOportunidade opportunity={opportunity} />
 
                   {opportunity.preContract ? (
                     <div className="mt-3 rounded-2xl border border-blue-200 bg-blue-50 px-4 py-3 text-sm text-blue-800">
@@ -320,7 +322,7 @@ export function OpportunityList({
                             onClick={async () => {
                               if (!editForm) return;
                               const value = editForm.value
-                                ? Number(editForm.value.replace(',', '.'))
+                                ? converterValorTotalOportunidade(editForm.value)
                                 : null;
 
                               await onEdit(opportunity.id, {
@@ -397,38 +399,13 @@ export function OpportunityList({
                   </select>
 
                   {isLostDraft ? (
-                    <div className="mt-4 space-y-3">
-                      <label className={`block text-sm font-semibold ${darkMode ? 'text-slate-200' : 'text-slate-700'}`}>
-                        Motivo da perda
-                      </label>
-                      <textarea
-                        value={lostReasons[opportunity.id] ?? opportunity.lostReason ?? ''}
-                        onChange={(event) =>
-                          setLostReasons((current) => ({
-                            ...current,
-                            [opportunity.id]: event.target.value,
-                          }))
-                        }
-                        rows={3}
-                        className={`w-full rounded-2xl border px-4 py-3 text-sm outline-none transition focus:border-blue-400 ${
-                          darkMode
-                            ? 'border-slate-700 bg-slate-950 text-white'
-                            : 'border-slate-300 bg-slate-50 text-slate-900 focus:bg-white'
-                        }`}
-                        placeholder="Informe o motivo principal da perda"
-                      />
+                    <form className="mt-4 space-y-3" onSubmit={event=>{event.preventDefault(); void onMarkLost(opportunity.id,lostReasons[opportunity.id] ?? opportunity.motivoPerda ?? '',lostNotes[opportunity.id] ?? opportunity.observacaoPerda ?? '');}}>
+                      <CamposPerdaOportunidade codigo={lostReasons[opportunity.id] ?? opportunity.motivoPerda ?? ''} notes={lostNotes[opportunity.id] ?? opportunity.observacaoPerda ?? ''} onChange={(code,notes)=>{setLostReasons(current=>({...current,[opportunity.id]:code}));setLostNotes(current=>({...current,[opportunity.id]:notes}));}} />
                       <div className="flex flex-wrap gap-3">
                         <Button
-                          type="button"
+                          type="submit"
                           className="rounded-2xl px-4 py-2 text-sm"
-                          onClick={() =>
-                            onMarkLost(
-                              opportunity.id,
-                              lostReasons[opportunity.id] ??
-                                opportunity.lostReason ??
-                                'Motivo não informado.',
-                            )
-                          }
+
                         >
                           Confirmar perda
                         </Button>
@@ -446,7 +423,7 @@ export function OpportunityList({
                           Cancelar
                         </Button>
                       </div>
-                    </div>
+                    </form>
                   ) : null}
                 </div>
               </div>

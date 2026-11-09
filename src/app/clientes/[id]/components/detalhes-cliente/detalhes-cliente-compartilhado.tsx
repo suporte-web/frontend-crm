@@ -1,6 +1,7 @@
 "use client";
 
 import type * as React from "react";
+import { formatarCampoValorTotal } from '@/lib/valor-oportunidade';
 
 import Box from "@mui/material/Box";
 import Button from "@mui/material/Button";
@@ -418,6 +419,9 @@ export type FormularioCondicoesComerciais = {
 };
 
 export type FormularioPropostaOportunidade = {
+  valorTotal: string;
+  motivoPerda: string;
+  observacaoPerda: string;
   title: string;
   proposalType: "" | "TRANSPORTE_RODOVIARIO" | "ARMAZENAGEM";
   transportOptions: string[];
@@ -477,6 +481,9 @@ export const formularioCondicoesComerciaisVazio = (): FormularioCondicoesComerci
 });
 
 export const formularioPropostaOportunidadeVazio = (): FormularioPropostaOportunidade => ({
+  valorTotal: "",
+  motivoPerda: "",
+  observacaoPerda: "",
   title: "",
   proposalType: "",
   transportOptions: [],
@@ -503,6 +510,9 @@ export function propostaParaFormulario(
   const form = formularioPropostaOportunidadeVazio();
 
   form.title = opportunity.title ?? "";
+  form.valorTotal = formatarCampoValorTotal(opportunity.value ?? opportunity.valorPropostaComercial);
+  form.motivoPerda = opportunity.motivoPerda ?? "";
+  form.observacaoPerda = opportunity.observacaoPerda ?? "";
 
   const notes = opportunity.preContractNotes ?? "";
 
@@ -1161,6 +1171,7 @@ export function CartaoInformacao({ label, value }: { label: string; value: React
 }
 
 export function ListaInformacoes({
+  compacto = false,
   icon,
   items,
   title,
@@ -1170,6 +1181,7 @@ export function ListaInformacoes({
   iconBg = "#fff3ed",
   iconColor = crmPalette.orangeDark,
 }: {
+  compacto?: boolean;
   icon?: React.ReactNode;
 
   items: Array<
@@ -1189,6 +1201,12 @@ export function ListaInformacoes({
   iconBg?: string;
   iconColor?: string;
 }) {
+  if (compacto) return <Box component="section" sx={{ minWidth: 0, borderTop: '2px solid #ff5805', pt: 2.5 }}>
+    {title && <Typography component="h3" sx={{ fontSize: 14, fontWeight: 600, color: '#1f2937', mb: 2 }}>{title}</Typography>}
+    <Box component="dl" sx={{ m: 0, display: 'grid', gridTemplateColumns: { xs: 'minmax(0,1fr)', sm: 'repeat(2,minmax(0,1fr))' }, columnGap: 3, rowGap: 2.5 }}>
+      {items.map(([rotulo,valor],indice)=><Box key={rotulo+'-'+indice} sx={{ minWidth: 0 }}><Typography component="dt" sx={{ fontSize: 12, color: '#64748b', mb: 0.75 }}>{rotulo}</Typography><Typography component="dd" sx={{ m: 0, fontSize: 13.5, fontWeight: 500, color: '#334155', whiteSpace: 'pre-wrap', overflowWrap: 'anywhere', lineHeight: 1.6 }}>{valor}</Typography></Box>)}
+    </Box>
+  </Box>;
   return (
     <Box sx={modernListSx}>
       {/* =====================================
@@ -1388,13 +1406,15 @@ export function ListaInformacoes({
 }
 
 export type PropriedadesCabecalhoSecao = {
+  compacto?: boolean;
   eyebrow?: string;
   title: string;
   description?: string;
   icon?: React.ReactNode;
 };
 
-export function CabecalhoSecao({ eyebrow, title, description, icon }: PropriedadesCabecalhoSecao) {
+export function CabecalhoSecao({ compacto = false, eyebrow, title, description, icon }: PropriedadesCabecalhoSecao) {
+  if (compacto) return <Typography component="h2" sx={{ fontSize: 17, fontWeight: 600, color: '#1f2937', lineHeight: 1.4, overflowWrap: 'anywhere' }}>{title}</Typography>;
   return (
     <Stack
       spacing={0.75}
@@ -1497,6 +1517,7 @@ export function CabecalhoSecao({ eyebrow, title, description, icon }: Propriedad
 }
 
 type PropriedadesTituloSecaoFormulario = {
+  compacto?: boolean;
   icon: React.ReactNode;
   title: string;
   description?: string;
@@ -1508,6 +1529,7 @@ type PropriedadesTituloSecaoFormulario = {
 };
 
 export function TituloSecaoFormulario({
+  compacto = false,
   icon,
   title,
   description,
@@ -1517,6 +1539,7 @@ export function TituloSecaoFormulario({
   iconBg = "#e2e8f0",
   iconColor = "#475569",
 }: PropriedadesTituloSecaoFormulario) {
+  if (compacto) return <Typography component="h3" sx={{ gridColumn: '1 / -1', pt: 2.5, pb: 1, borderTop: '2px solid #ff5805', fontSize: 14, fontWeight: 600, color: '#1f2937' }}>{title}</Typography>;
   return (
     <Stack
       direction="row"
@@ -1608,14 +1631,17 @@ export function TituloSecaoFormulario({
 }
 
 export function ItemInformacaoContato({
+  compacto = false,
   icon,
   label,
   value,
 }: {
+  compacto?: boolean;
   icon: React.ReactNode;
   label: string;
   value?: string | null;
 }) {
+  if (compacto) return <Box sx={{ minWidth: 0 }}><Typography sx={{ color: '#64748b', fontSize: 12, mb: 0.75 }}>{label}</Typography><Typography sx={{ color: '#334155', fontSize: 13.5, fontWeight: 500, lineHeight: 1.5, overflowWrap: 'anywhere', whiteSpace: 'pre-wrap' }}>{value?.trim() || 'Não informado'}</Typography></Box>;
   return (
     <Box
       sx={{
@@ -1683,6 +1709,7 @@ export function ItemInformacaoContato({
 export function CartaoContatoCliente({
   contact,
   index,
+  compacto = false,
   canEdit = false,
   canDelete = false,
   deleting = false,
@@ -1696,6 +1723,7 @@ export function CartaoContatoCliente({
   onSaveEdit,
 }: {
   contact: LeadDetail["contacts"][number];
+  compacto?: boolean;
   index: number;
   canEdit?: boolean;
   canDelete?: boolean;
@@ -2383,25 +2411,25 @@ if (editing && editForm) {
               sm: "repeat(2, minmax(0, 1fr))",
               lg: "repeat(4, minmax(0, 1fr))",
             },
-            gap: 1,
+            gap: compacto ? 2.5 : 1,
           }}
         >
-          <ItemInformacaoContato
+          <ItemInformacaoContato compacto={compacto}
             icon={<EmailOutlinedIcon />}
             label="E-mail"
             value={contact.email}
           />
-          <ItemInformacaoContato
+          <ItemInformacaoContato compacto={compacto}
             icon={<PhoneOutlinedIcon />}
             label="Telefone"
             value={contactPhone}
           />
-          <ItemInformacaoContato
+          <ItemInformacaoContato compacto={compacto}
             icon={<WhatsAppIcon />}
             label="WhatsApp"
             value={contactWhatsApp}
           />
-          <ItemInformacaoContato
+          <ItemInformacaoContato compacto={compacto}
             icon={<LinkedInIcon />}
             label="LinkedIn"
             value={contactLinkedIn}
@@ -2410,7 +2438,7 @@ if (editing && editForm) {
 
         {observacoesContato ? (
           <Box sx={{ mt: 1 }}>
-            <ItemInformacaoContato
+            <ItemInformacaoContato compacto={compacto}
               icon={<NotesOutlinedIcon />}
               label="Observações"
               value={observacoesContato}

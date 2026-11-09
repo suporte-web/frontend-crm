@@ -1,4 +1,6 @@
 "use client";
+
+import { notificarCrm } from '@/lib/feedback-crm';
 import { useRef, useState } from "react";
 import { Alert, Button, Stack, TextField } from "@mui/material";
 
@@ -29,6 +31,7 @@ export function UploadAnexos({
         setArquivos([...pendentes]);
       }
       await concluido();
+      notificarCrm('Anexos enviados com sucesso.');
     } catch (e) {
       erro(e instanceof Error ? e.message : "Erro no envio.");
     } finally {

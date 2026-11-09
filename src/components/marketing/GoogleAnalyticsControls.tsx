@@ -1,5 +1,7 @@
 "use client";
 
+import { FeedbackToast } from '@/components/ui/feedback-toast';
+
 import { useEffect, useState } from "react";
 import Link from "next/link";
 import {
@@ -112,8 +114,8 @@ export function GoogleAnalyticsControls({
       <Button component={Link} href="/marketing/metricas" variant="outlined">
         Importar relatório do GA4
       </Button>
-      {error ? <Alert severity="error">{error}</Alert> : null}
-      {message ? <Alert severity="success">{message}</Alert> : null}
+
+      <FeedbackToast open={Boolean(error || message)} title={error ? 'Não foi possível concluir' : 'Marketing atualizado'} message={error || message} variant={error ? 'error' : 'success'} onClose={() => { setError(''); setMessage(''); }} />
       <Stack direction="row" spacing={1} sx={{ flexWrap: "wrap", gap: 1 }}>
         <Button
           variant="contained"
@@ -195,11 +197,6 @@ export function GoogleAnalyticsControls({
               novamente.
             </Alert>
           )}
-          {error ? (
-            <Alert severity="error" sx={{ mt: 2 }}>
-              {error}
-            </Alert>
-          ) : null}
         </DialogContent>
         <DialogActions>
           <Button disabled={busy} onClick={() => setOpen(false)}>

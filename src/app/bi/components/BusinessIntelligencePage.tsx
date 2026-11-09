@@ -3,6 +3,7 @@
 import { hasAnyRole } from "@/lib/user-roles";
 import {
   useEffect,
+  useId,
   useMemo,
   useState,
   type ReactNode,
@@ -13,6 +14,8 @@ import Box from '@mui/material/Box';
 import Button from '@mui/material/Button';
 import CircularProgress from '@mui/material/CircularProgress';
 import Paper from '@mui/material/Paper';
+import IconButton from '@mui/material/IconButton';
+import Popover from '@mui/material/Popover';
 import Stack from '@mui/material/Stack';
 import Typography from '@mui/material/Typography';
 import GroupsRoundedIcon from '@mui/icons-material/GroupsRounded';
@@ -22,7 +25,7 @@ import TaskAltRoundedIcon from '@mui/icons-material/TaskAltRounded';
 import ScheduleRoundedIcon from '@mui/icons-material/ScheduleRounded';
 
 
-import { RefreshCcw } from 'lucide-react';
+import { CircleHelp, Download, RefreshCcw, X } from 'lucide-react';
 
 import { AppLayout } from '@/components/layout/app-layout';
 import {
@@ -62,6 +65,48 @@ const colors = {
   shadow: 'none',
 };
 
+
+
+const calculosFunil: Record<string, string> = {
+  'Leads ativos': 'Conta os cadastros que não estão nas etapas Perdido, Venda Efetivada ou Pós-venda.',
+  'Conversão': 'Conta os cadastros na etapa Conversão, informada em Editar cadastro → Etapa do funil comercial. Cadastros antigos com o status de contato realizado também entram nessa etapa. A participação é essa quantidade dividida pelo total de cadastros do funil, multiplicada por 100. Se o total for zero, exibe 0%.',
+  'Homologação': 'Conta os cadastros da etapa de homologação. A participação é essa quantidade dividida pelo total de cadastros, multiplicada por 100.',
+  'Convertidos': 'Soma os cadastros em Venda Efetivada e Pós-venda. A participação é essa soma dividida pelo total de cadastros, multiplicada por 100.',
+  'Próximas ações': 'Conta os cadastros com o campo Próxima ação preenchido. A barra mostra essa quantidade dividida pelo total de cadastros, multiplicada por 100. Não depende de uma data de agendamento.',
+  'Total de cadastros': 'Soma a quantidade de cadastros de todas as etapas, incluindo Perdido, Venda Efetivada e Pós-venda. Cadastros repetidos nas consultas são contados uma única vez pelo identificador.',
+  'Volume mensal estimado': 'Soma o volume mensal estimado informado nos cadastros de todas as etapas. Valores ausentes ou inválidos entram como zero. O total é exibido em reais, sem casas decimais.',
+  'Participação total': 'Soma a participação de todas as etapas: total de cadastros dividido pelo próprio total, multiplicado por 100. Por isso, exibe 100% quando há cadastros e 0% quando o funil está vazio.',
+  'Tempo médio na etapa': 'Em cada etapa, calcula a média dos dias completos desde a data de entrada de cada cadastro; quando não há data de entrada, usa a data de criação. Depois calcula a média dessas médias, dando o mesmo peso a cada etapa. Etapas sem datas válidas entram com zero. As médias são arredondadas para dias inteiros. A conta usa a entrada do cadastro, não a data de mudança de etapa.',
+  'Tempo médio sem contato': 'Em cada etapa, calcula a média dos dias completos desde a última interação. Usa primeiro a data de interação informada, depois a última interação registrada e, por último, a atualização do cadastro. Depois calcula a média dessas médias, dando o mesmo peso a cada etapa. Etapas sem datas válidas entram com zero. As médias são arredondadas para dias inteiros.',
+  'Taxa de vendas': 'Quantidade de cadastros em Venda Efetivada dividida pelo total de cadastros, multiplicada por 100. Este indicador não inclui Pós-venda no numerador. Se o total for zero, exibe 0%.',
+  'Clientes em pós-venda': 'Conta os cadastros classificados na etapa Pós-venda.',
+  'Com próxima ação definida': 'Conta os cadastros cujo campo Próxima ação contém texto, desconsiderando espaços em branco.',
+};
+calculosFunil['Volume mensal total'] = calculosFunil['Volume mensal estimado'];
+calculosFunil['Dias na etapa'] = calculosFunil['Tempo médio na etapa'];
+calculosFunil['Dias sem contato'] = calculosFunil['Tempo médio sem contato'];
+calculosFunil['Cadastros no funil'] = calculosFunil['Total de cadastros'];
+
+function AjudaCalculo({ titulo }: { titulo: string }) {
+  const [anchor, setAnchor] = useState<HTMLButtonElement | null>(null);
+  const id = useId();
+  const explicacao = calculosFunil[titulo];
+  if (!explicacao) return null;
+  return (
+    <Box component="span" sx={{ display: 'inline-flex', verticalAlign: 'middle', ml: 0.5 }}>
+      <IconButton size="small" aria-label={`Como é calculado: ${titulo}`} aria-haspopup="dialog" aria-expanded={Boolean(anchor)} aria-controls={anchor ? id : undefined} onClick={event => setAnchor(event.currentTarget)} sx={{ width: 28, height: 28, color: colors.muted, '&:hover': { color: colors.orange, bgcolor: colors.orangeSoft } }}>
+        <CircleHelp size={16} aria-hidden="true" />
+      </IconButton>
+      <Popover open={Boolean(anchor)} anchorEl={anchor} onClose={() => setAnchor(null)} anchorOrigin={{ vertical: 'bottom', horizontal: 'left' }} transformOrigin={{ vertical: 'top', horizontal: 'left' }} slotProps={{ paper: { role: 'dialog', id, 'aria-labelledby': id + '-titulo', 'aria-describedby': id + '-texto', sx: { boxSizing: 'border-box', width: 340, maxWidth: 'calc(100vw - 32px)', p: 2, mt: 0.75, borderRadius: '10px', border: '1px solid #e2e8f0', boxShadow: '0 8px 24px rgb(15 23 42 / 12%)' } } }}>
+        <Stack direction="row" sx={{ alignItems: 'flex-start', justifyContent: 'space-between', gap: 1 }}>
+          <Typography id={id + '-titulo'} component="h3" sx={{ fontSize: 14, fontWeight: 600, color: colors.text }}>{titulo}</Typography>
+          <IconButton size="small" aria-label="Fechar explicação" onClick={() => setAnchor(null)} sx={{ mt: -0.5, mr: -0.5 }}><X size={16} /></IconButton>
+        </Stack>
+        <Typography id={id + '-texto'} sx={{ mt: 1, fontSize: 13, lineHeight: 1.7, color: colors.muted }}>{explicacao}</Typography>
+      </Popover>
+    </Box>
+  );
+}
 
 function toNumber(value: number | string | null | undefined) {
   if (value === null || value === undefined || value === '') return 0;
@@ -213,7 +258,7 @@ function SummaryBox({
           lineHeight: 1.2,
         }}
       >
-        {label}
+        {label}<AjudaCalculo titulo={label} />
       </Typography>
 
       <Typography
@@ -245,13 +290,13 @@ function MetricCard({ title, value, helper, icon, accent, softAccent, progress }
     <Paper elevation={0} sx={{ p: 2, minWidth: 0, border: `1px solid ${colors.border}`, borderRadius: '12px', bgcolor: '#fff', boxShadow: 'none' }}>
       <Stack spacing={1.25}>
         <Stack direction="row" sx={{ justifyContent: 'space-between', alignItems: 'center', gap: 1 }}>
-          <Typography sx={{ fontSize: 12, color: colors.muted, fontWeight: 500 }}>{title}</Typography>
-          <Box sx={{ display: 'flex', color: '#94a3b8', '& svg': { fontSize: 18 } }}>{icon}</Box>
+          <Typography sx={{ fontSize: 12, color: colors.muted, fontWeight: 500 }}>{title}<AjudaCalculo titulo={title} /></Typography>
+          <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'center', width: 32, height: 32, flexShrink: 0, borderRadius: '8px', bgcolor: softAccent, color: accent, '& svg': { fontSize: 18 } }}>{icon}</Box>
         </Stack>
         <Typography sx={{ fontSize: 28, fontWeight: 700, color: colors.text, lineHeight: 1.2, fontVariantNumeric: 'tabular-nums' }}>{typeof value === 'number' ? formatNumber(value) : value}</Typography>
         <Typography sx={{ color: colors.muted, fontSize: 12, lineHeight: 1.4 }}>{helper}</Typography>
         {percentual !== undefined && (
-          <Box sx={{ height: 3, borderRadius: 2, bgcolor: softAccent, overflow: 'hidden' }}>
+          <Box sx={{ height: 5, borderRadius: 2, bgcolor: softAccent, overflow: 'hidden' }}>
             <Box sx={{ width: `${percentual}%`, height: '100%', bgcolor: accent, borderRadius: 2 }} />
           </Box>
         )}
@@ -273,6 +318,8 @@ export default function BusinessIntelligencePage() {
   const [errorMessage, setErrorMessage] = useState('');
 
   const [refreshKey, setRefreshKey] = useState(0);
+  const [exportando, setExportando] = useState(false);
+  const [erroExportacao, setErroExportacao] = useState('');
 
   const canViewPage =
     user?.role &&
@@ -440,16 +487,7 @@ export default function BusinessIntelligencePage() {
     ].includes(stage);
   }).length;
 
-  /*
-    Procuramos dentro das etapas do funil uma etapa
-    que tenha "contato" no nome.
-  */
-  const contactCount =
-    funnelRows.find((row) =>
-      row.label
-        .toLocaleLowerCase('pt-BR')
-        .includes('contato'),
-    )?.count ?? 0;
+  const conversionCount = funnelRows.find(row => row.value === 'conversao')?.count ?? 0;
 
   /*
     O mesmo para homologação.
@@ -490,8 +528,8 @@ export default function BusinessIntelligencePage() {
     return (value / totalLeads) * 100;
   }
 
-  const contactPercent =
-    percentageOfTotal(contactCount);
+  const conversionPercent =
+    percentageOfTotal(conversionCount);
 
   const homologationPercent =
     percentageOfTotal(homologationCount);
@@ -509,6 +547,44 @@ export default function BusinessIntelligencePage() {
     ...funnelRows.map((row) => row.count),
   );
 
+  async function exportarExcel() {
+    if (exportando || loading || detailRows.length === 0) return;
+    setExportando(true);
+    setErroExportacao('');
+    try {
+      const { gerarRelatorioFunilExcel } = await import('@/lib/relatorio-funil-excel');
+      const arquivo = await gerarRelatorioFunilExcel(detailRows.map(lead => ({
+        empresa: leadName(lead),
+        segmento: metadataValue(lead, 'segment'),
+        transporte: metadataValue(lead, 'transport'),
+        armazenagem: metadataValue(lead, 'storage'),
+        etapa: getLeadFunnelStageLabel(lead.status),
+        entrada: formatDateOnly(entryDate(lead)),
+        ultimaInteracao: formatDateOnly(lastInteractionDate(lead)),
+        volumeMensal: leadVolume(lead),
+        responsavel: metadataValue(lead, 'responsible'),
+        situacao: metadataValue(lead, 'currentStatus'),
+        proximaAcao: metadataValue(lead, 'nextAction'),
+        observacoes: lead.notes || '',
+      })));
+      const blob = new Blob([new Uint8Array(arquivo)], { type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet' });
+      const url = URL.createObjectURL(blob);
+      const link = document.createElement('a');
+      link.href = url;
+      const hoje = new Date();
+      const data = [hoje.getFullYear(), String(hoje.getMonth() + 1).padStart(2, '0'), String(hoje.getDate()).padStart(2, '0')].join('-');
+      link.download = `leads-clientes-funil-${data}.xlsx`;
+      document.body.appendChild(link);
+      link.click();
+      link.remove();
+      window.setTimeout(() => URL.revokeObjectURL(url), 1000);
+    } catch {
+      setErroExportacao('Não foi possível exportar o relatório. Tente novamente.');
+    } finally {
+      setExportando(false);
+    }
+  }
+
   if (!authLoading && !canViewPage) {
     return (
       <AppLayout>
@@ -524,13 +600,15 @@ export default function BusinessIntelligencePage() {
       <Paper
         elevation={0}
         sx={{
+          minWidth: 0,
+          width: '100%',
           minHeight: 'calc(100vh - 96px)',
           p: {
             xs: 2,
             lg: 2.5,
           },
-          border: '0',
-          borderRadius: '22px',
+          border: 'none !important',
+          borderRadius: '12px',
           bgcolor: colors.page,
           color: colors.text,
         }}
@@ -606,15 +684,15 @@ export default function BusinessIntelligencePage() {
                 softAccent={colors.orangeSoft}
               />
 
-              {/* EM CONTATO */}
+              {/* CONVERSÃO */}
 
               <MetricCard
-                title="Em contato"
-                value={contactCount}
+                title="Conversão"
+                value={conversionCount}
                 helper={`${formatPercent(
-                  contactPercent,
+                  conversionPercent,
                 )} do funil`}
-                progress={contactPercent}
+                progress={conversionPercent}
                 icon={
                   <TrackChangesRoundedIcon
                     sx={{
@@ -684,319 +762,56 @@ export default function BusinessIntelligencePage() {
               />
             </Box>
 
-            {/* TABELA DO FUNIL */}
-
-            <Paper
-              elevation={0}
-              sx={{
-                p: {
-                  xs: 1.5,
-                  md: 2,
-                },
-                border: `1px solid ${colors.border}`,
-                borderRadius: '12px',
-                bgcolor: colors.panel,
-                boxShadow: colors.shadow,
-                overflow: 'hidden',
-              }}
-            >
-              <Box
-                sx={{
-                  overflowX: 'auto',
-                }}
-              >
-                <Box
-                  component="table"
-                  sx={{
-                    width: '100%',
-                    minWidth: 1040,
-                    '& th, & td': { border: 0, borderBottom: `1px solid ${colors.border}` },
-                    '& th': { bgcolor: '#f8fafc', color: '#64748b', fontSize: 12, fontWeight: 600 },
-                    '& td': { fontSize: 13, fontVariantNumeric: 'tabular-nums' },
-                    '& tbody tr:hover': { bgcolor: '#f8fafc' },
-                    borderCollapse: 'collapse',
-                  }}
-                >
-                  <Box component="thead">
-                    <Box
-                      component="tr"
-                      sx={{
-                        bgcolor: colors.orange,
-                      }}
-                    >
-                      {[
-                        'Etapa',
-                        'Cadastros',
-                        'Volume mensal estimado',
-                        'Participação',
-                        'Clientes',
-                        'Dias na etapa',
-                        'Dias sem contato',
-                      ].map((heading) => (
-                        <Box
-                          key={heading}
-                          component="th"
-                          sx={{
-                            px: 1.5,
-                            py: 1.15,
-                            color: '#ffffff',
-                            fontSize: 14,
-                            fontWeight: 700,
-                            textAlign: 'left',
-                            borderBottom: `1px solid ${colors.orange}`,
-                          }}
-                        >
-                          {heading}
-                        </Box>
-                      ))}
-                    </Box>
+            <Paper elevation={0} sx={{ p: { xs: 2, md: 2.5 }, minWidth: 0, border: `1px solid ${colors.border}`, borderRadius: '12px' }}>
+              <Typography component="h2" sx={{ fontSize: 18, fontWeight: 700 }}>Etapas do funil</Typography>
+              <Typography sx={{ mt: 0.5, mb: 2, fontSize: 13, color: colors.muted }}>Quantidade e participação dos cadastros em cada etapa. Abra os detalhes para consultar volume e acompanhamento.</Typography>
+              <Box component="dl" aria-label="Resumo dos indicadores do funil" sx={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(min(100%, 160px), 1fr))', gap: 1.5, m: 0, mb: 3 }}>
+                {[
+                  { label: 'Total de cadastros', value: formatNumber(totalLeads), unit: 'cadastros no funil', color: colors.text, background: '#f8fafc' },
+                  { label: 'Volume mensal estimado', value: formatCurrency(totalVolume), unit: 'somatório das etapas', color: '#c2410c', background: colors.orangeSoft },
+                  { label: 'Participação total', value: formatPercent(totalLeads > 0 ? 100 : 0), unit: 'dos cadastros do funil', color: colors.text, background: '#f8fafc' },
+                  { label: 'Tempo médio na etapa', value: formatNumber(averageStageDays), unit: 'dias', color: colors.text, background: '#f8fafc' },
+                  { label: 'Tempo médio sem contato', value: formatNumber(averageLastContactDays), unit: 'dias', color: averageLastContactDays > 0 ? '#b91c1c' : colors.greenText, background: averageLastContactDays > 0 ? colors.redSoft : colors.greenSoft },
+                ].map(item => (
+                  <Box key={item.label} sx={{ minWidth: 0, p: 2, borderRadius: '10px', bgcolor: item.background, display: 'flex', flexDirection: 'column' }}>
+                    <Typography component="dt" sx={{ color: colors.muted, fontSize: 12, fontWeight: 500, lineHeight: 1.5 }}>{item.label}<AjudaCalculo titulo={item.label} /></Typography>
+                    <Typography component="dd" sx={{ m: 0, mt: 1, color: item.color, fontSize: { xs: 25, md: 28 }, fontWeight: 700, lineHeight: 1.2, letterSpacing: '-0.5px', fontVariantNumeric: 'tabular-nums', overflowWrap: 'anywhere' }}>{item.value}</Typography>
+                    <Typography component="dd" sx={{ m: 0, mt: 0.75, color: colors.muted, fontSize: 11.5 }}>{item.unit}</Typography>
                   </Box>
-
-                  <Box component="tbody">
-                    {funnelRows.map((row, index) => (
-                      <Box
-                        key={row.value}
-                        component="tr"
-                        sx={{
-                          bgcolor:
-                            index % 2 === 0
-                              ? colors.panel
-                              : colors.panelAlt,
-                        }}
-                      >
-                        <Box
-                          component="td"
-                          sx={{
-                            px: 1.5,
-                            py: 1.25,
-                            border: `1px solid ${colors.border}`,
-                            color: colors.text,
-                            fontSize: 14,
-                            fontWeight: 600,
-                          }}
-                        >
-                          {row.label}
-                        </Box>
-
-                        <Box
-                          component="td"
-                          sx={{
-                            px: 1.5,
-                            py: 1.25,
-                            border: `1px solid ${colors.border}`,
-                            color: colors.text,
-                            fontSize: 14,
-                            fontWeight: 600,
-                            textAlign: 'center',
-                          }}
-                        >
-                          {row.count}
-                        </Box>
-
-                        <Box
-                          component="td"
-                          sx={{
-                            px: 1.5,
-                            py: 1.25,
-                            border: `1px solid ${colors.border}`,
-                            color: colors.orange,
-                            fontSize: 14,
-                            fontWeight: 600,
-                            textAlign: 'right',
-                          }}
-                        >
-                          {formatCurrency(row.volume)}
-                        </Box>
-
-                        <Box
-                          component="td"
-                          sx={{
-                            px: 0,
-                            py: 0,
-                            border: `1px solid ${colors.border}`,
-                            minWidth: 190,
-                          }}
-                        >
-                          <Stack
-                            direction="row"
-                            sx={{
-                              alignItems: 'center',
-                              height: 44,
-                            }}
-                          >
-                            <Box
-                              sx={{
-                                width: `${Math.max(
-                                  4,
-                                  row.percent,
-                                )}%`,
-                                height: '100%',
-                                bgcolor:
-                                  colors.orangeSoft,
-                                borderRight: `3px solid ${colors.orange}`,
-                              }}
-                            />
-
-                            <Typography
-                              sx={{
-                                ml: 1,
-                                color: colors.text,
-                                fontSize: 13,
-                                fontWeight: 700,
-                              }}
-                            >
-                              {formatPercent(row.percent)}
-                            </Typography>
-                          </Stack>
-                        </Box>
-
-                        <Box
-                          component="td"
-                          sx={{
-                            px: 1.5,
-                            py: 1.25,
-                            border: `1px solid ${colors.border}`,
-                            color: colors.text,
-                            fontSize: 13,
-                            textAlign: 'center',
-                          }}
-                        >
-                          {row.clients}
-                        </Box>
-
-                        <Box
-                          component="td"
-                          sx={{
-                            px: 1.5,
-                            py: 1.25,
-                            border: `1px solid ${colors.border}`,
-                            color: colors.text,
-                            fontSize: 14,
-                            fontWeight: 600,
-                            textAlign: 'center',
-                          }}
-                        >
-                          {row.averageStageDays} dias
-                        </Box>
-
-                        <Box
-                          component="td"
-                          sx={{
-                            px: 1.5,
-                            py: 1.25,
-                            border: `1px solid ${colors.border}`,
-                            color: colors.text,
-                            fontSize: 14,
-                            fontWeight: 600,
-                            textAlign: 'center',
-                          }}
-                        >
-                          {row.averageLastContactDays} dias
-                        </Box>
-                      </Box>
-                    ))}
-
-                    {/* TOTAL */}
-
-                    <Box
-                      component="tr"
-                      sx={{
-                        bgcolor: '#dcfce7',
-                      }}
-                    >
-                      <Box
-                        component="td"
-                        sx={{
-                          px: 1.5,
-                          py: 1.25,
-                          color: colors.greenText,
-                          fontSize: 15,
-                          fontWeight: 700,
-                        }}
-                      >
-                        Total
-                      </Box>
-
-                      <Box
-                        component="td"
-                        sx={{
-                          px: 1.5,
-                          py: 1.25,
-                          color: colors.greenText,
-                          fontSize: 15,
-                          fontWeight: 700,
-                          textAlign: 'center',
-                        }}
-                      >
-                        {totalLeads}
-                      </Box>
-
-                      <Box
-                        component="td"
-                        sx={{
-                          px: 1.5,
-                          py: 1.25,
-                          color: colors.greenText,
-                          fontSize: 15,
-                          fontWeight: 700,
-                          textAlign: 'right',
-                        }}
-                      >
-                        {formatCurrency(totalVolume)}
-                      </Box>
-
-                      <Box
-                        component="td"
-                        sx={{
-                          px: 1.5,
-                          py: 1.25,
-                          color: colors.greenText,
-                          fontSize: 15,
-                          fontWeight: 700,
-                        }}
-                      >
-                        100,0%
-                      </Box>
-
-                      <Box
-                        component="td"
-                        sx={{
-                          px: 1.5,
-                          py: 1.25,
-                        }}
-                      />
-
-                      <Box
-                        component="td"
-                        sx={{
-                          px: 1.5,
-                          py: 1.25,
-                          color: colors.greenText,
-                          fontSize: 15,
-                          fontWeight: 700,
-                          textAlign: 'center',
-                        }}
-                      >
-                        {averageStageDays} dias
-                      </Box>
-
-                      <Box
-                        component="td"
-                        sx={{
-                          px: 1.5,
-                          py: 1.25,
-                          color: colors.greenText,
-                          fontSize: 15,
-                          fontWeight: 700,
-                          textAlign: 'center',
-                        }}
-                      >
-                        {averageLastContactDays} dias
-                      </Box>
-                    </Box>
-                  </Box>
-                </Box>
+                ))}
               </Box>
+              <Box sx={{ minWidth: 0 }}>
+                <Stack direction="row" sx={{ mb: 1.5, justifyContent: 'space-between', gap: 1 }}>
+                  <Typography sx={{ fontSize: 12, color: colors.muted }}>Etapa comercial</Typography>
+                  <Typography sx={{ fontSize: 12, color: colors.muted }}>Cadastros · participação</Typography>
+                </Stack>
+                <Stack spacing={2}>
+                  {funnelRows.map(row => {
+                    const accent = row.value === 'perdido' ? colors.red : ['venda_efetivada', 'pos_venda'].includes(row.value) ? colors.greenText : colors.orange;
+                    return (
+                      <Box key={row.value} sx={{ display: 'grid', gridTemplateColumns: { xs: 'minmax(0, 1fr) auto', sm: '140px minmax(0, 1fr) auto' }, alignItems: 'center', columnGap: 2, rowGap: 0.75, minWidth: 0 }}>
+                        <Typography component="h3" sx={{ fontSize: 13, fontWeight: 500, minWidth: 0 }}>{row.label}</Typography>
+                        <Box role="img" aria-label={`${row.label}: ${formatNumber(row.count)} cadastros, ${formatPercent(row.percent)} do total`} sx={{ gridColumn: { xs: '1 / -1', sm: '2' }, gridRow: { xs: 2, sm: 1 }, height: 28, minWidth: 0, borderRadius: '6px', bgcolor: '#f1f5f9', overflow: 'hidden' }}>
+                          <Box sx={{ width: `${(row.count / maxCount) * 100}%`, height: '100%', bgcolor: accent, borderRadius: '6px' }} />
+                        </Box>
+                        <Typography sx={{ gridColumn: { xs: 2, sm: 3 }, gridRow: 1, fontSize: 12, fontWeight: 600, whiteSpace: 'nowrap', textAlign: 'right', fontVariantNumeric: 'tabular-nums' }}>{formatNumber(row.count)} <Box component="span" sx={{ color: colors.muted, fontWeight: 400 }}>· {formatPercent(row.percent)}</Box></Typography>
+                        <Box component="details" sx={{ gridColumn: { xs: '1 / -1', sm: '2 / -1' }, minWidth: 0, fontSize: 12, color: colors.muted, '& summary': { cursor: 'pointer', width: 'fit-content', '&:hover': { color: colors.orange } } }}>
+                          <Box component="summary">Ver detalhes da etapa</Box>
+                          <Box sx={{ mt: 1, p: 1.5, borderRadius: '8px', bgcolor: '#f8fafc' }}>
+                            <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 2 }}>
+                              <Box>Volume mensal estimado: <strong>{formatCurrency(row.volume)}</strong></Box>
+                              <Box>Dias na etapa: <strong>{row.averageStageDays} dias</strong></Box>
+                              <Box>Dias sem contato: <strong>{row.averageLastContactDays} dias</strong></Box>
+                            </Box>
+                            <Typography sx={{ mt: 1, fontSize: 12, overflowWrap: 'anywhere' }}><Box component="span" sx={{ fontWeight: 600 }}>Clientes: </Box>{row.clients}</Typography>
+                          </Box>
+                        </Box>
+                      </Box>
+                    );
+                  })}
+                </Stack>
+              </Box>
+
             </Paper>
 
             {/* RESUMO + GRÁFICO */}
@@ -1008,7 +823,7 @@ export default function BusinessIntelligencePage() {
 
                 gridTemplateColumns: {
                   xs: '1fr',
-                  xl: '0.58fr 0.42fr',
+                  xl: 'minmax(0, 1fr) minmax(0, 1fr)',
                 },
               }}
             >
@@ -1024,7 +839,7 @@ export default function BusinessIntelligencePage() {
 
                     gridTemplateColumns: {
                       xs: '1fr',
-                      md: '1fr 1fr',
+                      sm: 'repeat(2, minmax(0, 1fr))',
                     },
 
                     gap: 1.5,
@@ -1047,7 +862,7 @@ export default function BusinessIntelligencePage() {
 
                     gridTemplateColumns: {
                       xs: '1fr',
-                      md: '1fr 1fr',
+                      sm: 'repeat(2, minmax(0, 1fr))',
                     },
 
                     gap: 1.5,
@@ -1074,7 +889,7 @@ export default function BusinessIntelligencePage() {
 
                     gridTemplateColumns: {
                       xs: '1fr',
-                      md: '1fr 1fr',
+                      sm: 'repeat(2, minmax(0, 1fr))',
                     },
 
                     gap: 1.5,
@@ -1093,216 +908,64 @@ export default function BusinessIntelligencePage() {
                 </Box>
               </Box>
 
-              {/* GRÁFICO */}
-
-              <Paper
-                elevation={0}
-                sx={{
-                  p: 2.5,
-                  border: `1px solid ${colors.border}`,
-                  borderRadius: '12px',
-                  bgcolor: colors.panel,
-                  boxShadow: colors.shadow,
-                  minHeight: 260,
-                }}
-              >
-                <Typography
-                  sx={{
-                    color: colors.text,
-                    fontSize: 18,
-                    fontWeight: 700,
-                    textAlign: 'center',
-                  }}
-                >
-                  Leads e Clientes por Etapa
-                </Typography>
-
-                <Box
-                  sx={{
-                    mt: 2.5,
-                    height: 170,
-                    display: 'grid',
-                    gridTemplateColumns: `repeat(${funnelRows.length}, minmax(72px, 1fr))`,
-                    alignItems: 'end',
-                    gap: 2,
-                    borderLeft: `1px solid ${colors.border}`,
-                    borderBottom: `1px solid ${colors.border}`,
-                    px: 2,
-                    pt: 1,
-                    bgcolor: '#fbfdff',
-                    borderRadius: '14px',
-                  }}
-                >
-                  {funnelRows.map((row) => (
-                    <Stack
-                      key={row.value}
-                      spacing={0.75}
-                      sx={{
-                        alignItems: 'center',
-                        justifyContent: 'flex-end',
-                        height: '100%',
-                      }}
-                    >
-                      <Typography
-                        sx={{
-                          color: colors.text,
-                          fontSize: 12,
-                          fontWeight: 700,
-                        }}
-                      >
-                        {row.count}
-                      </Typography>
-
-                      <Box
-                        sx={{
-                          width: '70%',
-
-                          minHeight:
-                            row.count > 0 ? 18 : 4,
-
-                          height: `${Math.max(
-                            4,
-                            (row.count / maxCount) * 132,
-                          )}px`,
-
-                          bgcolor: colors.orange,
-
-                          borderRadius:
-                            '8px 8px 0 0',
-                        }}
-                      />
-                    </Stack>
-                  ))}
-                </Box>
-
-                <Box
-                  sx={{
-                    mt: 1,
-                    display: 'grid',
-
-                    gridTemplateColumns: `repeat(${funnelRows.length}, minmax(72px, 1fr))`,
-
-                    gap: 2,
-                    px: 2,
-                  }}
-                >
-                  {funnelRows.map((row) => (
-                    <Typography
-                      key={row.value}
-                      sx={{
-                        color: colors.muted,
-                        fontSize: 12,
-                        fontWeight: 800,
-                        textAlign: 'center',
-                        lineHeight: 1.2,
-                      }}
-                    >
-                      {row.label}
-                    </Typography>
-                  ))}
-                </Box>
+              <Paper elevation={0} sx={{ p: { xs: 2, md: 2.5 }, minWidth: 0, border: `1px solid ${colors.border}`, borderRadius: '12px', bgcolor: colors.panel }}>
+                <Typography component="h2" sx={{ fontSize: 18, fontWeight: 700 }}>Leads e clientes por etapa</Typography>
+                <Typography sx={{ mt: 0.5, mb: 2.5, fontSize: 12, color: colors.muted }}>Quantidade de cadastros em cada etapa comercial.</Typography>
+                <Stack spacing={1.75}>
+                  {funnelRows.map(row => {
+                    const accent = row.value === 'perdido' ? colors.red : ['venda_efetivada', 'pos_venda'].includes(row.value) ? colors.greenText : colors.orange;
+                    return <Box key={row.value} sx={{ minWidth: 0 }}>
+                      <Stack direction="row" sx={{ justifyContent: 'space-between', alignItems: 'baseline', gap: 1, mb: 0.75 }}>
+                        <Typography sx={{ fontSize: 12, color: colors.text }}>{row.label}</Typography>
+                        <Typography sx={{ fontSize: 12, fontWeight: 600, whiteSpace: 'nowrap', fontVariantNumeric: 'tabular-nums' }}>{formatNumber(row.count)} <Box component="span" sx={{ color: colors.muted, fontWeight: 400 }}>· {formatPercent(row.percent)}</Box></Typography>
+                      </Stack>
+                      <Box role="img" aria-label={`${row.label}: ${row.count} cadastros, ${formatPercent(row.percent)} do funil`} sx={{ height: 10, borderRadius: 5, bgcolor: '#f1f5f9', overflow: 'hidden' }}>
+                        <Box sx={{ width: `${(row.count / maxCount) * 100}%`, height: '100%', borderRadius: 5, bgcolor: accent }} />
+                      </Box>
+                    </Box>;
+                  })}
+                </Stack>
               </Paper>
             </Box>
 
-            {/* LISTAGEM DOS LEADS */}
-            <Paper elevation={0} sx={{
-              border: `1px solid ${colors.border}`, borderRadius: '16px',
-              bgcolor: colors.panel, boxShadow: 'none', overflow: 'hidden',
-            }}>
-              <Stack direction="row" spacing={2} sx={{ p: { xs: 2, md: 2.5 }, alignItems: 'center', justifyContent: 'space-between' }}>
-                <Box>
-                  <Typography component="h2" sx={{ color: colors.text, fontSize: 18, fontWeight: 700 }}>
-                    Leads e clientes no funil
-                  </Typography>
-                  <Typography sx={{ mt: 0.5, color: colors.muted, fontSize: 13 }}>
-                    Etapas, responsáveis e próximos passos dos cadastros do período.
-                  </Typography>
+            <Paper elevation={0} sx={{ p: { xs: 2, md: 2.5 }, minWidth: 0, border: `1px solid ${colors.border}`, borderRadius: '12px', bgcolor: colors.panel, boxShadow: 'none' }}>
+              <Stack direction={{ xs: 'column', sm: 'row' }} spacing={2} sx={{ alignItems: { xs: 'stretch', sm: 'center' }, justifyContent: 'space-between' }}>
+                <Box sx={{ minWidth: 0 }}>
+                  <Typography component="h2" sx={{ fontSize: 18, fontWeight: 700 }}>Leads e clientes no funil</Typography>
+                  <Typography sx={{ mt: 0.5, color: colors.muted, fontSize: 13 }}>Os 10 primeiros cadastros do funil. Exporte a relação completa para consultar todos os detalhes.</Typography>
                 </Box>
-                <Box component="span" sx={{ px: 1.5, py: 0.75, borderRadius: '8px', bgcolor: '#f1f5f9', color: '#475569', fontSize: 12, fontWeight: 600, whiteSpace: 'nowrap' }}>
-                  {detailRows.length} {detailRows.length === 1 ? 'cadastro' : 'cadastros'}
-                </Box>
+                <Button onClick={exportarExcel} disabled={loading || exportando || detailRows.length === 0} variant="outlined" startIcon={exportando ? <CircularProgress size={16} color="inherit" /> : <Download size={16} />} sx={{ minHeight: 40, flexShrink: 0, alignSelf: { xs: 'flex-start', sm: 'center' }, borderRadius: '8px', px: 2, color: '#475569', borderColor: '#cbd5e1', textTransform: 'none', fontSize: 13, fontWeight: 600, '&:hover': { borderColor: '#94a3b8', bgcolor: '#f8fafc' } }}>
+                  {exportando ? 'Exportando...' : 'Exportar Excel'}
+                </Button>
               </Stack>
-              <Box sx={{ overflowX: 'auto' }}>
-                <Box component="table" aria-label="Leads e clientes no funil" sx={{
-                  width: '100%', minWidth: 1250, borderCollapse: 'collapse',
-                  '& th': {
-                    px: 2, py: 1.5, color: '#475569', bgcolor: '#f8fafc',
-                    fontSize: 12, fontWeight: 600, textAlign: 'left',
-                    borderTop: `1px solid ${colors.border}`, borderBottom: `1px solid ${colors.border}`,
-                  },
-                  '& td': { px: 2, py: 2, borderBottom: '1px solid #f1f5f9', verticalAlign: 'top', color: colors.text, fontSize: 13 },
-                  '& tbody tr:last-child td': { borderBottom: 0 },
-                  '& tbody tr:hover': { bgcolor: '#fafbfc' },
-                }}>
-                  <Box component="thead">
-                    <Box component="tr">
-                      {['Empresa', 'Serviços', 'Etapa do funil', 'Datas', 'Volume mensal', 'Responsável', 'Próxima ação', 'Observações'].map(heading => (
-                        <Box key={heading} component="th" scope="col">{heading}</Box>
-                      ))}
-                    </Box>
-                  </Box>
-                  <Box component="tbody">
-                    {detailRows.map(lead => {
-                      const logoUrl = metadataValue(lead, 'logoUrl');
-                      const segmento = metadataValue(lead, 'segment');
-                      const transporte = metadataValue(lead, 'transport');
-                      const armazenagem = metadataValue(lead, 'storage');
-                      const responsavel = metadataValue(lead, 'responsible');
-                      const situacao = metadataValue(lead, 'currentStatus');
-                      const proximaAcao = metadataValue(lead, 'nextAction');
-                      return (
-                        <Box key={lead.id} component="tr">
-                          <Box component="td" sx={{ minWidth: 210 }}>
-                            <Stack direction="row" spacing={1.25} sx={{ alignItems: 'center' }}>
-                              <Box sx={{ width: 38, height: 38, flexShrink: 0, borderRadius: '10px', bgcolor: logoUrl ? '#fff' : colors.orangeSoft, border: '1px solid #f1f5f9', display: 'flex', alignItems: 'center', justifyContent: 'center', overflow: 'hidden', color: '#c2410c', fontWeight: 700 }}>
-                                {logoUrl ? <Box component="img" src={logoUrl} alt="" sx={{ width: '100%', height: '100%', objectFit: 'contain' }} /> : leadName(lead).charAt(0).toUpperCase()}
-                              </Box>
-                              <Box sx={{ minWidth: 0 }}>
-                                <Typography sx={{ fontSize: 13, fontWeight: 600, color: colors.text, overflowWrap: 'anywhere' }}>{leadName(lead)}</Typography>
-                                <Typography sx={{ mt: 0.25, fontSize: 12, color: colors.muted }}>{segmento || 'Segmento não informado'}</Typography>
-                              </Box>
-                            </Stack>
-                          </Box>
-                          <Box component="td" sx={{ minWidth: 135 }}>
-                            <Typography sx={{ fontSize: 12, color: colors.muted }}>Transporte: <Box component="span" sx={{ color: colors.text }}>{transporte || '—'}</Box></Typography>
-                            <Typography sx={{ mt: 0.5, fontSize: 12, color: colors.muted }}>Armazenagem: <Box component="span" sx={{ color: colors.text }}>{armazenagem || '—'}</Box></Typography>
-                          </Box>
-                          <Box component="td">
-                            <Box component="span" sx={{ display: 'inline-flex', px: 1.25, py: 0.5, borderRadius: '6px', bgcolor: colors.orangeSoft, color: '#c2410c', fontSize: 12, fontWeight: 600, whiteSpace: 'nowrap' }}>
-                              {getLeadFunnelStageLabel(lead.status)}
-                            </Box>
-                          </Box>
-                          <Box component="td" sx={{ whiteSpace: 'nowrap' }}>
-                            <Typography sx={{ fontSize: 12, color: colors.muted }}>Entrada <Box component="span" sx={{ ml: 0.5, color: colors.text }}>{formatDateOnly(entryDate(lead))}</Box></Typography>
-                            <Typography sx={{ mt: 0.5, fontSize: 12, color: colors.muted }}>Interação <Box component="span" sx={{ ml: 0.5, color: colors.text }}>{formatDateOnly(lastInteractionDate(lead))}</Box></Typography>
-                          </Box>
-                          <Box component="td" sx={{ whiteSpace: 'nowrap', fontVariantNumeric: 'tabular-nums', fontWeight: 600 }}>
-                            {formatCurrency(leadVolume(lead))}
-                          </Box>
-                          <Box component="td" sx={{ minWidth: 130 }}>
-                            <Typography sx={{ fontSize: 13 }}>{responsavel || 'Não informado'}</Typography>
-                            {situacao && <Typography sx={{ mt: 0.5, fontSize: 12, color: colors.muted }}>{situacao}</Typography>}
-                          </Box>
-                          <Box component="td" sx={{ minWidth: 170, maxWidth: 240, overflowWrap: 'anywhere' }}>
-                            <Typography sx={{ fontSize: 13, color: proximaAcao ? colors.text : colors.muted }}>{proximaAcao || 'Não definida'}</Typography>
-                          </Box>
-                          <Box component="td" sx={{ minWidth: 160, maxWidth: 240, overflowWrap: 'anywhere' }}>
-                            {lead.notes ? (
-                              <Box component="details" sx={{ color: colors.muted, fontSize: 12, lineHeight: 1.7, '& summary': { cursor: 'pointer', color: '#475569', fontWeight: 500 }, '&[open] summary': { mb: 0.75 } }}>
-                                <Box component="summary">Ver observações</Box>
-                                <Box sx={{ whiteSpace: 'pre-wrap' }}>{lead.notes}</Box>
-                              </Box>
-                            ) : <Box component="span" sx={{ color: colors.muted }}>—</Box>}
-                          </Box>
-                        </Box>
-                      );
-                    })}
-                    {detailRows.length === 0 && (
-                      <Box component="tr"><Box component="td" colSpan={8} sx={{ textAlign: 'center', py: '40px !important', color: '#64748b !important' }}>Nenhum cadastro encontrado no período selecionado.</Box></Box>
-                    )}
-                  </Box>
+              {erroExportacao && <Alert severity="error" sx={{ mt: 2 }}>{erroExportacao}</Alert>}
+              {detailRows.length === 0 ? (
+                <Typography sx={{ mt: 2, color: colors.muted, fontSize: 13 }}>Nenhum cadastro encontrado.</Typography>
+              ) : (
+                <Box sx={{ mt: 2, p: 2, display: 'grid', gridTemplateColumns: { xs: 'minmax(0, 1fr)', sm: 'repeat(3, minmax(0, 1fr))' }, gap: 2, bgcolor: '#f8fafc', borderRadius: '8px' }}>
+                  {[['Cadastros no funil', formatNumber(detailRows.length)], ['Volume mensal estimado', formatCurrency(totalVolume)], ['Com próxima ação definida', formatNumber(nextActionCount)]].map(([label, value]) => (
+                    <Box key={label} sx={{ minWidth: 0 }}><Typography sx={{ color: colors.muted, fontSize: 12 }}>{label}<AjudaCalculo titulo={label} /></Typography><Typography sx={{ mt: 0.5, fontSize: 20, fontWeight: 600, overflowWrap: 'anywhere', fontVariantNumeric: 'tabular-nums' }}>{value}</Typography></Box>
+                  ))}
                 </Box>
-              </Box>
+              )}
+              {detailRows.length > 0 && (
+                <Box sx={{ mt: 2, minWidth: 0, containerType: 'inline-size' }}>
+                  <Box sx={{ display: 'grid', gridTemplateColumns: 'minmax(0, 1.3fr) minmax(0, 1fr) minmax(0, 1fr) minmax(0, 1.5fr)', gap: 2, px: 1.5, py: 1, bgcolor: '#f8fafc', borderRadius: '6px', '@container (max-width: 700px)': { display: 'none' } }}>
+                    {['Empresa', 'Etapa', 'Responsável', 'Próxima ação'].map(label => <Typography key={label} sx={{ fontSize: 12, fontWeight: 600, color: colors.muted }}>{label}</Typography>)}
+                  </Box>
+                  <Box component="ul" aria-label="Primeiros cadastros no funil" sx={{ listStyle: 'none', p: 0, m: 0 }}>
+                    {detailRows.slice(0, 10).map(lead => (
+                      <Box component="li" key={lead.id} sx={{ display: 'grid', gridTemplateColumns: 'minmax(0, 1.3fr) minmax(0, 1fr) minmax(0, 1fr) minmax(0, 1.5fr)', alignItems: 'start', gap: 2, px: 1.5, py: 1.5, borderBottom: '1px solid #f1f5f9', '&:last-child': { borderBottom: 0 }, '@container (max-width: 700px)': { gridTemplateColumns: 'minmax(0, 1fr)', gap: 0.75 }, '& .MuiTypography-root': { overflowWrap: 'anywhere', minWidth: 0 } }}>
+                        <Typography sx={{ fontSize: 13, fontWeight: 600 }}>{leadName(lead)}</Typography>
+                        <Box sx={{ minWidth: 0 }}><Box component="span" sx={{ display: 'inline-block', px: 1, py: 0.4, borderRadius: '6px', bgcolor: colors.orangeSoft, color: '#c2410c', fontSize: 12 }}>{getLeadFunnelStageLabel(lead.status)}</Box></Box>
+                        <Typography sx={{ fontSize: 12, color: colors.muted }}><Box component="span" sx={{ display: 'none', '@container (max-width: 700px)': { display: 'inline' } }}>Responsável: </Box>{metadataValue(lead, 'responsible') || 'Não informado'}</Typography>
+                        <Typography sx={{ fontSize: 12, color: colors.muted }}><Box component="span" sx={{ display: 'none', '@container (max-width: 700px)': { display: 'inline' } }}>Próxima ação: </Box>{metadataValue(lead, 'nextAction') || 'Não definida'}</Typography>
+                      </Box>
+                    ))}
+                  </Box>
+                  <Typography sx={{ mt: 1.5, color: colors.muted, fontSize: 12 }}>Exibindo {Math.min(10, detailRows.length)} de {formatNumber(detailRows.length)} cadastros. O Excel inclui a relação completa.</Typography>
+                </Box>
+              )}
             </Paper>
           </Stack>
         )}

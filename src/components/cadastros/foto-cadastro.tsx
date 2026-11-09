@@ -1,7 +1,11 @@
 "use client";
 
+import { FeedbackToast } from '@/components/ui/feedback-toast';
+
+import { notificarCrm } from '@/lib/feedback-crm';
+
 import { useEffect, useState, type ChangeEvent } from "react";
-import { Alert, Avatar, Box, Button, Paper, Stack, Typography } from "@mui/material";
+import { Avatar, Box, Button, Paper, Stack, Typography } from "@mui/material";
 import { ImagePlus } from "lucide-react";
 import { atualizarFotoCadastro } from "@/services/cadastros.service";
 
@@ -44,7 +48,7 @@ export function FotoCadastro({ valor, aoAlterar, desabilitado = false }: {
         </Stack>
       </Box>
     </Stack>
-    {erro && <Alert severity="error">{erro}</Alert>}
+    <FeedbackToast open={Boolean(erro)} title="Não foi possível salvar" message={erro} variant="error" onClose={() => setErro('')} />
   </Stack>;
 }
 
@@ -55,14 +59,14 @@ export function FotoCadastroSalvo({ id, foto, token, aoSalvar }: { id: string; f
   useEffect(() => { setValor(foto || ""); setErro(""); }, [id, foto]);
   async function salvar() {
     setSalvando(true); setErro("");
-    try { await atualizarFotoCadastro(id, valor, token); await aoSalvar(); }
+    try { await atualizarFotoCadastro(id, valor, token); await aoSalvar(); notificarCrm('Imagem do cadastro atualizada com sucesso.'); }
     catch (erro) { setErro(erro instanceof Error ? erro.message : "Não foi possível salvar a imagem."); }
     finally { setSalvando(false); }
   }
   return <Paper variant="outlined" sx={{ p: { xs: 2, md: 2.5 }, borderRadius: "14px", borderColor: "#e2e8f0" }}>
     <Stack spacing={2}>
       <FotoCadastro valor={valor} aoAlterar={setValor} desabilitado={salvando} />
-      {erro && <Alert severity="error">{erro}</Alert>}
+      <FeedbackToast open={Boolean(erro)} title="Não foi possível salvar" message={erro} variant="error" onClose={() => setErro('')} />
       {valor !== (foto || "") && <Button variant="contained" onClick={salvar} disabled={salvando} sx={{ alignSelf: "flex-start", bgcolor: "#ff5805", textTransform: "none", borderRadius: "8px", boxShadow: "none", "&:hover": { bgcolor: "#e94f00", boxShadow: "none" } }}>{salvando ? "Salvando..." : "Salvar imagem"}</Button>}
     </Stack>
   </Paper>;

@@ -1,3 +1,4 @@
+import { normalizarEmpresaLead } from '@/lib/nome-cadastro';
 import { API_BASE_URL, apiFetch } from '@/services/api';
 import type {
   CreateLeadPayload,
@@ -52,7 +53,7 @@ export function getLeads(
     `/leads${buildQuery(filters)}`,
     {},
     token,
-  );
+  ).then(registros => registros.map(normalizarEmpresaLead));
 }
 
 // resumo leads
@@ -67,7 +68,7 @@ export function getLeadsResumo(token: string, filters: LeadFilters = {}) {
 
 
 export function getLeadById(id: string, token: string) {
-  return apiFetch<Lead>(`/leads/${id}`, {}, token);
+  return apiFetch<Lead>(`/leads/${id}`, {}, token).then(normalizarEmpresaLead);
 }
 
 export function createLeadObservation(
@@ -101,10 +102,10 @@ export function createLead(payload: CreateLeadPayload, token: string) {
     '/leads',
     {
       method: 'POST',
-      body: JSON.stringify(payload),
+      body: JSON.stringify(normalizarEmpresaLead(payload)),
     },
     token,
-  );
+  ).then(normalizarEmpresaLead);
 }
 
 export function updateLeadStatus(id: string, status: string, token: string) {
@@ -115,7 +116,7 @@ export function updateLeadStatus(id: string, status: string, token: string) {
       body: JSON.stringify({ status }),
     },
     token,
-  );
+  ).then(normalizarEmpresaLead);
 }
 
 export function updateLead(id: string, payload: UpdateLeadPayload, token: string) {
@@ -123,10 +124,10 @@ export function updateLead(id: string, payload: UpdateLeadPayload, token: string
     `/leads/${id}`,
     {
       method: 'PATCH',
-      body: JSON.stringify(payload),
+      body: JSON.stringify(normalizarEmpresaLead(payload)),
     },
     token,
-  );
+  ).then(normalizarEmpresaLead);
 }
 
 // exlcuir lead

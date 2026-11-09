@@ -1,6 +1,8 @@
 
 "use client";
 
+import { notificarCrm } from '@/lib/feedback-crm';
+
 import { FormEvent, useState } from "react";
 import { useRouter } from "next/navigation";
 
@@ -116,6 +118,7 @@ export default function ChangePasswordPage() {
 
       await changePassword(currentPassword, newPassword);
 
+      notificarCrm('Senha alterada com sucesso.');
       router.replace("/painel");
     } catch (changeError) {
       setError(

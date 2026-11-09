@@ -552,23 +552,7 @@ export const sitePageConfigs: Record<string, SitePageConfig> = {
           ),
         ],
       },
-      {
-        key: "destaques",
-        title: "Destaques de carreira",
-        description:
-          "Cards fixos: altere somente os textos. Icones, ordem, cores, estrutura e quantidade permanecem como no site.",
-        fields: itemTextFields(
-          "destaques",
-          ["Desenvolvimento", "Ambiente colaborativo", "Impacto real"],
-          "Destaque",
-          [
-            {
-              key: "texto",
-              label: "texto",
-            },
-          ],
-        ),
-      },
+     
       {
         key: "historias",
         title: "Histórias",

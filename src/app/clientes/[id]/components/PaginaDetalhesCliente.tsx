@@ -1,5 +1,9 @@
 "use client";
 
+import { notificarCrm } from '@/lib/feedback-crm';
+
+import { converterValorTotalOportunidade } from '@/lib/valor-oportunidade';
+import { acaoSecundariaOportunidadeSx } from '@/components/crm/estilos-oportunidades';
 import { EditarCadastroDialog } from "@/components/cadastros/editar-cadastro-dialog";
 import { ModalidadeCadastro } from "@/components/cadastros/modalidade-cadastro";
 import { hasAnyRole } from "@/lib/user-roles";
@@ -243,7 +247,7 @@ export default function PaginaDetalhesCliente({
         setError("");
         const { id } = await params;
         setClientId(id);
-        const nextLead = await getCrmLeadById(id, token);
+        const nextLead = await getCrmLeadById(id, token, somenteOportunidades || hasAnyRole(user, ["CONSULTORA"]));
 
         if (!active) {
           return;
@@ -281,14 +285,14 @@ export default function PaginaDetalhesCliente({
     return () => {
       active = false;
     };
-  }, [params, token]);
+  }, [params, token, somenteOportunidades, user]);
 
   async function reloadClient() {
     if (!token || !clientId) {
       return;
     }
 
-    const nextLead = await getCrmLeadById(clientId, token);
+    const nextLead = await getCrmLeadById(clientId, token, somenteOportunidades || hasAnyRole(user, ["CONSULTORA"]));
     setLead(nextLead);
     if (nextLead) {
       setFormularioCliente(clienteParaFormularioCliente(nextLead));
@@ -842,6 +846,7 @@ export default function PaginaDetalhesCliente({
         {
           clientId: lead.id,
           title,
+          value: converterValorTotalOportunidade(opportunityProposalForm.valorTotal) ?? undefined,
           stage: "PROPOSTA",
           preContract: true,
           preContractNotes: [
@@ -988,6 +993,8 @@ export default function PaginaDetalhesCliente({
         opportunityId,
         {
           title,
+          value: converterValorTotalOportunidade(editingOpportunityForm.valorTotal),
+          ...(lead.opportunities.find(item=>item.id===opportunityId)?.status === "LOST" ? { motivoPerda: editingOpportunityForm.motivoPerda, observacaoPerda: editingOpportunityForm.observacaoPerda } : {}),
           preContractNotes: montarObservacoesProposta(
             editingOpportunityForm,
           ),
@@ -1197,14 +1204,12 @@ export default function PaginaDetalhesCliente({
       setDeletionDialogOpen(false);
       setDeletionReason("");
 
-      setToast({
-        title: result.status === "APROVADA" ? "Cliente excluído" : "Solicitação enviada",
-        message: result.status === "APROVADA"
-          ? "Cliente excluído com sucesso."
-          : "A exclusão do cliente foi enviada para aprovação do Comercial ou Gestão.",
-        variant: "success",
-      });
-      if (result.status === "APROVADA") router.replace("/cadastros");
+      if (result.status === "APROVADA") {
+        notificarCrm('Cliente excluído com sucesso.');
+        router.replace('/cadastros');
+      } else {
+        setToast({ title: 'Solicitação enviada', message: 'A exclusão do cliente foi enviada para aprovação do Comercial ou Gestão.', variant: 'success' });
+      }
     } catch (deleteError) {
       setToast({
         title: canDeleteDirectly ? "Falha ao excluir cliente" : "Falha ao solicitar exclusão",
@@ -1344,20 +1349,17 @@ export default function PaginaDetalhesCliente({
       <CrmSection
         sx={{
           p: { xs: 2, md: 2.5 },
-          borderRadius: "14px",
+          borderRadius: "12px",
           border: `1px solid ${crmPalette.border}`,
           bgcolor: "#ffffff",
-          boxShadow: "0 8px 24px rgba(15, 23, 42, 0.04)",
+          boxShadow: "none",
         }}
       >
         <Stack spacing={2}>
-          <CabecalhoSecao
-            eyebrow="Histórico"
-            title="Histórico do cliente"
-            description="Linha do tempo com eventos, alterações e interações registradas."
-            icon={<History size={20} />}
+          <CabecalhoSecao compacto
+            title="Histórico"
           />
-          <TimelineSection events={currentLead.timeline} darkMode={false} />
+          <TimelineSection compacto events={currentLead.timeline} darkMode={false} />
         </Stack>
       </CrmSection>
     );
@@ -1365,9 +1367,10 @@ export default function PaginaDetalhesCliente({
 
   return (
     <AppLayout>
-      <CrmPageShell>
+      <CrmPageShell sx={{ gap: 1.5, minWidth: 0 }}>
         {edicaoCadastroAberta && lead && token && canEditClient && <EditarCadastroDialog cadastro={lead} token={token} aoFechar={() => setEdicaoCadastroAberta(false)} aoSalvar={async () => { await reloadClient(); setToast({ title: "Cadastro atualizado", message: "Alterações salvas com sucesso.", variant: "success" }); }} />}
         <CabecalhoDetalhesCliente
+          hrefVoltar={somenteOportunidades ? "/oportunidades" : "/cadastros"}
           lead={lead}
           loading={loading}
           error={error}
@@ -1393,18 +1396,18 @@ export default function PaginaDetalhesCliente({
                 minHeight: 40,
                 px: 2,
                 borderRadius: "8px",
-                bgcolor: "#ff5805",
+                bgcolor: "#475569",
                 color: "#fff",
                 fontSize: 13,
-                fontWeight: 700,
+                fontWeight: 600,
                 textTransform: "none",
                 boxShadow: "none",
-                "&:hover": { bgcolor: "#e94f00", boxShadow: "none" },
+                "&:hover": { bgcolor: "#334155", color: "#fff", boxShadow: "none" },
               },
             }}
           >
-            <Button component={Link} href="/oportunidades" variant="contained">Todas as oportunidades</Button>
-            <Button component={Link} href={`/cadastros/${clientId}`} variant="contained">Abrir cadastro</Button>
+            <Button component={Link} href="/oportunidades" variant="outlined" sx={acaoSecundariaOportunidadeSx}>Todas as oportunidades</Button>
+            <Button component={Link} href={`/cadastros/${clientId}`} variant="outlined" sx={acaoSecundariaOportunidadeSx}>Abrir cadastro</Button>
           </Stack>
         ) : (
           <AbasDetalhesCliente lead={lead} activeTab={activeTab} setActiveTab={setActiveTab} />
@@ -1420,7 +1423,7 @@ export default function PaginaDetalhesCliente({
 
             <Button
               component={Link}
-              href={`/oportunidades/cadastro/${clientId}`}
+              href={somenteOportunidades ? "/oportunidades" : "/cadastros"}
               variant="outlined"
               startIcon={<ArrowLeft size={16} />}
               sx={{
@@ -1432,7 +1435,7 @@ export default function PaginaDetalhesCliente({
                 fontSize: 12,
               }}
             >
-              Voltar para propostas
+              {somenteOportunidades ? "Voltar para oportunidades" : "Voltar para cadastros"}
             </Button>
           </CrmSection>
         )}

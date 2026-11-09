@@ -1,4 +1,7 @@
+import { normalizarNomesCadastro } from '@/lib/nome-cadastro';
+import { validarDadosPerda } from '@/services/motivos-perda.service';
 import { API_BASE_URL, apiFetch } from '@/services/api';
+import { validarDocumentosOportunidade, OPPORTUNITY_DOCUMENT_LIMIT_MESSAGE } from '@/lib/opportunity-documents';
 import type {
   ClientContact,
   ClientDocument,
@@ -67,6 +70,7 @@ export type BackendClient = {
 };
 
 type BackendOpportunity = {
+  valorPropostaComercial?: number | string | null;
   id: string;
   clientId: string;
   quoteId?: string | null;
@@ -78,6 +82,8 @@ type BackendOpportunity = {
   preContractNotes?: string | null;
   expectedCloseDate?: string | null;
   lostReason?: string | null;
+  motivoPerda?: string | null;
+  observacaoPerda?: string | null;
   createdAt: string;
   updatedAt: string;
 };
@@ -141,12 +147,15 @@ function mapOpportunity(opportunity: BackendOpportunity): Opportunity {
     quoteId: opportunity.quoteId ?? null,
     title: opportunity.title,
     value: toNumber(opportunity.value),
+    valorPropostaComercial: toNumber(opportunity.valorPropostaComercial),
     stage: opportunity.stage,
     status: opportunity.status,
     preContract: opportunity.preContract ?? false,
     preContractNotes: opportunity.preContractNotes ?? null,
     expectedCloseDate: opportunity.expectedCloseDate ?? null,
     lostReason: opportunity.lostReason ?? null,
+    motivoPerda: opportunity.motivoPerda ?? null,
+    observacaoPerda: opportunity.observacaoPerda ?? null,
     createdAt: opportunity.createdAt,
     updatedAt: opportunity.updatedAt,
   };
@@ -162,8 +171,9 @@ export function mapClientSummary(client: BackendClient, owners: Map<string, stri
     'Cliente';
   const clientEmail = client.contacts?.find(contato => contato.isPrimary)?.email || client.contacts?.[0]?.email || client.user?.email || '';
 
-  return {
+  return normalizarNomesCadastro({
     id: client.id,
+    responsavel: client.responsavel?.trim() || null,
     modalidadeCadastro: client.modalidadeCadastro || 'CLIENTE',
     prospectedById: client.prospectedById,
     prospectedByName: client.prospectedByName,
@@ -182,7 +192,7 @@ export function mapClientSummary(client: BackendClient, owners: Map<string, stri
       : 'Sem responsável',
     status: normalizeStatus(client.status),
     createdAt: client.createdAt,
-  };
+  });
 }
 
 function mapTimelineEvent(clientId: string, event: BackendTimelineEvent): TimelineEvent {
@@ -246,11 +256,13 @@ export async function getCrmClientSummaries(token: string, consultora = false, f
 export async function getCrmLeadById(
   id: string,
   token: string,
+  somenteOportunidades = false,
 ): Promise<LeadDetail | null> {
-  const detail = await apiFetch<BackendClientDetail>(`/clients/${id}/detail`, {}, token);
+  const endpoint = somenteOportunidades ? `/opportunities/clients/${id}/detail` : `/clients/${id}/detail`;
+  const detail = await apiFetch<BackendClientDetail>(endpoint, {}, token);
   const summary = mapClientSummary(detail.client, new Map());
 
-  return {
+  return normalizarNomesCadastro({
     ...summary,
     fotoUrl: detail.client.fotoUrl,
     proximaAcao: detail.client.proximaAcao,
@@ -287,7 +299,7 @@ export async function getCrmLeadById(
     opportunities: (detail.opportunities ?? []).map(mapOpportunity),
     documents: detail.client.documents ?? [],
     contacts: (detail.client.contacts ?? []).map(mapClientContact),
-  };
+  });
 }
 
 export async function updateClient(
@@ -338,7 +350,7 @@ export async function updateClient(
     `/clients/${id}`,
     {
       method: 'PATCH',
-      body: JSON.stringify(payload),
+      body: JSON.stringify(normalizarNomesCadastro(payload)),
     },
     token,
   );
@@ -400,7 +412,7 @@ return apiFetch<CreatedClientResponse>(
     '/clients',
     {
       method: 'POST',
-      body: JSON.stringify(payload),
+      body: JSON.stringify(normalizarNomesCadastro(payload)),
     },
     token,
   );
@@ -549,6 +561,8 @@ export async function enviarDocumentosPropostaOportunidade(
   token: string,
   description?: string,
 ): Promise<ClientDocument[]> {
+  const validationError = validarDocumentosOportunidade(files);
+  if (validationError) throw new Error(validationError);
   const body = new FormData();
 
   files.forEach((file) => {
@@ -576,7 +590,9 @@ export async function enviarDocumentosPropostaOportunidade(
 
   if (!response.ok) {
     throw new Error(
-      data?.message || data?.error || 'Erro ao enviar proposta do cliente.',
+      response.status === 413 ? OPPORTUNITY_DOCUMENT_LIMIT_MESSAGE :
+        (Array.isArray(data?.message) ? data.message.join(' ') : data?.message) ||
+        data?.error || 'Não foi possível anexar o arquivo. Tente novamente.',
     );
   }
 
@@ -680,12 +696,14 @@ export async function atualizarEtapaOportunidade(
   etapa: OpportunityStage,
   token: string,
   motivoPerda?: string,
+  observacaoPerda?: string,
 ) {
+  if (etapa === 'PERDIDO') await validarDadosPerda(token, motivoPerda, observacaoPerda);
   return apiFetch<Opportunity>(
-    `/oportunidades/${oportunidadeId}/etapa`,
+    `/opportunities/${oportunidadeId}/stage`,
     {
       method: 'PATCH',
-      body: JSON.stringify({ etapa, motivoPerda }),
+      body: JSON.stringify({ stage: etapa, motivoPerda, observacaoPerda }),
     },
     token,
   );
@@ -702,14 +720,17 @@ export async function atualizarOportunidade(
     preContract?: boolean;
     preContractNotes?: string | null;
     lostReason?: string | null;
+  motivoPerda?: string | null;
+  observacaoPerda?: string | null;
   },
   token: string,
 ) {
+  if (payload.stage === 'PERDIDO' || (payload.stage === undefined && (payload.motivoPerda !== undefined || payload.lostReason !== undefined))) await validarDadosPerda(token, payload.motivoPerda ?? payload.lostReason, payload.observacaoPerda);
   return apiFetch<Opportunity>(
-    `/oportunidades/${opportunityId}`,
+    `/opportunities/${opportunityId}`,
     {
       method: 'PATCH',
-      body: JSON.stringify(dadosOportunidadeEmPortugues(payload)),
+      body: JSON.stringify(payload),
     },
     token,
   );
@@ -717,7 +738,7 @@ export async function atualizarOportunidade(
 
 export async function excluirOportunidade(opportunityId: string, token: string) {
   return apiFetch<{ message: string }>(
-    `/oportunidades/${opportunityId}`,
+    `/opportunities/${opportunityId}`,
     {
       method: 'DELETE',
     },
@@ -732,17 +753,21 @@ export async function criarOportunidade(
     title: string;
     value?: number;
     stage?: OpportunityStage;
+    motivoPerda?: string;
+    lostReason?: string;
+    observacaoPerda?: string;
     expectedCloseDate?: string;
     preContract?: boolean;
     preContractNotes?: string;
   },
   token: string,
 ) {
+  if (payload.stage === 'PERDIDO') await validarDadosPerda(token, payload.motivoPerda ?? payload.lostReason, payload.observacaoPerda);
   return apiFetch<Opportunity>(
-    '/oportunidades',
+    '/opportunities',
     {
       method: 'POST',
-      body: JSON.stringify(dadosOportunidadeEmPortugues(payload)),
+      body: JSON.stringify(payload),
     },
     token,
   );
@@ -803,7 +828,9 @@ export async function updateOpportunityStatus(
   opportunityId: string,
   status: OpportunityStatus,
   token: string,
+  perda: { motivoPerda?: string; observacaoPerda?: string } = {},
 ) {
+  if (status === 'LOST') await validarDadosPerda(token, perda.motivoPerda, perda.observacaoPerda);
   const response = await fetch(
     `${API_BASE_URL}/clients/${clientId}/opportunities/${opportunityId}/status`,
     {
@@ -814,6 +841,8 @@ export async function updateOpportunityStatus(
       },
       body: JSON.stringify({
         status,
+        motivoPerda: perda.motivoPerda,
+        observacaoPerda: perda.observacaoPerda,
       }),
     },
   );
@@ -829,23 +858,4 @@ export async function updateOpportunityStatus(
   }
 
   return data;
-}
-
-
-function dadosOportunidadeEmPortugues(dados: {
-  clientId?: string; quoteId?: string | null; title?: string; value?: number | null;
-  stage?: OpportunityStage; expectedCloseDate?: string | null; preContract?: boolean;
-  preContractNotes?: string | null; lostReason?: string | null;
-}) {
-  return {
-    clienteId: dados.clientId,
-    cotacaoId: dados.quoteId,
-    titulo: dados.title,
-    valor: dados.value,
-    etapa: dados.stage,
-    previsaoFechamento: dados.expectedCloseDate,
-    preContrato: dados.preContract,
-    observacoesPreContrato: dados.preContractNotes,
-    motivoPerda: dados.lostReason,
-  };
 }

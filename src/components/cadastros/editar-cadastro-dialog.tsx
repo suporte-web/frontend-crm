@@ -1,4 +1,6 @@
 "use client";
+
+import { FeedbackToast } from '@/components/ui/feedback-toast';
 import { useEffect, useState, type FormEvent } from "react";
 import { Alert, CircularProgress, Dialog, DialogContent, DialogTitle, Divider, IconButton, Stack, Typography } from "@mui/material";
 import { X } from "lucide-react";
@@ -7,6 +9,7 @@ import { CamposComplementaresCadastro, type CamposComerciaisCadastro } from "./c
 import { alterarModalidade, atualizarEtapaCadastro, obterDadosLead, type ModalidadeCadastro } from "@/services/cadastros.service";
 import { updateClient, uploadClientDocuments } from "@/services/crm.service";
 import { normalizeLeadFunnelStage, type LeadFunnelStage } from "@/constants/lead-funnel";
+import { useCnpjLookup } from "@/hooks/use-cnpj-lookup";
 import type { LeadDetail } from "@/types/crm";
 import { clienteParaFormularioCliente, montarEnderecoCliente } from "@/app/clientes/[id]/components/detalhes-cliente/detalhes-cliente-compartilhado";
 
@@ -23,7 +26,7 @@ export function EditarCadastroDialog({ cadastro, token, aoFechar, aoSalvar }: {
   const [fotoOriginal, setFotoOriginal] = useState(cadastro.fotoUrl || "");
   const [carregando, setCarregando] = useState(true);
   const [salvando, setSalvando] = useState(false);
-  const [buscando, setBuscando] = useState(false);
+  const { searchingCnpj: buscando, cnpjError, searchCnpj: buscarCnpj } = useCnpjLookup(token, form, setForm);
   const [erro, setErro] = useState("");
   useEffect(() => {
     let ativo = true;
@@ -39,29 +42,6 @@ export function EditarCadastroDialog({ cadastro, token, aoFechar, aoSalvar }: {
     }).catch(erro => { if (ativo) setErro(erro instanceof Error ? erro.message : "Não foi possível carregar o cadastro."); });
     return () => { ativo = false; };
   }, [cadastro.id, token]);
-
-  async function buscarCnpj() {
-    const cnpj = form.document.replace(/\D/g, "");
-    if (cnpj.length !== 14) { setErro("Informe os 14 números do CNPJ para consultar."); return; }
-    setBuscando(true); setErro("");
-    try {
-      const resposta = await fetch(`https://brasilapi.com.br/api/cnpj/v1/${cnpj}`);
-      const dados = await resposta.json() as Record<string, unknown>;
-      if (!resposta.ok) throw new Error(typeof dados.message === "string" ? dados.message : "Não foi possível consultar o CNPJ.");
-      const texto = (chave: string) => dados[chave] == null ? "" : String(dados[chave]);
-      setForm(atual => ({ ...atual,
-        legalName: texto("razao_social") || atual.legalName, tradeName: texto("nome_fantasia") || atual.tradeName,
-        companyName: texto("nome_fantasia") || texto("razao_social") || atual.companyName,
-        cnae: texto("cnae_fiscal") || atual.cnae, businessActivity: texto("cnae_fiscal_descricao") || atual.businessActivity,
-        segment: texto("cnae_fiscal_descricao") || atual.segment,
-        taxRegime: dados.opcao_pelo_simples === true ? "Simples Nacional" : atual.taxRegime,
-        zipCode: texto("cep") || atual.zipCode, street: [texto("descricao_tipo_logradouro"), texto("logradouro")].filter(Boolean).join(" ") || atual.street,
-        number: texto("numero") || atual.number, complement: texto("complemento") || atual.complement,
-        neighborhood: texto("bairro") || atual.neighborhood, city: texto("municipio") || atual.city, state: texto("uf") || atual.state,
-      }));
-    } catch (erro) { setErro(erro instanceof Error ? erro.message : "Erro ao consultar CNPJ."); }
-    finally { setBuscando(false); }
-  }
 
   async function salvar(evento: FormEvent<HTMLFormElement>) {
     evento.preventDefault(); setErro("");
@@ -83,7 +63,7 @@ export function EditarCadastroDialog({ cadastro, token, aoFechar, aoSalvar }: {
         taxRegime: form.taxRegime, address: montarEnderecoCliente(form) || form.address, city: form.city,
         bankDetails: form.bankDetails, modality: form.modality, registrationDate: form.registrationDate || undefined,
         segment: form.segment, status: form.status, notes: form.notes,
-        contacts: contatos.filter(contato => Object.values(contato).some(valor => valor.trim())).map((contato, indice) => ({ ...contato, isPrimary: indice === 0 })),
+        contacts: contatos.filter(contato => Object.values(contato).some(valor => valor.trim())).map((contato, indice) => ({ ...contato, email: contato.email.trim() || undefined, isPrimary: indice === 0 })),
       }, token);
       alteracoesSalvas = true;
       await atualizarEtapaCadastro(cadastro.id, etapa, token, { ...comerciais, ...(foto !== fotoOriginal ? { fotoUrl: foto } : {}) });
@@ -95,18 +75,18 @@ export function EditarCadastroDialog({ cadastro, token, aoFechar, aoSalvar }: {
     } finally { setSalvando(false); }
   }
   const ocupado = salvando || buscando;
-  return <Dialog open fullWidth maxWidth="md" scroll="paper" onClose={() => { if (!ocupado) aoFechar(); }} slotProps={{ paper: { sx: { borderRadius: "20px" } } }}>
-    <DialogTitle component="div" sx={{ px: 3, py: 2.5 }}><Stack direction="row" sx={{ justifyContent: "space-between", alignItems: "center" }}><Stack spacing={0.5}><Typography component="h2" sx={{ fontSize: 22, fontWeight: 700 }}>Editar cadastro</Typography><Typography sx={{ fontSize: 13, color: "#64748b" }}>Dados fiscais, cadastrais, contatos e documentos.</Typography></Stack><IconButton aria-label="Fechar edição" onClick={aoFechar} disabled={ocupado}><X size={20} /></IconButton></Stack></DialogTitle>
+  return <Dialog open fullWidth maxWidth="md" scroll="paper" onClose={() => { if (!ocupado) aoFechar(); }} slotProps={{ paper: { sx: { borderRadius: "12px", boxShadow: "0 12px 48px rgba(15,23,42,.12)" } } }}>
+    <DialogTitle component="div" sx={{ px: { xs: 2, md: 2.5 }, py: 1.75 }}><Stack direction="row" sx={{ justifyContent: "space-between", alignItems: "center" }}><Stack spacing={0.5}><Typography component="h2" sx={{ fontSize: 18, fontWeight: 600 }}>Editar cadastro</Typography></Stack><IconButton aria-label="Fechar edição" onClick={aoFechar} disabled={ocupado}><X size={20} /></IconButton></Stack></DialogTitle>
     <Divider />
-    <DialogContent sx={{ p: { xs: 2, md: 3 }, bgcolor: "#f8fafc" }}>
-      {erro && <Alert severity="error" sx={{ mb: 2 }}>{erro}</Alert>}
-      {carregando ? (!erro && <CircularProgress aria-label="Carregando cadastro para editar" />) : <ClientForm
+    <DialogContent sx={{ p: { xs: 2, md: 2.5 }, bgcolor: "#fff", "& .MuiOutlinedInput-root": { borderRadius: "8px" }, "& .MuiOutlinedInput-root:not(.MuiInputBase-multiline)": { height: 40 }, "& .MuiInputLabel-root": { fontSize: 13 }, "& .MuiInputBase-input": { fontSize: 13.5 } }}>
+      <FeedbackToast open={Boolean(erro)} title="Não foi possível salvar o cadastro" message={erro} variant="error" onClose={() => setErro('')} />
+      {carregando ? (!erro && <CircularProgress aria-label="Carregando cadastro para editar" />) : <ClientForm compacto
         form={form} setForm={setForm} contacts={contatos} setContacts={setContatos}
-        documentFiles={arquivos} setDocumentFiles={setArquivos} loading={salvando} searchingCnpj={buscando}
+        documentFiles={arquivos} setDocumentFiles={setArquivos} loading={salvando} searchingCnpj={buscando} cnpjError={cnpjError}
         onSearchCnpj={buscarCnpj} onCancel={aoFechar} onSubmit={salvar} submitLabel="Salvar alterações"
         camposIniciais={<Stack spacing={2}>
           <CamposComplementaresCadastro modalidade={modalidade} setModalidade={setModalidade} etapa={etapa} setEtapa={setEtapa} comerciais={comerciais} setComerciais={setComerciais} foto={foto} setFoto={setFoto} desabilitado={ocupado} />
-          {!!cadastro.documents.length && <Alert severity="info">{cadastro.documents.length} documento(s) já anexado(s). Os arquivos existentes serão mantidos.</Alert>}
+          {!!cadastro.documents.length && <Alert severity="info">{cadastro.documents.length} documento(s) anexado(s).</Alert>}
         </Stack>}
       />}
     </DialogContent>

@@ -1,4 +1,6 @@
 "use client";
+
+import { notificarCrm } from '@/lib/feedback-crm';
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useState } from "react";
@@ -55,6 +57,7 @@ export default function PaginaNovaVisita() {
                       "POST",
                       dados,
                     );
+                    notificarCrm('Visita cadastrada com sucesso.');
                     router.push("/atendimento/visitas/" + v.id);
                   } finally {
                     setOcupado(false);

@@ -1,5 +1,7 @@
 'use client';
 
+import { FeedbackToast } from '@/components/ui/feedback-toast';
+
 import {
   useState,
 } from 'react';
@@ -22,7 +24,6 @@ import DialogTitle from '@mui/material/DialogTitle';
 import Tooltip from '@mui/material/Tooltip';
 
 import Alert from '@mui/material/Alert';
-import Snackbar from '@mui/material/Snackbar';
 
 import {
   Eye,
@@ -1286,31 +1287,7 @@ export function SiteBlogPostsEditor({
           </Dialog>
         </Box>
       </CrmSection>
-      <Snackbar
-        open={deleteSuccess}
-        autoHideDuration={4000}
-        onClose={() =>
-          setDeleteSuccess(false)
-        }
-        anchorOrigin={{
-          vertical: 'bottom',
-          horizontal: 'right',
-        }}
-      >
-        <Alert
-          severity="success"
-          variant="filled"
-          onClose={() =>
-            setDeleteSuccess(false)
-          }
-          sx={{
-            borderRadius: '10px',
-            fontWeight: 800,
-          }}
-        >
-          Post excluído com sucesso.
-        </Alert>
-      </Snackbar>
+      <FeedbackToast open={deleteSuccess} title="Post excluído" message={'Post excluído com sucesso.'} variant="success" onClose={() => setDeleteSuccess(false)} />
 
     </Stack>
 

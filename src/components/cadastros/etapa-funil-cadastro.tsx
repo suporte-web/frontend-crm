@@ -1,7 +1,11 @@
 "use client";
+import { mascararValorMonetario, formatarValorMonetarioSalvo } from '@/lib/valor-oportunidade';
+
+
+import { FeedbackToast } from '@/components/ui/feedback-toast';
 
 import { useEffect, useState } from "react";
-import { Alert, Box, Button, CircularProgress, MenuItem, Paper, Stack, TextField, Typography } from "@mui/material";
+import { Box, Button, CircularProgress, MenuItem, Paper, Stack, TextField, Typography } from "@mui/material";
 import { LEAD_FUNNEL_STAGES, normalizeLeadFunnelStage, type LeadFunnelStage } from "@/constants/lead-funnel";
 import { atualizarEtapaCadastro, obterDadosLead } from "@/services/cadastros.service";
 
@@ -67,8 +71,7 @@ export function EtapaFunilCadastro({ id, token, podeEditar, aoSalvar }: {
           <Typography component="h2" sx={{ fontSize: 16, fontWeight: 700, color: "#1f2937" }}>Acompanhamento comercial</Typography>
           <Typography sx={{ fontSize: 12.5, color: "#64748b" }}>Etapa e informações usadas no BI Comercial e no Funil de Vendas.</Typography>
         </Stack>
-        {erro && <Alert severity="error">{erro}</Alert>}
-        {sucesso && <Alert severity="success">Dados salvos. Atualize os painéis abertos para consultar a mudança.</Alert>}
+        <FeedbackToast open={Boolean(erro || sucesso)} title={erro ? 'Falha ao salvar' : 'Acompanhamento atualizado'} message={erro || 'Acompanhamento comercial salvo com sucesso.'} variant={erro ? 'error' : 'success'} onClose={() => { setErro(''); setSucesso(false); }} />
         {carregando ? <CircularProgress size={22} aria-label="Carregando etapa do funil" /> : (
           <Stack spacing={2}>
           <Stack direction={{ xs: "column", sm: "row" }} spacing={1.5} sx={{ alignItems: { sm: "center" } }}>
@@ -81,7 +84,7 @@ export function EtapaFunilCadastro({ id, token, podeEditar, aoSalvar }: {
           <Box sx={{ display: "grid", gridTemplateColumns: { xs: "minmax(0, 1fr)", md: "repeat(3, minmax(0, 1fr))" }, gap: 2 }}>
             <TextField size="small" fullWidth label="Próxima ação" placeholder="Ex.: Enviar proposta" value={dados.proximaAcao} onChange={evento => { setDados(atual => ({ ...atual, proximaAcao: evento.target.value })); setSucesso(false); }} disabled={!podeEditar || salvando} />
             <TextField size="small" fullWidth label="Responsável" value={dados.responsavel} onChange={evento => { setDados(atual => ({ ...atual, responsavel: evento.target.value })); setSucesso(false); }} disabled={!podeEditar || salvando} />
-            <TextField size="small" fullWidth label="Volume mensal estimado (R$)" placeholder="Ex.: 12.500,00" value={dados.volumeMensalEstimado} onChange={evento => { setDados(atual => ({ ...atual, volumeMensalEstimado: evento.target.value })); setSucesso(false); }} slotProps={{ htmlInput: { inputMode: "decimal" } }} disabled={!podeEditar || salvando} />
+            <TextField size="small" fullWidth label="Volume mensal estimado (R$)" placeholder="Ex.: 12.500,00" value={formatarValorMonetarioSalvo(dados.volumeMensalEstimado)} onChange={evento => { setDados(atual => ({ ...atual, volumeMensalEstimado: mascararValorMonetario(evento.target.value) })); setSucesso(false); }} slotProps={{ htmlInput: { inputMode: "decimal" } }} disabled={!podeEditar || salvando} />
           </Box>
           </Stack>
         )}

@@ -1,5 +1,7 @@
 "use client";
 
+import { notificarCrm } from '@/lib/feedback-crm';
+
 import { canUseInternalChat } from "@/lib/user-roles";
 import { useEffect, useMemo, useState } from "react";
 import {
@@ -187,6 +189,7 @@ export default function ChatPage() {
 
       setMessages((current) => [...current, message]);
       setContent("");
+      notificarCrm('Mensagem enviada com sucesso.');
       setChats((current) =>
         current.map((chat) =>
           chat.id === selectedChat.id

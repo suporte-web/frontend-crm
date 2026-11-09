@@ -250,6 +250,7 @@ export default function UsersPage() {
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
   const [consultoraPassword, setConsultoraPassword] = useState("");
+  const [rolesMenuOpen, setRolesMenuOpen] = useState(false);
   const [confirmLoading, setConfirmLoading] = useState(false);
 
   const [search, setSearch] = useState("");
@@ -394,6 +395,7 @@ export default function UsersPage() {
   }
 
   function openCreateModal() {
+    setRolesMenuOpen(false);
     setConsultoraPassword("");
     setEditingUser(null);
     setForm(initialFormState);
@@ -402,6 +404,8 @@ export default function UsersPage() {
   }
 
   function openEditModal(user: User) {
+    setRolesMenuOpen(false);
+    setConsultoraPassword("");
     setEditingUser(user);
     setForm({
       name: user.name,
@@ -415,6 +419,7 @@ export default function UsersPage() {
 
   function closeModal() {
     if (saving) return;
+    setRolesMenuOpen(false);
     setConsultoraPassword("");
 
     setIsModalOpen(false);
@@ -1185,7 +1190,11 @@ export default function UsersPage() {
             },
           }}
         >
-          <Box component="form" onSubmit={handleSubmit}>
+          <Box
+            component="form"
+            onSubmit={handleSubmit}
+            sx={{ display: "flex", flexDirection: "column", minHeight: 0, overflow: "hidden" }}
+          >
             <DialogTitle
               component="div"
               sx={{
@@ -1255,7 +1264,7 @@ export default function UsersPage() {
               </Stack>
             </DialogTitle>
 
-            <DialogContent sx={{ p: { xs: 2.5, md: 3 }, bgcolor: "#f8fafc" }}>
+            <DialogContent sx={{ p: { xs: 2.5, md: 3 }, bgcolor: "#f8fafc", minHeight: 0, overflowY: "auto" }}>
               <Stack spacing={2}>
                 <Paper
                   elevation={0}
@@ -1280,7 +1289,6 @@ export default function UsersPage() {
                       </Typography>
                     </Box>
 
-                    {!editingUser && form.roles.includes('CONSULTORA') && <TextField fullWidth required type="password" label="Senha inicial" value={consultoraPassword} onChange={e => setConsultoraPassword(e.target.value)} helperText="A consultora deverá alterar esta senha no primeiro acesso." autoComplete="new-password" sx={fieldSx} />}
                     <TextField
                       fullWidth
                       required
@@ -1359,7 +1367,7 @@ export default function UsersPage() {
                       <Typography
                         sx={{ mt: 0.35, color: crmPalette.muted, fontSize: 12.5 }}
                       >
-                        Selecione um ou mais perfis. Os acessos dos perfis serão combinados.
+                        Selecione um ou mais perfis. O perfil Consultora deve ser usado sozinho.
                       </Typography>
                     </Box>
 
@@ -1369,12 +1377,17 @@ export default function UsersPage() {
                       required
                       label="Perfis"
                       value={form.roles}
-                      onChange={(event) =>
-                        handleFieldChange("roles", selecionarPerfis(form.roles, typeof event.target.value === "string" ? event.target.value.split(",") : event.target.value as unknown as UserRole[]) as UserRole[])
-                      }
+                      onChange={(event) => {
+                        const perfis = selecionarPerfis(form.roles, typeof event.target.value === "string" ? event.target.value.split(",") : event.target.value as unknown as UserRole[]) as UserRole[];
+                        handleFieldChange("roles", perfis);
+                        if (perfis.includes("CONSULTORA")) setRolesMenuOpen(false);
+                      }}
                       slotProps={{
                         select: {
                           multiple: true,
+                          open: rolesMenuOpen,
+                          onOpen: () => setRolesMenuOpen(true),
+                          onClose: () => setRolesMenuOpen(false),
                           renderValue: (value) => (
                             <Stack direction="row" spacing={0.5} sx={{ flexWrap: "wrap", gap: 0.5 }}>
                               {(value as UserRole[]).map((role) => <Chip key={role} label={getRoleLabel(role)} size="small" />)}
@@ -1398,6 +1411,21 @@ export default function UsersPage() {
                         </MenuItem>
                       ))}
                     </TextField>
+
+                    {!editingUser && form.roles.includes('CONSULTORA') && (
+                      <TextField
+                        fullWidth
+                        required
+                        type="password"
+                        label="Senha inicial"
+                        value={consultoraPassword}
+                        onChange={event => setConsultoraPassword(event.target.value)}
+                        helperText="Informe pelo menos 6 caracteres. A consultora deverá alterar esta senha no primeiro acesso."
+                        autoComplete="new-password"
+                        slotProps={{ htmlInput: { minLength: 6 } }}
+                        sx={fieldSx}
+                      />
+                    )}
 
                     {editingUser ? (
                       <Paper
@@ -1450,6 +1478,8 @@ export default function UsersPage() {
                     >
                       {editingUser
                         ? "Para gerar uma nova senha padrão, use a ação Redefinir senha na lista de usuários."
+                        : form.roles.includes("CONSULTORA")
+                        ? "A consultora usará a senha inicial informada e deverá alterá-la no primeiro acesso."
                         : "O usuário será criado com a senha padrão definida pelo sistema."}
                     </Alert>
                   </Stack>

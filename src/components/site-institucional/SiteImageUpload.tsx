@@ -1,5 +1,9 @@
 'use client';
 
+import { FeedbackToast } from '@/components/ui/feedback-toast';
+
+import { notificarCrm } from '@/lib/feedback-crm';
+
 import { useRef, useState } from 'react';
 import Alert from '@mui/material/Alert';
 import Box from '@mui/material/Box';
@@ -78,6 +82,7 @@ export function SiteImageUpload({
     try {
       const result = await uploadImagemSite(slug, file, token);
       onChange(result.path);
+      notificarCrm('Imagem enviada. Salve a página para aplicar a alteração.');
       setRemovedValue('');
       setPreviewError(false);
     } catch (uploadError) {
@@ -149,7 +154,7 @@ export function SiteImageUpload({
             </Button>
           }>Imagem removida da edição. Salve ou publique para aplicar.</Alert>
         ) : null}
-        {error ? <Alert severity="error">{error}</Alert> : null}
+        <FeedbackToast open={Boolean(error)} title="Não foi possível enviar a imagem" message={error} variant="error" onClose={() => setError('')} />
       </Stack>
     </Paper>
   );

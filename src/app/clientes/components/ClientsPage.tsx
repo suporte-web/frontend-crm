@@ -6,6 +6,7 @@ import { IdentificacaoProspeccao } from "@/components/crm/prospeccao-consultora"
 import { CamposComplementaresCadastro } from "@/components/cadastros/campos-complementares-cadastro";
 import { type LeadFunnelStage } from "@/constants/lead-funnel";
 import { hasAnyRole } from "@/lib/user-roles";
+import { useCnpjLookup } from "@/hooks/use-cnpj-lookup";
 import Link from "next/link";
 import { useEffect, useMemo, useState } from "react";
 
@@ -30,7 +31,6 @@ import Typography from "@mui/material/Typography";
 
 import {
   CrmKpiCard,
-  CrmPageHeader,
   CrmPageShell,
   CrmSection,
   crmPalette,
@@ -118,24 +118,6 @@ const initialClientForm: ClientFormData = {
   status: "PENDENTE" as LeadStatus,
 };
 
-type ReceitaCnpjResponse = {
-  razao_social?: string;
-  nome_fantasia?: string;
-  cnae_fiscal?: number;
-  cnae_fiscal_descricao?: string;
-  descricao_tipo_logradouro?: string;
-  logradouro?: string;
-  numero?: string;
-  complemento?: string;
-  bairro?: string;
-  municipio?: string;
-  uf?: string;
-  cep?: string;
-  descricao_situacao_cadastral?: string;
-  opcao_pelo_simples?: boolean | null;
-  message?: string;
-};
-
 const deletionStatusLabels: Record<ClientDeletionRequestStatus, string> = {
   PENDENTE: "Pendente",
   APROVADA: "Aprovada",
@@ -189,16 +171,16 @@ const textFieldSx = {
 };
 
 const filterFieldSx = {
-  "& .MuiOutlinedInput-root": {
-    height: 44,
-    borderRadius: "10px",
-    bgcolor: "#ffffff",
-  },
-
-  "& .MuiInputLabel-root": {
-    fontWeight: 700,
-  },
+  width: '100%', minWidth: 0,
+  '& .MuiOutlinedInput-root': { height: 40, borderRadius: '8px', bgcolor: '#fff', '& fieldset': { borderColor: '#cbd5e1' }, '&.Mui-focused fieldset': { borderColor: '#ff5805' } },
+  '& .MuiInputLabel-root': { fontSize: 13, fontWeight: 400 },
+  '& .MuiInputLabel-root.Mui-focused': { color: '#ff5805' },
+  '& .MuiInputBase-input, & .MuiSelect-select': { fontSize: 13.5, fontWeight: 400 },
 };
+
+const superficieCadastrosSx = { p: { xs: 2, md: 2.5 }, minWidth: 0, border: '1px solid #e2e8f0', borderRadius: '12px', bgcolor: '#fff', boxShadow: 'none' };
+const acaoCadastroSx = { height: 40, minHeight: 40, minWidth: 0, px: 1.5, borderRadius: '8px', fontSize: 13, fontWeight: 600, lineHeight: 1.3, textTransform: 'none', whiteSpace: 'nowrap', boxShadow: 'none' };
+const acaoSecundariaCadastroSx = { ...acaoCadastroSx, color: '#475569', borderColor: '#cbd5e1', '&:hover': { bgcolor: '#f8fafc', borderColor: '#94a3b8' } };
 
 const PAGE_SIZE_OPTIONS = [10, 25, 50];
 
@@ -228,30 +210,6 @@ function buildFullAddress(formData: {
   ]
     .filter(Boolean)
     .join(" | ");
-}
-
-function onlyDigits(value: string) {
-  return value.replace(/\D/g, "");
-}
-
-function formatCnpj(value: string) {
-  const digits = onlyDigits(value).slice(0, 14);
-
-  return digits
-    .replace(/^(\d{2})(\d)/, "$1.$2")
-    .replace(/^(\d{2})\.(\d{3})(\d)/, "$1.$2.$3")
-    .replace(/\.(\d{3})(\d)/, ".$1/$2")
-    .replace(/(\d{4})(\d)/, "$1-$2");
-}
-
-function formatCep(value?: string) {
-  const digits = onlyDigits(value ?? "").slice(0, 8);
-
-  return digits.replace(/^(\d{5})(\d)/, "$1-$2");
-}
-
-function joinStreet(tipo?: string, logradouro?: string) {
-  return [tipo?.trim(), logradouro?.trim()].filter(Boolean).join(" ");
 }
 
 function formatDate(date: string) {
@@ -326,6 +284,7 @@ export default function ClientsPage() {
   const [pageError, setPageError] = useState("");
   const [search, setSearch] = useState("");
   const [modalidadeFiltro, setModalidadeFiltro] = useState("");
+  const [responsavelFiltro, setResponsavelFiltro] = useState("");
   const [modalidadeNovo, setModalidadeNovo] = useState<ModalidadeCadastro>("CLIENTE");
   const [etapaNovo, setEtapaNovo] = useState<LeadFunnelStage>("venda_efetivada");
   const [fotoNovo, setFotoNovo] = useState("");
@@ -346,8 +305,8 @@ export default function ClientsPage() {
     useState<ClientDeletionRequest | null>(null);
   const [decisionMessage, setDecisionMessage] = useState("");
   const [saving, setSaving] = useState(false);
-  const [searchingCnpj, setSearchingCnpj] = useState(false);
   const [form, setForm] = useState(initialClientForm);
+  const { searchingCnpj, cnpjError, searchCnpj: handleSearchCnpj, clearCnpjError } = useCnpjLookup(token, form, setForm);
   const [contacts, setContacts] = useState<ClientContactForm[]>([
     emptyClientContact(),
   ]);
@@ -393,6 +352,13 @@ export default function ClientsPage() {
     loadClients();
   }, [token, canManageClients]);
 
+  const responsaveisDisponiveis = useMemo(
+    () => Array.from(new Set(clients.map((client) => client.responsavel?.trim() || "Sem responsável")))
+      .filter(Boolean)
+      .sort((primeiro, segundo) => primeiro.localeCompare(segundo, "pt-BR", { sensitivity: "base" })),
+    [clients],
+  );
+
   const filteredClients = useMemo(() => {
     const query = search.trim().toLowerCase();
 
@@ -410,13 +376,16 @@ export default function ClientsPage() {
             client.phone,
             client.segment,
             client.owner,
+            client.responsavel,
             client.city,
           ]
             .join(" ")
             .toLowerCase()
             .includes(query);
 
-        return matchesStatus && matchesSearch && (!modalidadeFiltro || client.modalidadeCadastro === modalidadeFiltro);
+        return matchesStatus && matchesSearch
+          && (!modalidadeFiltro || client.modalidadeCadastro === modalidadeFiltro)
+          && (!responsavelFiltro || (client.responsavel?.trim() || "Sem responsável") === responsavelFiltro);
       })
       .sort((first, second) =>
         getClientDisplayName(first).localeCompare(
@@ -425,7 +394,7 @@ export default function ClientsPage() {
           { sensitivity: "base" },
         ),
       );
-  }, [clients, search, statusFilter, modalidadeFiltro]);
+  }, [clients, search, statusFilter, modalidadeFiltro, responsavelFiltro]);
 
   const totalPages = Math.max(
     1,
@@ -448,7 +417,7 @@ export default function ClientsPage() {
 
   useEffect(() => {
     setPage(1);
-  }, [rowsPerPage, search, statusFilter, modalidadeFiltro]);
+  }, [rowsPerPage, search, statusFilter, modalidadeFiltro, responsavelFiltro]);
 
   useEffect(() => {
     if (page > totalPages) {
@@ -490,87 +459,6 @@ export default function ClientsPage() {
       ),
     [deletionRequests],
   );
-
-  async function handleSearchCnpj() {
-    const cnpj = onlyDigits(form.document);
-
-    if (cnpj.length !== 14) {
-      setToast({
-        title: "CNPJ inválido",
-        message: "Informe os 14 números do CNPJ para buscar na Receita.",
-        variant: "error",
-      });
-      return;
-    }
-
-    try {
-      setSearchingCnpj(true);
-
-      const response = await fetch(
-        `https://brasilapi.com.br/api/cnpj/v1/${cnpj}`,
-      );
-      const data = (await response
-        .json()
-        .catch(() => null)) as ReceitaCnpjResponse | null;
-
-      if (!response.ok) {
-        throw new Error(
-          data?.message || "Não foi possível consultar esse CNPJ.",
-        );
-      }
-
-      const street = joinStreet(
-        data?.descricao_tipo_logradouro,
-        data?.logradouro,
-      );
-      const cnae = data?.cnae_fiscal ? String(data.cnae_fiscal) : "";
-      const taxRegime =
-        data?.opcao_pelo_simples === true ? "Simples Nacional" : "";
-
-      setForm((current) => ({
-        ...current,
-        document: formatCnpj(cnpj),
-        legalName: data?.razao_social || current.legalName,
-        tradeName: data?.nome_fantasia || current.tradeName,
-        companyName:
-          data?.nome_fantasia || data?.razao_social || current.companyName,
-        cnae: cnae || current.cnae,
-        businessActivity:
-          data?.cnae_fiscal_descricao || current.businessActivity,
-        segment: data?.cnae_fiscal_descricao || current.segment,
-        taxRegime: taxRegime || current.taxRegime,
-        zipCode: formatCep(data?.cep) || current.zipCode,
-        street: street || current.street,
-        number: data?.numero || current.number,
-        complement: data?.complemento || current.complement,
-        neighborhood: data?.bairro || current.neighborhood,
-        city: data?.municipio || current.city,
-        state: data?.uf || current.state,
-      }));
-
-      const situacao = data?.descricao_situacao_cadastral?.trim();
-
-      setToast({
-        title: "CNPJ encontrado",
-        message:
-          situacao && situacao.toUpperCase() !== "ATIVA"
-            ? `Dados preenchidos. Situação cadastral: ${situacao}.`
-            : "Dados fiscais e cadastrais preenchidos automaticamente.",
-        variant: "success",
-      });
-    } catch (error) {
-      setToast({
-        title: "Falha na consulta",
-        message:
-          error instanceof Error
-            ? error.message
-            : "Erro ao consultar CNPJ na Receita.",
-        variant: "error",
-      });
-    } finally {
-      setSearchingCnpj(false);
-    }
-  }
 
   async function handleCreateClient(event: React.FormEvent<HTMLFormElement>) {
     event.preventDefault();
@@ -816,82 +704,31 @@ export default function ClientsPage() {
 
   return (
     <AppLayout>
-      <CrmPageShell>
-        <CrmPageHeader
-          eyebrow="CRM"
-          title="Cadastros"
-          description="Clientes e Leads em uma única base, com contatos, documentos e acompanhamento comercial."
-          icon={<UsersRound size={30} />}
-          aside={
-            <Stack
-              direction={{ xs: "column", sm: "row" }}
-              spacing={1.25}
-              sx={{
-                alignItems: "stretch",
-              }}
-            >
-              <Button
-                variant="outlined"
-                startIcon={<RefreshCcw size={17} />}
-                onClick={() => loadClients()}
-                disabled={loading}
-                sx={{
-                  minHeight: 44,
-                  borderRadius: "10px",
-                  fontWeight: 800,
-                }}
-              >
-                Atualizar
-              </Button>
-
-              <Button
-                variant="outlined"
-                startIcon={<Download size={17} />}
-                onClick={() => exportClients(filteredClients)}
-                disabled={filteredClients.length === 0}
-                sx={{
-                  minHeight: 44,
-                  borderRadius: "10px",
-                  fontWeight: 800,
-                }}
-              >
-                Exportar lista
-              </Button>
-
-              {canManageClients ? (
-                <Button
-                  variant="contained"
-                  startIcon={<PlusCircle size={17} />}
-                  onClick={() => setIsModalOpen(true)}
-                  sx={{
-                    minHeight: 44,
-                    borderRadius: "10px",
-                    px: 2.25,
-                    bgcolor: crmPalette.orange,
-                    fontWeight: 800,
-                    boxShadow: "0 12px 24px rgba(255,77,0,0.20)",
-
-                    "&:hover": {
-                      bgcolor: crmPalette.orangeDark,
-                    },
-                  }}
-                >
-                  Novo cadastro
-                </Button>
-              ) : null}
+      <CrmPageShell sx={{ minWidth: 0, gap: 2, containerType: "inline-size", containerName: "cadastros-clientes" }}>
+        <CrmSection sx={superficieCadastrosSx}>
+          <Box data-cabecalho-cadastros sx={{ display: 'flex', gap: 2, alignItems: 'center', justifyContent: 'space-between', '@container cadastros-clientes (max-width: 960px)': { flexDirection: 'column', alignItems: 'stretch' } }}>
+            <Stack direction="row" spacing={1.5} sx={{ minWidth: 0, alignItems: 'flex-start', flex: '1 1 auto' }}>
+              <Box sx={{ width: 42, height: 42, flexShrink: 0, display: 'grid', placeItems: 'center', borderRadius: '10px', bgcolor: '#f8fafc', color: '#64748b', border: '1px solid #e2e8f0' }}><UsersRound size={22} /></Box>
+              <Box sx={{ minWidth: 0 }}>
+                <Typography sx={{ color: '#64748b', fontSize: 10.5, fontWeight: 600, letterSpacing: '.08em', mb: 0.25 }}>CRM</Typography>
+                <Typography component="h1" sx={{ color: '#1f2937', fontSize: { xs: 22, md: 25 }, fontWeight: 700, lineHeight: 1.25, letterSpacing: '-0.02em' }}>Cadastros</Typography>
+                <Typography sx={{ mt: 0.75, color: '#64748b', fontSize: 13, lineHeight: 1.6, overflowWrap: 'anywhere' }}>Clientes e Leads em uma única base, com contatos, documentos e acompanhamento comercial.</Typography>
+              </Box>
             </Stack>
-          }
-        />
+            <Box data-acoes-cadastros sx={{ display: 'flex', flexShrink: 0, flexWrap: 'wrap', justifyContent: 'flex-end', gap: 1, '&& .MuiButton-root': acaoCadastroSx, '@container cadastros-clientes (max-width: 480px)': { display: 'grid', gridTemplateColumns: 'repeat(2,minmax(0,1fr))', width: '100%', '& .MuiButton-contained': { gridColumn: '1 / -1' }, '&& .MuiButton-root': { ...acaoCadastroSx, px: 1, fontSize: 12.5 } } }}>
+              <Button variant="outlined" startIcon={<RefreshCcw size={16} />} onClick={() => loadClients()} disabled={loading} sx={acaoSecundariaCadastroSx}>Atualizar</Button>
+              <Button variant="outlined" startIcon={<Download size={16} />} onClick={() => exportClients(filteredClients)} disabled={filteredClients.length === 0} sx={acaoSecundariaCadastroSx}>Exportar lista</Button>
+              {canManageClients ? <Button variant="contained" startIcon={<PlusCircle size={16} />} onClick={() => { clearCnpjError(); setIsModalOpen(true); }} sx={{ ...acaoCadastroSx, bgcolor: '#ff5805', color: '#fff', '&:hover': { bgcolor: '#e94f00', boxShadow: 'none' } }}>Novo cadastro</Button> : null}
+            </Box>
+          </Box>
+        </CrmSection>
 
         <Box
           sx={{
             display: "grid",
-            gridTemplateColumns: {
-              xs: "1fr",
-              sm: "repeat(2, minmax(0, 1fr))",
-              xl: "repeat(4, minmax(0, 1fr))",
-            },
-            gap: 2,
+            gridTemplateColumns: 'repeat(4,minmax(0,1fr))',
+            '@container cadastros-clientes (max-width: 960px)': { gridTemplateColumns: 'repeat(2,minmax(0,1fr))' },
+            gap: 1.5,
             alignItems: "stretch",
           }}
         >
@@ -902,7 +739,9 @@ export default function ClientsPage() {
             accent="#ff5805"
             softColor="#ff58051a"
             sx={{
-              minHeight: 140,
+              minHeight: 104,
+              borderRadius: "12px",
+              "& [data-cartao-valor]": { fontSize: 28 },
               height: "100%",
             }}
           />
@@ -914,7 +753,9 @@ export default function ClientsPage() {
             accent="#f59e0b"
             softColor="#f59e0b1a"
             sx={{
-              minHeight: 140,
+              minHeight: 104,
+              borderRadius: "12px",
+              "& [data-cartao-valor]": { fontSize: 28 },
               height: "100%",
             }}
           />
@@ -926,7 +767,9 @@ export default function ClientsPage() {
             accent="#f97316"
             softColor="#f973161a"
             sx={{
-              minHeight: 140,
+              minHeight: 104,
+              borderRadius: "12px",
+              "& [data-cartao-valor]": { fontSize: 28 },
               height: "100%",
             }}
           />
@@ -938,7 +781,9 @@ export default function ClientsPage() {
             accent="#ef4444"
             softColor="#ef44441a"
             sx={{
-              minHeight: 140,
+              minHeight: 104,
+              borderRadius: "12px",
+              "& [data-cartao-valor]": { fontSize: 28 },
               height: "100%",
             }}
           />
@@ -1160,30 +1005,11 @@ export default function ClientsPage() {
         ) : null}
 
         <CrmSection
-          sx={{
-            p: {
-              xs: 2,
-              md: 3,
-            },
-            bgcolor: "#fffaf7",
-            border: "1px solid rgba(255,88,5,0.10)",
-            borderRadius: "18px",
-            boxShadow: "0 10px 35px rgba(15,23,42,0.05)",
-          }}
+          sx={superficieCadastrosSx}
         >
-          <Stack spacing={2.5} sx={{ width: "100%" }}>
+          <Stack spacing={2} sx={{ width: "100%", minWidth: 0 }}>
             <Box>
-              <Typography
-                sx={{
-                  color: "#000000",
-                  fontSize: 12,
-                  fontWeight: 900,
-                  letterSpacing: ".16em",
-                  textTransform: "uppercase",
-                }}
-              >
-                Base comercial
-              </Typography>
+              <Typography component="h2" sx={{ color: "#1f2937", fontSize: 14, fontWeight: 600 }}>Base comercial</Typography>
 
             </Box>
 
@@ -1193,11 +1019,10 @@ export default function ClientsPage() {
                 display: "grid",
                 gap: 1.5,
 
-                gridTemplateColumns: {
-                  xs: "1fr",
-                  sm: "repeat(2, minmax(0, 1fr))",
-                  md: "minmax(0, 2fr) repeat(2, minmax(0, 1fr))",
-                },
+                gridTemplateColumns: 'minmax(0,2fr) repeat(3,minmax(0,1fr))',
+                '@container cadastros-clientes (max-width: 1000px)': { gridTemplateColumns: 'repeat(3,minmax(0,1fr))', '& > :first-child': { gridColumn: '1 / -1' } },
+                '@container cadastros-clientes (max-width: 760px)': { gridTemplateColumns: 'repeat(2,minmax(0,1fr))', '& > :first-child, & > :last-child': { gridColumn: '1 / -1' } },
+                '@container cadastros-clientes (max-width: 420px)': { gridTemplateColumns: 'minmax(0,1fr)' },
                 alignItems: "center",
 
               }}
@@ -1255,6 +1080,22 @@ export default function ClientsPage() {
                 <MenuItem value="LEAD">Leads</MenuItem>
               </TextField>
 
+              <TextField
+                select
+                size="small"
+                fullWidth
+                label="Responsável"
+                value={responsavelFiltro}
+                onChange={(event) => setResponsavelFiltro(event.target.value)}
+                sx={filterFieldSx}
+                slotProps={{ inputLabel: { shrink: true }, select: { displayEmpty: true } }}
+              >
+                <MenuItem value="">Todos os responsáveis</MenuItem>
+                {responsaveisDisponiveis.map((responsavel) => (
+                  <MenuItem key={responsavel} value={responsavel}>{responsavel}</MenuItem>
+                ))}
+              </TextField>
+
             </Box>
           </Stack>
         </CrmSection>
@@ -1294,8 +1135,8 @@ export default function ClientsPage() {
                 component="h2"
                 sx={{
                   color: crmPalette.text,
-                  fontSize: 18,
-                  fontWeight: 900,
+                  fontSize: 17,
+                  fontWeight: 600,
                   lineHeight: 1.2,
                 }}
               >
@@ -1358,15 +1199,15 @@ export default function ClientsPage() {
                         sx={{
                           p: { xs: 2, md: 2.25 },
                           border: `1px solid ${crmPalette.border}`,
-                          borderRadius: "14px",
+                          borderRadius: "10px",
                           bgcolor: "#ffffff",
                           transition:
                             "border-color 160ms ease, box-shadow 160ms ease, transform 160ms ease",
 
                           "&:hover": {
-                            transform: "translateY(-1px)",
+                            transform: "none",
                             borderColor: "rgba(255,77,0,0.35)",
-                            boxShadow: "0 16px 36px rgba(15,23,42,0.08)",
+                            boxShadow: "none",
                           },
                         }}
                       >
@@ -1374,15 +1215,16 @@ export default function ClientsPage() {
                           sx={{
                             display: "grid",
                             gap: 2,
-                            gridTemplateColumns: {
-                              xs: "1fr",
-                              lg: "1.6fr .8fr .8fr 1fr auto",
-                            },
+                            minWidth: 0,
+                            gridTemplateColumns: 'minmax(0,1.6fr) minmax(0,.9fr) minmax(0,.9fr) minmax(0,1.1fr) auto',
+                            '@container cadastros-clientes (max-width: 960px)': { gridTemplateColumns: 'repeat(2,minmax(0,1fr))', '& > :first-child': { gridColumn: '1 / -1' }, '& > :last-child': { alignSelf: 'end' } },
+                            '@container cadastros-clientes (max-width: 420px)': { gridTemplateColumns: 'minmax(0,1fr)' },
+                            '& > *': { minWidth: 0, overflowWrap: 'anywhere' },
                             alignItems: "center",
                           }}
                         >
                           <Box sx={{ minWidth: 0 }}>
-                            <Typography sx={{ color: "#020617", fontSize: 16, fontWeight: 900 }}>
+                            <Typography sx={{ color: "#020617", fontSize: 15, fontWeight: 600, overflowWrap: "anywhere" }}>
                               {getClientDisplayName(client)}
                             </Typography>
 
@@ -1397,7 +1239,7 @@ export default function ClientsPage() {
                                 height: 24,
                                 borderRadius: "7px",
                                 fontSize: 11,
-                                fontWeight: 800,
+                                fontWeight: 500,
 
                                 bgcolor:
                                   client.modalidadeCadastro === "LEAD"
@@ -1436,25 +1278,25 @@ export default function ClientsPage() {
                           </Box>
 
                           <Box>
-                            <Typography sx={{ color: crmPalette.muted, fontSize: 11, fontWeight: 900, letterSpacing: ".12em", textTransform: "uppercase" }}>
+                            <Typography sx={{ color: crmPalette.muted, fontSize: 12, fontWeight: 400 }}>
                               CNPJ
                             </Typography>
-                            <Typography sx={{ mt: 0.75, color: crmPalette.text, fontSize: 13, fontWeight: 800 }}>
+                            <Typography sx={{ mt: 0.75, color: crmPalette.text, fontSize: 13, fontWeight: 500 }}>
                               {client.document || "-"}
                             </Typography>
                           </Box>
 
                           <Box>
-                            <Typography sx={{ color: crmPalette.muted, fontSize: 11, fontWeight: 900, letterSpacing: ".12em", textTransform: "uppercase" }}>
+                            <Typography sx={{ color: crmPalette.muted, fontSize: 12, fontWeight: 400 }}>
                               Cidade
                             </Typography>
-                            <Typography sx={{ mt: 0.75, color: crmPalette.text, fontSize: 13, fontWeight: 800 }}>
+                            <Typography sx={{ mt: 0.75, color: crmPalette.text, fontSize: 13, fontWeight: 500 }}>
                               {client.city || "-"}
                             </Typography>
                           </Box>
 
                           <Box sx={{ minWidth: 0 }}>
-                            <Typography sx={{ color: crmPalette.muted, fontSize: 11, fontWeight: 900, letterSpacing: ".12em", textTransform: "uppercase" }}>
+                            <Typography sx={{ color: crmPalette.muted, fontSize: 12, fontWeight: 400 }}>
                               Segmento
                             </Typography>
                             <Typography
@@ -1480,11 +1322,7 @@ export default function ClientsPage() {
                               type="button"
                               variant="outlined"
                               endIcon={<ArrowRight size={16} />}
-                              sx={{
-                                borderRadius: "10px",
-                                fontWeight: 800,
-                                textTransform: "none",
-                              }}
+                              sx={acaoSecundariaCadastroSx}
                             >
                               Detalhes
                             </Button>
@@ -1497,11 +1335,14 @@ export default function ClientsPage() {
               )}
               {filteredClients.length > 0 ? (
                 <Stack
-                  direction={{ xs: "column", md: "row" }}
-                  spacing={1.5}
+                  spacing={0}
                   sx={{
                     px: 2,
                     py: 1.5,
+                    gap: 1.5,
+                    flexDirection: 'row',
+                    flexWrap: 'wrap',
+                    '@container cadastros-clientes (max-width: 760px)': { flexDirection: 'column' },
                     alignItems: { xs: "stretch", md: "center" },
                     justifyContent: "space-between",
                     borderTop: `1px solid ${crmPalette.border}`,
@@ -1520,9 +1361,8 @@ export default function ClientsPage() {
                   </Typography>
 
                   <Stack
-                    direction={{ xs: "column", sm: "row" }}
-                    spacing={1.25}
-                    sx={{ alignItems: { xs: "stretch", sm: "center" } }}
+                    spacing={0}
+                    sx={{ minWidth: 0, flexDirection: 'row', flexWrap: 'wrap', alignItems: 'center', justifyContent: 'flex-end', gap: 1.5, '@container cadastros-clientes (max-width: 760px)': { justifyContent: 'space-between' } }}
                   >
                     <TextField
                       select
@@ -1537,11 +1377,11 @@ export default function ClientsPage() {
                         "& .MuiOutlinedInput-root": {
                           borderRadius: "10px",
                           fontSize: 13,
-                          fontWeight: 800,
+                          fontWeight: 500,
                         },
                         "& .MuiInputLabel-root": {
                           fontSize: 12,
-                          fontWeight: 800,
+                          fontWeight: 500,
                         },
                       }}
                     >
@@ -1581,17 +1421,17 @@ export default function ClientsPage() {
           scroll="paper"
           sx={{
             "& .MuiDialog-paper": {
-              borderRadius: "20px",
+              borderRadius: "12px",
               overflow: "hidden",
-              boxShadow: "0 28px 80px rgba(15, 23, 42, 0.20)",
+              boxShadow: "0 12px 48px rgba(15,23,42,.12)",
             },
           }}
         >
           <DialogTitle
             component="div"
             sx={{
-              px: { xs: 2.5, md: 3 },
-              py: 2.5,
+              px: { xs: 2, md: 2.5 },
+              py: 2,
             }}
           >
             <Stack
@@ -1610,7 +1450,7 @@ export default function ClientsPage() {
                   sx={{
                     mt: 0.5,
                     color: crmPalette.text,
-                    fontSize: { xs: 20, md: 22 },
+                    fontSize: 18,
                     fontWeight: 700,
                     lineHeight: 1.2,
                   }}
@@ -1653,9 +1493,16 @@ export default function ClientsPage() {
 
           <DialogContent
             sx={{
-              px: { xs: 2.5, md: 3 },
-              py: 2.5,
-              bgcolor: "#f8fafc",
+              px: { xs: 2, md: 2.5 },
+              py: 2,
+              bgcolor: "#fff",
+              '&& .MuiTextField-root .MuiOutlinedInput-root': { borderRadius: '8px' },
+              '&& .MuiTextField-root .MuiOutlinedInput-root:not(.MuiInputBase-multiline)': { height: 40 },
+              '&& .MuiInputLabel-root': { fontSize: 13, fontWeight: 400 },
+              '&& .MuiInputBase-input, && .MuiSelect-select': { fontSize: 13.5, fontWeight: 400 },
+              '& .MuiPaper-root': { boxShadow: 'none', borderRadius: '10px' },
+              '& .MuiButton-root': { minHeight: 40, fontSize: 13, fontWeight: 600, textTransform: 'none', borderRadius: '8px' },
+              '& .MuiButton-contained:not(.Mui-disabled)': { bgcolor: '#ff5805', '&:hover': { bgcolor: '#e94f00' } },
             }}
           >
             <ClientForm
@@ -1668,6 +1515,7 @@ export default function ClientsPage() {
               setDocumentFiles={setDocumentFiles}
               loading={saving}
               searchingCnpj={searchingCnpj}
+              cnpjError={cnpjError}
               onSearchCnpj={handleSearchCnpj}
               onCancel={() => setIsModalOpen(false)}
               onSubmit={handleCreateClient}

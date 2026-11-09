@@ -1,10 +1,11 @@
 'use client';
 
+import { FeedbackToast } from '@/components/ui/feedback-toast';
+
 import { hasAnyRole } from "@/lib/user-roles";
 import { useEffect, useMemo, useState } from 'react';
 
 import Alert from '@mui/material/Alert';
-import AlertTitle from '@mui/material/AlertTitle';
 import Avatar from '@mui/material/Avatar';
 import Box from '@mui/material/Box';
 import Button from '@mui/material/Button';
@@ -22,7 +23,6 @@ import InputLabel from '@mui/material/InputLabel';
 import MenuItem from '@mui/material/MenuItem';
 import Paper from '@mui/material/Paper';
 import Select from '@mui/material/Select';
-import Snackbar from '@mui/material/Snackbar';
 import Stack from '@mui/material/Stack';
 import Switch from '@mui/material/Switch';
 import Tab from '@mui/material/Tab';
@@ -919,20 +919,7 @@ export default function MarketingPage() {
         </DialogActions>
       </Dialog>
 
-      <Snackbar
-        open={!!successMessage}
-        autoHideDuration={5000}
-        onClose={() => setSuccessMessage('')}
-      >
-        <Alert
-          severity="success"
-          variant="filled"
-          onClose={() => setSuccessMessage('')}
-        >
-          <AlertTitle>Marketing atualizado</AlertTitle>
-          {successMessage}
-        </Alert>
-      </Snackbar>
+      <FeedbackToast open={Boolean(successMessage)} title="Marketing atualizado" message={successMessage} variant="success" onClose={() => setSuccessMessage('')} />
     </AppLayout>
   );
 }

@@ -1,5 +1,7 @@
 "use client";
 
+import { FeedbackToast } from '@/components/ui/feedback-toast';
+
 import { useEffect, useRef, useState } from "react";
 import {
   Alert,
@@ -221,8 +223,8 @@ export function ManualAnalyticsReports({ token }: { token: string | null }) {
           </Stack>
         </Box>
       </CrmSection>
-      {error ? <Alert severity="error">{error}</Alert> : null}
-      {message ? <Alert severity="success">{message}</Alert> : null}
+
+      <FeedbackToast open={Boolean(error || message)} title={error ? 'Não foi possível concluir' : 'Marketing atualizado'} message={error || message} variant={error ? 'error' : 'success'} onClose={() => { setError(''); setMessage(''); }} />
       <CrmSection sx={{ p: 3 }}>
         <Stack
           direction={{ xs: "column", sm: "row" }}

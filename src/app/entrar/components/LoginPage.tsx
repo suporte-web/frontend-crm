@@ -1,6 +1,6 @@
 'use client';
 
-import { FormEvent, useState } from 'react';
+import { FormEvent, useEffect, useState } from 'react';
 
 import {
   Alert,
@@ -23,10 +23,15 @@ import VisibilityOffOutlinedIcon from '@mui/icons-material/VisibilityOffOutlined
 import { useRouter } from 'next/navigation';
 
 import { useAuth } from '@/context/auth-context';
+import { getRotaInicial } from '@/lib/rota-inicial';
 
 export default function LoginPage() {
   const router = useRouter();
-  const { signIn } = useAuth();
+  const { signIn, user, token, loading: carregandoSessao } = useAuth();
+
+  useEffect(() => {
+    if (!carregandoSessao && token && user) router.replace(getRotaInicial(user));
+  }, [carregandoSessao, token, user, router]);
 
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
@@ -42,9 +47,7 @@ export default function LoginPage() {
     try {
       const loginData = await signIn(email, password);
 
-      router.push(
-        loginData.user.mustChangePassword ? '/alterar-senha' : '/painel',
-      );
+      router.replace(getRotaInicial(loginData.user));
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Erro ao fazer login');
     } finally {

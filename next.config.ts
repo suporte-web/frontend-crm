@@ -5,6 +5,8 @@ const backendInternalUrl =
 
 const nextConfig: NextConfig = {
   experimental: {
+    // Até 20 anexos de 20 MB, mais os campos e delimitadores multipart.
+    proxyClientMaxBodySize: '401mb',
     // Evita o crescimento do cache de desenvolvimento em disco.
     turbopackFileSystemCacheForDev: false,
   },
