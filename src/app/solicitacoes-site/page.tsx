@@ -50,7 +50,7 @@ export default function SolicitacoesSitePage() {
 
         const response =
           await listarSolicitacoesSite({
-            excluirTipo: 'COTACAO',
+            // excluirTipo: 'COTACAO',
           });
 
         setSolicitacoes(

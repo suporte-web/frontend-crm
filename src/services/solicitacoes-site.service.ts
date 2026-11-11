@@ -7,7 +7,7 @@ import type {
 export async function listarSolicitacoesSite(
   filtros: ListarSolicitacoesSiteFiltros = {},
 ) {
-  const token = localStorage.getItem("crm_token");
+  const token = sessionStorage.getItem("crm_token");
   const params = new URLSearchParams();
 
   Object.entries(filtros).forEach(([key, value]) => {

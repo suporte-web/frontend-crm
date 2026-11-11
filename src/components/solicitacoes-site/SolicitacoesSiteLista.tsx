@@ -53,7 +53,9 @@ export function SolicitacoesSiteLista({ mode = 'queue' }: { mode?: 'queue' | 'pr
         setErro('');
 
         const response =
-          await listarSolicitacoesSite(mode === 'prospects' ? { tipo: 'COTACAO' } : {});
+          await listarSolicitacoesSite(
+            // mode === 'prospects' ? { tipo: 'COTACAO' } : {}
+          );
 
         setSolicitacoes(
           response.solicitacoes,
