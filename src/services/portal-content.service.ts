@@ -9,7 +9,7 @@ const TOKEN_KEY = 'crm_token';
 
 function getAuthHeaders() {
   const token =
-    typeof window !== 'undefined' ? localStorage.getItem(TOKEN_KEY) : null;
+    typeof window !== 'undefined' ? sessionStorage.getItem(TOKEN_KEY) : null;
 
   return {
     'Content-Type': 'application/json',
@@ -76,7 +76,7 @@ export async function uploadPortalContentMedia(file: File): Promise<{
   url: string;
 }> {
   const token =
-    typeof window !== 'undefined' ? localStorage.getItem(TOKEN_KEY) : null;
+    typeof window !== 'undefined' ? sessionStorage.getItem(TOKEN_KEY) : null;
   const formData = new FormData();
 
   formData.append('file', file);

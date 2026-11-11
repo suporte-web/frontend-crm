@@ -10,7 +10,7 @@ const TOKEN_KEY = 'crm_token';
 
 function getAuthHeaders() {
   const token =
-    typeof window !== 'undefined' ? localStorage.getItem(TOKEN_KEY) : null;
+    typeof window !== 'undefined' ? sessionStorage.getItem(TOKEN_KEY) : null;
 
   return {
     'Content-Type': 'application/json',
