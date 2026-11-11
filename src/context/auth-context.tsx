@@ -19,6 +19,8 @@ type AuthContextType = {
 
 const AuthContext = createContext<AuthContextType | null>(null);
 
+class AuthSessionExpiredError extends Error {}
+
 const TOKEN_KEY = 'crm_token';
 const USER_KEY = 'crm_user';
 
@@ -67,8 +69,8 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         if (!active || !updatedUser) {
           return;
         }
-      } catch {
-        if (active) {
+      } catch (error) {
+        if (active && error instanceof AuthSessionExpiredError) {
           signOut();
         }
       }
@@ -95,6 +97,10 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         Authorization: `Bearer ${activeToken}`,
       },
     });
+
+    if (response.status === 401) {
+      throw new AuthSessionExpiredError('Sessao expirada. Faca login novamente.');
+    }
 
     const data = (await response.json()) as AuthUser | { message?: string };
 
@@ -191,7 +197,7 @@ useEffect(() => {
 
   const encerrarSessao = () => {
     signOut();
-    window.location.replace('/login');
+    window.location.replace('/entrar');
   };
 
   const reiniciarContador = () => {
@@ -204,13 +210,14 @@ useEffect(() => {
 
   const eventos = [
     'mousedown',
+    'pointermove',
     'keydown',
     'touchstart',
     'scroll',
   ];
 
   eventos.forEach((evento) => {
-    window.addEventListener(evento, reiniciarContador);
+    window.addEventListener(evento, reiniciarContador, true);
   });
 
   reiniciarContador();
@@ -219,7 +226,7 @@ useEffect(() => {
     clearTimeout(timeout);
 
     eventos.forEach((evento) => {
-      window.removeEventListener(evento, reiniciarContador);
+      window.removeEventListener(evento, reiniciarContador, true);
     });
   };
 }, [token]);
