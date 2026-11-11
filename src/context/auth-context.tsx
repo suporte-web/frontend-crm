@@ -28,14 +28,30 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    const storedToken = localStorage.getItem(TOKEN_KEY);
-    const storedUser = localStorage.getItem(USER_KEY);
+    const storedToken = sessionStorage.getItem(TOKEN_KEY);
+    const storedUser = sessionStorage.getItem(USER_KEY);
 
-    if (storedToken) setToken(storedToken);
-    if (storedUser) setUser(JSON.parse(storedUser));
+    // Limpa dados persistentes da autenticação antiga
+    localStorage.removeItem(TOKEN_KEY);
+    localStorage.removeItem(USER_KEY);
+
+    if (storedToken) {
+      setToken(storedToken);
+    }
+
+    if (storedUser) {
+      try {
+        setUser(JSON.parse(storedUser));
+      } catch {
+        sessionStorage.removeItem(TOKEN_KEY);
+        sessionStorage.removeItem(USER_KEY);
+      }
+    }
 
     setLoading(false);
   }, []);
+
+
 
   useEffect(() => {
     if (!token) {
@@ -66,7 +82,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   }, [token]);
 
   async function refreshUser() {
-    const activeToken = token || localStorage.getItem(TOKEN_KEY);
+    const activeToken = token || sessionStorage.getItem(TOKEN_KEY);
 
     if (!activeToken) {
       return null;
@@ -91,7 +107,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     const updatedUser = data as AuthUser;
 
     setUser(updatedUser);
-    localStorage.setItem(USER_KEY, JSON.stringify(updatedUser));
+    sessionStorage.setItem(USER_KEY, JSON.stringify(updatedUser));
 
     return updatedUser;
   }
@@ -118,8 +134,8 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     setToken(loginData.access_token);
     setUser(loginData.user);
 
-    localStorage.setItem(TOKEN_KEY, loginData.access_token);
-    localStorage.setItem(USER_KEY, JSON.stringify(loginData.user));
+    sessionStorage.setItem(TOKEN_KEY, loginData.access_token);
+    sessionStorage.setItem(USER_KEY, JSON.stringify(loginData.user));
 
     return loginData;
   }
@@ -151,15 +167,64 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     const updatedUser = (data as { user: AuthUser }).user;
 
     setUser(updatedUser);
-    localStorage.setItem(USER_KEY, JSON.stringify(updatedUser));
+    sessionStorage.setItem(USER_KEY, JSON.stringify(updatedUser));
   }
 
   function signOut() {
     setToken(null);
     setUser(null);
+    sessionStorage.removeItem(TOKEN_KEY);
+    sessionStorage.removeItem(USER_KEY);
+
     localStorage.removeItem(TOKEN_KEY);
     localStorage.removeItem(USER_KEY);
+
   }
+  
+
+useEffect(() => {
+  if (!token) return;
+
+  const TEMPO_INATIVIDADE = 15 * 60 * 1000;
+
+  let timeout: ReturnType<typeof setTimeout>;
+
+  const encerrarSessao = () => {
+    signOut();
+    window.location.replace('/login');
+  };
+
+  const reiniciarContador = () => {
+    clearTimeout(timeout);
+
+    timeout = setTimeout(() => {
+      encerrarSessao();
+    }, TEMPO_INATIVIDADE);
+  };
+
+  const eventos = [
+    'mousedown',
+    'keydown',
+    'touchstart',
+    'scroll',
+  ];
+
+  eventos.forEach((evento) => {
+    window.addEventListener(evento, reiniciarContador);
+  });
+
+  reiniciarContador();
+
+  return () => {
+    clearTimeout(timeout);
+
+    eventos.forEach((evento) => {
+      window.removeEventListener(evento, reiniciarContador);
+    });
+  };
+}, [token]);
+
+  
 
   const value = useMemo(
     () => ({
