@@ -41,7 +41,7 @@ export async function listarSolicitacoesSite(
 }
 
 export async function buscarSolicitacaoSitePorId(id: string) {
-  const token = localStorage.getItem("crm_token");
+  const token = sessionStorage.getItem("crm_token");
 
   const response = await fetch(`/api/integracoes/site/solicitacoes/${id}`, {
     method: "GET",
@@ -65,7 +65,7 @@ export async function buscarAnexoSolicitacaoSite(
   solicitacaoId: string,
   anexoId: string,
 ) {
-  const token = localStorage.getItem("crm_token");
+  const token = sessionStorage.getItem("crm_token");
 
   const response = await fetch(
     `/api/integracoes/site/solicitacoes/${solicitacaoId}/anexos/${anexoId}/download`,
@@ -90,7 +90,7 @@ export async function buscarAnexoSolicitacaoSite(
 }
 
 async function acaoCotacaoSite<T>(path: string, method = 'GET', payload?: unknown): Promise<T> {
- const token=localStorage.getItem('crm_token');
+ const token=sessionStorage.getItem('crm_token');
  const response=await fetch(`/api/integracoes/site/solicitacoes/${path}`,{method,headers:{'Content-Type':'application/json',...(token?{Authorization:`Bearer ${token}`}:{})},...(payload===undefined?{}:{body:JSON.stringify(payload)})});
  const data=await response.json().catch(()=>null);
  if(!response.ok)throw new Error(typeof data?.message==='string'?data.message:'Não foi possível atualizar a cotação do site.');
