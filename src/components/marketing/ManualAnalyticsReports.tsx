@@ -3,31 +3,9 @@
 import { FeedbackToast } from '@/components/ui/feedback-toast';
 
 import { useEffect, useRef, useState } from "react";
-import {
-  Alert,
-  Box,
-  Button,
-  CircularProgress,
-  MenuItem,
-  Stack,
-  Table,
-  TableBody,
-  TableCell,
-  TableContainer,
-  TableHead,
-  TablePagination,
-  TableRow,
-  TextField,
-  Typography,
-} from "@mui/material";
+import { Alert, Box, Button, CircularProgress, MenuItem, Stack, Table, TableBody, TableCell, TableContainer, TableHead, TablePagination, TableRow, TextField, Typography } from "@mui/material";
 import { CrmSection } from "@/components/mui/crm-primitives";
-import {
-  getManualReport,
-  importManualReport,
-  listManualReports,
-  type ManualReport,
-  type ManualReportSummary,
-} from "@/services/marketing-manual-reports.service";
+import { getManualReport, importManualReport, listManualReports, type ManualReport, type ManualReportSummary } from "@/services/marketing-manual-reports.service";
 
 const dateLabel = (value: string) => value.split("-").reverse().join("/");
 
@@ -139,7 +117,7 @@ export function ManualAnalyticsReports({ token }: { token: string | null }) {
         atualizar os dados. As tags do site continuam coletando no Analytics.
       </Alert>
       <CrmSection sx={{ p: 3 }}>
-        <Typography variant="h6" sx={{ mb: 1 }}>
+        <Typography variant="h6" sx={[{ mb: 1 }, { fontSize: 15, fontWeight: 600 }]}>
           Importar relatório do GA4
         </Typography>
         <Typography color="text.secondary" sx={{ mb: 2 }}>
@@ -156,7 +134,7 @@ export function ManualAnalyticsReports({ token }: { token: string | null }) {
                 placeholder="Ex.: Aquisição de tráfego"
                 value={title}
                 onChange={(event) => setTitle(event.target.value)}
-                slotProps={{ htmlInput: { maxLength: 120 } }}
+                slotProps={{ htmlInput: { maxLength: 120 } }} size="small"
               />
               <TextField
                 required
@@ -166,7 +144,7 @@ export function ManualAnalyticsReports({ token }: { token: string | null }) {
                 slotProps={{
                   htmlInput: { pattern: "[0-9]{1,20}", maxLength: 20 },
                 }}
-                sx={{ minWidth: 230 }}
+                sx={{ minWidth: 230 }} size="small"
               />
               <TextField
                 required
@@ -174,7 +152,7 @@ export function ManualAnalyticsReports({ token }: { token: string | null }) {
                 label="Início"
                 value={inicio}
                 onChange={(event) => setInicio(event.target.value)}
-                slotProps={{ inputLabel: { shrink: true } }}
+                slotProps={{ inputLabel: { shrink: true } }} size="small"
               />
               <TextField
                 required
@@ -182,7 +160,7 @@ export function ManualAnalyticsReports({ token }: { token: string | null }) {
                 label="Fim"
                 value={fim}
                 onChange={(event) => setFim(event.target.value)}
-                slotProps={{ inputLabel: { shrink: true } }}
+                slotProps={{ inputLabel: { shrink: true } }} size="small"
               />
             </Stack>
             <Stack
@@ -231,7 +209,7 @@ export function ManualAnalyticsReports({ token }: { token: string | null }) {
           spacing={2}
           sx={{ justifyContent: "space-between", mb: 2 }}
         >
-          <Typography variant="h6">Relatórios importados</Typography>
+          <Typography sx={{ fontSize: 15, fontWeight: 600 }} variant="h6">Relatórios importados</Typography>
           <Button
             disabled={loading || importing}
             onClick={() => setReload((value) => value + 1)}
@@ -256,7 +234,7 @@ export function ManualAnalyticsReports({ token }: { token: string | null }) {
               onChange={(event) => {
                 setError("");
                 setSelected(event.target.value);
-              }}
+              }} size="small"
             >
               {reports.map((item) => (
                 <MenuItem key={item.id} value={item.id}>

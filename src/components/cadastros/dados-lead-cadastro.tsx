@@ -36,6 +36,7 @@ export function DadosLeadCadastro({ id, token, podeEditar, aoSalvar }: { id: str
   if (carregando) return <CircularProgress size={22} />;
   if (erro && !lead) return <Alert severity="error">{erro}</Alert>;
   if (!lead) return null;
+
   async function salvar(payload: CreateLeadPayload) {
     try {
       setSalvando(true); setErro('');
@@ -44,6 +45,7 @@ export function DadosLeadCadastro({ id, token, podeEditar, aoSalvar }: { id: str
     } catch (e) { setErro(e instanceof Error ? e.message : 'Erro ao salvar dados do lead.'); return false; }
     finally { setSalvando(false); }
   }
+
   async function adicionarObservacao() {
     if (!lead || !observacao.trim()) return;
     try {
@@ -53,6 +55,7 @@ export function DadosLeadCadastro({ id, token, podeEditar, aoSalvar }: { id: str
     } catch (e) { setErro(e instanceof Error ? e.message : 'Erro ao registrar observação.'); }
     finally { setSalvando(false); }
   }
+  
   return <Accordion sx={{ borderRadius: 3 }}>
     <AccordionSummary expandIcon={<ChevronDown size={20} />}><Typography sx={{ fontWeight: 800 }}>Dados do lead e acompanhamento no funil</Typography></AccordionSummary>
     <AccordionDetails><Stack spacing={3}>

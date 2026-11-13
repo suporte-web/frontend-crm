@@ -1,23 +1,20 @@
 "use client";
 
+import { paginaAdministracaoSx, dialogoAdministracaoSx } from "@/components/administracao/estilos-administracao";
+
+import { PageTopContent } from "@/components/layout/page-top";
+
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
-import {
-  Alert, Box, Button, Chip, CircularProgress, Dialog, DialogActions, DialogContent,
-  DialogContentText, DialogTitle, InputAdornment, MenuItem, Paper, Stack, Switch, TextField, Typography,
-} from '@mui/material';
-import { LockKeyhole, Save, Search, ShieldCheck } from 'lucide-react';
+import { Alert, Box, Button, Chip, CircularProgress, Dialog, DialogActions, DialogContent, DialogContentText, DialogTitle, InputAdornment, MenuItem, Paper, Stack, Switch, TextField, Typography } from '@mui/material';
+import { LockKeyhole, Save, Search } from 'lucide-react';
 import { AppLayout } from '@/components/layout/app-layout';
-import { CrmPageShell, CrmSection } from '@/components/mui/crm-primitives';
+import { CrmPageShell } from '@/components/mui/crm-primitives';
 import { acaoPrincipalOportunidadeSx, acaoSecundariaOportunidadeSx, campoOportunidadeSx, superficieOportunidadeSx } from '@/components/crm/estilos-oportunidades';
 import { useAuth } from '@/context/auth-context';
 import { hasAnyRole } from '@/lib/user-roles';
 import { roleMeta } from '@/lib/user-role-presentation';
 import { notificarCrm } from '@/lib/feedback-crm';
-import {
-  agruparPermissoesPerfil, alternarPermissaoPerfil, filtrarGruposPermissoes,
-  listarPermissoesPerfil, permissaoObrigatoriaAdmin, permissaoPerfilHabilitada,
-  permissoesEfetivasPerfil, type PermissaoPerfil,
-} from '@/lib/permissoes-perfil';
+import { agruparPermissoesPerfil, alternarPermissaoPerfil, filtrarGruposPermissoes, listarPermissoesPerfil, permissaoObrigatoriaAdmin, permissaoPerfilHabilitada, permissoesEfetivasPerfil, type PermissaoPerfil } from '@/lib/permissoes-perfil';
 import { getScreenPermissions, updateRoleScreenPermissions } from '@/services/users.service';
 import type { RoleScreenPermissionsGroup, UserRole } from '@/types/user';
 
@@ -107,16 +104,8 @@ export default function PermissionsPage() {
     }
   }
 
-  return <AppLayout><CrmPageShell sx={{ gap: 2, minWidth: 0, containerType: 'inline-size', containerName: 'permissoes' }}>
-    <CrmSection sx={superficieOportunidadeSx}>
-      <Stack direction="row" spacing={1.5} sx={{ alignItems: 'flex-start' }}>
-        <Box sx={{ width: 42, height: 42, flexShrink: 0, display: 'grid', placeItems: 'center', bgcolor: '#f8fafc', color: '#64748b', border: '1px solid #e2e8f0', borderRadius: '10px' }}><ShieldCheck size={22} /></Box>
-        <Box sx={{ minWidth: 0 }}>
-          <Typography component="h1" sx={{ fontSize: { xs: 22, md: 25 }, fontWeight: 600, color: '#1f2937', lineHeight: 1.3 }}>Permissões por perfil</Typography>
-          <Typography sx={{ mt: .75, fontSize: 13, color: '#64748b', lineHeight: 1.6 }}>Gerencie o acesso aos módulos e funcionalidades do CRM.</Typography>
-        </Box>
-      </Stack>
-    </CrmSection>
+  return <AppLayout><CrmPageShell sx={{ ...paginaAdministracaoSx, gap: 2, minWidth: 0, containerType: 'inline-size', containerName: 'permissoes' }}>
+    <PageTopContent title={"Permissões por perfil"} description={"Gerencie o acesso aos módulos e funcionalidades do CRM."} />
 
     {carregando ? <Box role="status" aria-label="Carregando permissões" sx={{ py: 5, textAlign: 'center' }}><CircularProgress size={28} sx={{ color: '#ff5805' }} /></Box>
       : erroCarregamento ? <Alert severity="error" action={<Button color="inherit" size="small" onClick={() => void carregar()}>Tentar novamente</Button>}>{erroCarregamento}</Alert>
@@ -180,7 +169,7 @@ export default function PermissionsPage() {
           </Stack>
         </Paper>
       </>}
-    <Dialog open={confirmarDescarte} onClose={() => setConfirmarDescarte(false)} fullWidth maxWidth="xs">
+    <Dialog sx={dialogoAdministracaoSx} open={confirmarDescarte} onClose={() => setConfirmarDescarte(false)} fullWidth maxWidth="xs">
       <DialogTitle sx={{ fontSize: 18 }}>Descartar alterações?</DialogTitle>
       <DialogContent><DialogContentText sx={{ fontSize: 14 }}>As alterações não salvas de {rotuloPerfil(perfilSelecionado)} serão descartadas. Os outros perfis serão preservados.</DialogContentText></DialogContent>
       <DialogActions sx={{ px: 3, pb: 2, flexDirection: { xs: 'column-reverse', sm: 'row' }, gap: 1, '& > button': { width: { xs: '100%', sm: 'auto' }, ml: '0 !important' } }}>

@@ -1,5 +1,7 @@
 'use client';
 
+import { paginaAdministracaoSx, campoAdministracaoSx } from "@/components/administracao/estilos-administracao";
+
 import { hasAnyRole } from "@/lib/user-roles";
 import { useEffect, useMemo, useState } from 'react';
 
@@ -17,40 +19,14 @@ import Stack from '@mui/material/Stack';
 import TextField from '@mui/material/TextField';
 import Typography from '@mui/material/Typography';
 
-import {
-  Activity,
-  AlertTriangle,
-  CheckCircle2,
-  Clock3,
-  Download,
-  History,
-  RefreshCcw,
-  Search,
-  ShieldAlert,
-  ShieldCheck,
-  Tags,
-} from 'lucide-react';
+import { Activity, AlertTriangle, CheckCircle2, Clock3, Download, History, RefreshCcw, Search, ShieldAlert, ShieldCheck, Tags } from 'lucide-react';
 
 import { AppLayout } from '@/components/layout/app-layout';
-import {
-  CrmKpiCard,
-  CrmPageHeader,
-  CrmPageShell,
-  CrmSection,
-  crmPalette,
-} from '@/components/mui/crm-primitives';
+import { CrmKpiCard, CrmPageHeader, CrmPageShell, CrmSection, crmPalette } from '@/components/mui/crm-primitives';
 import { useAuth } from '@/context/auth-context';
-import {
-  exportAuditLogs,
-  getAuditLogSummary,
-  getAuditLogs,
-} from '@/services/audit-logs.service';
+import { exportAuditLogs, getAuditLogSummary, getAuditLogs } from '@/services/audit-logs.service';
 import { getUsers } from '@/services/users.service';
-import type {
-  AuditLog,
-  AuditLogCategory,
-  AuditLogSummary,
-} from '@/types/audit-logs';
+import type { AuditLog, AuditLogCategory, AuditLogSummary } from '@/types/audit-logs';
 import type { User } from '@/types/user';
 
 const allowedRoles = new Set(['ADMIN', 'GESTAO']);
@@ -132,32 +108,7 @@ const textCorrections: Array<[RegExp, string]> = [
   [/\bnegociacao\b/g, 'negociação'],
 ];
 
-const textFieldSx = {
-  '& .MuiOutlinedInput-root': {
-    height: 52,
-    minHeight: 52,
-    borderRadius: '10px',
-    bgcolor: '#ffffff',
-    alignItems: 'center',
-  },
-  '& .MuiInputBase-input': {
-    height: 'auto',
-    paddingTop: 0,
-    paddingBottom: 0,
-    fontSize: 13,
-  },
-  '& .MuiInputLabel-root': {
-    fontSize: 13,
-    fontWeight: 800,
-  },
-  '& .MuiSelect-select': {
-    display: 'flex',
-    alignItems: 'center',
-    height: '100% !important',
-    paddingTop: '0 !important',
-    paddingBottom: '0 !important',
-  },
-};
+const textFieldSx = campoAdministracaoSx;
 
 function formatDateTime(value: string) {
   return new Intl.DateTimeFormat('pt-BR', {
@@ -221,14 +172,12 @@ function ActivityLogCard({ log }: { log: AuditLog }) {
         border: `1px solid ${log.success ? crmPalette.border : '#fecaca'}`,
         borderRadius: '12px',
         bgcolor: '#ffffff',
-        boxShadow: log.success
-          ? '0 10px 26px rgba(15, 23, 42, 0.04)'
-          : '0 12px 28px rgba(220, 38, 38, 0.10)',
+        boxShadow: "none",
         transition: 'border-color 160ms ease, box-shadow 160ms ease, transform 160ms ease',
         '&:hover': {
           borderColor: `${accent}70`,
-          boxShadow: `0 16px 34px ${accent}1f`,
-          transform: 'translateY(-1px)',
+          boxShadow: "none",
+          transform: "none",
         },
       }}
     >
@@ -263,7 +212,7 @@ function ActivityLogCard({ log }: { log: AuditLog }) {
               sx={{
                 color: '#020617',
                 fontSize: { xs: 15, md: 16 },
-                fontWeight: 900,
+                fontWeight: 600,
                 lineHeight: 1.35,
                 overflowWrap: 'anywhere',
               }}
@@ -287,7 +236,7 @@ function ActivityLogCard({ log }: { log: AuditLog }) {
                   color: crmPalette.orangeDark,
                   borderColor: '#fdba74',
                   fontSize: 12,
-                  fontWeight: 900,
+                  fontWeight: 600,
                 }}
               />
 
@@ -303,7 +252,7 @@ function ActivityLogCard({ log }: { log: AuditLog }) {
                   color: crmPalette.text,
                   borderColor: crmPalette.border,
                   fontSize: 12,
-                  fontWeight: 900,
+                  fontWeight: 600,
                   '& .MuiChip-label': {
                     overflow: 'hidden',
                     textOverflow: 'ellipsis',
@@ -320,7 +269,7 @@ function ActivityLogCard({ log }: { log: AuditLog }) {
                   bgcolor: meta.softColor,
                   color: meta.accent,
                   fontSize: 12,
-                  fontWeight: 900,
+                  fontWeight: 600,
                 }}
               />
             </Stack>
@@ -331,7 +280,7 @@ function ActivityLogCard({ log }: { log: AuditLog }) {
                   mt: 1,
                   color: crmPalette.muted,
                   fontSize: 12,
-                  fontWeight: 700,
+                  fontWeight: 600,
                   overflowWrap: 'anywhere',
                 }}
               >
@@ -347,12 +296,12 @@ function ActivityLogCard({ log }: { log: AuditLog }) {
             textAlign: { xs: 'left', sm: 'right' },
           }}
         >
-          <Typography sx={{ color: crmPalette.text, fontSize: 13, fontWeight: 800 }}>
+          <Typography sx={{ color: crmPalette.text, fontSize: 13, fontWeight: 600 }}>
             {formatDateTime(log.createdAt)}
           </Typography>
 
           {log.ipAddress ? (
-            <Typography sx={{ mt: 0.6, color: '#94a3b8', fontSize: 12, fontWeight: 700 }}>
+            <Typography sx={{ mt: 0.6, color: '#94a3b8', fontSize: 12, fontWeight: 600 }}>
               IP: {log.ipAddress}
             </Typography>
           ) : null}
@@ -368,7 +317,7 @@ function ActivityLogCard({ log }: { log: AuditLog }) {
               bgcolor: log.success ? '#ecfdf5' : '#fef2f2',
               color: log.success ? '#047857' : '#b91c1c',
               fontSize: 12,
-              fontWeight: 900,
+              fontWeight: 600,
               '& .MuiChip-icon': {
                 color: 'inherit',
               },
@@ -471,13 +420,13 @@ export default function LogsPage() {
   if (!authLoading && !isAllowed) {
     return (
       <AppLayout>
-        <CrmPageShell>
+        <CrmPageShell sx={paginaAdministracaoSx}>
           <Alert
             severity="warning"
             icon={<ShieldAlert size={22} />}
             sx={{
               border: '1px solid #fed7aa',
-              borderRadius: '14px',
+              borderRadius: "12px",
               bgcolor: '#fff7ed',
               color: '#7c2d12',
               '& .MuiAlert-message': {
@@ -485,7 +434,7 @@ export default function LogsPage() {
               },
             }}
           >
-            <Typography sx={{ fontSize: 18, fontWeight: 900 }}>
+            <Typography sx={{ fontSize: 15, fontWeight: 600 }}>
               Acesso restrito
             </Typography>
             <Typography sx={{ mt: 0.5, fontSize: 14 }}>
@@ -499,7 +448,7 @@ export default function LogsPage() {
 
   return (
     <AppLayout>
-      <CrmPageShell>
+      <CrmPageShell sx={paginaAdministracaoSx}>
         <CrmPageHeader
           eyebrow="Auditoria"
           title="Logs operacionais"
@@ -523,11 +472,11 @@ export default function LogsPage() {
                 onClick={loadLogs}
                 disabled={loading}
                 sx={{
-                  minHeight: 44,
+                  minHeight: 40,
                   borderRadius: '10px',
                   borderColor: crmPalette.border,
                   color: crmPalette.text,
-                  fontWeight: 800,
+                  fontWeight: 600,
                 }}
               >
                 Atualizar
@@ -538,15 +487,15 @@ export default function LogsPage() {
                 startIcon={<Download size={17} />}
                 onClick={() => token && exportAuditLogs(token, apiFilters)}
                 sx={{
-                  minHeight: 44,
+                  minHeight: 40,
                   borderRadius: '10px',
                   px: 2.5,
                   bgcolor: crmPalette.orange,
-                  fontWeight: 900,
-                  boxShadow: 'none',
+                  fontWeight: 600,
+                  boxShadow: "none",
                   '&:hover': {
                     bgcolor: crmPalette.orangeDark,
-                    boxShadow: 'none',
+                    boxShadow: "none",
                   },
                 }}
               >
@@ -562,7 +511,7 @@ export default function LogsPage() {
             gridTemplateColumns: {
               xs: '1fr',
               md: 'repeat(2, minmax(0, 1fr))',
-              xl: 'repeat(4, minmax(0, 1fr))',
+              lg: 'repeat(4, minmax(0, 1fr))',
             },
             gap: 2,
           }}
@@ -612,7 +561,7 @@ export default function LogsPage() {
               }}
             >
               <Box>
-                <Typography sx={{ color: crmPalette.text, fontSize: 18, fontWeight: 900 }}>
+                <Typography sx={{ color: crmPalette.text, fontSize: 15, fontWeight: 600 }}>
                   Filtros de auditoria
                 </Typography>
                 <Typography sx={{ mt: 0.4, color: crmPalette.muted, fontSize: 13 }}>
@@ -630,7 +579,7 @@ export default function LogsPage() {
                   bgcolor: '#f1f5f9',
                   color: crmPalette.text,
                   fontSize: 12,
-                  fontWeight: 900,
+                  fontWeight: 600,
                   '& .MuiChip-icon': {
                     color: crmPalette.muted,
                   },
@@ -649,7 +598,7 @@ export default function LogsPage() {
                 gap: 1.5,
               }}
             >
-              <TextField
+              <TextField size="small"
                 fullWidth
                 type="date"
                 label="Data inicial"
@@ -664,7 +613,7 @@ export default function LogsPage() {
                 sx={textFieldSx}
               />
 
-              <TextField
+              <TextField size="small"
                 fullWidth
                 type="date"
                 label="Data final"
@@ -679,7 +628,7 @@ export default function LogsPage() {
                 sx={textFieldSx}
               />
 
-              <TextField
+              <TextField size="small"
                 select
                 fullWidth
                 label="Categoria"
@@ -699,7 +648,7 @@ export default function LogsPage() {
                 ))}
               </TextField>
 
-              <TextField
+              <TextField size="small"
                 select
                 fullWidth
                 label="Usuário"
@@ -720,7 +669,7 @@ export default function LogsPage() {
                 ))}
               </TextField>
 
-              <TextField
+              <TextField size="small"
                 fullWidth
                 label="Busca"
                 value={filters.q}
@@ -756,7 +705,7 @@ export default function LogsPage() {
             }}
           >
             <Box>
-              <Typography component="h2" sx={{ color: crmPalette.text, fontSize: 24, fontWeight: 900 }}>
+              <Typography component="h2" sx={{ color: crmPalette.text, fontSize: 15, fontWeight: 600 }}>
                 Atividade recente
               </Typography>
               <Typography sx={{ mt: 0.4, color: crmPalette.muted, fontSize: 15 }}>
@@ -776,7 +725,7 @@ export default function LogsPage() {
                 color: crmPalette.text,
                 borderColor: crmPalette.border,
                 fontSize: 12,
-                fontWeight: 900,
+                fontWeight: 600,
                 '& .MuiChip-icon': {
                   color: crmPalette.muted,
                 },
@@ -795,7 +744,7 @@ export default function LogsPage() {
               }}
             >
               <CircularProgress size={28} />
-              <Typography sx={{ fontSize: 13, fontWeight: 800 }}>
+              <Typography sx={{ fontSize: 13, fontWeight: 600 }}>
                 Carregando logs operacionais...
               </Typography>
             </Stack>
@@ -818,7 +767,7 @@ export default function LogsPage() {
               }}
             >
               <History size={30} />
-              <Typography sx={{ fontSize: 14, fontWeight: 900 }}>
+              <Typography sx={{ fontSize: 14, fontWeight: 600 }}>
                 Nenhum log encontrado com os filtros aplicados.
               </Typography>
             </Stack>
@@ -856,7 +805,7 @@ export default function LogsPage() {
                   sx={{
                     color: crmPalette.muted,
                     fontSize: 13,
-                    fontWeight: 700,
+                    fontWeight: 600,
                   }}
                 >
                   Mostrando {paginationStart}-{paginationEnd} de {logs.length}
@@ -880,11 +829,11 @@ export default function LogsPage() {
                       '& .MuiOutlinedInput-root': {
                         borderRadius: '10px',
                         fontSize: 13,
-                        fontWeight: 800,
+                        fontWeight: 600,
                       },
                       '& .MuiInputLabel-root': {
                         fontSize: 12,
-                        fontWeight: 800,
+                        fontWeight: 600,
                       },
                     }}
                   >

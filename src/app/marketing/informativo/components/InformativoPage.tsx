@@ -1,39 +1,16 @@
 "use client";
+import { paginaMarketingSx } from "@/components/marketing/estilos-marketing";
 
 import { hasAnyRole } from "@/lib/user-roles";
 import { useEffect, useState } from "react";
 
-import {
-  Alert,
-  Box,
-  Button,
-  Chip,
-  CircularProgress,
-  MenuItem,
-  Stack,
-  Table,
-  TableBody,
-  TableCell,
-  TableContainer,
-  TableHead,
-  TableRow,
-  TextField,
-  Typography,
-} from "@mui/material";
+import { Alert, Box, Button, Chip, CircularProgress, MenuItem, Stack, Table, TableBody, TableCell, TableContainer, TableHead, TableRow, TextField, Typography } from "@mui/material";
 import { AppLayout } from "@/components/layout/app-layout";
-import {
-  CrmPageHeader,
-  CrmPageShell,
-  CrmSection,
-} from "@/components/mui/crm-primitives";
+import { CrmPageHeader, CrmPageShell, CrmSection } from "@/components/mui/crm-primitives";
 import { appScreens, isScreenEnabledForRole } from "@/config/screens";
 import { useAuth } from "@/context/auth-context";
 import { listarAssinantesInformativo } from "@/services/informativo.service";
-import type {
-  InformativoAssinante,
-  ListagemInformativo,
-  StatusInformativo,
-} from "@/types/informativo";
+import type { InformativoAssinante, ListagemInformativo, StatusInformativo } from "@/types/informativo";
 import { Mail } from "lucide-react";
 
 const screen = appScreens.find((item) => item.key === "informativo")!;
@@ -116,7 +93,7 @@ export default function InformativoPage() {
           acesso ao informativo.
         </Alert>
       ) : (
-        <CrmPageShell>
+        <CrmPageShell sx={paginaMarketingSx}>
           <CrmPageHeader
             eyebrow="Marketing"
             title="Informativo Pizzattolog"
@@ -151,7 +128,7 @@ export default function InformativoPage() {
               </CrmSection>
             ))}
           </Box>
-          <CrmSection sx={{ p: { xs: 2, md: 3 } }}>
+          <CrmSection sx={{ p: { xs: 2, md: 2.5 } }}>
             <Stack
               direction={{ xs: "column", sm: "row" }}
               spacing={2}
@@ -171,7 +148,7 @@ export default function InformativoPage() {
                   "& .MuiOutlinedInput-root": {
                     height: 52,
                   },
-                }}
+                }} size="small"
               />
 
               <TextField
@@ -189,7 +166,7 @@ export default function InformativoPage() {
                   "& .MuiOutlinedInput-root": {
                     height: 52,
                   },
-                }}
+                }} size="small"
               >
                 <MenuItem value="">Todos</MenuItem>
                 <MenuItem value="ATIVO">Ativos</MenuItem>

@@ -426,7 +426,7 @@ export default function PaginaDetalhePropostaCliente({
                   <Box sx={{ width: 42, height: 42, flexShrink: 0, display: 'grid', placeItems: 'center', borderRadius: '10px', border: '1px solid #e2e8f0', bgcolor: '#f8fafc', color: '#64748b' }}><FileText size={21} /></Box>
                   <Box sx={{ minWidth: 0 }}>
                     <Typography sx={{ fontSize: 11, color: '#64748b', mb: .5 }}>Detalhes da proposta</Typography>
-                    <Typography component="h1" sx={{ color: '#1f2937', fontSize: { xs: 22, md: 25 }, fontWeight: 600, lineHeight: 1.3, overflowWrap: 'anywhere' }}>{opportunity.title}</Typography>
+                    <Typography component="h2" sx={{ color: '#1f2937', fontSize: { xs: 22, md: 25 }, fontWeight: 600, lineHeight: 1.3, overflowWrap: 'anywhere' }}>{opportunity.title}</Typography>
                     <Typography sx={{ fontSize: 13, color: '#64748b', mt: .75, overflowWrap: 'anywhere' }}>{lead.company}</Typography>
                   </Box>
                 </Stack>

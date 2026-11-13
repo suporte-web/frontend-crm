@@ -1,9 +1,11 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { usePathname } from "next/navigation";
+import { usePathname, useRouter } from "next/navigation";
 
 import Box from "@mui/material/Box";
+import Button from "@mui/material/Button";
+import LogoutRoundedIcon from "@mui/icons-material/LogoutRounded";
 import Divider from "@mui/material/Divider";
 import Drawer from "@mui/material/Drawer";
 import IconButton from "@mui/material/IconButton";
@@ -11,8 +13,8 @@ import Stack from "@mui/material/Stack";
 import Tooltip from "@mui/material/Tooltip";
 import Typography from "@mui/material/Typography";
 
-import MenuOpenRoundedIcon from "@mui/icons-material/MenuOpenRounded";
-import MenuRoundedIcon from "@mui/icons-material/MenuRounded";
+import ChevronLeftRoundedIcon from "@mui/icons-material/ChevronLeftRounded";
+import ChevronRightRoundedIcon from "@mui/icons-material/ChevronRightRounded";
 
 import {
   appScreens,
@@ -21,7 +23,6 @@ import {
 } from "@/config/screens";
 
 import { useAuth } from "@/context/auth-context";
-import { getNotifications } from "@/services/notifications.service";
 
 import { sidebarSections, type SidebarSectionConfig } from "./sidebar-config";
 
@@ -30,7 +31,7 @@ import {
   type SidebarSectionWithItems,
 } from "./sidebar-navigation";
 
-import { isUnreadChatNotification } from "./sidebar-utils";
+import { usePageTop } from "./page-top";
 
 const SIDEBAR_OPEN_WIDTH = 264;
 const SIDEBAR_COLLAPSED_WIDTH = 76;
@@ -46,10 +47,10 @@ const sidebarColors = {
   backgroundMuted: "#262626",
 
   text: "#ffffff",
-  muted: "rgba(255, 255, 255, 0.72)",
-  mutedLight: "rgba(255, 255, 255, 0.46)",
+  muted: "rgba(255,255,255,.78)",
+  mutedLight: "rgba(255,255,255,.50)",
 
-  border: "rgba(255, 255, 255, 0.10)",
+  border: "rgba(255,255,255,.10)",
 
   danger: "#ff6b6b",
   dangerSoft: "rgba(255, 107, 107, 0.12)",
@@ -71,9 +72,11 @@ function buildSidebarSections(
 
 export function AppSidebar() {
   const pathname = usePathname();
+  const router = useRouter();
+  const pageTop = usePageTop();
 
 
-  const { user, token } = useAuth();
+  const { user, signOut } = useAuth();
 
   const [collapsed, setCollapsed] = useState(() => {
     if (typeof window === "undefined") {
@@ -83,7 +86,6 @@ export function AppSidebar() {
     return window.localStorage.getItem(SIDEBAR_STORAGE_KEY) === "true";
   });
 
-  const [unreadChatCount, setUnreadChatCount] = useState(0);
 
   const [openSections, setOpenSections] = useState<Record<string, boolean>>({});
 
@@ -92,47 +94,16 @@ export function AppSidebar() {
     ? SIDEBAR_OPEN_WIDTH
     : SIDEBAR_COLLAPSED_WIDTH;
 
+  useEffect(() => {
+    pageTop?.setSidebarWidth(sidebarWidth);
+  }, [sidebarWidth, pageTop?.setSidebarWidth]);
+
   const filteredMenu = appScreens.filter((item) =>
     isScreenEnabledForRole(item, user?.roles?.length ? user.roles : user?.role, user?.screenPermissions),
   );
 
   const filteredSections = buildSidebarSections(filteredMenu);
 
-  useEffect(() => {
-    if (!token || user?.role === 'CONSULTORA') {
-      setUnreadChatCount(0);
-      return;
-    }
-
-    let active = true;
-
-    const authToken = token;
-
-    async function loadChatNotifications() {
-      const notifications = await getNotifications(authToken);
-
-      if (!active) {
-        return;
-      }
-
-      const unreadNotifications = notifications.filter(
-        isUnreadChatNotification,
-      );
-
-      setUnreadChatCount(unreadNotifications.length);
-    }
-
-    loadChatNotifications().catch(() => undefined);
-
-    const interval = window.setInterval(() => {
-      loadChatNotifications().catch(() => undefined);
-    }, 30000);
-
-    return () => {
-      active = false;
-      window.clearInterval(interval);
-    };
-  }, [token, pathname]);
 
   function handleToggleSection(sectionId: string, fallbackOpen: boolean) {
     setOpenSections((current) => ({
@@ -140,6 +111,11 @@ export function AppSidebar() {
 
       [sectionId]: !(current[sectionId] ?? fallbackOpen),
     }));
+  }
+
+  function handleSignOut() {
+    signOut();
+    router.replace("/entrar");
   }
 
   function handleToggleSidebar() {
@@ -178,7 +154,7 @@ export function AppSidebar() {
 
           borderRight: `1px solid ${sidebarColors.border}`,
 
-          boxShadow: "4px 0 24px rgba(0, 0, 0, 0.18)",
+          boxShadow: "none",
 
           transition: (theme) =>
             theme.transitions.create("width", {
@@ -198,13 +174,15 @@ export function AppSidebar() {
         {/* Cabeçalho e logo */}
         <Box
           sx={{
-            minHeight: isSidebarExpanded ? 120 : 76,
+            bgcolor: "#2f2f2f",
+            minHeight: 84,
+            height: 84,
             px: isSidebarExpanded ? 2 : 1,
-            pt: isSidebarExpanded ? 2.75 : 1.25,
-            pb: isSidebarExpanded ? 2 : 1.25,
+            pt: 1.5,
+            pb: 1.5,
             display: "flex",
             flexDirection: "column",
-            justifyContent: "flex-start",
+            justifyContent: "center",
             gap: 1.75,
           }}
         >
@@ -212,11 +190,12 @@ export function AppSidebar() {
             <>
               <Stack
                 direction="row"
-                spacing={1}
+                spacing={0}
                 sx={{
                   width: "100%",
+                  display: "grid",
+                  gridTemplateColumns: "32px minmax(0, 1fr) 32px",
                   alignItems: "center",
-                  justifyContent: "flex-end",
                 }}
               >
                 <Box
@@ -225,9 +204,12 @@ export function AppSidebar() {
                   alt="Pizzattolog"
                   sx={{
                     display: "block",
-                    width: 200,
-                    maxWidth: "calc(100% - 48px)",
-                    height: 60,
+                    gridColumn: 2,
+                    justifySelf: "center",
+                    transform: "translateX(-24px)",
+                    width: 176,
+                    maxWidth: "100%",
+                    height: 58,
                     objectFit: "contain",
                     objectPosition: "center",
                   }}
@@ -247,38 +229,27 @@ export function AppSidebar() {
                     }
                     size="small"
                     sx={{
-                      width: 36,
-                      height: 36,
+                      gridColumn: 3,
+                      width: 32,
+                      height: 32,
                       flexShrink: 0,
-                      borderRadius: "10px",
-                      color: "rgba(255,255,255,0.72)",
+                      borderRadius: "50%",
+                      border: "1px solid rgba(255,255,255,.35)",
+                      bgcolor: "rgba(255,255,255,.06)",
+                      color: "#fff",
 
                       "&:hover": {
-                        bgcolor: "rgba(255,255,255,0.08)",
-                        color: "#ffffff",
+                        bgcolor: "rgba(255,255,255,.12)",
+                        color: "#fff",
                       },
                     }}
                   >
-                    <MenuOpenRoundedIcon />
+                    <ChevronLeftRoundedIcon sx={{ fontSize: 24 }} />
                   </IconButton>
                 </Tooltip>
               </Stack>
 
-              <Typography
-                sx={{
-                  mt: 0.5,
-                  pl: 1.25,
-                  borderLeft: `3px solid ${sidebarColors.orange}`,
-                  color: "rgba(255,255,255,0.68)",
-                  fontSize: 10,
-                  fontWeight: 1000,
-                  lineHeight: 1.3,
-                  letterSpacing: ".14em",
-                  textTransform: "uppercase",
-                }}
-              >
-                {/* Portal CRM */}
-              </Typography>
+
             </>
           ) : (
             <Tooltip title="Expandir menu" placement="right" arrow>
@@ -290,11 +261,11 @@ export function AppSidebar() {
                   height: 48,
                   mx: "auto",
                   borderRadius: "12px",
-                  bgcolor: "#2f2f2f",
+                  bgcolor: "transparent",
                   p: 0.75,
 
                   "&:hover": {
-                    bgcolor: "#3a3a3a",
+                    bgcolor: "rgba(255,255,255,.12)",
                   },
                 }}
               >
@@ -338,17 +309,18 @@ export function AppSidebar() {
                   display: "flex",
                   mx: "auto",
 
-                  borderRadius: "12px",
+                  borderRadius: "50%",
+                  border: "1px solid rgba(255,255,255,.35)",
 
-                  color: sidebarColors.orangeDark,
-                  bgcolor: sidebarColors.orangeSoft,
+                  color: "#fff",
+                  bgcolor: "rgba(255,255,255,.06)",
 
                   "&:hover": {
-                    bgcolor: sidebarColors.orangeHover,
+                    bgcolor: "rgba(255,255,255,.12)",
                   },
                 }}
               >
-                <MenuRoundedIcon />
+                <ChevronRightRoundedIcon sx={{ fontSize: 28 }} />
               </IconButton>
             </Tooltip>
           </Box>
@@ -404,7 +376,6 @@ export function AppSidebar() {
             sections={filteredSections}
             pathname={pathname}
             role={user?.role}
-            unreadChatCount={unreadChatCount}
             openSections={openSections}
             collapsed={!isSidebarExpanded}
             onToggleSection={handleToggleSection}
@@ -417,71 +388,22 @@ export function AppSidebar() {
           }}
         />
 
-        {/* Rodapé */}
-        {/* Rodapé */}
-        <Box
-          sx={{
-            px: isSidebarExpanded ? 2 : 1,
-            py: 2,
-          }}
-        >
-          {isSidebarExpanded ? (
-            <Stack
-              direction="row"
-              sx={{
-                alignItems: "center",
-                justifyContent: "center",
-                gap: 1,
+        <Box sx={{ px: isSidebarExpanded ? 2 : 1, py: 1.5 }}>
+          <Tooltip title={isSidebarExpanded ? "" : "Sair"} placement="right" arrow>
+            <Button
+              fullWidth
+              aria-label="Sair do sistema"
+              onClick={handleSignOut}
+              sx={{ minWidth: 0, minHeight: 44, px: isSidebarExpanded ? 1.5 : 0,
+                justifyContent: isSidebarExpanded ? 'flex-start' : 'center', gap: isSidebarExpanded ? 1.5 : 0,
+                borderRadius: '10px', color: sidebarColors.muted, textTransform: 'none', fontSize: 14, fontWeight: 600,
+                '&:hover': { bgcolor: 'rgba(255,255,255,.08)', color: '#fff' },
               }}
             >
-              <Typography
-                sx={{
-                  color: sidebarColors.mutedLight,
-                  fontSize: 11,
-                  fontWeight: 600,
-                  letterSpacing: ".03em",
-                }}
-              >
-                Versão 1.0.0
-              </Typography>
-
-              <Box
-                sx={{
-                  width: 4,
-                  height: 4,
-                  borderRadius: "50%",
-                  bgcolor: sidebarColors.orange,
-                  opacity: 0.8,
-                }}
-              />
-
-              <Typography
-                sx={{
-                  color: sidebarColors.mutedLight,
-                  fontSize: 11,
-                  fontWeight: 700,
-                }}
-              >
-                CRM
-              </Typography>
-            </Stack>
-          ) : (
-            <Tooltip
-              title="CRM • Versão 1.0.0"
-              placement="right"
-              arrow
-            >
-              <Box
-                sx={{
-                  width: 8,
-                  height: 8,
-                  mx: "auto",
-                  borderRadius: "50%",
-                  bgcolor: sidebarColors.orange,
-                }}
-              />
-            </Tooltip>
-          )}
+              <LogoutRoundedIcon sx={{ fontSize: 21 }} />
+              {isSidebarExpanded && 'Sair'}
+            </Button>
+          </Tooltip>
         </Box>
       </Stack>
     </Drawer>

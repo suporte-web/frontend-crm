@@ -14,17 +14,19 @@ const itensOriginais = [...profilePermissionItems, ...cadastroModalidadePermissi
 const categorias = [
   { id: 'comercial', nome: 'Comercial', chaves: ['cadastros', 'clients', 'leads', 'bi', 'opportunities', 'quotes', 'prospectingManagement', 'commercialBi'] },
   { id: 'operacional', nome: 'Operacional', chaves: ['entregas', 'entregas-por-placas', 'trackings', 'visitas'] },
-  { id: 'atendimento', nome: 'Atendimento', chaves: ['tickets', 'helpCenter', 'chat', 'atendimentoSac', 'entradas'] },
+  { id: 'atendimento', nome: 'Atendimento', chaves: ['atendimentoSac', 'entradas'] },
   { id: 'administracao', nome: 'Administração', chaves: ['users', 'profilePermissions', 'marketingIntegrations', 'logs', 'marketingMetrics'] },
-  { id: 'site', nome: 'Site e Comunicação', chaves: ['siteInstitutional', 'siteRequests', 'marketing', 'informativo', 'virtualAssistant'] },
-  { id: 'geral', nome: 'Geral', chaves: ['dashboard', 'suppliers', 'acoesSac'] },
+  { id: 'site', nome: 'Site e Comunicação', chaves: ['siteInstitutional', 'siteRequests', 'marketing', 'informativo'] },
+  { id: 'geral', nome: 'Geral', chaves: ['dashboard', 'acoesSac'] },
 ];
 
-/** O catálogo visual não define autorizações e conserva chaves retornadas pela API. */
+const permissoesRetiradas = new Set(['tickets', 'helpCenter', 'chat', 'suppliers', 'virtualAssistant']);
+
+/** Conserva chaves da API, exceto funcionalidades retiradas do CRM. */
 export function listarPermissoesPerfil(perfis: readonly RoleScreenPermissionsGroup[]): ItemPermissaoPerfil[] {
   const itens = new Map<string, ItemPermissaoPerfil>(itensOriginais.map(item => [item.key, { key: item.key, label: item.label }]));
   for (const perfil of perfis) for (const item of perfil.screens) {
-    if (!itens.has(item.screenKey)) itens.set(item.screenKey, { key: item.screenKey, label: item.screenLabel || item.screenKey });
+    if (!permissoesRetiradas.has(item.screenKey) && !itens.has(item.screenKey)) itens.set(item.screenKey, { key: item.screenKey, label: item.screenLabel || item.screenKey });
   }
   return [...itens.values()];
 }

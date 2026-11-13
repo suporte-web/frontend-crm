@@ -1,5 +1,7 @@
 "use client";
 
+import { OperacaoPageHeader, operacaoPageSx, campoOperacaoSx, acaoPrincipalOperacaoSx } from "@/components/operacao/operacao-primitives";
+
 import { useCallback, useEffect, useMemo, useState } from "react";
 
 import Alert from "@mui/material/Alert";
@@ -19,63 +21,29 @@ import TableHead from "@mui/material/TableHead";
 import TableRow from "@mui/material/TableRow";
 import TextField from "@mui/material/TextField";
 import Typography from "@mui/material/Typography";
-import {
-  AccessTimeRounded,
-  CalendarMonthRounded,
-  CheckCircleRounded,
-  LocalShippingRounded,
-  PersonRounded,
-  RefreshRounded,
-  RouteRounded,
-  SearchRounded,
-} from "@mui/icons-material";
+import { AccessTimeRounded, CalendarMonthRounded, CheckCircleRounded, LocalShippingRounded, PersonRounded, RefreshRounded, RouteRounded, SearchRounded } from "@mui/icons-material";
 
 import { AppLayout } from "@/components/layout/app-layout";
 
-import {
-  CrmKpiCard,
-  CrmPageHeader,
-  CrmPageShell,
-  CrmSection,
-  crmPalette,
-} from "@/components/mui/crm-primitives";
+import { CrmKpiCard, CrmPageShell, CrmSection, crmPalette } from "@/components/mui/crm-primitives";
 
 import { useAuth } from "@/context/auth-context";
 
 import { getMonitoramentoEntregasPorPlacas } from "@/services/entregas-por-placas.service";
 
-import type {
-  MonitoramentoEntregasPorPlacasResponse,
-  MonitoramentoEntregasPorPlacasRow,
-} from "@/types/entregas-por-placas";
+import type { MonitoramentoEntregasPorPlacasResponse, MonitoramentoEntregasPorPlacasRow } from "@/types/entregas-por-placas";
 
 const tableHeadSx = {
-  bgcolor: crmPalette.text,
-  color: "rgba(255,255,255,0.82)",
+  bgcolor: "#f8fafc",
+  color: "#475569",
   fontSize: 11,
-  fontWeight: 900,
-  letterSpacing: ".12em",
-  textTransform: "uppercase",
-  borderBottom: 0,
+  fontWeight: 600,
+
+  borderBottom: "1px solid #e2e8f0",
   whiteSpace: "nowrap",
 };
 
-const compactFieldSx = {
-  "& .MuiOutlinedInput-root": {
-    height: 44,
-    borderRadius: "12px",
-    bgcolor: "#fff",
-    fontSize: 14,
-    fontWeight: 800,
-  },
-  "& .MuiInputLabel-root": {
-    fontSize: 13,
-    fontWeight: 800,
-  },
-  "& .MuiFormLabel-root:not(.MuiInputLabel-shrink)": {
-    transform: "translate(14px, 11px) scale(1)",
-  },
-};
+const compactFieldSx = campoOperacaoSx;
 
 type FiltroResumoMonitoramento =
   | "todos"
@@ -243,12 +211,10 @@ export default function PaginaEntregasPorPlacas() {
 
   return (
     <AppLayout>
-      <CrmPageShell>
-        <CrmPageHeader
-          eyebrow="Operação"
-          title="Monitoramento de entregas"
+      <CrmPageShell sx={operacaoPageSx}>
+        <OperacaoPageHeader
+          title="Entregas por Placas"
           description="Acompanhe as rotas monitoradas, motoristas e o andamento das entregas."
-          icon={<LocalShippingRounded sx={{ fontSize: 32 }} />}
           aside={
             <Button
               variant="contained"
@@ -261,18 +227,7 @@ export default function PaginaEntregasPorPlacas() {
                 )
               }
               onClick={() => void carregarMonitoramento()}
-              sx={{
-                minHeight: 46,
-                px: 2.5,
-                borderRadius: "12px",
-                bgcolor: crmPalette.orange,
-                fontWeight: 900,
-                textTransform: "none",
-
-                "&:hover": {
-                  bgcolor: crmPalette.orangeDark,
-                },
-              }}
+              sx={acaoPrincipalOperacaoSx}
             >
               Atualizar
             </Button>
@@ -369,12 +324,12 @@ export default function PaginaEntregasPorPlacas() {
             display: "grid",
 
             gridTemplateColumns: {
-              xs: "1fr",
+              xs: "minmax(0, 1fr)",
               sm: "repeat(2, minmax(0, 1fr))",
-              xl: "repeat(5, minmax(0, 1fr))",
+              lg: "repeat(5, minmax(0, 1fr))",
             },
 
-            gap: 2,
+            gap: 1.5,
           }}
         >
           <CrmKpiCard
@@ -426,14 +381,14 @@ export default function PaginaEntregasPorPlacas() {
           />
 
           <CrmKpiCard
-            title="Concluido"
+            title="Concluído"
             value={formatPercent(resumo?.percentualEntregue)}
             icon={<CheckCircleRounded sx={{ fontSize: 27 }} />}
             accent={crmPalette.green}
             softColor="#ecfdf5"
             active={filtroResumo === "concluido"}
             onClick={() => setFiltroResumo("concluido")}
-            ariaLabel="Filtrar rotas concluidas"
+            ariaLabel="Filtrar rotas concluídas"
             ariaPressed={filtroResumo === "concluido"}
           />
         </Box>
@@ -467,30 +422,15 @@ export default function PaginaEntregasPorPlacas() {
               }}
             >
               <Box>
-                <Typography
-                  sx={{
-                    color: crmPalette.orangeDark,
-
-                    fontSize: 12,
-
-                    fontWeight: 900,
-
-                    letterSpacing: ".16em",
-
-                    textTransform: "uppercase",
-                  }}
-                >
-                  Operação de entregas por placas
-                </Typography>
 
                 <Typography
                   component="h2"
                   sx={{
                     color: crmPalette.text,
 
-                    fontSize: 23,
+                    fontSize: 15,
 
-                    fontWeight: 900,
+                    fontWeight: 600,
                   }}
                 >
                   Romaneios em acompanhamento
@@ -501,7 +441,7 @@ export default function PaginaEntregasPorPlacas() {
                 icon={<PersonRounded />}
                 label={`${formatNumber(rows.length)} rota(s)`}
                 sx={{
-                  fontWeight: 800,
+                  fontWeight: 600,
 
                   "& .MuiChip-icon": {
                     fontSize: 17,
@@ -540,11 +480,12 @@ export default function PaginaEntregasPorPlacas() {
                 sx={{
                   border: `1px solid ${crmPalette.border}`,
 
-                  borderRadius: "14px",
+                  borderRadius: "8px",
+                  maxWidth: "100%",
 
                   overflow: "auto",
 
-                  boxShadow: "0 8px 24px rgba(15, 23, 42, 0.06)",
+                  boxShadow: "none",
                 }}
               >
                 <Table
@@ -552,6 +493,7 @@ export default function PaginaEntregasPorPlacas() {
                   size="small"
                   sx={{
                     minWidth: 1050,
+                    "& .MuiTableCell-body": { fontSize: 13, py: 1.5 },
                   }}
                 >
                   <TableHead>
@@ -600,7 +542,7 @@ export default function PaginaEntregasPorPlacas() {
                               sx={{
                                 color: crmPalette.blue,
 
-                                fontWeight: 900,
+                                fontWeight: 600,
                               }}
                             >
                               {row.romaneio ?? "-"}
@@ -610,7 +552,7 @@ export default function PaginaEntregasPorPlacas() {
                           <TableCell>
                             <Typography
                               sx={{
-                                fontWeight: 900,
+                                fontWeight: 600,
                               }}
                             >
                               {row.placa_cavalo || "-"}
@@ -620,7 +562,7 @@ export default function PaginaEntregasPorPlacas() {
                           <TableCell>
                             <Typography
                               sx={{
-                                fontWeight: 800,
+                                fontWeight: 600,
                               }}
                             >
                               {row.nome_motorista || "-"}
@@ -636,7 +578,7 @@ export default function PaginaEntregasPorPlacas() {
 
                           <TableCell
                             sx={{
-                              fontWeight: 900,
+                              fontWeight: 600,
                             }}
                           >
                             {formatNumber(row.qtd_ctrcs)}
@@ -646,7 +588,7 @@ export default function PaginaEntregasPorPlacas() {
                             sx={{
                               color: crmPalette.green,
 
-                              fontWeight: 900,
+                              fontWeight: 600,
                             }}
                           >
                             {formatNumber(row.entregues)}
@@ -659,7 +601,7 @@ export default function PaginaEntregasPorPlacas() {
                                   ? crmPalette.red
                                   : crmPalette.green,
 
-                              fontWeight: 900,
+                              fontWeight: 600,
                             }}
                           >
                             {formatNumber(row.faltam)}
@@ -696,7 +638,7 @@ export default function PaginaEntregasPorPlacas() {
 
                                   fontSize: 12,
 
-                                  fontWeight: 800,
+                                  fontWeight: 600,
                                 }}
                               >
                                 {formatPercent(progresso)}
@@ -713,7 +655,7 @@ export default function PaginaEntregasPorPlacas() {
 
                                 color: status.color,
 
-                                fontWeight: 900,
+                                fontWeight: 600,
                               }}
                             />
                           </TableCell>

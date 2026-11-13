@@ -1,5 +1,7 @@
 'use client';
 
+import { PageTopContent } from "@/components/layout/page-top";
+
 import Link from 'next/link';
 import { useSearchParams } from 'next/navigation';
 import { normalizarNomesCadastro } from '@/lib/nome-cadastro';
@@ -62,19 +64,12 @@ function ConteudoOportunidades() {
     return (!modalidade || item.client.modalidadeCadastro === modalidade) && (!cadastroFiltro || item.clientId === cadastroFiltro) && (!etapa || item.stage === etapa) && (!situacao || item.status === situacao) && (!busca || `${item.title} ${nome}`.toLocaleLowerCase('pt-BR').includes(busca.toLocaleLowerCase('pt-BR')));
   }), [lista, modalidade, cadastroFiltro, etapa, situacao, busca]);
   return <AppLayout><CrmPageShell sx={{ minWidth: 0, gap: 2, containerType: 'inline-size', containerName: 'oportunidades' }}>
-    <CrmSection sx={superficieOportunidadeSx}>
+    <PageTopContent title={"Oportunidades/Propostas"} description={"Acompanhe as oportunidades e propostas vinculadas aos seus Clientes e Leads."} aside={<CrmSection sx={{ ...superficieOportunidadeSx, border: 'none !important' }}>
       <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 2, '@container oportunidades (max-width: 800px)': { flexDirection: 'column', alignItems: 'stretch' } }}>
-        <Stack direction="row" spacing={1.5} sx={{ minWidth: 0, alignItems: 'flex-start' }}>
-          <Box sx={{ width: 42, height: 42, flexShrink: 0, display: 'grid', placeItems: 'center', border: '1px solid #e2e8f0', borderRadius: '10px', bgcolor: '#f8fafc', color: '#64748b' }}><Handshake size={22} /></Box>
-          <Box sx={{ minWidth: 0 }}>
-            <Typography sx={{ fontSize: 11, color: '#64748b', letterSpacing: '.06em', mb: .25 }}>CRM</Typography>
-            <Typography component="h1" sx={{ fontSize: { xs: 22, md: 25 }, fontWeight: 600, color: '#1f2937', lineHeight: 1.3, overflowWrap: 'anywhere' }}>Oportunidades/Propostas</Typography>
-            <Typography sx={{ fontSize: 13, color: '#64748b', mt: .75, lineHeight: 1.6 }}>Acompanhe as oportunidades e propostas vinculadas aos seus Clientes e Leads.</Typography>
-          </Box>
-        </Stack>
+
         <Button variant="contained" size="small" startIcon={<PlusCircle size={16} />} onClick={() => setNovo(true)} sx={{ ...acaoPrincipalOportunidadeSx, flexShrink: 0 }}>Nova oportunidade</Button>
       </Box>
-    </CrmSection>
+    </CrmSection>} />
     {erro && <Alert severity="error">{erro}</Alert>}
     <Paper variant="outlined" sx={superficieOportunidadeSx}>
       <Box sx={{

@@ -1,4 +1,5 @@
 'use client';
+import { paginaMarketingSx, dialogoMarketingSx } from "@/components/marketing/estilos-marketing";
 
 import { FeedbackToast } from '@/components/ui/feedback-toast';
 
@@ -30,40 +31,13 @@ import Tabs from '@mui/material/Tabs';
 import TextField from '@mui/material/TextField';
 import Typography from '@mui/material/Typography';
 
-import {
-  ArrowRight,
-  Film,
-  ImagePlus,
-  LayoutTemplate,
-  Megaphone,
-  Pencil,
-  Plus,
-  Rocket,
-  Sparkles,
-  Trash2,
-} from 'lucide-react';
+import { ArrowRight, Film, ImagePlus, LayoutTemplate, Megaphone, Pencil, Plus, Rocket, Sparkles, Trash2 } from 'lucide-react';
 
 import { AppLayout } from '@/components/layout/app-layout';
-import {
-  CrmKpiCard,
-  CrmPageHeader,
-  CrmPageShell,
-  CrmSection,
-  crmPalette,
-} from '@/components/mui/crm-primitives';
+import { CrmKpiCard, CrmPageHeader, CrmPageShell, CrmSection, crmPalette } from '@/components/mui/crm-primitives';
 import { useAuth } from '@/context/auth-context';
-import {
-  createPortalContent,
-  deletePortalContent,
-  getPortalContents,
-  uploadPortalContentMedia,
-  updatePortalContent,
-} from '@/services/portal-content.service';
-import type {
-  ContentType,
-  PortalContent,
-  PortalContentPayload,
-} from '@/types/portal-content';
+import { createPortalContent, deletePortalContent, getPortalContents, uploadPortalContentMedia, updatePortalContent } from '@/services/portal-content.service';
+import type { ContentType, PortalContent, PortalContentPayload } from '@/types/portal-content';
 
 type FormState = {
   title: string;
@@ -434,7 +408,7 @@ export default function MarketingPage() {
 
   return (
     <AppLayout>
-      <CrmPageShell>
+      <CrmPageShell sx={paginaMarketingSx}>
         <CrmPageHeader
           eyebrow="Marketing"
           title="Criação de conteúdo"
@@ -509,7 +483,7 @@ export default function MarketingPage() {
         {pageError ? <Alert severity="error">{pageError}</Alert> : null}
 
         <CrmSection>
-          <Tabs
+          <Tabs variant="scrollable" scrollButtons="auto" allowScrollButtonsMobile
             value={tab}
             onChange={(_, value) => setTab(value)}
             sx={{
@@ -534,7 +508,7 @@ export default function MarketingPage() {
               sx={{
                 display: 'grid',
                 gap: 3,
-                p: { xs: 2, md: 3 },
+                p: { xs: 2, md: 2.5 },
                 gridTemplateColumns: {
                   xs: '1fr',
                   xl: '1.1fr .9fr',
@@ -549,7 +523,7 @@ export default function MarketingPage() {
                   p: 3,
                   border: '1px solid',
                   borderColor: 'divider',
-                  borderRadius: '14px',
+                  borderRadius: '12px',
                 }}
               >
                 <Stack spacing={3}>
@@ -566,7 +540,7 @@ export default function MarketingPage() {
                         sx={{
                           color: crmPalette.orangeDark,
                           fontSize: 12,
-                          fontWeight: 900,
+                          fontWeight: 600,
                           textTransform: 'uppercase',
                           letterSpacing: '.16em',
                         }}
@@ -575,7 +549,7 @@ export default function MarketingPage() {
                       </Typography>
                       <Typography
                         component="h2"
-                        sx={{ mt: 0.5, fontSize: 24, fontWeight: 900 }}
+                        sx={[{ mt: 0.5, fontSize: 24, fontWeight: 600 }, { fontSize: 15, fontWeight: 600 }]}
                       >
                         {editingId ? 'Editar campanha' : 'Criar conteúdo'}
                       </Typography>
@@ -633,7 +607,7 @@ export default function MarketingPage() {
                               <Film size={18} />
                             )}
                             <Box>
-                              <Typography sx={{ fontWeight: 800 }}>
+                              <Typography sx={{ fontWeight: 600 }}>
                                 {getTypeLabel(type)}
                               </Typography>
                               <Typography
@@ -669,7 +643,7 @@ export default function MarketingPage() {
                         }))
                       }
                       placeholder="Ex: Nova campanha de atendimento"
-                      sx={fieldSx}
+                      sx={fieldSx} size="small"
                     />
                     <TextField
                       label="Nome da campanha"
@@ -681,7 +655,7 @@ export default function MarketingPage() {
                         }))
                       }
                       placeholder="Ex: Maio em movimento"
-                      sx={fieldSx}
+                      sx={fieldSx} size="small"
                     />
                   </Box>
 
@@ -696,7 +670,7 @@ export default function MarketingPage() {
                     }
                     multiline
                     minRows={3}
-                    sx={fieldSx}
+                    sx={fieldSx} size="small"
                   />
 
                   <TextField
@@ -707,7 +681,7 @@ export default function MarketingPage() {
                     }
                     multiline
                     minRows={7}
-                    sx={fieldSx}
+                    sx={fieldSx} size="small"
                   />
 
                   <Box
@@ -717,7 +691,7 @@ export default function MarketingPage() {
                       gridTemplateColumns: { xs: '1fr', md: '1fr 1fr' },
                     }}
                   >
-                    <FormControl sx={fieldSx}>
+                    <FormControl sx={fieldSx} size="small">
                       <InputLabel>Tipo</InputLabel>
                       <Select
                         label="Tipo"
@@ -727,7 +701,7 @@ export default function MarketingPage() {
                             ...prev,
                             type: event.target.value as ContentType,
                           }))
-                        }
+                        } size="small"
                       >
                         <MenuItem value="NOTICIA">Notícia</MenuItem>
                         <MenuItem value="INFORMACAO">Campanha</MenuItem>
@@ -735,7 +709,7 @@ export default function MarketingPage() {
                       </Select>
                     </FormControl>
 
-                    <FormControl sx={fieldSx}>
+                    <FormControl sx={fieldSx} size="small">
                       <InputLabel>Status</InputLabel>
                       <Select
                         label="Status"
@@ -745,7 +719,7 @@ export default function MarketingPage() {
                             ...prev,
                             isPublished: event.target.value === 'published',
                           }))
-                        }
+                        } size="small"
                       >
                         <MenuItem value="draft">Rascunho</MenuItem>
                         <MenuItem value="published">Publicado</MenuItem>
@@ -803,7 +777,7 @@ export default function MarketingPage() {
                           coverImageUrl: event.target.value,
                         }))
                       }
-                      sx={fieldSx}
+                      sx={fieldSx} size="small"
                     />
                     <TextField
                       label="URL do vídeo"
@@ -815,7 +789,7 @@ export default function MarketingPage() {
                           videoUrl: event.target.value,
                         }))
                       }
-                      sx={fieldSx}
+                      sx={fieldSx} size="small"
                     />
                     <TextField
                       label="Texto do CTA"
@@ -826,7 +800,7 @@ export default function MarketingPage() {
                           ctaLabel: event.target.value,
                         }))
                       }
-                      sx={fieldSx}
+                      sx={fieldSx} size="small"
                     />
                     <TextField
                       label="Link do CTA"
@@ -838,7 +812,7 @@ export default function MarketingPage() {
                           ctaUrl: event.target.value,
                         }))
                       }
-                      sx={fieldSx}
+                      sx={fieldSx} size="small"
                     />
                   </Box>
 
@@ -906,7 +880,7 @@ export default function MarketingPage() {
         </CrmSection>
       </CrmPageShell>
 
-      <Dialog open={!!deleteTarget} onClose={() => setDeleteTarget(null)}>
+      <Dialog sx={dialogoMarketingSx} open={!!deleteTarget} onClose={() => setDeleteTarget(null)}>
         <DialogTitle>Excluir conteúdo</DialogTitle>
         <DialogContent>
           <Typography>Deseja remover "{deleteTarget?.title ?? ''}"?</Typography>
@@ -960,7 +934,7 @@ function UploadPanel({
         bgcolor: '#f8fafc',
       }}
     >
-      <Typography sx={{ fontWeight: 800 }}>{title}</Typography>
+      <Typography sx={{ fontWeight: 600 }}>{title}</Typography>
       <Typography sx={{ mt: 0.5, color: 'text.secondary' }}>
         {description}
       </Typography>
@@ -1002,7 +976,7 @@ function PreviewPanel({
   const previewHref = contentPreview.ctaUrl || contentPreview.videoUrl;
 
   return (
-    <Paper
+    <Paper data-marketing-preview
       elevation={0}
       sx={{
         p: 3,
@@ -1227,7 +1201,7 @@ function ContentLibrary({
                 </Typography>
                 <Typography
                   component="h3"
-                  sx={{ mt: 1, fontSize: 20, fontWeight: 900 }}
+                  sx={[{ mt: 1, fontSize: 20, fontWeight: 900 }, { fontSize: 15, fontWeight: 600 }]}
                 >
                   {item.title}
                 </Typography>

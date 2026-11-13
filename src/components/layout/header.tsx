@@ -22,22 +22,22 @@ import ButtonBase from "@mui/material/ButtonBase";
 import AppsRoundedIcon from "@mui/icons-material/AppsRounded";
 import DoneAllRoundedIcon from "@mui/icons-material/DoneAllRounded";
 import NotificationsNoneRoundedIcon from "@mui/icons-material/NotificationsNoneRounded";
-import SettingsRoundedIcon from "@mui/icons-material/SettingsRounded";
+import { Camera, KeyRound } from "lucide-react";
+import { useProfilePhoto } from '@/components/profile/use-profile-photo';
+import { ProfilePhotoDialog } from '@/components/profile/profile-photo-dialog';
 import KeyboardArrowDownRoundedIcon from "@mui/icons-material/KeyboardArrowDownRounded";
 import LogoutRoundedIcon from "@mui/icons-material/LogoutRounded";
 
+import { getPageTop } from "@/config/page-top";
+import { PageTopHeading, usePageTop } from "./page-top";
 import { screenIcons } from "./sidebar-config";
 
 
 import { SidebarTrigger } from "@/components/ui/sidebar";
 import { appScreens, isScreenEnabledForRole } from "@/config/screens";
 import { useAuth } from "@/context/auth-context";
-import {
-  getNotifications,
-  getUnreadNotificationCount,
-  markAllNotificationsRead,
-  markNotificationRead,
-} from "@/services/notifications.service";
+import { getNotifications, getUnreadNotificationCount, markAllNotificationsRead, markNotificationRead } from "@/services/notifications.service";
+import { normalizeNotificationLink } from "@/lib/notification-links";
 import type { CrmNotification } from "@/types/notifications";
 
 const headerColors = {
@@ -45,7 +45,7 @@ const headerColors = {
   text: "#343434",
   muted: "#64748b",
   border: "rgba(52, 52, 52, 0.10)",
-  orange: "#ff4d00",
+  orange: "#ff5805",
   red: "#ec3139",
   yellow: "#fab519",
 };
@@ -110,38 +110,17 @@ function getNotificationTone(notification: CrmNotification) {
   };
 }
 
-function normalizeNotificationLink(link?: string | null) {
-  if (!link) {
-    return undefined;
-  }
-
-  if (link.startsWith("/tickets?")) {
-    return `/chamados?${link.split("?")[1]}`;
-  }
-
-  if (link.startsWith("/tickets/") || link.startsWith("/chamados/")) {
-    return `/chamados?ticket=${link.split("/").pop()}`;
-  }
-
-  if (link === "/tickets") {
-    return "/chamados";
-  }
-
-  if (link.startsWith("/clients/")) {
-    return link.replace(/^\/clients/, "/clientes");
-  }
-
-  if (link === "/clients") {
-    return "/clientes";
-  }
-
-  return link;
-}
-
 export function Header() {
   const pathname = usePathname();
+  const pageTop = usePageTop();
+  const pageInfo = getPageTop(pathname);
   const router = useRouter();
   const { user, token, signOut } = useAuth();
+
+  const { photoUrl, loadError: photoLoadError, save: savePhoto, remove: removePhoto } = useProfilePhoto(user?.id, token);
+  const [photoDialogOpen, setPhotoDialogOpen] = useState(false);
+  useEffect(() => { setPhotoDialogOpen(false); }, [user?.id]);
+  function editPhoto() { setProfileAnchorEl(null); setPhotoDialogOpen(true); }
 
   const [appsAnchorEl, setAppsAnchorEl] = useState<HTMLElement | null>(null);
   const [notificationsAnchorEl, setNotificationsAnchorEl] =
@@ -212,12 +191,7 @@ export function Header() {
 
     const targetLink = normalizeNotificationLink(notification.link);
 
-    router.push(
-      targetLink ||
-      (notification.ticketId
-        ? `/chamados?ticket=${notification.ticketId}`
-        : "/chamados"),
-    );
+    if (targetLink) router.push(targetLink);
   }
 
   async function handleMarkAllRead() {
@@ -243,28 +217,41 @@ export function Header() {
       sx={{
         top: 0,
         zIndex: 40,
-        bgcolor: headerColors.page,
-        color: headerColors.text,
+        bgcolor: "#ffffff",
+        ml: { xs: 0, md: `${pageTop?.sidebarWidth ?? 264}px` },
+        width: { xs: "100%", md: `calc(100% - ${pageTop?.sidebarWidth ?? 264}px)` },
+        transition: "margin-left 180ms ease, width 180ms ease",
+        color: "#343434",
         borderBottom: `1px solid ${headerColors.border}`,
-        boxShadow: "0 10px 30px rgba(52, 52, 52, 0.04)",
+        boxShadow: "none",
       }}
     >
       <Toolbar
         disableGutters
         sx={{
-          minHeight: 72,
-          px: { xs: 2, md: 4 },
+          minHeight: { xs: 84, sm: 84 },
+          display: { xs: "grid", md: "flex" },
+          gridTemplateColumns: "40px minmax(0, 1fr)",
+          py: 1.25,
+          flexWrap: { xs: "wrap", md: "nowrap" },
+          alignItems: "center",
+          px: { xs: 2, md: 3 },
           justifyContent: "space-between",
           gap: 2,
         }}
       >
-        <Stack direction="row" spacing={1.5} sx={{ minWidth: 0, alignItems: "center" }}>
+        <Box sx={{ display: { xs: 'block', md: 'none' }, flexShrink: 0 }}>
           <SidebarTrigger className="h-10 w-10 rounded-md text-[#343434] hover:bg-[#343434]/8" />
+        </Box>
+        <Box ref={pageTop?.setTarget} data-page-top-target sx={{ flex: '1 1 320px', minWidth: 0, gridColumn: { xs: '1 / -1', md: 'auto' }, gridRow: { xs: 2, md: 'auto' },
+          '&:has(> [data-page-top-content]) > [data-page-top-fallback]': { display: 'none' },
+        }}>
+          <Box data-page-top-fallback>
+            <PageTopHeading title={pageInfo?.title || 'CRM Pizzattolog'} description={pageInfo?.description} />
+          </Box>
+        </Box>
 
-
-        </Stack>
-
-        <Stack direction="row" spacing={1} sx={{ alignItems: "center" }}>
+        <Stack direction="row" spacing={1} data-page-top-tools sx={{ alignItems: "center", flexShrink: 0, gridColumn: { xs: 2, md: "auto" }, gridRow: { xs: 1, md: "auto" }, ml: { xs: "auto", md: 0 }, "& > .MuiIconButton-root": { color: "#343434", "&:hover": { bgcolor: "rgba(52,52,52,.08)", color: "#343434" } } }}>
           <Tooltip title="Aplicativos" arrow>
             <IconButton
               onClick={(event) => {
@@ -285,22 +272,6 @@ export function Header() {
             </IconButton>
           </Tooltip>
 
-          <Tooltip title="Configurações da conta" arrow>
-            <IconButton
-              onClick={() => router.push("/alterar-senha")}
-              aria-label="Configurações da conta"
-              sx={{
-                display: { xs: "none", md: "inline-flex" },
-                width: 40,
-                height: 40,
-                color: headerColors.text,
-                "&:hover": { bgcolor: "rgba(52,52,52,0.08)" },
-              }}
-            >
-              <SettingsRoundedIcon fontSize="small" />
-            </IconButton>
-          </Tooltip>
-
           {user?.role !== 'CONSULTORA' && <Tooltip title="Notificações" arrow>
             <IconButton
               onClick={(event) => {
@@ -316,7 +287,7 @@ export function Header() {
                 width: 40,
                 height: 40,
 
-                borderRadius: "10px",
+                borderRadius: "8px",
 
                 color: notificationsOpen
                   ? headerColors.orange
@@ -338,11 +309,11 @@ export function Header() {
                 invisible={unreadCount === 0}
                 sx={{
                   "& .MuiBadge-badge": {
-                    bgcolor: headerColors.red,
+                    bgcolor: headerColors.orange,
                     color: "#ffffff",
                     fontSize: 10,
-                    fontWeight: 900,
-                    border: `1px solid ${headerColors.yellow}`,
+                    fontWeight: 600,
+                    border: "1px solid #fff",
                   },
                 }}
               >
@@ -362,8 +333,9 @@ export function Header() {
             }}
             aria-label="Abrir menu do usuário"
             aria-expanded={profileOpen}
+            aria-haspopup="true"
             sx={{
-              display: { xs: "none", sm: "flex" },
+              display: "flex",
               alignItems: "center",
               gap: 1,
               ml: 1,
@@ -377,15 +349,13 @@ export function Header() {
                 ? "rgba(255,77,0,0.30)"
                 : headerColors.border,
 
-              borderRadius: "14px",
+              borderRadius: "8px",
 
               bgcolor: profileOpen
                 ? "#fff7f2"
                 : "#ffffff",
 
-              boxShadow: profileOpen
-                ? "0 10px 30px rgba(52,52,52,0.10)"
-                : "0 5px 18px rgba(52,52,52,0.06)",
+              boxShadow: "none",
 
               transition: "all 180ms ease",
 
@@ -395,16 +365,16 @@ export function Header() {
               },
             }}
           >
-            <Avatar
+            <Avatar src={photoUrl || undefined} alt={user?.name || "Perfil"}
               sx={{
-                width: 38,
-                height: 38,
+                width: 32,
+                height: 32,
 
                 bgcolor: headerColors.orange,
                 color: "#ffffff",
 
                 fontSize: 14,
-                fontWeight: 900,
+                fontWeight: 600,
               }}
             >
               {userFirstName.slice(0, 1).toUpperCase()}
@@ -414,6 +384,7 @@ export function Header() {
               sx={{
                 minWidth: 0,
                 textAlign: "left",
+                display: { xs: "none", sm: "block" },
               }}
             >
               <Typography
@@ -422,7 +393,7 @@ export function Header() {
                   maxWidth: 125,
                   color: headerColors.text,
                   fontSize: 14,
-                  fontWeight: 900,
+                  fontWeight: 600,
                   lineHeight: 1.15,
                 }}
               >
@@ -478,17 +449,18 @@ export function Header() {
             sx: {
               mt: 1,
 
-              width: 310,
+              width: 340,
 
               border: "1px solid #e2e8f0",
-              borderRadius: "16px",
+              borderRadius: "12px",
+              maxWidth: "calc(100vw - 24px)",
+              maxHeight: "calc(100dvh - 96px)",
 
               bgcolor: "#ffffff",
 
-              boxShadow:
-                "0 24px 70px rgba(15,23,42,0.16)",
+              boxShadow: "none",
 
-              overflow: "hidden",
+              overflowX: "hidden", overflowY: "auto",
             },
           },
         }}
@@ -504,20 +476,23 @@ export function Header() {
             py: 2,
           }}
         >
-          <Avatar
-            sx={{
-              width: 46,
-              height: 46,
+          <Box sx={{ position: 'relative', flexShrink: 0 }}>
+          <Avatar src={photoUrl || undefined} alt={user?.name || "Perfil"}
+              sx={{
+              width: 56,
+              height: 56,
 
               bgcolor: headerColors.orange,
               color: "#ffffff",
 
               fontSize: 16,
-              fontWeight: 900,
+              fontWeight: 600,
             }}
           >
             {userFirstName.slice(0, 1).toUpperCase()}
           </Avatar>
+            <IconButton aria-label="Editar foto de perfil" onClick={editPhoto} size="small" sx={{ position: 'absolute', bottom: -4, right: -4, width: 25, height: 25, bgcolor: '#fff', border: '1px solid #e2e8f0', color: '#ff5805', '&:hover': { bgcolor: '#fff4eb' } }}><Camera size={13}/></IconButton>
+          </Box>
 
           <Box
             sx={{
@@ -530,7 +505,7 @@ export function Header() {
               sx={{
                 color: "#0f172a",
                 fontSize: 15,
-                fontWeight: 900,
+                fontWeight: 600,
               }}
             >
               {user?.name ?? "Usuário"}
@@ -541,7 +516,7 @@ export function Header() {
                 mt: 0.25,
                 color: headerColors.muted,
                 fontSize: 12,
-                fontWeight: 700,
+                fontWeight: 600,
               }}
             >
               {getRoleLabel(user?.role)}
@@ -564,6 +539,9 @@ export function Header() {
 
         <Divider />
 
+        <ListItemButton onClick={editPhoto} sx={{ minHeight: 44, gap: 1.5, px: 2, fontSize: 14, color: '#334155', '&:hover': { bgcolor: '#fff4eb', color: '#c94600' } }}>
+          <Camera size={18}/><Typography sx={{ fontSize: 14, fontWeight: 500 }}>{photoUrl ? 'Alterar foto de perfil' : 'Adicionar foto de perfil'}</Typography>
+        </ListItemButton>
         {/* CONFIGURAÇÕES */}
         <ListItemButton
           onClick={() => {
@@ -571,7 +549,7 @@ export function Header() {
             router.push("/alterar-senha");
           }}
           sx={{
-            minHeight: 50,
+            minHeight: 44,
             gap: 1.5,
             px: 2,
 
@@ -583,30 +561,26 @@ export function Header() {
             },
           }}
         >
-          <SettingsRoundedIcon
-            sx={{
-              fontSize: 20,
-              color: "inherit",
-            }}
-          />
+          <KeyRound size={18} />
 
           <Typography
             sx={{
               fontSize: 14,
-              fontWeight: 700,
+              fontWeight: 600,
             }}
           >
-            Configurações da conta
+            Alterar senha
           </Typography>
         </ListItemButton>
 
-        <Divider />
+        <Divider sx={{ display: { xs: "block", md: "none" } }} />
 
-        {/* SAIR */}
+        {/* Acesso à saída no celular, onde o sidebar permanente fica oculto. */}
         <ListItemButton
           onClick={handleSignOut}
           sx={{
-            minHeight: 50,
+            display: { xs: "flex", md: "none" },
+            minHeight: 44,
             gap: 1.5,
             px: 2,
 
@@ -628,7 +602,7 @@ export function Header() {
           <Typography
             sx={{
               fontSize: 14,
-              fontWeight: 800,
+              fontWeight: 600,
             }}
           >
             Sair
@@ -659,14 +633,15 @@ export function Header() {
               },
 
               border: "1px solid #e2e8f0",
-              borderRadius: "18px",
+              borderRadius: "12px",
+              maxWidth: "calc(100vw - 24px)",
+              maxHeight: "calc(100dvh - 96px)",
 
               bgcolor: "#ffffff",
 
-              boxShadow:
-                "0 24px 70px rgba(15,23,42,0.16)",
+              boxShadow: "none",
 
-              overflow: "hidden",
+              overflowX: "hidden", overflowY: "auto",
             },
           },
         }}
@@ -683,7 +658,7 @@ export function Header() {
             sx={{
               color: "#0f172a",
               fontSize: 15,
-              fontWeight: 900,
+              fontWeight: 600,
             }}
           >
             Aplicativos
@@ -716,7 +691,7 @@ export function Header() {
 
             p: 1.5,
 
-            maxHeight: 410,
+            maxHeight: "min(410px, 60dvh)",
             overflowY: "auto",
 
             "&::-webkit-scrollbar": {
@@ -743,7 +718,7 @@ export function Header() {
                 href={item.href}
                 onClick={() => setAppsAnchorEl(null)}
                 sx={{
-                  minHeight: 92,
+                  minHeight: 80,
 
                   display: "flex",
                   flexDirection: "column",
@@ -761,7 +736,7 @@ export function Header() {
                     ? "rgba(255,77,0,0.35)"
                     : "#e2e8f0",
 
-                  borderRadius: "14px",
+                  borderRadius: "8px",
 
                   bgcolor: isActive
                     ? "#fff7f2"
@@ -780,16 +755,15 @@ export function Header() {
                     bgcolor: "#fff7f2",
                     borderColor: "rgba(255,77,0,0.35)",
                     color: headerColors.orange,
-                    transform: "translateY(-2px)",
-                    boxShadow:
-                      "0 8px 22px rgba(15,23,42,0.08)",
+                    transform: "none",
+                    boxShadow: "none",
                   },
                 }}
               >
                 <Box
                   sx={{
-                    width: 42,
-                    height: 42,
+                    width: 32,
+                    height: 32,
 
                     display: "grid",
                     placeItems: "center",
@@ -806,21 +780,22 @@ export function Header() {
                   }}
                 >
                   {ScreenIcon ? (
-                    <ScreenIcon size={20} />
+                    <ScreenIcon size={18} />
                   ) : (
                     <AppsRoundedIcon fontSize="small" />
                   )}
                 </Box>
 
                 <Typography
-                  noWrap
                   sx={{
                     width: "100%",
+                    lineHeight: 1.35,
+                    overflowWrap: "anywhere",
 
                     color: "inherit",
 
                     fontSize: 12,
-                    fontWeight: 800,
+                    fontWeight: 600,
 
                     textAlign: "center",
                   }}
@@ -859,14 +834,15 @@ export function Header() {
               },
 
               border: "1px solid #e2e8f0",
-              borderRadius: "18px",
+              borderRadius: "12px",
+              maxWidth: "calc(100vw - 24px)",
+              maxHeight: "calc(100dvh - 96px)",
 
               bgcolor: "#ffffff",
 
-              boxShadow:
-                "0 24px 70px rgba(15,23,42,0.16)",
+              boxShadow: "none",
 
-              overflow: "hidden",
+              overflowX: "hidden", overflowY: "auto",
             },
           },
         }}
@@ -899,7 +875,7 @@ export function Header() {
                   sx={{
                     color: "#0f172a",
                     fontSize: 16,
-                    fontWeight: 900,
+                    fontWeight: 600,
                   }}
                 >
                   Notificações
@@ -918,11 +894,11 @@ export function Header() {
 
                       borderRadius: 999,
 
-                      bgcolor: "#fff1f2",
-                      color: "#dc2626",
+                      bgcolor: "#fff4eb",
+                      color: "#c94600",
 
                       fontSize: 11,
-                      fontWeight: 900,
+                      fontWeight: 600,
                     }}
                   >
                     {unreadCount > 99 ? "99+" : unreadCount}
@@ -959,7 +935,7 @@ export function Header() {
                     width: 38,
                     height: 38,
 
-                    borderRadius: "10px",
+                    borderRadius: "8px",
 
                     color: headerColors.orange,
 
@@ -990,7 +966,7 @@ export function Header() {
         {/* LISTA */}
         <Box
           sx={{
-            maxHeight: 440,
+            maxHeight: "min(440px, 60dvh)",
             overflowY: "auto",
 
             bgcolor: "#ffffff",
@@ -1072,7 +1048,7 @@ export function Header() {
                     display: "grid",
                     placeItems: "center",
 
-                    borderRadius: "11px",
+                    borderRadius: "8px",
 
                     bgcolor: isUnread
                       ? "#ffffff"
@@ -1113,14 +1089,14 @@ export function Header() {
                         color: "#0f172a",
 
                         fontSize: 13.5,
-                        fontWeight: isUnread ? 900 : 750,
+                        fontWeight: isUnread ? 600 : 400,
 
                         lineHeight: 1.35,
 
                         display: "-webkit-box",
                         WebkitLineClamp: 1,
                         WebkitBoxOrient: "vertical",
-                        overflow: "hidden",
+                        overflowX: "hidden", overflowY: "auto",
                       }}
                     >
                       {notification.title}
@@ -1144,7 +1120,7 @@ export function Header() {
                           color: tone.dot,
 
                           fontSize: 9,
-                          fontWeight: 900,
+                          fontWeight: 600,
 
                           letterSpacing: ".06em",
                           textTransform: "uppercase",
@@ -1168,7 +1144,7 @@ export function Header() {
                       WebkitLineClamp: 2,
                       WebkitBoxOrient: "vertical",
 
-                      overflow: "hidden",
+                      overflowX: "hidden", overflowY: "auto",
                     }}
                   >
                     {notification.message}
@@ -1202,7 +1178,7 @@ export function Header() {
                   display: "grid",
                   placeItems: "center",
 
-                  borderRadius: "16px",
+                  borderRadius: "8px",
 
                   bgcolor: "#f8fafc",
                   color: "#94a3b8",
@@ -1218,7 +1194,7 @@ export function Header() {
                   color: "#334155",
 
                   fontSize: 14,
-                  fontWeight: 900,
+                  fontWeight: 600,
                 }}
               >
                 Tudo certo por aqui
@@ -1242,6 +1218,7 @@ export function Header() {
           ) : null}
         </Box>
       </Popover>
+      {photoDialogOpen && user && <ProfilePhotoDialog key={user.id} name={user.name} photoUrl={photoUrl} loadError={photoLoadError} onClose={() => setPhotoDialogOpen(false)} onSave={savePhoto} onRemove={removePhoto}/>}
     </AppBar>
   );
 }

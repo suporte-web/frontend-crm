@@ -1,6 +1,8 @@
 
 "use client";
 
+import { campoOportunidadeSx, acaoPrincipalOportunidadeSx } from '@/components/crm/estilos-oportunidades';
+
 import { notificarCrm } from '@/lib/feedback-crm';
 
 import { FormEvent, useState } from "react";
@@ -18,66 +20,17 @@ import Typography from "@mui/material/Typography";
 
 import { Eye, EyeOff, KeyRound, LockKeyhole } from "lucide-react";
 
+import { PageTopContent } from '@/components/layout/page-top';
 import { AppLayout } from "@/components/layout/app-layout";
-import {
-  CrmPageHeader,
-  CrmPageShell,
-  CrmSection,
-  crmPalette,
-} from "@/components/mui/crm-primitives";
+import { CrmPageShell, CrmSection, crmPalette } from "@/components/mui/crm-primitives";
 import { useAuth } from "@/context/auth-context";
 
 // PADRÃO VISUAL DOS CAMPOS
 const passwordFieldSx = {
-  width: "100%",
-  minWidth: 0,
-
-  "& .MuiOutlinedInput-root": {
-    height: 42,
-    borderRadius: "10px",
-    bgcolor: "#ffffff",
-
-    "& .MuiOutlinedInput-notchedOutline": {
-      borderColor: "#dce3eb",
-    },
-
-    "&:hover .MuiOutlinedInput-notchedOutline": {
-      borderColor: "#94a3b8",
-    },
-
-    "&.Mui-focused .MuiOutlinedInput-notchedOutline": {
-      borderColor: "#ff5805",
-    },
-  },
-
-  "& .MuiInputBase-input": {
-    py: "10px",
-    fontSize: 13,
-    fontWeight: 500,
-  },
-
-  "& .MuiInputLabel-root": {
-    fontSize: 13,
-    fontWeight: 500,
-  },
-
-  "& .MuiInputLabel-root.Mui-focused": {
-    color: "#ff5805",
-  },
-
-  "& .MuiInputAdornment-root": {
-    color: "#64748b",
-  },
-
-  "& .MuiInputAdornment-root svg": {
-    width: 16,
-    height: 16,
-  },
-
-  "& .MuiIconButton-root": {
-    width: 30,
-    height: 30,
-  },
+  ...campoOportunidadeSx, width: '100%',
+  '& .MuiInputAdornment-root': { color: '#64748b' },
+  '& .MuiInputAdornment-root svg': { width: 16, height: 16 },
+  '& .MuiIconButton-root': { width: 30, height: 30 },
 };
 
 export default function ChangePasswordPage() {
@@ -170,22 +123,17 @@ export default function ChangePasswordPage() {
 
   return (
     <AppLayout>
-      <CrmPageShell sx={{ maxWidth: 860 }}>
+      <CrmPageShell sx={{ maxWidth: 560, gap: 2.2, minWidth: 0 }}>
         {/* CABEÇALHO DA PÁGINA */}
-        <CrmPageHeader
-          eyebrow="Primeiro acesso"
-          title="Alterar senha inicial"
-          description="Defina uma senha própria para continuar usando o portal."
-          icon={<KeyRound size={30} />}
-        />
+        <PageTopContent title="Alterar senha" />
 
         {/* CARD PRINCIPAL */}
         <CrmSection
           sx={{
-            p: { xs: 2, md: 3 },
+            p: { xs: 2, md: 2.5 },
             bgcolor: "#ffffff",
             border: "1px solid #e2e8f0",
-            borderRadius: "14px",
+            borderRadius: "12px",
             boxShadow: "none",
           }}
         >
@@ -195,19 +143,19 @@ export default function ChangePasswordPage() {
             onSubmit={handleSubmit}
             sx={{
               width: "100%",
-              maxWidth: 520,
+              minWidth: 0,
               mx: "auto",
             }}
           >
-            <Stack spacing={2.5}>
+            <Stack spacing={2}>
               {/* TÍTULO */}
               <Box>
                 <Typography
                   component="h2"
                   sx={{
                     color: crmPalette.text,
-                    fontSize: 18,
-                    fontWeight: 800,
+                    fontSize: 15,
+                    fontWeight: 600,
                   }}
                 >
                   Nova senha
@@ -307,9 +255,10 @@ export default function ChangePasswordPage() {
                 <Alert
                   severity="error"
                   sx={{
-                    borderRadius: "10px",
+                    borderRadius: "8px",
                     fontSize: 13,
                     alignItems: "center",
+                    border: "1px solid #fecaca",
                   }}
                 >
                   {error}
@@ -322,6 +271,7 @@ export default function ChangePasswordPage() {
                 spacing={1.25}
                 sx={{
                   justifyContent: "flex-end",
+                  width: "100%",
                   alignItems: "center",
                   pt: 1.5,
                   borderTop: "1px solid #e2e8f0",
@@ -342,24 +292,7 @@ export default function ChangePasswordPage() {
                       <KeyRound size={15} />
                     )
                   }
-                  sx={{
-                    height: 38,
-                    minHeight: 38,
-                    px: 2.5,
-                    borderRadius: "10px",
-                    bgcolor: "#ff5805",
-                    color: "#ffffff",
-                    fontSize: 12,
-                    fontWeight: 700,
-                    textTransform: "none",
-                    boxShadow: "none",
-                    whiteSpace: "nowrap",
-
-                    "&:hover": {
-                      bgcolor: "#e94f00",
-                      boxShadow: "none",
-                    },
-                  }}
+                  sx={{ ...acaoPrincipalOportunidadeSx, width: { xs: '100%', sm: 'auto' }, '&.Mui-disabled': { bgcolor: '#f1f5f9', color: '#94a3b8' } }}
                 >
                   {saving ? "Salvando..." : "Salvar nova senha"}
                 </Button>

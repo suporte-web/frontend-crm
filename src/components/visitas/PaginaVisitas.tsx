@@ -1,38 +1,15 @@
 "use client";
 import Link from "next/link";
 import { useEffect, useState } from "react";
-import {
-  Alert,
-  Box,
-  Button,
-  CircularProgress,
-  MenuItem,
-  Pagination,
-  Paper,
-  Stack,
-  Table,
-  TableBody,
-  TableCell,
-  TableContainer,
-  TableHead,
-  TableRow,
-  TextField,
-  Typography,
-} from "@mui/material";
+import { Alert, Box, Button, CircularProgress, MenuItem, Pagination, Paper, Stack, Table, TableBody, TableCell, TableContainer, TableHead, TableRow, TextField, Typography } from "@mui/material";
+import { CrmPageShell } from "@/components/mui/crm-primitives";
+import { PageTopContent } from "@/components/layout/page-top";
+import { paginaAtendimentoSx, camposAtendimentoSx } from "@/components/atendimento-sac/estilos-atendimento";
 import { AppLayout } from "@/components/layout/app-layout";
-import {
-  camposSac,
-  dataSac,
-  liderSac,
-  SecaoSac,
-} from "@/components/atendimento-sac/ComponentesSac";
+import { dataSac, liderSac, SecaoSac } from "@/components/atendimento-sac/ComponentesSac";
 import { useAuth } from "@/context/auth-context";
 import { requisitarVisitas } from "@/services/visitas.api";
-import {
-  rotulosStatusVisita,
-  type ListaVisitas,
-  type OpcoesVisitas,
-} from "@/types/visitas";
+import { rotulosStatusVisita, type ListaVisitas, type OpcoesVisitas } from "@/types/visitas";
 import { acaoVisitaSx, StatusVisitaChip } from "./ComponentesVisitas";
 const vazio = {
   protocolo: "",
@@ -110,26 +87,8 @@ export default function PaginaVisitas() {
     setFiltros((f) => ({ ...f, [k]: v }));
   return (
     <AppLayout>
-      <Stack spacing={3}>
-        <Stack
-          direction={{ xs: "column", sm: "row" }}
-          sx={{
-            justifyContent: "space-between",
-            gap: 2,
-            alignItems: { sm: "center" },
-          }}
-        >
-          <Box>
-            <Typography variant="h4" sx={{ fontWeight: 800 }}>
-              Visitas
-            </Typography>
-            <Typography color="text.secondary">
-              {lider
-                ? "Planeje e acompanhe as visitas aos clientes."
-                : "Acompanhe e execute as visitas atribuídas a você."}
-            </Typography>
-          </Box>
-          {lider && (
+      <CrmPageShell sx={paginaAtendimentoSx}>
+        <PageTopContent title="Visitas" aside={lider && (
             <Button
               component={Link}
               href="/atendimento/visitas/nova"
@@ -139,16 +98,16 @@ export default function PaginaVisitas() {
             >
               Nova visita
             </Button>
-          )}
-        </Stack>
+          )} />
         <Box
           sx={{
             display: "grid",
             gridTemplateColumns: {
-              xs: "repeat(2,minmax(0,1fr))",
-              md: "repeat(5,minmax(0,1fr))",
+              xs: "minmax(0,1fr)",
+              sm: "repeat(2,minmax(0,1fr))",
+              lg: "repeat(5,minmax(0,1fr))",
             },
-            gap: 2,
+            gap: 1.5,
           }}
         >
           {cards.map((c) => (
@@ -166,7 +125,9 @@ export default function PaginaVisitas() {
               }}
               sx={{
                 p: 2,
-                borderRadius: 3,
+                borderRadius: "12px",
+                minWidth: 0,
+                "&:focus-visible": { outline: "2px solid #ff5805", outlineOffset: 3 },
                 textAlign: "left",
                 cursor: "pointer",
                 borderColor:
@@ -176,8 +137,8 @@ export default function PaginaVisitas() {
               }}
             >
               <Typography
-                variant="h4"
-                sx={{ color: "#ff5805", fontWeight: 800 }}
+                component="div"
+                sx={{ color: "#ff5805", fontSize: 28, fontWeight: 700 }}
               >
                 {dados.contagens[c.status] || 0}
               </Typography>
@@ -185,7 +146,7 @@ export default function PaginaVisitas() {
             </Paper>
           ))}
         </Box>
-        <SecaoSac titulo="Filtros">
+        <SecaoSac compacto titulo="Filtros">
           <Box
             component="form"
             onSubmit={(e) => {
@@ -194,52 +155,7 @@ export default function PaginaVisitas() {
               setAplicados({ ...filtros });
             }}
           >
-            <Box
-              sx={{
-                display: "grid",
-                gridTemplateColumns: {
-                  xs: "1fr",
-                  sm: "repeat(2, minmax(0, 1fr))",
-                  lg: "repeat(3, minmax(0, 1fr))",
-                },
-                gap: 2,
-                alignItems: "start",
-
-                "& .MuiFormControl-root": {
-                  width: "100%",
-                  minWidth: 0,
-                  margin: 0,
-                },
-
-                "& .MuiInputBase-root": {
-                  height: 40,
-                  minHeight: 40,
-                  borderRadius: "8px",
-                  boxSizing: "border-box",
-                },
-
-                "& .MuiInputBase-input": {
-                  height: "100%",
-                  boxSizing: "border-box",
-                  fontSize: "0.875rem",
-                },
-
-                "& .MuiSelect-select": {
-                  display: "flex",
-                  alignItems: "center",
-                  height: "40px !important",
-                  boxSizing: "border-box",
-                  fontSize: "0.875rem",
-                },
-
-                "& .MuiInputLabel-root": {
-                  fontSize: "0.875rem",
-                },
-
-                "& .MuiInputLabel-shrink": {
-                  transform: "translate(14px, -9px) scale(0.75)",
-                },
-              }}
+            <Box sx={camposAtendimentoSx}
             >
               <TextField
                 label="Protocolo"
@@ -306,7 +222,7 @@ export default function PaginaVisitas() {
                 slotProps={{ inputLabel: { shrink: true } }}
               />
             </Box>
-            <Stack direction="row" spacing={1} sx={{ mt: 2 }}>
+            <Stack direction="row" spacing={1} sx={{ mt: 2, flexWrap: "wrap", gap: 1 }}>
               <Button
                 type="submit"
                 variant="contained"
@@ -316,6 +232,7 @@ export default function PaginaVisitas() {
                 Aplicar filtros
               </Button>
               <Button
+                variant="outlined"
                 size="small"
                 onClick={() => {
                   setFiltros(vazio);
@@ -333,7 +250,7 @@ export default function PaginaVisitas() {
           <CircularProgress size={28} aria-label="Carregando visitas" />
         ) : (
           !erro && (
-            <SecaoSac titulo={dados.total + " visita(s)"}>
+            <SecaoSac compacto titulo={dados.total + " visita(s)"}>
               <TableContainer>
                 <Table size="small">
                   <TableHead>
@@ -400,7 +317,7 @@ export default function PaginaVisitas() {
             </SecaoSac>
           )
         )}
-      </Stack>
+      </CrmPageShell>
     </AppLayout>
   );
 }

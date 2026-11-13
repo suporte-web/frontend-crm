@@ -1,10 +1,9 @@
 'use client';
+import { dialogoMarketingSx } from "@/components/marketing/estilos-marketing";
 
 import { FeedbackToast } from '@/components/ui/feedback-toast';
 
-import {
-  useState,
-} from 'react';
+import { useState } from 'react';
 
 import Box from '@mui/material/Box';
 import Button from '@mui/material/Button';
@@ -25,24 +24,11 @@ import Tooltip from '@mui/material/Tooltip';
 
 import Alert from '@mui/material/Alert';
 
-import {
-  Eye,
-  EyeOff,
-  ExternalLink,
-  Plus,
-  Trash2,
-  X,
-} from 'lucide-react';
+import { Eye, EyeOff, ExternalLink, Plus, Trash2, X } from 'lucide-react';
 
-import {
-  CrmSection,
-  crmPalette,
-} from '@/components/mui/crm-primitives';
+import { CrmSection, crmPalette } from '@/components/mui/crm-primitives';
 
-import {
-  siteBlogHistory,
-  type SiteBlogHistoryPost,
-} from '@/config/site-institucional/site-blog-history';
+import { siteBlogHistory, type SiteBlogHistoryPost } from '@/config/site-institucional/site-blog-history';
 
 import { SiteImageUpload } from './SiteImageUpload';
 
@@ -395,10 +381,10 @@ export function SiteBlogPostsEditor({
             <Box>
               <Typography
                 component="h2"
-                sx={{
+                sx={[{
                   fontSize: 20,
-                  fontWeight: 900,
-                }}
+                  fontWeight: 600,
+                }, { fontSize: 15, fontWeight: 600 }]}
               >
                 Novo post no blog
               </Typography>
@@ -427,7 +413,7 @@ export function SiteBlogPostsEditor({
               sx={{
                 borderRadius: '10px',
                 textTransform: 'none',
-                fontWeight: 800,
+                fontWeight: 600,
                 bgcolor: crmPalette.orange,
 
                 '&:hover': {
@@ -461,7 +447,7 @@ export function SiteBlogPostsEditor({
                   p: 2,
                   border: '1px solid',
                   borderColor: 'divider',
-                  borderRadius: '14px',
+                  borderRadius: '12px',
                   bgcolor: '#f8fafc',
                 }}
               >
@@ -500,7 +486,7 @@ export function SiteBlogPostsEditor({
                     }
                     sx={{
                       width: 'fit-content',
-                      fontWeight: 800,
+                      fontWeight: 600,
                     }}
                   />
 
@@ -526,7 +512,7 @@ export function SiteBlogPostsEditor({
                       sx={{
                         borderRadius: '10px',
                         textTransform: 'none',
-                        fontWeight: 800,
+                        fontWeight: 600,
                       }}
                     >
                       {post.published
@@ -558,7 +544,7 @@ export function SiteBlogPostsEditor({
                         title:
                           event.target.value,
                       })
-                    }
+                    } size="small"
                   />
                 </Stack>
                 {post.createdInCrm ? (
@@ -601,7 +587,7 @@ export function SiteBlogPostsEditor({
             },
           }}
         >
-          <Dialog
+          <Dialog sx={dialogoMarketingSx}
             open={openNewPost}
             onClose={closeNewPostDialog}
             fullWidth
@@ -612,8 +598,7 @@ export function SiteBlogPostsEditor({
                   borderRadius: '20px',
                   overflow: 'hidden',
                   bgcolor: '#f8fafc',
-                  boxShadow:
-                    '0 24px 70px rgba(15, 23, 42, 0.20)',
+                  boxShadow: 'none',
                 },
               },
             }}
@@ -668,7 +653,7 @@ export function SiteBlogPostsEditor({
                           xs: 18,
                           md: 21,
                         },
-                        fontWeight: 900,
+                        fontWeight: 600,
                         color: '#17212b',
                         lineHeight: 1.2,
                       }}
@@ -736,7 +721,7 @@ export function SiteBlogPostsEditor({
                       <Typography
                         sx={{
                           fontSize: 15,
-                          fontWeight: 900,
+                          fontWeight: 600,
                           color: '#17212b',
                         }}
                       >
@@ -777,7 +762,7 @@ export function SiteBlogPostsEditor({
                             }
                             : current,
                         )
-                      }
+                      } size="small"
                     />
 
                     <TextField
@@ -808,7 +793,7 @@ export function SiteBlogPostsEditor({
                             }
                             : current,
                         )
-                      }
+                      } size="small"
                     />
                   </Stack>
                 </Paper>
@@ -832,7 +817,7 @@ export function SiteBlogPostsEditor({
                       <Typography
                         sx={{
                           fontSize: 15,
-                          fontWeight: 900,
+                          fontWeight: 600,
                           color: '#17212b',
                         }}
                       >
@@ -853,7 +838,7 @@ export function SiteBlogPostsEditor({
                     <Box
                       sx={{
                         p: 2,
-                        borderRadius: '14px',
+                        borderRadius: '12px',
                         bgcolor: '#f8fafc',
                         border: '1px dashed',
                         borderColor: '#cbd5e1',
@@ -942,7 +927,7 @@ export function SiteBlogPostsEditor({
                     minWidth: 105,
                     borderRadius: '10px',
                     textTransform: 'none',
-                    fontWeight: 800,
+                    fontWeight: 600,
                     color: '#475569',
                     borderColor: '#cbd5e1',
 
@@ -969,7 +954,7 @@ export function SiteBlogPostsEditor({
                     borderRadius: '10px',
                     px: 3,
                     textTransform: 'none',
-                    fontWeight: 900,
+                    fontWeight: 600,
                     boxShadow: 'none',
                     bgcolor:
                       crmPalette.orange,
@@ -995,10 +980,10 @@ export function SiteBlogPostsEditor({
             <Box>
               <Typography
                 component="h2"
-                sx={{
+                sx={[{
                   fontSize: 20,
-                  fontWeight: 900,
-                }}
+                  fontWeight: 600,
+                }, { fontSize: 15, fontWeight: 600 }]}
               >
                 Histórico do site atual
               </Typography>
@@ -1056,7 +1041,7 @@ export function SiteBlogPostsEditor({
                       <Stack spacing={0.75}>
                         <Typography
                           sx={{
-                            fontWeight: 900,
+                            fontWeight: 600,
                             color:
                               'text.primary',
                           }}
@@ -1081,7 +1066,7 @@ export function SiteBlogPostsEditor({
                                 post.category
                               }
                               sx={{
-                                fontWeight: 800,
+                                fontWeight: 600,
                               }}
                             />
                           ) : null}
@@ -1122,7 +1107,7 @@ export function SiteBlogPostsEditor({
                           sx={{
                             borderRadius: '10px',
                             textTransform: 'none',
-                            fontWeight: 800,
+                            fontWeight: 600,
                           }}
                         >
                           Ver post
@@ -1195,7 +1180,7 @@ export function SiteBlogPostsEditor({
               </Stack>
             ) : null}
           </Stack>
-          <Dialog
+          <Dialog sx={dialogoMarketingSx}
             open={Boolean(postToDelete)}
             onClose={() =>
               setPostToDelete(null)
@@ -1212,7 +1197,7 @@ export function SiteBlogPostsEditor({
           >
             <DialogTitle
               sx={{
-                fontWeight: 900,
+                fontWeight: 600,
               }}
             >
               Excluir publicação?
@@ -1260,7 +1245,7 @@ export function SiteBlogPostsEditor({
                 sx={{
                   borderRadius: '10px',
                   textTransform: 'none',
-                  fontWeight: 800,
+                  fontWeight: 600,
                 }}
               >
                 Cancelar
@@ -1277,7 +1262,7 @@ export function SiteBlogPostsEditor({
                 sx={{
                   borderRadius: '10px',
                   textTransform: 'none',
-                  fontWeight: 900,
+                  fontWeight: 600,
                   boxShadow: 'none',
                 }}
               >

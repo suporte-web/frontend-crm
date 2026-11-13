@@ -108,7 +108,7 @@ export function SiteImageUpload({
       <Stack spacing={1.5}>
         <Stack direction="row" spacing={1} sx={{ alignItems: 'flex-start', justifyContent: 'space-between' }}>
           <Box>
-            <Typography component="h3" sx={{ fontSize: 15, fontWeight: 850 }}>{label}</Typography>
+            <Typography component="h3" sx={[{ fontSize: 15, fontWeight: 600 }, { fontSize: 15, fontWeight: 600 }]}>{label}</Typography>
             {placement ? <Typography sx={{ mt: 0.5, fontSize: 13, color: 'text.secondary' }}>{placement}</Typography> : null}
           </Box>
           <Chip size="small" label={value ? 'Selecionada' : 'Sem seleção'} sx={{ flexShrink: 0 }} />
@@ -134,7 +134,7 @@ export function SiteImageUpload({
         <Stack direction="row" spacing={1} useFlexGap sx={{ flexWrap: 'wrap' }}>
           <Button type="button" variant="outlined" startIcon={uploading ? <CircularProgress size={17} /> : <Upload size={17} />}
             disabled={disabled || uploading} onClick={() => inputRef.current?.click()}
-            sx={{ borderRadius: 2, textTransform: 'none', fontWeight: 800, color: crmPalette.orangeDark, borderColor: crmPalette.orange }}>
+            sx={{ borderRadius: 2, textTransform: 'none', fontWeight: 600, color: crmPalette.orangeDark, borderColor: crmPalette.orange }}>
             {uploading ? 'Enviando...' : value ? 'Trocar imagem' : 'Selecionar imagem'}
           </Button>
           {value ? (

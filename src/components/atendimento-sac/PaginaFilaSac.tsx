@@ -1,33 +1,14 @@
 "use client";
 import Link from "next/link";
 import { useCallback, useEffect, useState } from "react";
-import {
-  Alert,
-  Box,
-  Button,
-  CircularProgress,
-  MenuItem,
-  Pagination,
-  Stack,
-  Tab,
-  Tabs,
-  Table,
-  TableBody,
-  TableCell,
-  TableContainer,
-  TableHead,
-  TableRow,
-  TextField,
-  Typography,
-} from "@mui/material";
+import { Alert, Box, Button, CircularProgress, MenuItem, Pagination, Paper, Tab, Tabs, Table, TableBody, TableCell, TableContainer, TableHead, TableRow, TextField, Typography } from "@mui/material";
+import { CrmPageShell } from "@/components/mui/crm-primitives";
+import { PageTopContent } from "@/components/layout/page-top";
+import { paginaAtendimentoSx, abasAtendimentoSx, superficieAtendimentoSx } from "@/components/atendimento-sac/estilos-atendimento";
 import { AppLayout } from "@/components/layout/app-layout";
 import { useAuth } from "@/context/auth-context";
 import { requisitarSac } from "@/services/atendimento-sac.api";
-import {
-  rotulosStatusSac,
-  type AtendimentoSac,
-  type PessoaSac,
-} from "@/types/atendimento-sac.types";
+import { rotulosStatusSac, type AtendimentoSac, type PessoaSac } from "@/types/atendimento-sac.types";
 import { dataSac, liderSac, SecaoSac, StatusSacChip } from "./ComponentesSac";
 export default function PaginaFilaSac() {
   const { token, user } = useAuth();
@@ -84,18 +65,13 @@ export default function PaginaFilaSac() {
   }, [token]);
   return (
     <AppLayout>
-      <Stack spacing={3}>
-        <Box>
-          <Typography variant="h4" sx={{ fontWeight: 800 }}>
-            {lider ? "Atendimento SAC" : "Meus atendimentos"}
-          </Typography>
-          <Typography color="text.secondary">
-            Acompanhe as ocorrências recebidas pelo Canal do Cliente,
-            responsáveis e prazos.
-          </Typography>
-        </Box>
+      <CrmPageShell sx={paginaAtendimentoSx}>
+        <PageTopContent title={lider ? "Atendimento SAC" : "Meus atendimentos"} />
         {lider && (
+          <Paper elevation={0} sx={{ ...superficieAtendimentoSx, p: 0.75 }}>
           <Tabs
+            aria-label="Filas de atendimento SAC"
+            sx={abasAtendimentoSx}
             value={fila}
             onChange={(_, v) => {
               setFila(v);
@@ -107,8 +83,9 @@ export default function PaginaFilaSac() {
             <Tab label="Novos atendimentos" />
             <Tab label="Meus atendimentos" />
           </Tabs>
+          </Paper>
         )}
-        <SecaoSac titulo="Filtros">
+        <SecaoSac compacto titulo="Filtros">
           <Box
             component="form"
             onSubmit={(e) => {
@@ -123,7 +100,7 @@ export default function PaginaFilaSac() {
                 sm: "repeat(2, minmax(0, 1fr))",
                 lg: "repeat(4, minmax(0, 1fr))",
               },
-              gap: 2,
+              gap: 1.5,
               alignItems: "end",
               width: "100%",
             }}
@@ -331,7 +308,7 @@ export default function PaginaFilaSac() {
             {erro}
           </Alert>
         )}
-        <SecaoSac titulo={`${dados.total} atendimento(s)`}>
+        <SecaoSac compacto titulo={`${dados.total} atendimento(s)`}>
           {carregando ? (
             <CircularProgress size={28} />
           ) : !dados.itens.length ? (
@@ -400,17 +377,8 @@ export default function PaginaFilaSac() {
                         <Button
                           component={Link}
                           href={`/atendimento/${a.id}`}
-                          variant="contained"
-                          sx={{
-                            backgroundColor: "#ff5805",
-                            color: "#ffffff",
-                            fontWeight: 600,
-                            textTransform: "none",
+                          variant="outlined"
 
-                            "&:hover": {
-                              backgroundColor: "#e94f00",
-                            },
-                          }}
                         >
                           Abrir
                         </Button>
@@ -427,7 +395,7 @@ export default function PaginaFilaSac() {
             onChange={(_, p) => setPagina(p)}
           />
         </SecaoSac>
-      </Stack>
+      </CrmPageShell>
     </AppLayout>
   );
 }

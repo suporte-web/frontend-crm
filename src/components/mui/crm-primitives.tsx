@@ -1,5 +1,7 @@
 "use client";
 
+import { PageTopContent, usePageTop } from "@/components/layout/page-top";
+
 import { cartaoCrmSx, indicadorCrmSx } from "./estilos-cartoes-crm";
 import Avatar from "@mui/material/Avatar";
 import Box from "@mui/material/Box";
@@ -76,6 +78,7 @@ export function CrmSection({ children, sx, className, "data-cartao-grupo": grupo
           ...crmPaperSx,
           overflow: "hidden",
           bgcolor: crmPalette.surface,
+          borderRadius: 0,
         },
         sx,
       )}
@@ -100,6 +103,8 @@ export function CrmPageHeader({
   icon,
   aside,
 }: CrmPageHeaderProps) {
+  const pageTop = usePageTop();
+  if (pageTop) return <PageTopContent title={title} description={description} aside={aside} />;
   return (
     <CrmSection sx={{ p: { xs: 3, md: 4 } }}>
       <Stack

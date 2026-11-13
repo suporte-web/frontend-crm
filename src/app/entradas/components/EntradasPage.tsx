@@ -141,9 +141,9 @@ export default function EntradasPage() {
             <p className="text-xs font-semibold uppercase tracking-[0.22em] text-slate-500">
               Comercial
             </p>
-            <h1 className="mt-1 text-2xl font-semibold text-slate-950">
+            <h2 className="mt-1 text-2xl font-semibold text-slate-950">
               Central de Entradas
-            </h1>
+            </h2>
             <p className="mt-1 max-w-2xl text-sm text-slate-600">
               Tickets criados pelo formulario publico antes de virarem cliente
               e cotação.

@@ -2,20 +2,7 @@
 
 import Link from 'next/link';
 
-import {
-  Box,
-  Button,
-  Chip,
-  Paper,
-  Stack,
-  Table,
-  TableBody,
-  TableCell,
-  TableContainer,
-  TableHead,
-  TableRow,
-  Typography,
-} from '@mui/material';
+import { Box, Button, Chip, Paper, Stack, Table, TableBody, TableCell, TableContainer, TableHead, TableRow, Typography } from '@mui/material';
 
 import { alpha } from '@mui/material/styles';
 
@@ -195,8 +182,7 @@ export function SolicitacoesSiteTabela({
         borderColor: alpha('#17212B', 0.08),
         borderRadius: 3,
         bgcolor: '#fff',
-        boxShadow:
-          '0 12px 32px rgba(23, 33, 43, 0.04)',
+        boxShadow: 'none',
       }}
     >
       <Table
@@ -215,7 +201,7 @@ export function SolicitacoesSiteTabela({
                 py: 2,
                 color: 'text.secondary',
                 fontSize: 12,
-                fontWeight: 900,
+                fontWeight: 600,
                 textTransform: 'uppercase',
                 letterSpacing: 0.5,
               }}
@@ -228,7 +214,7 @@ export function SolicitacoesSiteTabela({
                 py: 2,
                 color: 'text.secondary',
                 fontSize: 12,
-                fontWeight: 900,
+                fontWeight: 600,
                 textTransform: 'uppercase',
                 letterSpacing: 0.5,
               }}
@@ -241,7 +227,7 @@ export function SolicitacoesSiteTabela({
                 py: 2,
                 color: 'text.secondary',
                 fontSize: 12,
-                fontWeight: 900,
+                fontWeight: 600,
                 textTransform: 'uppercase',
                 letterSpacing: 0.5,
               }}
@@ -254,7 +240,7 @@ export function SolicitacoesSiteTabela({
                 py: 2,
                 color: 'text.secondary',
                 fontSize: 12,
-                fontWeight: 900,
+                fontWeight: 600,
                 textTransform: 'uppercase',
                 letterSpacing: 0.5,
               }}
@@ -267,7 +253,7 @@ export function SolicitacoesSiteTabela({
                 py: 2,
                 color: 'text.secondary',
                 fontSize: 12,
-                fontWeight: 900,
+                fontWeight: 600,
                 textTransform: 'uppercase',
                 letterSpacing: 0.5,
               }}
@@ -281,7 +267,7 @@ export function SolicitacoesSiteTabela({
                 py: 2,
                 color: 'text.secondary',
                 fontSize: 12,
-                fontWeight: 900,
+                fontWeight: 600,
                 textTransform: 'uppercase',
                 letterSpacing: 0.5,
               }}
@@ -344,7 +330,7 @@ export function SolicitacoesSiteTabela({
                         color:
                           'text.primary',
                         fontSize: 14,
-                        fontWeight: 800,
+                        fontWeight: 600,
                       }}
                     >
                       {data.data}
@@ -374,7 +360,7 @@ export function SolicitacoesSiteTabela({
                           color:
                             'text.primary',
                           fontSize: 14,
-                          fontWeight: 850,
+                          fontWeight: 600,
                         }}
                       >
                         {
@@ -443,7 +429,7 @@ export function SolicitacoesSiteTabela({
                             0.14,
                           ),
 
-                        fontWeight: 850,
+                        fontWeight: 600,
 
                         '& .MuiChip-icon':
                           {
@@ -503,7 +489,7 @@ export function SolicitacoesSiteTabela({
                           status.fundo,
                         color:
                           status.cor,
-                        fontWeight: 850,
+                        fontWeight: 600,
 
                         '& .MuiChip-label':
                           {
@@ -539,7 +525,7 @@ export function SolicitacoesSiteTabela({
                           ),
                         color:
                           '#17456B',
-                        fontWeight: 850,
+                        fontWeight: 600,
                         textTransform:
                           'none',
 
@@ -617,7 +603,7 @@ export function SolicitacoesSiteTabela({
                         color:
                           'text.primary',
                         fontSize: 16,
-                        fontWeight: 850,
+                        fontWeight: 600,
                       }}
                     >
                       Nenhuma solicitação encontrada

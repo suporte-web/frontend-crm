@@ -252,9 +252,9 @@ export default function EntradaDetailPage({
               <ArrowLeft className="h-4 w-4" />
               Voltar para Central de Entradas
             </Link>
-            <h1 className="mt-3 text-2xl font-semibold text-slate-950">
+            <h2 className="mt-3 text-2xl font-semibold text-slate-950">
               {entrada?.protocolo ?? "Entrada"}
-            </h1>
+            </h2>
             <p className="mt-1 text-sm text-slate-600">
               Origem site, tratamento comercial e conversao em cliente.
             </p>

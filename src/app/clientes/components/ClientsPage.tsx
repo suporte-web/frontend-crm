@@ -1,5 +1,7 @@
 "use client";
 
+import { PageTopContent } from "@/components/layout/page-top";
+
 import { getCadastrosResumos as getCrmClientSummaries, criarCadastro, type ModalidadeCadastro } from "@/services/cadastros.service";
 
 import { IdentificacaoProspeccao } from "@/components/crm/prospeccao-consultora";
@@ -705,23 +707,16 @@ export default function ClientsPage() {
   return (
     <AppLayout>
       <CrmPageShell sx={{ minWidth: 0, gap: 2, containerType: "inline-size", containerName: "cadastros-clientes" }}>
-        <CrmSection sx={superficieCadastrosSx}>
+        <PageTopContent title={"Cadastros"} description={"Clientes e Leads em uma única base, com contatos, documentos e acompanhamento comercial."} aside={<CrmSection sx={{ ...superficieCadastrosSx, border: 'none !important' }}>
           <Box data-cabecalho-cadastros sx={{ display: 'flex', gap: 2, alignItems: 'center', justifyContent: 'space-between', '@container cadastros-clientes (max-width: 960px)': { flexDirection: 'column', alignItems: 'stretch' } }}>
-            <Stack direction="row" spacing={1.5} sx={{ minWidth: 0, alignItems: 'flex-start', flex: '1 1 auto' }}>
-              <Box sx={{ width: 42, height: 42, flexShrink: 0, display: 'grid', placeItems: 'center', borderRadius: '10px', bgcolor: '#f8fafc', color: '#64748b', border: '1px solid #e2e8f0' }}><UsersRound size={22} /></Box>
-              <Box sx={{ minWidth: 0 }}>
-                <Typography sx={{ color: '#64748b', fontSize: 10.5, fontWeight: 600, letterSpacing: '.08em', mb: 0.25 }}>CRM</Typography>
-                <Typography component="h1" sx={{ color: '#1f2937', fontSize: { xs: 22, md: 25 }, fontWeight: 700, lineHeight: 1.25, letterSpacing: '-0.02em' }}>Cadastros</Typography>
-                <Typography sx={{ mt: 0.75, color: '#64748b', fontSize: 13, lineHeight: 1.6, overflowWrap: 'anywhere' }}>Clientes e Leads em uma única base, com contatos, documentos e acompanhamento comercial.</Typography>
-              </Box>
-            </Stack>
+
             <Box data-acoes-cadastros sx={{ display: 'flex', flexShrink: 0, flexWrap: 'wrap', justifyContent: 'flex-end', gap: 1, '&& .MuiButton-root': acaoCadastroSx, '@container cadastros-clientes (max-width: 480px)': { display: 'grid', gridTemplateColumns: 'repeat(2,minmax(0,1fr))', width: '100%', '& .MuiButton-contained': { gridColumn: '1 / -1' }, '&& .MuiButton-root': { ...acaoCadastroSx, px: 1, fontSize: 12.5 } } }}>
               <Button variant="outlined" startIcon={<RefreshCcw size={16} />} onClick={() => loadClients()} disabled={loading} sx={acaoSecundariaCadastroSx}>Atualizar</Button>
               <Button variant="outlined" startIcon={<Download size={16} />} onClick={() => exportClients(filteredClients)} disabled={filteredClients.length === 0} sx={acaoSecundariaCadastroSx}>Exportar lista</Button>
               {canManageClients ? <Button variant="contained" startIcon={<PlusCircle size={16} />} onClick={() => { clearCnpjError(); setIsModalOpen(true); }} sx={{ ...acaoCadastroSx, bgcolor: '#ff5805', color: '#fff', '&:hover': { bgcolor: '#e94f00', boxShadow: 'none' } }}>Novo cadastro</Button> : null}
             </Box>
           </Box>
-        </CrmSection>
+        </CrmSection>} />
 
         <Box
           sx={{

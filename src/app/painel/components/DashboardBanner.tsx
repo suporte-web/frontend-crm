@@ -19,7 +19,7 @@ export function DashboardBanner({
   objectPosition = dashboardBanner.objectPosition,
 }: DashboardBannerProps) {
   return (
-    <Box sx={{ width: '100%', height: { xs: 180, sm: 240, md: 300 }, borderRadius: '16px', overflow: 'hidden', bgcolor: '#e5e7eb' }}>
+    <Box sx={{ width: '100%', height: { xs: 160, sm: 200, md: 220 }, borderRadius: '12px', overflow: 'hidden', bgcolor: '#e5e7eb' }}>
       <Box component="img" src={src} alt={alt} fetchPriority="high"
         sx={{ display: 'block', width: '100%', height: '100%', objectFit: 'cover', objectPosition }} />
     </Box>

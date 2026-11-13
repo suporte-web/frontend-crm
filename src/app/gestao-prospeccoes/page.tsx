@@ -1,4 +1,6 @@
 "use client";
+
+import { PageTopContent } from "@/components/layout/page-top";
 import { useEffect, useState, type FormEvent, type ReactNode } from "react";
 import Link from "next/link";
 import {
@@ -242,15 +244,12 @@ export default function GestaoProspeccoesPage() {
   return (
     <AppLayout>
       <CrmPageShell sx={{ gap: 2.2, minWidth: 0, color: '#1f2937' }}>
-        <Paper elevation={0} sx={superficieOportunidadeSx}>
+        <PageTopContent title={"Gestão de prospecções"} description={"Acompanhe as consultoras e a evolução dos cadastros."} aside={<Paper elevation={0} sx={{ ...superficieOportunidadeSx, border: 'none !important' }}>
           <Stack direction={{ xs: 'column', sm: 'row' }} spacing={2} sx={{ alignItems: { sm: 'center' }, justifyContent: 'space-between' }}>
-            <Box sx={{ minWidth: 0 }}>
-              <Typography component="h1" sx={{ fontSize: { xs: 22, md: 24 }, fontWeight: 700, lineHeight: 1.3 }}>Gestão de prospecções</Typography>
-              <Typography sx={{ mt: 0.75, color: '#64748b', fontSize: 13 }}>Acompanhe as consultoras e a evolução dos cadastros.</Typography>
-            </Box>
+
             <Button variant="contained" disabled={carregando || !autorizado} startIcon={<RefreshCw size={16} />} onClick={() => setRevisao(r => r + 1)} sx={{ ...acaoPrincipalOportunidadeSx, alignSelf: { xs: 'flex-start', sm: 'center' }, flexShrink: 0 }}>Atualizar</Button>
           </Stack>
-        </Paper>
+        </Paper>} />
         {!autorizado ? <Alert severity="warning">Esta tela está disponível para Admin, Gestão e Comercial.</Alert> : <>
           <Box sx={{ display: 'grid', gridTemplateColumns: { xs: 'minmax(0,1fr)', sm: 'repeat(2,minmax(0,1fr))', lg: 'repeat(3,minmax(0,1fr))' }, gap: 1.5 }}>
             <CardProspeccao titulo="Total de prospecções" valor={carregando ? '—' : resultado.total} legenda="Cadastros na etapa atual" icone={<UserSearch size={18} />} cor="#ff5805" fundo="#fff0e8" />

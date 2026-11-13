@@ -1,19 +1,11 @@
 'use client';
+import { paginaMarketingSx } from "@/components/marketing/estilos-marketing";
+import { CrmPageShell } from "@/components/mui/crm-primitives";
+import { PageTopContent } from "@/components/layout/page-top";
 
-import {
-  useEffect,
-  useMemo,
-  useState,
-} from 'react';
+import { useEffect, useMemo, useState } from 'react';
 
-import {
-  Alert,
-  Box,
-  CircularProgress,
-  Pagination,
-  Stack,
-  Typography,
-} from '@mui/material';
+import { Alert, Box, CircularProgress, Pagination, Stack, Typography } from '@mui/material';
 
 import { AppLayout } from '@/components/layout/app-layout';
 
@@ -113,35 +105,9 @@ export default function SolicitacoesSitePage() {
 
   return (
     <AppLayout>
-      <Box>
-        <Stack spacing={3}>
-          <Box>
-            <Typography
-              component="h1"
-              sx={{
-                color: 'text.primary',
-                fontSize: {
-                  xs: 26,
-                  md: 32,
-                },
-                fontWeight: 900,
-              }}
-            >
-              Fila do site
-            </Typography>
-
-            <Typography
-              sx={{
-                mt: 0.5,
-                color: 'text.secondary',
-              }}
-            >
-              Acompanhe agregados e contatos recebidos
-              pelo site da Pizzattolog. Solicitações de
-              cotação entram diretamente em Leads.
-            </Typography>
-          </Box>
-
+      <CrmPageShell sx={paginaMarketingSx}>
+          <PageTopContent title="Fila do site" />
+          <Alert severity="info">Solicitações de cotação entram diretamente em Leads.</Alert>
           {erro ? (
             <Alert severity="error">
               {erro}
@@ -250,8 +216,7 @@ export default function SolicitacoesSitePage() {
               ) : null}
             </>
           )}
-        </Stack>
-      </Box>
+      </CrmPageShell>
     </AppLayout>
   );
 }

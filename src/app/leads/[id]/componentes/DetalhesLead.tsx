@@ -1517,7 +1517,7 @@ export default function DetalhesLead() {
                       </Typography>
 
                       <Typography
-                        component="h1"
+                        component="h2"
                         sx={{
                           mt: 0.5,
 

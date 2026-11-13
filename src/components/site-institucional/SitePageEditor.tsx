@@ -1,23 +1,19 @@
 'use client';
+import { paginaMarketingSx } from "@/components/marketing/estilos-marketing";
 
 import { FeedbackToast } from '@/components/ui/feedback-toast';
 
 import { hasAnyRole } from '@/lib/user-roles';
 import Link from 'next/link';
 
-import {
-  useCallback,
-  useEffect,
-  useRef,
-  useState,
-} from 'react';
+import { useCallback, useEffect, useRef, useState } from 'react';
 
 import Alert from '@mui/material/Alert';
 import Tabs from '@mui/material/Tabs';
 import Tab from '@mui/material/Tab';
 import { getSitePageUrl, getSitePhotoCount } from '@/config/site-institucional/site-media-guide';
 import Button from '@mui/material/Button';
-import Chip from '@mui/material/Chip';
+
 import CircularProgress from '@mui/material/CircularProgress';
 import Stack from '@mui/material/Stack';
 import Typography from '@mui/material/Typography';
@@ -27,50 +23,23 @@ import Paper from '@mui/material/Paper';
 
 import { alpha } from '@mui/material/styles';
 
-import {
-  ArrowLeft,
-  CheckCircle2,
-  Clock3,
-  FilePenLine,
-  Globe2,
-  Save,
-  Send,
-} from 'lucide-react';
+import { ArrowLeft, CheckCircle2, Clock3, FilePenLine, Globe2, Save, Send } from 'lucide-react';
 
 import { AppLayout } from '@/components/layout/app-layout';
 
-import {
-  CrmPageHeader,
-  CrmPageShell,
-  CrmSection,
+import { CrmPageHeader, CrmPageShell, CrmSection } from '@/components/mui/crm-primitives';
 
-} from '@/components/mui/crm-primitives';
+import { SiteSectionEditor } from '@/components/site-institucional/SiteSectionEditor';
+import { SiteBlogPostsEditor } from '@/components/site-institucional/SiteBlogPostsEditor';
 
-import {
-  SiteSectionEditor,
-} from '@/components/site-institucional/SiteSectionEditor';
-import {
-  SiteBlogPostsEditor,
-} from '@/components/site-institucional/SiteBlogPostsEditor';
-
-import {
-  getSitePageConfig,
-} from '@/config/site-institucional/site-page-config';
-import {
-  siteDefaultContent,
-} from '@/config/site-institucional/site-default-content';
+import { getSitePageConfig } from '@/config/site-institucional/site-page-config';
+import { siteDefaultContent } from '@/config/site-institucional/site-default-content';
 
 import { useAuth } from '@/context/auth-context';
 
-import {
-  buscarPaginaSite,
-  publicarPaginaSite,
-  salvarRascunhoPaginaSite,
-} from '@/services/site-institucional.service';
+import { buscarPaginaSite, publicarPaginaSite, salvarRascunhoPaginaSite } from '@/services/site-institucional.service';
 
-import type {
-  PaginaSite,
-} from '@/types/site-institucional';
+import type { PaginaSite } from '@/types/site-institucional';
 
 
 
@@ -660,7 +629,7 @@ export function SitePageEditor({
 
   return (
     <AppLayout>
-      <CrmPageShell>
+      <CrmPageShell sx={paginaMarketingSx}>
         {/* =====================================================
           CABEÇALHO
       ===================================================== */}
@@ -676,7 +645,7 @@ export function SitePageEditor({
           aside={
             <Stack direction={{ xs: 'column', sm: 'row' }} spacing={1}>
             <Button component="a" href={getSitePageUrl(slug)} target="_blank" rel="noopener noreferrer"
-              variant="outlined" startIcon={<Globe2 size={18} />} sx={{ textTransform: 'none', fontWeight: 800 }}>
+              variant="outlined" startIcon={<Globe2 size={18} />} sx={{ textTransform: 'none', fontWeight: 600 }}>
               Ver página no site
             </Button>
             <Button
@@ -705,7 +674,7 @@ export function SitePageEditor({
 
                 textTransform: 'none',
 
-                fontWeight: 800,
+                fontWeight: 600,
 
                 '&:hover': {
                   borderColor:
@@ -813,7 +782,7 @@ export function SitePageEditor({
 
                     fontSize: 15,
 
-                    fontWeight: 850,
+                    fontWeight: 600,
                   }}
                 >
                   Carregando conteúdo
@@ -843,7 +812,7 @@ export function SitePageEditor({
         {!loading ? (
           <Stack spacing={3}>
             <Paper variant="outlined" sx={{ p: 2.5, borderRadius: 3 }}>
-              <Typography component="h2" sx={{ fontSize: 18, fontWeight: 850 }}>Como atualizar esta página</Typography>
+              <Typography component="h2" sx={[{ fontSize: 18, fontWeight: 600 }, { fontSize: 15, fontWeight: 600 }]}>Como atualizar esta página</Typography>
               <Typography sx={{ mt: 1, fontSize: 14, color: 'text.secondary', lineHeight: 1.7 }}>
                 1. Escolha a foto e confira a prévia. 2. Salve como rascunho para continuar depois.
                 3. Clique em Publicar para atualizar o site.
@@ -959,8 +928,7 @@ export function SitePageEditor({
                 backdropFilter:
                   'blur(12px)',
 
-                boxShadow:
-                  '0 18px 50px rgba(15, 23, 42, 0.13)',
+                boxShadow: 'none',
               }}
             >
               <Stack
@@ -1032,8 +1000,7 @@ export function SitePageEditor({
                         fontSize:
                           13.5,
 
-                        fontWeight:
-                          900,
+                        fontWeight: 600,
                       }}
                     >
                       {
@@ -1102,7 +1069,7 @@ export function SitePageEditor({
                       textTransform:
                         'none',
 
-                      fontWeight: 800,
+                      fontWeight: 600,
 
                       '&:hover': {
                         borderColor:
@@ -1165,7 +1132,7 @@ export function SitePageEditor({
                       textTransform:
                         'none',
 
-                      fontWeight: 850,
+                      fontWeight: 600,
 
                       '&:hover': {
                         borderColor:
@@ -1223,17 +1190,15 @@ export function SitePageEditor({
                       textTransform:
                         'none',
 
-                      fontWeight: 900,
+                      fontWeight: 600,
 
-                      boxShadow:
-                        '0 8px 20px rgba(255, 88, 5, 0.20)',
+                      boxShadow: 'none',
 
                       '&:hover': {
                         bgcolor:
                           '#e94f00',
 
-                        boxShadow:
-                          '0 10px 24px rgba(255, 88, 5, 0.26)',
+                        boxShadow: 'none',
                       },
 
                       '&.Mui-disabled':

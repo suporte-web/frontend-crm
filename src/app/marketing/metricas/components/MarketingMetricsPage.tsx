@@ -1,41 +1,19 @@
 "use client";
+import { paginaMarketingSx } from "@/components/marketing/estilos-marketing";
 
 import { hasAnyRole } from "@/lib/user-roles";
 import { useEffect, useState } from "react";
 import Link from "next/link";
 import { ChartSpline } from "lucide-react";
-import {
-  Alert,
-  Box,
-  Button,
-  CircularProgress,
-  MenuItem,
-  Stack,
-  Table,
-  TableBody,
-  TableCell,
-  TableContainer,
-  TableHead,
-  TableRow,
-  TextField,
-  Typography,
-} from "@mui/material";
+import { Alert, Box, Button, CircularProgress, MenuItem, Stack, Table, TableBody, TableCell, TableContainer, TableHead, TableRow, TextField, Typography } from "@mui/material";
 import { AppLayout } from "@/components/layout/app-layout";
-import {
-  CrmPageHeader,
-  CrmPageShell,
-  CrmSection,
-} from "@/components/mui/crm-primitives";
+import { CrmPageHeader, CrmPageShell, CrmSection } from "@/components/mui/crm-primitives";
 import { appScreens, isScreenEnabledForRole } from "@/config/screens";
 import { useAuth } from "@/context/auth-context";
 import { ManualAnalyticsReports } from "@/components/marketing/ManualAnalyticsReports";
 import { listarIntegracoesMarketing } from "@/services/marketing-integrations.service";
 import { carregarMetricasMarketing } from "@/services/marketing-metrics.service";
-import type {
-  MarketingMetrics,
-  MarketingSummary,
-  MetricsFilter,
-} from "@/types/marketing-metrics";
+import type { MarketingMetrics, MarketingSummary, MetricsFilter } from "@/types/marketing-metrics";
 
 const screen = appScreens.find((item) => item.key === "marketingMetrics")!;
 const number = new Intl.NumberFormat("pt-BR");
@@ -55,13 +33,13 @@ function AccessChart({ acessos }: { acessos: MarketingSummary["acessos"] }) {
     acessos.length - 1,
   ]);
   return (
-    <CrmSection sx={{ p: { xs: 2, md: 3 } }}>
+    <CrmSection sx={{ p: { xs: 2, md: 2.5 } }}>
       <Stack
         direction={{ xs: "column", sm: "row" }}
         spacing={2}
         sx={{ justifyContent: "space-between", mb: 2 }}
       >
-        <Typography variant="h6">Acessos por período</Typography>
+        <Typography sx={{ fontSize: 15, fontWeight: 600 }} variant="h6">Acessos por período</Typography>
         <TextField
           select
           size="small"
@@ -151,7 +129,7 @@ function MetricsTable({
 }) {
   return (
     <CrmSection>
-      <Typography variant="h6" sx={{ p: 2.5 }}>
+      <Typography variant="h6" sx={[{ p: 2.5 }, { fontSize: 15, fontWeight: 600 }]}>
         {title}
       </Typography>
       {!rows.length ? (
@@ -259,7 +237,7 @@ export default function MarketingMetricsPage() {
           acesso às métricas.
         </Alert>
       ) : (
-        <CrmPageShell>
+        <CrmPageShell sx={paginaMarketingSx}>
           <CrmPageHeader
             eyebrow="Marketing"
             title="Métricas"
@@ -283,7 +261,7 @@ export default function MarketingMetricsPage() {
             onChange={(event) =>
               setSource(event.target.value as "manual" | "google")
             }
-            sx={{ maxWidth: 400 }}
+            sx={{ maxWidth: 400 }} size="small"
           >
             <MenuItem value="manual">
               Importação de CSV (sem Google Cloud)
@@ -308,7 +286,7 @@ export default function MarketingMetricsPage() {
                       };
                       setDraft(value);
                       if (value.periodo !== "personalizado") setFilter(value);
-                    }}
+                    }} size="small"
                   >
                     <MenuItem value="7">7 dias</MenuItem>
                     <MenuItem value="30">30 dias</MenuItem>
@@ -326,7 +304,7 @@ export default function MarketingMetricsPage() {
                         slotProps={{ inputLabel: { shrink: true } }}
                         onChange={(event) =>
                           setDraft({ ...draft, inicio: event.target.value })
-                        }
+                        } size="small"
                       />
                       <TextField
                         type="date"
@@ -335,7 +313,7 @@ export default function MarketingMetricsPage() {
                         slotProps={{ inputLabel: { shrink: true } }}
                         onChange={(event) =>
                           setDraft({ ...draft, fim: event.target.value })
-                        }
+                        } size="small"
                       />
                       <Button
                         variant="contained"

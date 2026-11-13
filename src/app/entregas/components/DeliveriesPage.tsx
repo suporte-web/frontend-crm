@@ -1,5 +1,7 @@
 "use client";
 
+import { OperacaoPageHeader, operacaoPageSx, acaoPrincipalOperacaoSx } from "@/components/operacao/operacao-primitives";
+
 import { useEffect, useMemo, useState } from "react";
 import Alert from "@mui/material/Alert";
 import Box from "@mui/material/Box";
@@ -8,29 +10,10 @@ import Typography from "@mui/material/Typography";
 import Button from "@mui/material/Button";
 import { AppLayout } from "@/components/layout/app-layout";
 import { useAuth } from "@/context/auth-context";
-import {
-  getCities,
-  getDeliveries,
-  getDeliveriesSummary,
-  getOccurrences,
-  getPayers,
-} from "@/services/deliveries.service";
-import type {
-  DeliveryCity,
-  DeliveryFilters,
-  DeliveryOccurrence,
-  DeliveryPayer,
-  DeliveryRow,
-  DeliverySummary,
-} from "@/types/deliveries";
-import {
-  Truck,
-  MonitorUp,
-} from "lucide-react";
-import {
-  CrmPageHeader,
-  CrmPageShell,
-} from "@/components/mui/crm-primitives";
+import { getCities, getDeliveries, getDeliveriesSummary, getOccurrences, getPayers } from "@/services/deliveries.service";
+import type { DeliveryCity, DeliveryFilters, DeliveryOccurrence, DeliveryPayer, DeliveryRow, DeliverySummary } from "@/types/deliveries";
+import { MonitorUp } from "lucide-react";
+import { CrmPageShell } from "@/components/mui/crm-primitives";
 import { DeliveriesFiltersPanel } from "./DeliveriesFiltersPanel";
 import { DeliverySummaryCards } from "./DeliverySummaryCards";
 import { DeliveriesTable } from "./DeliveriesTable";
@@ -485,17 +468,16 @@ export default function DeliveriesPage() {
 
   return (
     <AppLayout>
-      <CrmPageShell>
-        <CrmPageHeader
-          eyebrow="Operação"
-          title="Monitoramento de entregas"
-          // description="Acompanhe pedidos, prazos, ocorrências e status operacional das entregas."
-          icon={<Truck size={30} />}
+      <CrmPageShell sx={operacaoPageSx}>
+        <OperacaoPageHeader
+          title="Entregas"
+          description="Acompanhe pedidos, prazos e ocorrências das entregas."
           aside={
             <Box
               sx={{
                 display: "flex",
-                flexDirection: "column",
+                flexDirection: { xs: "column", sm: "row" },
+                alignItems: { sm: "center" },
                 gap: 1.5,
                 minWidth: {
                   xs: "100%",
@@ -503,23 +485,13 @@ export default function DeliveriesPage() {
                 },
               }}
             >
-              <Paper
-                elevation={0}
-                sx={{
-                  border: "1px solid #e2e8f0",
-                  borderRadius: "12px",
-                  px: 2.5,
-                  py: 2,
-                  bgcolor: "#fff",
-                }}
-              >
+              <Box sx={{ minWidth: 0 }}>
                 <Typography
                   sx={{
                     color: "#94a3b8",
                     fontSize: 12,
-                    fontWeight: 900,
-                    letterSpacing: ".12em",
-                    textTransform: "uppercase",
+                    fontWeight: 600,
+
                   }}
                 >
                   Período aplicado
@@ -529,18 +501,18 @@ export default function DeliveriesPage() {
                   sx={{
                     mt: 0.5,
                     color: "#020617",
-                    fontSize: 18,
-                    fontWeight: 900,
+                    fontSize: 13,
+                    fontWeight: 600,
                   }}
                 >
                   {formatFilterPeriod(appliedFilters)}
                 </Typography>
-              </Paper>
+              </Box>
 
               <Button
                 variant="contained"
-                size="large"
-                startIcon={<MonitorUp size={20} />}
+                size="medium"
+                startIcon={<MonitorUp size={18} />}
                 onClick={() => {
                   window.open(
                     "/entregas/tv",
@@ -548,12 +520,7 @@ export default function DeliveriesPage() {
                     "noopener,noreferrer",
                   );
                 }}
-                sx={{
-                  borderRadius: "12px",
-                  py: 1.4,
-                  fontWeight: 900,
-                  textTransform: "none",
-                }}
+                sx={{ ...acaoPrincipalOperacaoSx, flexShrink: 0, alignSelf: { xs: "flex-start", sm: "center" } }}
               >
                 Abrir modo TV
               </Button>
@@ -580,7 +547,7 @@ export default function DeliveriesPage() {
 
         {errorMessage ? (
           <Alert severity="error" sx={{ borderRadius: "12px" }}>
-            <Typography sx={{ fontWeight: 900 }}>Erro ao carregar entregas</Typography>
+            <Typography sx={{ fontWeight: 600 }}>Erro ao carregar entregas</Typography>
             <Typography sx={{ mt: 0.5 }}>{errorMessage}</Typography>
           </Alert>
         ) : null}

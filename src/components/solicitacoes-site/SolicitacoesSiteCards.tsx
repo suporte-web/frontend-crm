@@ -1,24 +1,8 @@
 'use client';
 
-import {
-  AccountBalanceWalletRounded,
-  BuildRounded,
-  CampaignRounded,
-  GavelRounded,
-  HandshakeRounded,
-  LocalShippingRounded,
-  ReceiptLongRounded,
-  RequestQuoteRounded,
-  ViewListRounded,
-} from '@mui/icons-material';
+import { AccountBalanceWalletRounded, BuildRounded, CampaignRounded, GavelRounded, HandshakeRounded, LocalShippingRounded, ReceiptLongRounded, RequestQuoteRounded, ViewListRounded } from '@mui/icons-material';
 
-import {
-  Box,
-  Grid,
-  Paper,
-  Stack,
-  Typography,
-} from '@mui/material';
+import { Box, Grid, Paper, Stack, Typography } from '@mui/material';
 
 import { alpha } from '@mui/material/styles';
 
@@ -120,11 +104,9 @@ export function SolicitacoesSiteCards({
                 'transform 0.2s ease, box-shadow 0.2s ease',
 
               '&:hover': {
-                transform:
-                  'translateY(-2px)',
+                transform: 'none',
 
-                boxShadow:
-                  '0 12px 30px rgba(23, 33, 43, 0.08)',
+                boxShadow: 'none',
               },
             }} className="crm-kpi-card"
           >
@@ -164,7 +146,7 @@ export function SolicitacoesSiteCards({
                     color:
                       'text.secondary',
                     fontSize: 13,
-                    fontWeight: 800,
+                    fontWeight: 600,
                   }} data-cartao-titulo
                 >
                   Total da fila
@@ -177,7 +159,7 @@ export function SolicitacoesSiteCards({
                       'text.primary',
                     fontSize: 28,
                     lineHeight: 1,
-                    fontWeight: 900,
+                    fontWeight: 600,
                   }} data-cartao-valor
                 >
                   {
@@ -250,8 +232,7 @@ export function SolicitacoesSiteCards({
                       'transform 0.2s ease, box-shadow 0.2s ease',
 
                     '&:hover': {
-                      transform:
-                        'translateY(-2px)',
+                      transform: 'none',
 
                       boxShadow:
                         `0 12px 30px ${alpha(
@@ -315,8 +296,7 @@ export function SolicitacoesSiteCards({
                           fontSize:
                             13,
 
-                          fontWeight:
-                            800,
+                          fontWeight: 600,
                         }} data-cartao-titulo
                       >
                         {
@@ -337,8 +317,7 @@ export function SolicitacoesSiteCards({
                           lineHeight:
                             1,
 
-                          fontWeight:
-                            900,
+                          fontWeight: 600,
                         }} data-cartao-valor
                       >
                         {

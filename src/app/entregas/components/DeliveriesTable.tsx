@@ -1,5 +1,7 @@
 "use client";
 
+
+
 import Alert from "@mui/material/Alert";
 import Box from "@mui/material/Box";
 import Button from "@mui/material/Button";
@@ -19,11 +21,7 @@ import Typography from "@mui/material/Typography";
 import { Route } from "lucide-react";
 import { CrmSection, crmPalette } from "@/components/mui/crm-primitives";
 import type { DeliveryRow } from "@/types/deliveries";
-import {
-  DELIVERY_TABLE_COLUMNS,
-  type QuickFilter,
-  type SortField,
-} from "./delivery-page.types";
+import { DELIVERY_TABLE_COLUMNS, type QuickFilter, type SortField } from "./delivery-page.types";
 
 type DeliveriesTableProps = {
   rows: DeliveryRow[];
@@ -107,7 +105,7 @@ function renderCell(row: DeliveryRow, field: string) {
           height: 26,
           bgcolor: crmPalette.text,
           color: "#fff",
-          fontWeight: 900,
+          fontWeight: 600,
           fontSize: 12,
           borderRadius: "8px",
         }}
@@ -142,7 +140,7 @@ function renderCell(row: DeliveryRow, field: string) {
         sx={{
           ...getStatusChipSx(row.status_entrega),
           height: 26,
-          fontWeight: 800,
+          fontWeight: 600,
           fontSize: 12,
           borderRadius: "8px",
         }}
@@ -159,7 +157,7 @@ function renderCell(row: DeliveryRow, field: string) {
         sx={{
           ...getLateChipSx(row.em_atraso),
           height: 26,
-          fontWeight: 800,
+          fontWeight: 600,
           fontSize: 12,
           borderRadius: "8px",
         }}
@@ -176,7 +174,7 @@ function renderCell(row: DeliveryRow, field: string) {
         sx={{
           ...getSlaChipSx(row.sla_entrega),
           height: 26,
-          fontWeight: 800,
+          fontWeight: 600,
           fontSize: 12,
           borderRadius: "8px",
         }}
@@ -221,27 +219,16 @@ export function DeliveriesTable({
         >
           <Box>
             <Typography
-              sx={{
-                color: crmPalette.orangeDark,
-                fontSize: 12,
-                fontWeight: 900,
-                letterSpacing: ".18em",
-                textTransform: "uppercase",
-              }}
-            >
-              Detalhamento
-            </Typography>
-            <Typography
               component="h2"
               sx={{
                 mt: 0.25,
                 color: crmPalette.text,
-                fontSize: { xs: 20, md: 24 },
-                fontWeight: 900,
+                fontSize: 15,
+                fontWeight: 600,
                 lineHeight: 1.2,
               }}
             >
-              Lista detalhada dos CTRCs
+              Entregas por CTRC
             </Typography>
             <Typography sx={{ mt: 1, color: crmPalette.muted, fontSize: 14 }}>
               Total filtrado:{" "}
@@ -259,7 +246,7 @@ export function DeliveriesTable({
               sx={{
                 bgcolor: "#fff7df",
                 color: crmPalette.text,
-                fontWeight: 800,
+                fontWeight: 600,
               }}
             />
             {activeQuickFilter !== "all" ? (
@@ -267,12 +254,12 @@ export function DeliveriesTable({
                 variant="outlined"
                 onClick={() => onToggleQuickFilter("all")}
               >
-                Limpar filtro rapido
+                Limpar filtro rápido
               </Button>
             ) : null}
             <Chip
               icon={<Route size={16} />}
-              label={`Ordenacao: ${sortField} (${sortDirection === "asc" ? "crescente" : "decrescente"})`}
+              label={`Ordenação: ${sortField} (${sortDirection === "asc" ? "crescente" : "decrescente"})`}
               variant="outlined"
             />
           </Stack>
@@ -301,9 +288,10 @@ export function DeliveriesTable({
               sx={{
                 maxHeight: 680,
                 border: `1px solid ${crmPalette.border}`,
-                borderRadius: "14px",
+                borderRadius: "8px",
+                maxWidth: "100%",
                 overflow: "auto",
-                boxShadow: "0 8px 24px rgba(15, 23, 42, 0.06)",
+                boxShadow: "none",
 
                 "&::-webkit-scrollbar": {
                   height: 8,
@@ -335,13 +323,12 @@ export function DeliveriesTable({
                         key={column.field}
                         sx={{
                           minWidth: column.minWidth,
-                          bgcolor: crmPalette.text,
-                          color: "rgba(255,255,255,0.78)",
+                          bgcolor: "#f8fafc",
+                          color: "#475569",
                           fontSize: 11,
-                          fontWeight: 900,
-                          letterSpacing: ".12em",
-                          textTransform: "uppercase",
-                          borderBottom: "0",
+                          fontWeight: 600,
+
+                          borderBottom: "1px solid #e2e8f0",
                         }}
                       >
                         {column.sortable ? (
@@ -354,8 +341,8 @@ export function DeliveriesTable({
                               onToggleSort(column.field as SortField)
                             }
                             sx={{
-                             color: "#fff",
-                              fontWeight: 900,
+                             color: "#475569",
+                              fontWeight: 600,
 
                               "&:hover": {
                                 color: crmPalette.orangeDark,
@@ -397,7 +384,7 @@ export function DeliveriesTable({
                           <Typography
                             sx={{
                               color: crmPalette.text,
-                              fontWeight: 800,
+                              fontWeight: 600,
                             }}
                           >
                             Nenhuma entrega encontrada

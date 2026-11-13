@@ -1,5 +1,7 @@
 "use client";
 
+import { paginaAdministracaoSx, dialogoAdministracaoSx, campoAdministracaoSx } from "@/components/administracao/estilos-administracao";
+
 import { useEffect, useMemo, useState } from "react";
 
 import Checkbox from "@mui/material/Checkbox";
@@ -28,48 +30,15 @@ import TextField from "@mui/material/TextField";
 import Tooltip from "@mui/material/Tooltip";
 import Typography from "@mui/material/Typography";
 
-import {
-  BadgeCheck,
-  CheckCircle2,
-  CircleOff,
-  KeyRound,
-  Mail,
-  Pencil,
-  Plus,
-  RefreshCcw,
-  Search,
-  ShieldCheck,
-  Trash2,
-  UserCog,
-  UserRound,
-  UsersRound,
-  X,
-} from "lucide-react";
+import { BadgeCheck, CheckCircle2, CircleOff, KeyRound, Mail, Pencil, Plus, RefreshCcw, Search, ShieldCheck, Trash2, UserCog, UserRound, UsersRound, X } from "lucide-react";
 
 import { AppLayout } from "@/components/layout/app-layout";
-import {
-  CrmKpiCard,
-  CrmPageHeader,
-  CrmPageShell,
-  CrmSection,
-  crmPalette,
-} from "@/components/mui/crm-primitives";
+import { CrmKpiCard, CrmPageHeader, CrmPageShell, CrmSection, crmPalette } from "@/components/mui/crm-primitives";
 import { cartaoCrmSx } from "@/components/mui/estilos-cartoes-crm";
 import { FeedbackToast } from "@/components/ui/feedback-toast";
 import { useAuth } from "@/context/auth-context";
-import {
-  createUser,
-  deleteUser,
-  getUsers,
-  resetUserPassword,
-  updateUser,
-} from "@/services/users.service";
-import type {
-  CreateUserPayload,
-  UpdateUserPayload,
-  User,
-  UserRole,
-} from "@/types/user";
+import { createUser, deleteUser, getUsers, resetUserPassword, updateUser } from "@/services/users.service";
+import type { CreateUserPayload, UpdateUserPayload, User, UserRole } from "@/types/user";
 
 const roles: UserRole[] = [
   "LIDER_ATENDIMENTO",
@@ -181,53 +150,9 @@ const roleMeta: Record<
   },
 };
 
-const fieldSx = {
-  "& .MuiOutlinedInput-root": {
-    minHeight: 48,
-    borderRadius: "12px",
-    bgcolor: "#ffffff",
-  },
-  "& .MuiInputBase-input": {
-    fontSize: 14,
-    fontWeight: 700,
-  },
-  "& .MuiInputLabel-root": {
-    fontSize: 14,
-    fontWeight: 700,
-  },
-};
+const fieldSx = campoAdministracaoSx;
 
-const filterFieldSx = {
-  width: "100%",
-  minWidth: 0,
-
-  "& .MuiOutlinedInput-root": {
-    height: 42,
-    borderRadius: "10px",
-    bgcolor: "#ffffff",
-
-    "& .MuiOutlinedInput-notchedOutline": {
-      borderColor: "#dce3eb",
-    },
-
-    "&:hover .MuiOutlinedInput-notchedOutline": {
-      borderColor: "#94a3b8",
-    },
-
-    "&.Mui-focused .MuiOutlinedInput-notchedOutline": {
-      borderColor: "#ff5805",
-    },
-  },
-
-  "& .MuiInputBase-input": {
-    fontSize: 13,
-  },
-
-  "& .MuiInputLabel-root": {
-    fontSize: 13,
-    fontWeight: 500,
-  },
-};
+const filterFieldSx = campoAdministracaoSx;
 
 function getInitials(name: string) {
   const parts = name.trim().split(" ").filter(Boolean);
@@ -592,7 +517,7 @@ export default function UsersPage() {
           color: isActive ? "#047857" : "#b91c1c",
           borderColor: isActive ? "#bbf7d0" : "#fecaca",
           fontSize: 12,
-          fontWeight: 900,
+          fontWeight: 600,
           "& .MuiChip-icon": { color: "inherit" },
         }}
       />
@@ -611,7 +536,7 @@ export default function UsersPage() {
           height: 28,
           borderRadius: "8px",
           fontSize: 12,
-          fontWeight: 900,
+          fontWeight: 600,
           ...(meta?.chipSx ?? {}),
         }}
       />
@@ -716,7 +641,7 @@ export default function UsersPage() {
           transition: "border-color 160ms ease, box-shadow 160ms ease",
           "&:hover": {
             borderColor: "#fed7c3",
-            boxShadow: "0 10px 28px rgba(15, 23, 42, 0.06)",
+            boxShadow: "none",
           },
         }}
       >
@@ -740,7 +665,7 @@ export default function UsersPage() {
                 bgcolor: "#fff0e8",
                 color: crmPalette.orangeDark,
                 fontSize: 14,
-                fontWeight: 900,
+                fontWeight: 600,
                 flexShrink: 0,
               }}
             >
@@ -759,7 +684,7 @@ export default function UsersPage() {
                   sx={{
                     color: crmPalette.text,
                     fontSize: { xs: 15, md: 16 },
-                    fontWeight: 900,
+                    fontWeight: 600,
                     lineHeight: 1.25,
                     overflowWrap: "anywhere",
                   }}
@@ -823,7 +748,7 @@ export default function UsersPage() {
 
   return (
     <AppLayout>
-      <CrmPageShell>
+      <CrmPageShell sx={paginaAdministracaoSx}>
         <CrmPageHeader
           eyebrow="Administração"
           title="Gestão de usuários"
@@ -847,11 +772,11 @@ export default function UsersPage() {
                 onClick={() => loadUsers()}
                 disabled={loading}
                 sx={{
-                  minHeight: 44,
+                  minHeight: 40,
                   borderRadius: "10px",
                   px: 2,
                   textTransform: "none",
-                  fontWeight: 800,
+                  fontWeight: 600,
                 }}
               >
                 Atualizar
@@ -862,12 +787,12 @@ export default function UsersPage() {
                 startIcon={<Plus size={17} />}
                 onClick={openCreateModal}
                 sx={{
-                  minHeight: 44,
+                  minHeight: 40,
                   borderRadius: "10px",
                   px: 2.25,
                   bgcolor: crmPalette.orange,
                   textTransform: "none",
-                  fontWeight: 900,
+                  fontWeight: 600,
                   boxShadow: "none",
                   "&:hover": {
                     bgcolor: crmPalette.orangeDark,
@@ -887,7 +812,7 @@ export default function UsersPage() {
             gridTemplateColumns: {
               xs: "1fr",
               sm: "repeat(2, minmax(0, 1fr))",
-              xl: "repeat(4, minmax(0, 1fr))",
+              lg: "repeat(4, minmax(0, 1fr))",
             },
             gap: 2,
           }}
@@ -934,8 +859,8 @@ export default function UsersPage() {
                 component="h2"
                 sx={{
                   color: crmPalette.text,
-                  fontSize: 17,
-                  fontWeight: 800,
+                  fontSize: 15,
+                  fontWeight: 600,
                 }}
               >
                 Filtros
@@ -1041,7 +966,7 @@ export default function UsersPage() {
             <Box>
               <Typography
                 component="h2"
-                sx={{ color: crmPalette.text, fontSize: 18, fontWeight: 900 }}
+                sx={{ color: crmPalette.text, fontSize: 15, fontWeight: 600 }}
               >
                 Usuários cadastrados
               </Typography>
@@ -1059,7 +984,7 @@ export default function UsersPage() {
                 bgcolor: "#f1f5f9",
                 color: crmPalette.text,
                 fontSize: 12,
-                fontWeight: 900,
+                fontWeight: 600,
               }}
             />
           </Stack>
@@ -1075,7 +1000,7 @@ export default function UsersPage() {
               }}
             >
               <CircularProgress size={28} />
-              <Typography sx={{ fontSize: 13, fontWeight: 700 }}>
+              <Typography sx={{ fontSize: 13, fontWeight: 600 }}>
                 Carregando usuários...
               </Typography>
             </Stack>
@@ -1098,7 +1023,7 @@ export default function UsersPage() {
               }}
             >
               <UsersRound size={30} />
-              <Typography sx={{ fontSize: 14, fontWeight: 800 }}>
+              <Typography sx={{ fontSize: 14, fontWeight: 600 }}>
                 Nenhum usuário encontrado com os filtros aplicados.
               </Typography>
             </Stack>
@@ -1121,7 +1046,7 @@ export default function UsersPage() {
                 }}
               >
                 <Typography
-                  sx={{ color: crmPalette.muted, fontSize: 13, fontWeight: 700 }}
+                  sx={{ color: crmPalette.muted, fontSize: 13, fontWeight: 600 }}
                 >
                   Mostrando {paginationStart}-{paginationEnd} de {filteredUsers.length}
                 </Typography>
@@ -1144,11 +1069,11 @@ export default function UsersPage() {
                       "& .MuiOutlinedInput-root": {
                         borderRadius: "10px",
                         fontSize: 13,
-                        fontWeight: 800,
+                        fontWeight: 600,
                       },
                       "& .MuiInputLabel-root": {
                         fontSize: 12,
-                        fontWeight: 800,
+                        fontWeight: 600,
                       },
                     }}
                   >
@@ -1175,7 +1100,7 @@ export default function UsersPage() {
           )}
         </CrmSection>
 
-        <Dialog
+        <Dialog sx={dialogoAdministracaoSx}
           open={isModalOpen}
           onClose={closeModal}
           fullWidth
@@ -1183,9 +1108,9 @@ export default function UsersPage() {
           slotProps={{
             paper: {
               sx: {
-                borderRadius: "18px",
+                borderRadius: "12px",
                 overflow: "hidden",
-                boxShadow: "0 24px 70px rgba(15, 23, 42, 0.20)",
+                boxShadow: "none",
               },
             },
           }}
@@ -1229,7 +1154,7 @@ export default function UsersPage() {
                       sx={{
                         color: crmPalette.text,
                         fontSize: { xs: 19, md: 21 },
-                        fontWeight: 900,
+                        fontWeight: 600,
                         lineHeight: 1.2,
                       }}
                     >
@@ -1278,7 +1203,7 @@ export default function UsersPage() {
                   <Stack spacing={2}>
                     <Box>
                       <Typography
-                        sx={{ color: crmPalette.text, fontSize: 15, fontWeight: 900 }}
+                        sx={{ color: crmPalette.text, fontSize: 15, fontWeight: 600 }}
                       >
                         Dados do usuário
                       </Typography>
@@ -1289,7 +1214,7 @@ export default function UsersPage() {
                       </Typography>
                     </Box>
 
-                    <TextField
+                    <TextField size="small"
                       fullWidth
                       required
                       label="Nome completo"
@@ -1317,7 +1242,7 @@ export default function UsersPage() {
                       sx={fieldSx}
                     />
 
-                    <TextField
+                    <TextField size="small"
                       fullWidth
                       required
                       type="email"
@@ -1360,7 +1285,7 @@ export default function UsersPage() {
                   <Stack spacing={2}>
                     <Box>
                       <Typography
-                        sx={{ color: crmPalette.text, fontSize: 15, fontWeight: 900 }}
+                        sx={{ color: crmPalette.text, fontSize: 15, fontWeight: 600 }}
                       >
                         Acesso e perfis
                       </Typography>
@@ -1371,7 +1296,7 @@ export default function UsersPage() {
                       </Typography>
                     </Box>
 
-                    <TextField
+                    <TextField size="small"
                       select
                       fullWidth
                       required
@@ -1413,7 +1338,7 @@ export default function UsersPage() {
                     </TextField>
 
                     {!editingUser && form.roles.includes('CONSULTORA') && (
-                      <TextField
+                      <TextField size="small"
                         fullWidth
                         required
                         type="password"
@@ -1461,7 +1386,7 @@ export default function UsersPage() {
                             color: crmPalette.text,
                             "& .MuiFormControlLabel-label": {
                               fontSize: 14,
-                              fontWeight: 800,
+                              fontWeight: 600,
                             },
                           }}
                         />
@@ -1509,10 +1434,10 @@ export default function UsersPage() {
                 onClick={closeModal}
                 sx={{
                   minWidth: 110,
-                  minHeight: 44,
+                  minHeight: 40,
                   borderRadius: "10px",
                   textTransform: "none",
-                  fontWeight: 800,
+                  fontWeight: 600,
                 }}
               >
                 Cancelar
@@ -1533,12 +1458,12 @@ export default function UsersPage() {
                 }
                 sx={{
                   minWidth: 155,
-                  minHeight: 44,
+                  minHeight: 40,
                   borderRadius: "10px",
                   px: 2.5,
                   bgcolor: crmPalette.orange,
                   textTransform: "none",
-                  fontWeight: 900,
+                  fontWeight: 600,
                   boxShadow: "none",
                   "&:hover": {
                     bgcolor: crmPalette.orangeDark,
@@ -1556,7 +1481,7 @@ export default function UsersPage() {
           </Box>
         </Dialog>
 
-        <Dialog
+        <Dialog sx={dialogoAdministracaoSx}
           open={Boolean(confirmAction)}
           onClose={() => {
             if (!confirmLoading) setConfirmAction(null);
@@ -1566,7 +1491,7 @@ export default function UsersPage() {
           slotProps={{
             paper: {
               sx: {
-                borderRadius: "16px",
+                borderRadius: "12px",
                 overflow: "hidden",
               },
             },
@@ -1579,7 +1504,7 @@ export default function UsersPage() {
               pb: 1,
               color: crmPalette.text,
               fontSize: 19,
-              fontWeight: 900,
+              fontWeight: 600,
             }}
           >
             {confirmIsDelete ? "Excluir usuário?" : "Redefinir senha?"}
@@ -1609,7 +1534,7 @@ export default function UsersPage() {
               sx={{
                 borderRadius: "10px",
                 textTransform: "none",
-                fontWeight: 800,
+                fontWeight: 600,
               }}
             >
               Cancelar
@@ -1632,7 +1557,7 @@ export default function UsersPage() {
               sx={{
                 borderRadius: "10px",
                 textTransform: "none",
-                fontWeight: 900,
+                fontWeight: 600,
                 boxShadow: "none",
                 ...(confirmIsDelete
                   ? {}

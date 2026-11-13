@@ -1,5 +1,7 @@
 "use client";
 
+import { PageTopContent } from "@/components/layout/page-top";
+
 import { FeedbackToast } from '@/components/ui/feedback-toast';
 import { notificarCrm } from '@/lib/feedback-crm';
 import { useRouter } from 'next/navigation';
@@ -289,16 +291,10 @@ export default function QuoteDetailsPage({
   return (
     <AppLayout>
       <div className="mx-auto flex w-full flex-col gap-5">
-        <section className="crm-shell-card rounded-[20px] p-6 md:p-8">
+        <PageTopContent title={"Detalhe da cotação"} description={"Todos os detalhes, histórico, valores e retorno comercial."} aside={<section className="crm-shell-card rounded-[20px] p-6 md:p-8">
           <div className="flex flex-col gap-6 xl:flex-row xl:items-center xl:justify-between">
             <div className="grid gap-6 xl:grid-cols-[1.15fr_1px_.85fr] xl:items-center">
-              <div>
-                <p className="crm-eyebrow">Pipeline comercial</p>
-                <h1 className="crm-page-title">Detalhe da cotação</h1>
-                <p className="crm-page-copy">
-                  Todos os detalhes, histórico, valores e retorno comercial.
-                </p>
-              </div>
+
               <div className="hidden h-20 w-px bg-slate-200 xl:block" />
               <div>
                 <p className="text-sm font-medium text-slate-500">
@@ -366,7 +362,7 @@ export default function QuoteDetailsPage({
               </Link>
             </div>
           </div>
-        </section>
+        </section>} />
 
         {loading ? (
           <section className="rounded-3xl border border-zinc-200 bg-white p-10 text-center text-sm text-zinc-500 shadow-sm">

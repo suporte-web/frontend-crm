@@ -1,17 +1,13 @@
 "use client";
 
+
+
 import Box from "@mui/material/Box";
 import Button from "@mui/material/Button";
 import LinearProgress from "@mui/material/LinearProgress";
 import Stack from "@mui/material/Stack";
 import Typography from "@mui/material/Typography";
-import {
-  AlertCircle,
-  CheckCircle2,
-  Clock3,
-  PackageSearch,
-  Percent,
-} from "lucide-react";
+import { AlertCircle, CheckCircle2, Clock3, PackageSearch, Percent } from "lucide-react";
 import { CrmKpiCard, crmPalette } from "@/components/mui/crm-primitives";
 import type { DeliverySummary } from "@/types/deliveries";
 import type { QuickFilter } from "./delivery-page.types";
@@ -51,8 +47,11 @@ export function DeliverySummaryCards({
           sm: "repeat(2, minmax(0, 1fr))",
           lg: "repeat(5, minmax(0, 1fr))",
         },
-        gap: 2,
+        gap: 1.5,
         alignItems: "stretch",
+        "& .crm-kpi-card": { height: "100%", borderRadius: "12px", p: 2 },
+        "& [data-cartao-valor]": { fontSize: 28, fontWeight: 700 },
+        "& [data-cartao-titulo]": { fontSize: 13 },
       }}
     >
       <CrmKpiCard
@@ -62,6 +61,7 @@ export function DeliverySummaryCards({
         accent={crmPalette.blue}
         softColor="#eaf4ff"
         active={activeQuickFilter === "all"}
+        ariaPressed={activeQuickFilter === "all"}
         onClick={() => onToggleQuickFilter("all")}
       />
 
@@ -72,6 +72,7 @@ export function DeliverySummaryCards({
         accent="#35a853"
         softColor="#eaf8ed"
         active={activeQuickFilter === "entregues"}
+        ariaPressed={activeQuickFilter === "entregues"}
         onClick={() => onToggleQuickFilter("entregues")}
       />
 
@@ -82,6 +83,7 @@ export function DeliverySummaryCards({
         accent={crmPalette.yellow}
         softColor="#fff7df"
         active={activeQuickFilter === "pendentes"}
+        ariaPressed={activeQuickFilter === "pendentes"}
         onClick={() => onToggleQuickFilter("pendentes")}
       />
 
@@ -92,6 +94,7 @@ export function DeliverySummaryCards({
         accent={crmPalette.orangeDark}
         softColor="#fff0f1"
         active={activeQuickFilter === "atraso"}
+        ariaPressed={activeQuickFilter === "atraso"}
         onClick={() => onToggleQuickFilter("atraso")}
       />
 

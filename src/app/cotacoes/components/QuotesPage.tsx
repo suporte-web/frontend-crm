@@ -1,5 +1,7 @@
 "use client";
 
+import { PageTopContent } from "@/components/layout/page-top";
+
 import Link from "next/link";
 import { useEffect, useMemo, useState } from "react";
 import {
@@ -298,13 +300,13 @@ export default function QuotesPage() {
   return (
     <AppLayout>
       <div className="mx-auto flex w-full flex-col gap-5">
-        <section className="crm-shell-card rounded-[20px] p-6 md:p-8">
+        <PageTopContent title={"Cotações"} aside={<section className="crm-shell-card rounded-[20px] p-6 md:p-8">
           <div className="flex flex-col gap-5 xl:flex-row xl:items-center xl:justify-between">
             <div>
               <p className="crm-eyebrow">
                 {isClient ? "Solicitações" : "Pipeline comercial"}
               </p>
-              <h1 className="crm-page-title">Cotações</h1>
+
               <p className="mt-2 text-sm text-slate-500">
                 {isClient
                   ? "Acompanhe o status das suas solicitações de cotação e visualize os detalhes de cada resposta comercial."
@@ -347,7 +349,7 @@ export default function QuotesPage() {
               ) : null}
             </div>
           </div>
-        </section>
+        </section>} />
 
         <section className="grid grid-cols-1 gap-4 md:grid-cols-2 xl:grid-cols-4">
           {[

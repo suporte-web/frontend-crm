@@ -1,32 +1,13 @@
 "use client";
+import { dialogoMarketingSx } from "@/components/marketing/estilos-marketing";
 
 import { FeedbackToast } from '@/components/ui/feedback-toast';
 
 import { useEffect, useState } from "react";
 import Link from "next/link";
-import {
-  Alert,
-  Button,
-  Dialog,
-  DialogActions,
-  DialogContent,
-  DialogTitle,
-  MenuItem,
-  Stack,
-  TextField,
-  Typography,
-} from "@mui/material";
-import {
-  conectarGoogleAnalytics,
-  desconectarGoogleAnalytics,
-  listarPropriedadesGoogleAnalytics,
-  selecionarPropriedadeGoogleAnalytics,
-  testarGoogleAnalytics,
-} from "@/services/marketing-integrations.service";
-import type {
-  GoogleAnalyticsProperty,
-  MarketingIntegration,
-} from "@/types/marketing-integrations";
+import { Alert, Button, Dialog, DialogActions, DialogContent, DialogTitle, MenuItem, Stack, TextField, Typography } from "@mui/material";
+import { conectarGoogleAnalytics, desconectarGoogleAnalytics, listarPropriedadesGoogleAnalytics, selecionarPropriedadeGoogleAnalytics, testarGoogleAnalytics } from "@/services/marketing-integrations.service";
+import type { GoogleAnalyticsProperty, MarketingIntegration } from "@/types/marketing-integrations";
 
 export function GoogleAnalyticsControls({
   integration,
@@ -163,7 +144,7 @@ export function GoogleAnalyticsControls({
           </Button>
         ) : null}
       </Stack>
-      <Dialog
+      <Dialog sx={dialogoMarketingSx}
         open={open}
         onClose={() => !busy && setOpen(false)}
         fullWidth
@@ -181,7 +162,7 @@ export function GoogleAnalyticsControls({
               label="Propriedade"
               value={propertyId}
               disabled={busy}
-              onChange={(event) => setPropertyId(event.target.value)}
+              onChange={(event) => setPropertyId(event.target.value)} size="small"
             >
               {properties.map((property) => (
                 <MenuItem key={property.propertyId} value={property.propertyId}>
@@ -222,7 +203,7 @@ export function GoogleAnalyticsControls({
           </Button>
         </DialogActions>
       </Dialog>
-      <Dialog
+      <Dialog sx={dialogoMarketingSx}
         open={confirmDisconnect}
         onClose={() => !busy && setConfirmDisconnect(false)}
       >

@@ -16,10 +16,6 @@ export type ScreenKey =
   | 'leads'
   | 'prospectingManagement'
   | 'entradas'
-  | 'tickets'
-  | 'helpCenter'
-  | 'chat'
-  | 'suppliers'
   | 'users'
   | 'profilePermissions'
   | 'marketing'
@@ -31,7 +27,7 @@ export type ScreenKey =
   | 'logs'
   | 'entregas-por-placas';
 
-export type ProfilePermissionKey = ScreenKey | 'virtualAssistant';
+export type ProfilePermissionKey = ScreenKey;
 
 export type AppScreen = {
   key: ScreenKey;
@@ -116,30 +112,6 @@ export const appScreens: AppScreen[] = [
     roles: ['ADMIN', 'GESTAO', 'COMERCIAL'],
   },
   {
-    key: 'tickets',
-    href: '/chamados',
-    label: 'Chamados',
-    roles: ['ADMIN', 'GESTAO', 'COMERCIAL', 'CLIENTE'],
-  },
-  {
-    key: 'helpCenter',
-    href: '/central-ajuda',
-    label: 'Central de Ajuda',
-    roles: ['ADMIN', 'GESTAO', 'COMERCIAL', 'MARKETING'],
-  },
-  {
-    key: 'chat',
-    href: '/chat',
-    label: 'Chat',
-    roles: ['ADMIN', 'GESTAO', 'COMERCIAL', 'MARKETING', 'CLIENTE'],
-  },
-  {
-    key: 'suppliers',
-    href: '/fornecedores',
-    label: 'Fornecedores',
-    roles: ['ADMIN', 'GESTAO', 'COMERCIAL'],
-  },
-  {
     key: 'users',
     href: '/usuarios',
     label: 'Usuários',
@@ -217,16 +189,7 @@ export const profilePermissionItems: ProfilePermissionItem[] = [
     label,
     roles,
   })),
-  {
-    key: 'virtualAssistant',
-    label: 'Assistente Virtual',
-    roles: ['ADMIN', 'CLIENTE'],
-  },
 ];
-
-export const virtualAssistantPermission = profilePermissionItems.find(
-  (item) => item.key === 'virtualAssistant',
-)!;
 
 export function isPermissionEnabledForRole(
   permissionItem: ProfilePermissionItem,

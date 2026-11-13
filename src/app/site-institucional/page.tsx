@@ -1,4 +1,5 @@
 'use client';
+import { paginaMarketingSx } from "@/components/marketing/estilos-marketing";
 
 import { hasAnyRole } from "@/lib/user-roles";
 import Alert from '@mui/material/Alert';
@@ -14,34 +15,15 @@ import Typography from '@mui/material/Typography';
 
 import Link from 'next/link';
 
-import type {
-    ReactNode,
-} from 'react';
+import type { ReactNode } from 'react';
 
 
-import {
-    Building2,
-    FileText,
-    Globe2,
-    Home,
-    Layers3,
-    Leaf,
-    MessageSquareText,
-    Pencil,
-    Truck,
-} from 'lucide-react';
+import { Building2, FileText, Globe2, Home, Layers3, Leaf, MessageSquareText, Pencil, Truck } from 'lucide-react';
 
 import { AppLayout } from '@/components/layout/app-layout';
-import {
-    CrmPageHeader,
-    CrmPageShell,
-    CrmSection,
-    crmPalette,
-} from '@/components/mui/crm-primitives';
+import { CrmPageHeader, CrmPageShell, CrmSection, crmPalette } from '@/components/mui/crm-primitives';
 
-import {
-    sitePageConfigs,
-} from '@/config/site-institucional/site-page-config';
+import { sitePageConfigs } from '@/config/site-institucional/site-page-config';
 
 import { useAuth } from '@/context/auth-context';
 
@@ -184,7 +166,7 @@ export default function SiteInstitucionalPage() {
 
     return (
         <AppLayout>
-            <CrmPageShell>
+            <CrmPageShell sx={paginaMarketingSx}>
                 <CrmPageHeader
                     eyebrow="Marketing"
                     title="Site Institucional"
@@ -194,7 +176,7 @@ export default function SiteInstitucionalPage() {
 
                 <CrmSection
                     sx={{
-                        p: { xs: 2, md: 3 },
+                        p: { xs: 2, md: 2.5 },
                     }}
                 >
                     <Stack
@@ -214,11 +196,11 @@ export default function SiteInstitucionalPage() {
                         <Box>
                             <Typography
                                 component="h2"
-                                sx={{
+                                sx={[{
                                     fontSize: 22,
-                                    fontWeight: 900,
+                                    fontWeight: 600,
                                     color: 'text.primary',
-                                }}
+                                }, { fontSize: 15, fontWeight: 600 }]}
                             >
                                 Páginas do site
                             </Typography>
@@ -240,7 +222,7 @@ export default function SiteInstitucionalPage() {
                             sx={{
                                 bgcolor: '#fff7ed',
                                 color: crmPalette.orangeDark,
-                                fontWeight: 800,
+                                fontWeight: 600,
                                 border: '1px solid #fed7aa',
                             }}
                         />
@@ -323,7 +305,7 @@ export default function SiteInstitucionalPage() {
 
                                     border: '1px solid',
                                     borderColor: 'divider',
-                                    borderRadius: '14px',
+                                    borderRadius: '12px',
 
                                     bgcolor: '#fff',
 
@@ -331,9 +313,9 @@ export default function SiteInstitucionalPage() {
                                         'transform 160ms ease, box-shadow 160ms ease, border-color 160ms ease',
 
                                     '&:hover': {
-                                        transform: 'translateY(-2px)',
+                                        transform: 'none',
                                         borderColor: '#fdba74',
-                                        boxShadow: '0 16px 34px rgba(15, 23, 42, 0.08)',
+                                        boxShadow: 'none',
                                     },
                                 }}
                             >
@@ -370,7 +352,7 @@ export default function SiteInstitucionalPage() {
                                             ? `${getSitePhotoCount(sitePageConfigs[pagina.id])} fotos editáveis`
                                             : pagina.id === 'blog' ? 'Posts e imagens' : 'Conteúdo da página'}
                                         sx={{
-                                            fontWeight: 800,
+                                            fontWeight: 600,
                                         }}
                                     />
                                 </Stack>
@@ -383,11 +365,11 @@ export default function SiteInstitucionalPage() {
                                 >
                                     <Typography
                                         component="h3"
-                                        sx={{
+                                        sx={[{
                                             fontSize: 19,
-                                            fontWeight: 900,
+                                            fontWeight: 600,
                                             color: 'text.primary',
-                                        }}
+                                        }, { fontSize: 15, fontWeight: 600 }]}
                                     >
                                         {pagina.nome}
                                     </Typography>
@@ -432,7 +414,7 @@ export default function SiteInstitucionalPage() {
                                         startIcon={<Pencil size={16} />}
                                         sx={{
                                             borderRadius: '10px',
-                                            fontWeight: 800,
+                                            fontWeight: 600,
                                             textTransform: 'none',
                                             bgcolor: crmPalette.orange,
 

@@ -1,4 +1,5 @@
 "use client";
+import { paginaMarketingSx } from "@/components/marketing/estilos-marketing";
 
 import { hasAnyRole } from "@/lib/user-roles";
 import { useEffect, useMemo, useState } from "react";
@@ -13,30 +14,14 @@ import Paper from "@mui/material/Paper";
 import Stack from "@mui/material/Stack";
 import Typography from "@mui/material/Typography";
 
-import {
-  BarChart3,
-  Building2,
-  ExternalLink,
-  LineChart,
-  Megaphone,
-  Plug,
-} from "lucide-react";
+import { BarChart3, Building2, ExternalLink, LineChart, Megaphone, Plug } from "lucide-react";
 
 import { AppLayout } from "@/components/layout/app-layout";
 import { GoogleAnalyticsControls } from "@/components/marketing/GoogleAnalyticsControls";
-import {
-  CrmPageHeader,
-  CrmPageShell,
-  CrmSection,
-  crmPalette,
-} from "@/components/mui/crm-primitives";
+import { CrmPageHeader, CrmPageShell, CrmSection, crmPalette } from "@/components/mui/crm-primitives";
 import { useAuth } from "@/context/auth-context";
 import { listarIntegracoesMarketing } from "@/services/marketing-integrations.service";
-import type {
-  MarketingIntegration,
-  MarketingIntegrationStatus,
-  MarketingProvider,
-} from "@/types/marketing-integrations";
+import type { MarketingIntegration, MarketingIntegrationStatus, MarketingProvider } from "@/types/marketing-integrations";
 
 const allowedRoles = new Set(["ADMIN", "MARKETING"]);
 
@@ -232,7 +217,7 @@ export default function MarketingIntegrationsPage() {
 
   return (
     <AppLayout>
-      <CrmPageShell>
+      <CrmPageShell sx={paginaMarketingSx}>
         <CrmPageHeader
           eyebrow="Marketing"
           title="Integrações de Marketing"
@@ -242,7 +227,7 @@ export default function MarketingIntegrationsPage() {
 
         {pageError ? <Alert severity="error">{pageError}</Alert> : null}
 
-        <CrmSection sx={{ p: { xs: 2, md: 3 } }}>
+        <CrmSection sx={{ p: { xs: 2, md: 2.5 } }}>
           {loading ? (
             <Box sx={{ minHeight: 280, display: "grid", placeItems: "center" }}>
               <CircularProgress />
@@ -271,7 +256,7 @@ export default function MarketingIntegrationsPage() {
                       p: 2.5,
                       border: "1px solid",
                       borderColor: "divider",
-                      borderRadius: "14px",
+                      borderRadius: '12px',
                       bgcolor: "#fff",
                     }}
                   >
@@ -304,7 +289,7 @@ export default function MarketingIntegrationsPage() {
                           <Box>
                             <Typography
                               component="h2"
-                              sx={{ fontSize: 20, fontWeight: 900 }}
+                              sx={[{ fontSize: 20, fontWeight: 600 }, { fontSize: 15, fontWeight: 600 }]}
                             >
                               {provider.name}
                             </Typography>
@@ -325,7 +310,7 @@ export default function MarketingIntegrationsPage() {
                           label={status.label}
                           color={status.color}
                           size="small"
-                          sx={{ fontWeight: 800 }}
+                          sx={{ fontWeight: 600 }}
                         />
                       </Stack>
 
@@ -388,7 +373,7 @@ export default function MarketingIntegrationsPage() {
                             alignSelf: "flex-start",
                             borderRadius: "10px",
                             textTransform: "none",
-                            fontWeight: 800,
+                            fontWeight: 600,
                           }}
                         >
                           Configurar em breve
@@ -421,13 +406,13 @@ function InfoBlock({ label, value }: { label: string; value: string }) {
         sx={{
           color: "text.secondary",
           fontSize: 12,
-          fontWeight: 800,
+          fontWeight: 600,
           textTransform: "uppercase",
         }}
       >
         {label}
       </Typography>
-      <Typography sx={{ mt: 0.75, fontSize: 14, fontWeight: 800 }}>
+      <Typography sx={{ mt: 0.75, fontSize: 14, fontWeight: 600 }}>
         {value}
       </Typography>
     </Box>

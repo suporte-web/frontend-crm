@@ -3,7 +3,6 @@
 import { useEffect, useState } from "react";
 import Menu from "@mui/material/Menu";
 import MenuItem from "@mui/material/MenuItem";
-import Badge from "@mui/material/Badge";
 import Box from "@mui/material/Box";
 import Collapse from "@mui/material/Collapse";
 import List from "@mui/material/List";
@@ -29,7 +28,6 @@ type SidebarNavigationProps = {
   sections: SidebarSectionWithItems[];
   pathname: string;
   role?: string;
-  unreadChatCount: number;
   openSections: Record<string, boolean>;
   collapsed?: boolean;
   onToggleSection: (sectionId: string, fallbackOpen: boolean) => void;
@@ -37,18 +35,18 @@ type SidebarNavigationProps = {
 
 const sidebarColors = {
   orange: "#ff4d00",
-  orangeDark: "#ff5805",
-  orangeSoft: "#fff0e8",
-  orangeHover: "#ffe4d6",
+  orangeDark: "#ff6a2a",
+  orangeSoft: "rgba(255,77,0,.14)",
+  orangeHover: "rgba(255,77,0,.22)",
 
-  background: "#ffffff",
+  background: "#2f2f2f",
   submenuBackground: "transparent",
 
-  text: "#0f172a",
-  muted: "#64748b",
-  mutedLight: "#94a3b8",
+  text: "#ffffff",
+  muted: "rgba(255,255,255,.78)",
+  mutedLight: "rgba(255,255,255,.50)",
 
-  border: "#e2e8f0",
+  border: "rgba(255,255,255,.10)",
 
   danger: "#dc2626",
 };
@@ -57,12 +55,10 @@ export function SidebarNavigation({
   sections,
   pathname,
   role,
-  unreadChatCount,
   openSections,
   collapsed = false,
   onToggleSection,
 }: SidebarNavigationProps) {
-  const chatBadgeLabel = unreadChatCount > 9 ? "9+" : String(unreadChatCount);
   const [menuRecolhido, setMenuRecolhido] = useState<{ secao: string; ancora: HTMLElement } | null>(null);
 
   useEffect(() => {
@@ -371,7 +367,7 @@ export function SidebarNavigation({
               transformOrigin={{ vertical: "top", horizontal: "left" }}
               slotProps={{
                 list: { "aria-labelledby": `botao-secao-${section.id}`, sx: { p: 0.75 } },
-                paper: { sx: { ml: 1, minWidth: 220, maxWidth: 320, maxHeight: "calc(100vh - 32px)", borderRadius: "12px", border: "1px solid #e2e8f0", boxShadow: "0 8px 28px rgba(15, 23, 42, 0.16)" } },
+                paper: { sx: { bgcolor: sidebarColors.background, color: sidebarColors.text, ml: 1, minWidth: 220, maxWidth: 320, maxHeight: "calc(100vh - 32px)", borderRadius: "12px", border: "1px solid rgba(255,255,255,.10)", boxShadow: "0 8px 28px rgba(15, 23, 42, 0.16)" } },
               }}
             >
               {section.items.map((item) => {
@@ -394,7 +390,6 @@ export function SidebarNavigation({
                   >
                     <ListItemIcon sx={{ minWidth: "28px !important", color: "inherit", "& svg": { width: 18, height: 18 } }}><Icon /></ListItemIcon>
                     <ListItemText primary={getScreenLabel(item, role)} slotProps={{ primary: { sx: { fontSize: 13, fontWeight: "inherit", whiteSpace: "normal" } } }} />
-                    {item.key === "chat" && unreadChatCount > 0 ? <Box component="span" sx={{ bgcolor: sidebarColors.danger, color: "#fff", px: 0.75, borderRadius: 2, fontSize: 11 }}>{chatBadgeLabel}</Box> : null}
                   </MenuItem>
                 );
               })}
@@ -497,32 +492,6 @@ export function SidebarNavigation({
                           }
                         />
 
-                        {item.key === "chat" && unreadChatCount > 0 ? (
-                          <Badge
-                            badgeContent={chatBadgeLabel}
-                            sx={{
-                              mr: 1,
-
-                              "& .MuiBadge-badge": {
-                                position: "static",
-                                transform: "none",
-
-                                bgcolor: sidebarColors.danger,
-                                color: "#ffffff",
-
-                                fontSize: 10,
-                                fontWeight: 900,
-
-                                height: 20,
-                                minWidth: 20,
-
-                                px: 0.5,
-
-                                border: "2px solid #ffffff",
-                              },
-                            }}
-                          />
-                        ) : null}
                       </ListItemButton>
                     );
                   })}

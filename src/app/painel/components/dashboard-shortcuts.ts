@@ -23,8 +23,6 @@ const shortcutDefinitions: Array<{ id: ScreenKey; grupo: DashboardGroup }> = [
   { id: 'siteRequests', grupo: 'Começar' },
   { id: 'entregas', grupo: 'Começar' },
   { id: 'entradas', grupo: 'Começar' },
-  { id: 'tickets', grupo: 'Começar' },
-  { id: 'suppliers', grupo: 'Começar' },
   { id: 'bi', grupo: 'Relatórios' },
   { id: 'commercialBi', grupo: 'Relatórios' },
   { id: 'marketingMetrics', grupo: 'Marketing' },
@@ -35,8 +33,6 @@ const shortcutDefinitions: Array<{ id: ScreenKey; grupo: DashboardGroup }> = [
   { id: 'informativo', grupo: 'Marketing' },
   { id: 'atendimentoSac', grupo: 'Atendimento' },
   { id: 'acoesSac', grupo: 'Atendimento' },
-  { id: 'chat', grupo: 'Atendimento' },
-  { id: 'helpCenter', grupo: 'Atendimento' },
   { id: 'users', grupo: 'Administração' },
   { id: 'logs', grupo: 'Administração' },
 ];

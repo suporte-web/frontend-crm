@@ -1,5 +1,7 @@
 "use client";
 
+import { campoOperacaoSx, superficieOperacaoSx, acaoPrincipalOperacaoSx, acaoSecundariaOperacaoSx } from "@/components/operacao/operacao-primitives";
+
 import Autocomplete from "@mui/material/Autocomplete";
 import Box from "@mui/material/Box";
 import Button from "@mui/material/Button";
@@ -8,19 +10,8 @@ import MenuItem from "@mui/material/MenuItem";
 import Stack from "@mui/material/Stack";
 import TextField from "@mui/material/TextField";
 import Typography from "@mui/material/Typography";
-import {
-  CalendarDays,
-  Download,
-  FileText,
-  Flag,
-  Funnel,
-  ListFilter,
-  MapPin,
-  RefreshCcw,
-  SlidersHorizontal,
-  Tag,
-} from "lucide-react";
-import { CrmSection, crmPalette } from "@/components/mui/crm-primitives";
+import { CalendarDays, Download, FileText, Flag, Funnel, ListFilter, MapPin, RefreshCcw, SlidersHorizontal, Tag } from "lucide-react";
+import { CrmSection } from "@/components/mui/crm-primitives";
 import type { DeliveryFilters, DeliveryOccurrence } from "@/types/deliveries";
 
 type DeliveriesFiltersPanelProps = {
@@ -43,78 +34,15 @@ type DeliveriesFiltersPanelProps = {
   onExportCsv: () => void;
 };
 
-const textFieldSx = {
-  "& .MuiOutlinedInput-root": {
-    borderRadius: "12px",
-    bgcolor: "#fff",
-    height: 56,
-    fontWeight: 700,
-  },
+const textFieldSx = campoOperacaoSx;
 
-  "& .MuiInputBase-input": {
-    fontSize: 14,
-  },
-
-  "& .MuiSelect-select": {
-    display: "flex",
-    alignItems: "center",
-    fontSize: 14,
-  },
-
-  "& .MuiInputLabel-root": {
-    fontWeight: 700,
-    fontSize: 14,
-  },
-};
-
-function FilterGroup({
-  title,
-  icon,
-  children,
-}: {
-  title: string;
-  icon: React.ReactNode;
-  children: React.ReactNode;
-}) {
+function FilterGroup({ title, icon, children }: { title: string; icon: React.ReactNode; children: React.ReactNode }) {
   return (
-    <Box
-      sx={{
-        p: 1.5,
-        border: `1px solid ${crmPalette.border}`,
-        borderRadius: "12px",
-        bgcolor: "#fff",
-        height: 135,
-        display: "flex",
-        flexDirection: "column",
-      }}
-    >
-      <Stack
-        direction="row"
-        spacing={1}
-        sx={{
-          mb: 1.5,
-          alignItems: "center",
-        }}
-      >
-        <Box
-          sx={{
-            display: "grid",
-            placeItems: "center",
-            width: 30,
-            height: 30,
-            borderRadius: "50%",
-            bgcolor: "#fff0e8",
-            color: crmPalette.orangeDark,
-            flexShrink: 0,
-          }}
-        >
-          {icon}
-        </Box>
-        <Typography sx={{ fontWeight: 900, color: "#1e293b" }}>
-          {title}
-        </Typography>
+    <Box sx={{ minWidth: 0 }}>
+      <Stack direction="row" spacing={1} sx={{ mb: 1.5, alignItems: "center", color: "#ff5805" }}>
+        {icon}
+        <Typography component="h3" sx={{ fontSize: 13, fontWeight: 600, color: "#475569" }}>{title}</Typography>
       </Stack>
-
       {children}
     </Box>
   );
@@ -159,45 +87,24 @@ export function DeliveriesFiltersPanel({
     .map((value) => String(value));
 
   return (
-    <CrmSection sx={{ p: { xs: 2.5, md: 3 } }}>
-      <Stack direction="row" spacing={1.5} sx={{ alignItems: "center" }}>
-        <Box
-          sx={{
-            display: "grid",
-            placeItems: "center",
-            width: 42,
-            height: 42,
-            borderRadius: "12px",
-            bgcolor: "#fff0e8",
-            color: crmPalette.orangeDark,
-          }}
-        >
-          <SlidersHorizontal size={20} />
-        </Box>
-        <Box>
-          <Typography
-            component="h2"
-            sx={{ color: "#020617", fontSize: 20, fontWeight: 900 }}
-          >
-            Filtros de consulta
-          </Typography>
-          {/* <Typography sx={{ color: crmPalette.muted, fontSize: 14 }}>
-            Refine por periodo, destino, documento, pagador e status.
-          </Typography> */}
-        </Box>
+    <CrmSection sx={superficieOperacaoSx}>
+      <Stack direction="row" spacing={1} sx={{ alignItems: "center" }}>
+        <SlidersHorizontal size={17} color="#ff5805" />
+        <Typography component="h2" sx={{ fontSize: 15, fontWeight: 600 }}>Filtros</Typography>
       </Stack>
 
       <Box
         sx={{
-          mt: 3,
+          mt: 2.5,
           display: "grid",
-          gridTemplateColumns: { xs: "1fr", xl: "repeat(3, minmax(0, 1fr))" },
+          gridTemplateColumns: { xs: "minmax(0, 1fr)", md: "repeat(2, minmax(0, 1fr))", xl: "repeat(3, minmax(0, 1fr))" },
           gap: 2,
         }}
       >
-        <FilterGroup title="Periodo" icon={<CalendarDays size={16} />}>
+        <FilterGroup title="Período" icon={<CalendarDays size={16} />}>
           <Stack direction={{ xs: "column", sm: "row" }} spacing={2}>
             <TextField
+              size="small"
               fullWidth
               type="date"
               label="Data inicial"
@@ -209,6 +116,7 @@ export function DeliveriesFiltersPanel({
               sx={textFieldSx}
             />
             <TextField
+              size="small"
               fullWidth
               type="date"
               label="Data final"
@@ -225,6 +133,7 @@ export function DeliveriesFiltersPanel({
         <FilterGroup title="Destino" icon={<MapPin size={16} />}>
           <Stack direction={{ xs: "column", sm: "row" }} spacing={2}>
             <TextField
+              size="small"
               select
               fullWidth
               label="UF destino"
@@ -241,6 +150,7 @@ export function DeliveriesFiltersPanel({
             </TextField>
 
             <TextField
+              size="small"
               select
               fullWidth
               label="Cidade destino"
@@ -263,8 +173,9 @@ export function DeliveriesFiltersPanel({
         <FilterGroup title="Documento e pagador" icon={<FileText size={16} />}>
           <Stack direction={{ xs: "column", sm: "row" }} spacing={2}>
             <TextField
+              size="small"
               fullWidth
-              label="No. CTRC"
+              label="Nº CTRC"
               value={filters.nroCtrc}
               onChange={(event) =>
                 onUpdateFilter("nroCtrc", event.target.value)
@@ -284,6 +195,7 @@ export function DeliveriesFiltersPanel({
               renderInput={(params) => (
                 <TextField
                   {...params}
+                  size="small"
                   label="CNPJ pagador"
                   placeholder="Selecione o CNPJ"
                   sx={textFieldSx}
@@ -304,6 +216,7 @@ export function DeliveriesFiltersPanel({
               renderInput={(params) => (
                 <TextField
                   {...params}
+                  size="small"
                   label="Última ocorrência"
                   placeholder="Código ou descrição"
                   sx={textFieldSx}
@@ -312,6 +225,7 @@ export function DeliveriesFiltersPanel({
             />
 
             <TextField
+              size="small"
               select
               fullWidth
               label="Status entrega"
@@ -332,6 +246,7 @@ export function DeliveriesFiltersPanel({
 
         <FilterGroup title="Classificação" icon={<Tag size={16} />}>
           <TextField
+            size="small"
             select
             fullWidth
             label="Classificação operacional"
@@ -356,9 +271,10 @@ export function DeliveriesFiltersPanel({
       <Stack
         direction={{ xs: "column", md: "row" }}
         spacing={1.5}
-        sx={{ justifyContent: "flex-end" }}
+        sx={{ justifyContent: "flex-end", flexWrap: "wrap", gap: 1 }}
       >
         <Button
+          sx={acaoSecundariaOperacaoSx}
           variant="outlined"
           startIcon={<Download size={16} />}
           onClick={onExportCsv}
@@ -367,6 +283,7 @@ export function DeliveriesFiltersPanel({
           Exportar CSV
         </Button>
         <Button
+          sx={acaoSecundariaOperacaoSx}
           variant="outlined"
           startIcon={<ListFilter size={16} />}
           onClick={onClearFilters}
@@ -374,6 +291,7 @@ export function DeliveriesFiltersPanel({
           Limpar filtros
         </Button>
         <Button
+          sx={acaoSecundariaOperacaoSx}
           variant="outlined"
           startIcon={<RefreshCcw size={16} />}
           onClick={onRefreshData}
@@ -384,11 +302,7 @@ export function DeliveriesFiltersPanel({
           variant="contained"
           startIcon={<Funnel size={16} />}
           onClick={onApplyFilters}
-          sx={{
-            bgcolor: crmPalette.orange,
-            boxShadow: "0 12px 24px rgba(255,77,0,0.22)",
-            "&:hover": { bgcolor: crmPalette.orangeDark },
-          }}
+          sx={acaoPrincipalOperacaoSx}
         >
           Aplicar filtros
         </Button>

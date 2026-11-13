@@ -1,23 +1,11 @@
 "use client";
+import { superficieAtendimentoSx } from "./estilos-atendimento";
 import { useState } from "react";
 import { VisualizadorDocumento } from "@/components/anexos/VisualizadorDocumento";
 import { UploadAnexos } from "@/components/attachments/UploadAnexos";
-import {
-  Alert,
-  Box,
-  Button,
-  Chip,
-  Paper,
-  Stack,
-  TextField,
-  Typography,
-} from "@mui/material";
+import { Box, Button, Chip, Paper, Stack, Typography } from "@mui/material";
 import { enviarAnexoSac, baixarAnexoSac } from "@/services/atendimento-sac.api";
-import {
-  rotulosStatusSac,
-  type AnexoSac,
-  type StatusSac,
-} from "@/types/atendimento-sac.types";
+import { rotulosStatusSac, type AnexoSac, type StatusSac } from "@/types/atendimento-sac.types";
 export const liderSac = (perfil?: string | string[]) =>
   (Array.isArray(perfil) ? perfil : [perfil || ""]).some((role) => ["ADMIN", "GESTAO", "LIDER_ATENDIMENTO"].includes(role));
 export const dataSac = (data?: string | null) =>
@@ -123,14 +111,16 @@ export function StatusSacChip({
 export function SecaoSac({
   titulo,
   children,
+  compacto = false,
 }: {
   titulo: string;
   children: React.ReactNode;
+  compacto?: boolean;
 }) {
   return (
-    <Paper variant="outlined" sx={{ p: { xs: 2, md: 3 }, borderRadius: 3 }}>
+    <Paper variant="outlined" sx={compacto ? superficieAtendimentoSx : { p: { xs: 2, md: 3 }, borderRadius: 3 }}>
       <Stack spacing={2}>
-        <Typography variant="h6" sx={{ fontWeight: 700 }}>
+        <Typography component={compacto ? "h2" : "h6"} variant={compacto ? "body1" : "h6"} sx={{ fontWeight: compacto ? 600 : 700, fontSize: compacto ? 15 : undefined }}>
           {titulo}
         </Typography>
         {children}

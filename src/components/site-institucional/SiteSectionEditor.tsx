@@ -24,12 +24,12 @@ export function SiteSectionEditor({ slug, token, section, getValue, onChange, on
   const imagesOnly = section.fields.every(field => field.type === 'image');
   return (
     <CrmSection>
-      <Stack direction="row" spacing={1.5} sx={{ p: { xs: 2, md: 3 }, alignItems: 'center' }}>
+      <Stack direction="row" spacing={1.5} sx={{ p: { xs: 2, md: 2.5 }, alignItems: 'center' }}>
         <Box sx={{ width: 44, height: 44, display: 'grid', placeItems: 'center', borderRadius: 3, bgcolor: '#fff7ed', color: crmPalette.orangeDark, flexShrink: 0 }}>
           {imagesOnly ? <ImageIcon size={20} /> : <FileText size={20} />}
         </Box>
         <Box>
-          <Typography component="h2" sx={{ fontSize: 20, fontWeight: 900 }}>
+          <Typography component="h2" sx={[{ fontSize: 20, fontWeight: 600 }, { fontSize: 15, fontWeight: 600 }]}>
             {slug === 'solucoes' && section.key === 'solucoes' ? 'Cards da página Soluções' : section.title}
           </Typography>
           <Typography sx={{ mt: 0.35, color: 'text.secondary', fontSize: 13 }}>
@@ -39,7 +39,7 @@ export function SiteSectionEditor({ slug, token, section, getValue, onChange, on
           </Typography>
         </Box>
       </Stack>
-      <Box sx={{ borderTop: '1px solid', borderColor: 'divider', p: { xs: 2, md: 3 } }}>
+      <Box sx={{ borderTop: '1px solid', borderColor: 'divider', p: { xs: 2, md: 2.5 } }}>
         <Box sx={imagesOnly ? { display: 'grid', gridTemplateColumns: { xs: '1fr', lg: 'repeat(2, minmax(0, 1fr))' }, gap: 2.5 } : { display: 'grid', gap: 2 }}>
           {section.fields.map(field => {
             const value = getValue(field.path);
@@ -56,7 +56,7 @@ export function SiteSectionEditor({ slug, token, section, getValue, onChange, on
                 helperText={field.helperText} multiline={field.type === 'textarea'}
                 minRows={field.type === 'textarea' ? field.rows ?? 4 : undefined}
                 disabled={disabled} fullWidth
-                sx={{ '& .MuiOutlinedInput-root': { borderRadius: 2.5, bgcolor: '#fff' } }} />
+                sx={{ '& .MuiOutlinedInput-root': { borderRadius: 2.5, bgcolor: '#fff' } }} size="small" />
             );
           })}
         </Box>

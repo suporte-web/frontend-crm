@@ -5,10 +5,6 @@ export function hasAnyRole(user: { role?: string; roles?: string[] } | null | un
   return getUserRoles(user).some((role) => allowed.includes(role));
 }
 
-export function canUseInternalChat(user: { role?: string; roles?: string[] } | null | undefined): boolean {
-  return hasAnyRole(user, ['ADMIN', 'GESTAO', 'COMERCIAL', 'MARKETING']);
-}
-
 export function selecionarPerfis(atuais: string[], proximos: string[]): string[] {
   if (proximos.includes('CONSULTORA') && !atuais.includes('CONSULTORA')) return ['CONSULTORA'];
   return proximos.filter(perfil => perfil !== 'CONSULTORA');

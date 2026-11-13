@@ -1,6 +1,9 @@
 'use client';
 
+import { OperacaoPageHeader, operacaoPageSx, campoOperacaoSx, superficieOperacaoSx, acaoPrincipalOperacaoSx, acaoSecundariaOperacaoSx } from "@/components/operacao/operacao-primitives";
+
 import { useMemo, useState } from 'react';
+import { CrmPageShell } from '@/components/mui/crm-primitives';
 import { AppLayout } from '@/components/layout/app-layout';
 import { API_BASE_URL } from '@/services/api';
 import Alert from '@mui/material/Alert';
@@ -8,7 +11,7 @@ import Box from '@mui/material/Box';
 import MuiButton from '@mui/material/Button';
 import MuiChip from '@mui/material/Chip';
 import CircularProgress from '@mui/material/CircularProgress';
-import Divider from '@mui/material/Divider';
+
 import InputAdornment from '@mui/material/InputAdornment';
 import LinearProgress from '@mui/material/LinearProgress';
 import MenuItem from '@mui/material/MenuItem';
@@ -16,28 +19,7 @@ import Paper from '@mui/material/Paper';
 import Stack from '@mui/material/Stack';
 import TextField from '@mui/material/TextField';
 import Typography from '@mui/material/Typography';
-import {
-  AlertCircle,
-  Building2,
-  CheckCircle2,
-  CircleDashed,
-  Clock3,
-  EyeOff,
-  FileText,
-  Lock,
-  MapPin,
-  Package,
-  PackageCheck,
-  PackageOpen,
-  PackageSearch,
-  RefreshCw,
-  Search,
-  ShieldCheck,
-  Truck,
-  UserCheck,
-  UserRound,
-  X,
-} from 'lucide-react';
+import { AlertCircle, Building2, CheckCircle2, CircleDashed, Clock3, EyeOff, FileText, Lock, MapPin, Package, PackageCheck, PackageSearch, RefreshCw, Search, ShieldCheck, Truck, UserCheck, UserRound, X } from 'lucide-react';
 
 
 type TrackingQueryType = 'nro_nf' | 'pedido' | 'chave_nfe' | 'nro_coleta';
@@ -122,7 +104,7 @@ const trackingPalette = {
   muted: '#64748b',
   border: '#e2e8f0',
   orange: '#ec3f12',
-  orangeStrong: '#ec3139',
+  orangeStrong: '#ff5805',
   yellow: '#fab519',
   yellowSoft: '#fff7df',
   green: '#2f7b2d',
@@ -133,32 +115,8 @@ const trackingPalette = {
   surface: '#ffffff',
 };
 
-const paperSx = {
-  border: `1px solid ${trackingPalette.border}`,
-  borderRadius: '18px',
-  bgcolor: trackingPalette.surface,
-  boxShadow: '0 18px 50px rgba(15,23,42,0.07)',
-};
-
-const fieldSx = {
-  '& .MuiOutlinedInput-root': {
-    minHeight: 44,
-    borderRadius: '10px',
-    bgcolor: '#ffffff',
-  },
-  '& .MuiInputBase-input': {
-    py: '9px',
-    fontSize: 13,
-    fontWeight: 700,
-  },
-  '& .MuiInputLabel-root': {
-    fontSize: 13,
-    fontWeight: 800,
-  },
-  '& .MuiInputAdornment-root svg': {
-    color: '#94a3b8',
-  },
-};
+const paperSx = { ...superficieOperacaoSx, p: 0 };
+const fieldSx = campoOperacaoSx;
 
 function statusChipSx(label: string) {
   if (label.includes('Entregue')) {
@@ -1151,106 +1109,14 @@ export default function TrackingsPage() {
 
   return (
     <AppLayout>
-      <Box
-        sx={{
-          mx: 'auto',
-          width: '100%',
-          maxWidth: 1680,
-          display: 'flex',
-          flexDirection: 'column',
-          gap: 3,
-        }}
-      >
-        <Paper elevation={0} sx={{ ...paperSx, overflow: 'hidden' }}>
-          <Box sx={{ p: { xs: 2.5, md: 4 } }}>
-            <Stack
-              direction={{ xs: 'column', lg: 'row' }}
-              spacing={3}
-              sx={{
-                alignItems: { xs: 'flex-start', lg: 'center' },
-                justifyContent: 'space-between',
-                pb: 3,
-                borderBottom: `1px solid ${trackingPalette.border}`,
-              }}
-            >
-              <Stack direction={{ xs: 'column', sm: 'row' }} spacing={2} sx={{ alignItems: 'center' }}>
-                <Box
-                  sx={{
-                    width: 58,
-                    height: 58,
-                    display: 'grid',
-                    placeItems: 'center',
-                    borderRadius: '14px',
-                    bgcolor: '#ffe8df',
-                    color: trackingPalette.orange,
-                  }}
-                >
-                  <PackageSearch size={30} />
-                </Box>
-
-                <Box>
-                  <Typography
-                    sx={{
-                      color: trackingPalette.orange,
-                      fontSize: 12,
-                      fontWeight: 900,
-                      letterSpacing: '.16em',
-                      textTransform: 'uppercase',
-                    }}
-                  >
-                    Logística
-                  </Typography>
-
-                  <Typography
-                    component="h1"
-                    sx={{
-                      mt: 0.5,
-                      color: trackingPalette.title,
-                      fontSize: { xs: 30, md: 40 },
-                      fontWeight: 900,
-                      lineHeight: 1.05,
-                      letterSpacing: 0,
-                    }}
-                  >
-                    Dados para rastreamento
-                  </Typography>
-
-                  <Typography sx={{ mt: 1, color: trackingPalette.muted, fontSize: 15 }}>
-                    Informe os dados necessários para localizar a encomenda.
-                  </Typography>
-                </Box>
-              </Stack>
-
-              <Paper
-                elevation={0}
-                sx={{
-                  border: '1px solid #fed7aa',
-                  borderRadius: '14px',
-                  px: 2.5,
-                  py: 1.75,
-                  bgcolor: 'rgba(255,247,223,0.75)',
-                }}
-              >
-                <Typography
-                  sx={{
-                    color: trackingPalette.orange,
-                    fontSize: 11,
-                    fontWeight: 900,
-                    letterSpacing: '.14em',
-                    textTransform: 'uppercase',
-                  }}
-                >
-                  Tipo atual
-                </Typography>
-                <Typography sx={{ mt: 0.5, color: trackingPalette.title, fontSize: 14, fontWeight: 900 }}>
-                  {selectedQueryLabel}
-                </Typography>
-              </Paper>
-            </Stack>
-
+      <CrmPageShell sx={operacaoPageSx}>
+        <OperacaoPageHeader title="Rastreamento" description="Consulte o status e o histórico da encomenda." />
+        <Paper elevation={0} sx={superficieOperacaoSx}>
+          <Box>
+            <Typography component="h2" sx={{ fontSize: 15, fontWeight: 600 }}>Dados para consulta</Typography>
             <Box
               sx={{
-                mt: 3,
+                mt: 2.5,
                 display: 'grid',
                 gridTemplateColumns: {
                   xs: '1fr',
@@ -1389,16 +1255,7 @@ export default function TrackingsPage() {
                   isLoading ? <CircularProgress size={16} color="inherit" /> : <Search size={17} />
                 }
                 onClick={handleSearchTracking}
-                sx={{
-                  minHeight: 44,
-                  borderRadius: '12px',
-                  px: 3,
-                  bgcolor: trackingPalette.orange,
-                  fontWeight: 900,
-                  textTransform: 'none',
-                  boxShadow: '0 12px 25px rgba(236,63,18,0.22)',
-                  '&:hover': { bgcolor: '#d7350e' },
-                }}
+                sx={acaoPrincipalOperacaoSx}
               >
                 {isLoading ? 'Consultando...' : 'Rastrear encomenda'}
               </MuiButton>
@@ -1408,19 +1265,7 @@ export default function TrackingsPage() {
                 variant="outlined"
                 startIcon={<X size={17} />}
                 onClick={handleClear}
-                sx={{
-                  minHeight: 44,
-                  borderRadius: '12px',
-                  px: 3,
-                  borderColor: trackingPalette.border,
-                  color: trackingPalette.text,
-                  fontWeight: 800,
-                  textTransform: 'none',
-                  '&:hover': {
-                    borderColor: '#fed7aa',
-                    bgcolor: '#fff7df',
-                  },
-                }}
+                sx={acaoSecundariaOperacaoSx}
               >
                 Limpar dados
               </MuiButton>
@@ -1429,163 +1274,17 @@ export default function TrackingsPage() {
         </Paper>
 
         {!hasResponseData && !isLoading && !errorMessage ? (
-          <Paper elevation={0} sx={{ ...paperSx, overflow: 'hidden' }}>
-            <Stack
-              direction={{ xs: 'column', sm: 'row' }}
-              spacing={2}
-              sx={{
-                alignItems: { xs: 'flex-start', sm: 'center' },
-                justifyContent: 'space-between',
-                px: { xs: 2.5, md: 4 },
-                py: 2.5,
-                borderBottom: `1px solid ${trackingPalette.border}`,
-              }}
-            >
-              <Stack direction="row" spacing={1.5} sx={{ alignItems: 'center' }}>
-                <Box
-                  sx={{
-                    width: 44,
-                    height: 44,
-                    display: 'grid',
-                    placeItems: 'center',
-                    borderRadius: '12px',
-                    bgcolor: '#ffe8df',
-                    color: trackingPalette.orange,
-                  }}
-                >
-                  <PackageOpen size={22} />
-                </Box>
-                <Box>
-                  <Typography
-                    sx={{
-                      color: trackingPalette.orange,
-                      fontSize: 12,
-                      fontWeight: 900,
-                      letterSpacing: '.16em',
-                      textTransform: 'uppercase',
-                    }}
-                  >
-                    Resultado
-                  </Typography>
-                  <Typography sx={{ mt: 0.25, color: trackingPalette.title, fontSize: 24, fontWeight: 900 }}>
-                    Resultado da consulta
-                  </Typography>
-                </Box>
-              </Stack>
-            </Stack>
-
-            <Box sx={{ px: { xs: 2.5, md: 4 }, py: { xs: 4, md: 6 }, textAlign: 'center' }}>
-              <Box
-                sx={{
-                  mx: 'auto',
-                  width: 96,
-                  height: 96,
-                  display: 'grid',
-                  placeItems: 'center',
-                  borderRadius: '50%',
-                  bgcolor: '#fff7df',
-                  color: trackingPalette.orange,
-                  border: '1px solid #fed7aa',
-                }}
-              >
-                <PackageSearch size={44} />
-              </Box>
-
-              <Typography sx={{ mt: 3, color: trackingPalette.title, fontSize: 22, fontWeight: 900 }}>
-                Nenhum rastreamento consultado
-              </Typography>
-              <Typography sx={{ mx: 'auto', mt: 1, maxWidth: 520, color: trackingPalette.muted, fontSize: 14, lineHeight: 1.7 }}>
-                Preencha os dados acima para localizar a entrega e visualizar o histórico de movimentações.
-              </Typography>
-
-              <Box
-                sx={{
-                  mt: 3,
-                  display: 'grid',
-                  gridTemplateColumns: { xs: '1fr', sm: 'repeat(3, minmax(0, 1fr))' },
-                  gap: 1.5,
-                }}
-              >
-                {[
-                  { icon: PackageSearch, title: 'Consulte', text: 'Informe CNPJ e documento.', color: trackingPalette.blue, bg: trackingPalette.blueSoft },
-                  { icon: Truck, title: 'Acompanhe', text: 'Veja eventos da carga.', color: trackingPalette.orange, bg: '#fff7df' },
-                  { icon: CheckCircle2, title: 'Confirme', text: 'Valide a entrega final.', color: trackingPalette.green, bg: trackingPalette.greenSoft },
-                ].map((item) => {
-                  const Icon = item.icon;
-                  return (
-                    <Paper
-                      key={item.title}
-                      elevation={0}
-                      sx={{
-                        p: 2,
-                        border: `1px solid ${trackingPalette.border}`,
-                        borderRadius: '14px',
-                        bgcolor: '#ffffff',
-                      }}
-                    >
-                      <Box
-                        sx={{
-                          mx: 'auto',
-                          width: 42,
-                          height: 42,
-                          display: 'grid',
-                          placeItems: 'center',
-                          borderRadius: '12px',
-                          bgcolor: item.bg,
-                          color: item.color,
-                        }}
-                      >
-                        <Icon size={20} />
-                      </Box>
-                      <Typography sx={{ mt: 1.5, color: trackingPalette.text, fontSize: 14, fontWeight: 900 }}>
-                        {item.title}
-                      </Typography>
-                      <Typography sx={{ mt: 0.5, color: trackingPalette.muted, fontSize: 12, lineHeight: 1.5 }}>
-                        {item.text}
-                      </Typography>
-                    </Paper>
-                  );
-                })}
-              </Box>
-            </Box>
+          <Paper elevation={0} sx={{ ...superficieOperacaoSx, textAlign: 'center', py: 4 }}>
+            <PackageSearch size={28} color="#94a3b8" aria-hidden="true" />
+            <Typography component="h2" sx={{ mt: 1, fontSize: 15, fontWeight: 600 }}>Nenhum rastreamento consultado</Typography>
+            <Typography sx={{ mt: 0.75, color: '#64748b', fontSize: 13 }}>Preencha os dados acima para localizar a entrega e visualizar as movimentações.</Typography>
           </Paper>
         ) : null}
 
         {isLoading ? (
-          <Paper
-            elevation={0}
-            sx={{
-              p: { xs: 2.5, md: 4 },
-              border: '1px solid rgba(250,181,25,0.40)',
-              borderRadius: '18px',
-              bgcolor: 'rgba(250,181,25,0.10)',
-              boxShadow: '0 18px 45px rgba(52,52,52,0.08)',
-            }}
-          >
-            <Stack direction={{ xs: 'column', md: 'row' }} spacing={2} sx={{ alignItems: { xs: 'flex-start', md: 'center' } }}>
-              <Box
-                sx={{
-                  width: 56,
-                  height: 56,
-                  display: 'grid',
-                  placeItems: 'center',
-                  borderRadius: '14px',
-                  bgcolor: trackingPalette.orangeStrong,
-                  color: '#ffffff',
-                }}
-              >
-                <Truck size={26} />
-              </Box>
-              <Box sx={{ flex: 1 }}>
-                <Typography sx={{ color: trackingPalette.text, fontSize: 18, fontWeight: 900 }}>
-                  Consultando rastreamento
-                </Typography>
-                <Typography sx={{ mt: 0.5, color: 'rgba(52,52,52,0.70)', fontSize: 14, lineHeight: 1.7 }}>
-                  Aguarde enquanto buscamos as informações da encomenda e organizamos os eventos retornados.
-                </Typography>
-              </Box>
-            </Stack>
-            <LinearProgress sx={{ mt: 3, borderRadius: 999, bgcolor: 'rgba(255,255,255,0.65)', '& .MuiLinearProgress-bar': { bgcolor: trackingPalette.orangeStrong } }} />
+          <Paper elevation={0} role="status" sx={superficieOperacaoSx}>
+            <Typography sx={{ fontSize: 14, fontWeight: 600 }}>Consultando rastreamento...</Typography>
+            <LinearProgress sx={{ mt: 2, borderRadius: 999 }} />
           </Paper>
         ) : null}
 
@@ -1635,85 +1334,13 @@ export default function TrackingsPage() {
                   color: trackingPalette.text,
                   bg: 'rgba(250,181,25,0.15)',
                 },
-              ].map((card) => {
-                const Icon = card.icon;
-                return (
-                  <Paper
-                    key={card.title}
-                    elevation={0}
-                    sx={{
-                      position: 'relative',
-                      minHeight: 168,
-                      p: 2.5,
-                      overflow: 'hidden',
-                      border: `1px solid ${trackingPalette.border}`,
-                      borderRadius: '18px',
-                      bgcolor: '#ffffff',
-                      boxShadow: '0 18px 45px rgba(52,52,52,0.06)',
-                      '&:before': {
-                        content: '""',
-                        position: 'absolute',
-                        insetInline: 0,
-                        top: 0,
-                        height: 4,
-                        bgcolor: card.title === 'Monitoramento de prazo' ? trackingPalette.yellow : trackingPalette.orangeStrong,
-                      },
-                    }}
-                  >
-                    <Stack direction="row" spacing={2} sx={{ alignItems: 'flex-start', justifyContent: 'space-between' }}>
-                      <Box sx={{ minWidth: 0 }}>
-                        <Typography sx={{ color: trackingPalette.muted, fontSize: 13, fontWeight: 700 }}>
-                          {card.title}
-                        </Typography>
-                        <Typography
-                          sx={{
-                            mt: 1.25,
-                            color: trackingPalette.text,
-                            fontSize: card.title === 'Ocorrência atual' ? 16 : 22,
-                            fontWeight: 900,
-                            lineHeight: 1.25,
-                            display: '-webkit-box',
-                            WebkitLineClamp: 2,
-                            WebkitBoxOrient: 'vertical',
-                            overflow: 'hidden',
-                          }}
-                        >
-                          {card.value}
-                        </Typography>
-                        <Typography
-                          sx={{
-                            mt: 1,
-                            color: trackingPalette.muted,
-                            fontSize: 13,
-                            lineHeight: 1.55,
-                            display: '-webkit-box',
-                            WebkitLineClamp: 2,
-                            WebkitBoxOrient: 'vertical',
-                            overflow: 'hidden',
-                          }}
-                        >
-                          {card.detail}
-                        </Typography>
-                      </Box>
-
-                      <Box
-                        sx={{
-                          width: 48,
-                          height: 48,
-                          display: 'grid',
-                          placeItems: 'center',
-                          flexShrink: 0,
-                          borderRadius: '50%',
-                          bgcolor: card.bg,
-                          color: card.color,
-                        }}
-                      >
-                        <Icon size={22} />
-                      </Box>
-                    </Stack>
-                  </Paper>
-                );
-              })}
+              ].map((card) => (
+                <Paper key={card.title} elevation={0} sx={{ ...superficieOperacaoSx, p: 2 }}>
+                  <Typography sx={{ color: '#64748b', fontSize: 13 }}>{card.title}</Typography>
+                  <Typography sx={{ mt: 1, color: '#1f2937', fontSize: card.title === 'Ocorrência atual' ? 15 : 20, fontWeight: 600, overflowWrap: 'anywhere' }}>{card.value}</Typography>
+                  <Typography sx={{ mt: 0.75, color: '#64748b', fontSize: 13, overflowWrap: 'anywhere' }}>{card.detail}</Typography>
+                </Paper>
+              ))}
             </Box>
 
             <Paper elevation={0} sx={{ ...paperSx, overflow: 'hidden' }}>
@@ -1723,16 +1350,16 @@ export default function TrackingsPage() {
                 sx={{
                   alignItems: { xs: 'flex-start', sm: 'center' },
                   justifyContent: 'space-between',
-                  px: { xs: 2.5, md: 4 },
+                  px: { xs: 2, md: 2.5 },
                   py: 3,
                   borderBottom: `1px solid ${trackingPalette.border}`,
                 }}
               >
                 <Box>
-                  <Typography sx={{ color: trackingPalette.orangeStrong, fontSize: 12, fontWeight: 900, letterSpacing: '.18em', textTransform: 'uppercase' }}>
+                  <Typography sx={{ color: trackingPalette.orangeStrong, fontSize: 12, fontWeight: 600, letterSpacing: '.18em', textTransform: 'uppercase' }}>
                     Acompanhamento
                   </Typography>
-                  <Typography sx={{ mt: 0.5, color: trackingPalette.title, fontSize: { xs: 24, md: 28 }, fontWeight: 900 }}>
+                  <Typography sx={{ mt: 0.5, color: trackingPalette.title, fontSize: 16, fontWeight: 600 }}>
                     Etapas da encomenda
                   </Typography>
                   <Typography sx={{ mt: 0.75, color: trackingPalette.muted, fontSize: 14 }}>
@@ -1749,13 +1376,13 @@ export default function TrackingsPage() {
                     borderRadius: '12px',
                     borderColor: trackingPalette.border,
                     color: trackingPalette.text,
-                    fontWeight: 800,
+                    fontWeight: 600,
                     '& .MuiChip-icon': { color: trackingPalette.orangeStrong },
                   }}
                 />
               </Stack>
 
-              <Box sx={{ px: { xs: 2.5, md: 4 }, py: 4, bgcolor: '#fffdfb' }}>
+              <Box sx={{ px: { xs: 2, md: 2.5 }, py: 4, bgcolor: '#fffdfb' }}>
                 <Box
                   sx={{
                     display: 'grid',
@@ -1773,7 +1400,7 @@ export default function TrackingsPage() {
                         key={stage.title}
                         elevation={0}
                         sx={{
-                          minHeight: 230,
+                          minHeight: 190,
                           p: 2.5,
                           border: '1px solid',
                           borderColor: theme.borderColor,
@@ -1791,7 +1418,7 @@ export default function TrackingsPage() {
                               borderRadius: '50%',
                               bgcolor: theme.iconBg,
                               color: theme.iconColor,
-                              boxShadow: stage.reached ? '0 10px 24px rgba(15,23,42,0.16)' : 'none',
+                              boxShadow: 'none',
                             }}
                           >
                             <Icon size={26} />
@@ -1809,7 +1436,7 @@ export default function TrackingsPage() {
                               bgcolor: '#ffffff',
                               color: stage.reached ? theme.iconBg : '#94a3b8',
                               fontSize: 13,
-                              fontWeight: 900,
+                              fontWeight: 600,
                             }}
                           >
                             {index === 3 && stage.reached ? <CheckCircle2 size={18} /> : index + 1}
@@ -1817,7 +1444,7 @@ export default function TrackingsPage() {
                         </Stack>
 
                         <Stack direction="row" spacing={1} sx={{ mt: 2, alignItems: 'center', flexWrap: 'wrap' }}>
-                          <Typography sx={{ color: trackingPalette.title, fontSize: 18, fontWeight: 900 }}>
+                          <Typography sx={{ color: trackingPalette.title, fontSize: 18, fontWeight: 600 }}>
                             {stage.title}
                           </Typography>
                           <MuiChip
@@ -1828,7 +1455,7 @@ export default function TrackingsPage() {
                               bgcolor: theme.chipBg,
                               color: theme.chipColor,
                               fontSize: 11,
-                              fontWeight: 900,
+                              fontWeight: 600,
                             }}
                           />
                         </Stack>
@@ -1851,10 +1478,10 @@ export default function TrackingsPage() {
                           <Stack direction="row" spacing={1.25} sx={{ alignItems: 'center' }}>
                             <FileText size={18} />
                             <Box>
-                              <Typography sx={{ color: trackingPalette.muted, fontSize: 10, fontWeight: 900, letterSpacing: '.14em', textTransform: 'uppercase' }}>
+                              <Typography sx={{ color: trackingPalette.muted, fontSize: 10, fontWeight: 600, letterSpacing: '.14em', textTransform: 'uppercase' }}>
                                 Registro
                               </Typography>
-                              <Typography sx={{ mt: 0.25, color: trackingPalette.text, fontSize: 13, fontWeight: 900 }}>
+                              <Typography sx={{ mt: 0.25, color: trackingPalette.text, fontSize: 13, fontWeight: 600 }}>
                                 {stage.timestamp
                                   ? formatDateTime(stage.timestamp)
                                   : stage.reached
@@ -1884,7 +1511,7 @@ export default function TrackingsPage() {
                         borderRadius: '10px',
                         borderColor: '#ffc2b2',
                         color: trackingPalette.orange,
-                        fontWeight: 900,
+                        fontWeight: 600,
                         textTransform: 'none',
                         bgcolor: '#ffffff',
                       }}
@@ -1913,16 +1540,16 @@ export default function TrackingsPage() {
                 sx={{
                   alignItems: { xs: 'flex-start', sm: 'center' },
                   justifyContent: 'space-between',
-                  px: { xs: 2.5, md: 4 },
+                  px: { xs: 2, md: 2.5 },
                   py: 3,
                   borderBottom: `1px solid ${trackingPalette.border}`,
                 }}
               >
                 <Box>
-                  <Typography sx={{ color: trackingPalette.orangeStrong, fontSize: 12, fontWeight: 900, letterSpacing: '.16em', textTransform: 'uppercase' }}>
+                  <Typography sx={{ color: trackingPalette.orangeStrong, fontSize: 12, fontWeight: 600, letterSpacing: '.16em', textTransform: 'uppercase' }}>
                     Movimentações
                   </Typography>
-                  <Typography sx={{ mt: 0.5, color: trackingPalette.title, fontSize: 26, fontWeight: 900 }}>
+                  <Typography sx={{ mt: 0.5, color: trackingPalette.title, fontSize: 16, fontWeight: 600 }}>
                     Histórico de movimentações
                   </Typography>
                   <Typography sx={{ mt: 0.75, color: trackingPalette.muted, fontSize: 14 }}>
@@ -1939,7 +1566,7 @@ export default function TrackingsPage() {
                     borderRadius: '12px',
                     borderColor: trackingPalette.border,
                     color: trackingPalette.text,
-                    fontWeight: 800,
+                    fontWeight: 600,
                     textTransform: 'none',
                     '&:hover': { borderColor: '#fed7aa', bgcolor: '#fff7df', color: trackingPalette.orange },
                   }}
@@ -1961,7 +1588,7 @@ export default function TrackingsPage() {
                     }}
                   >
                     <CircleDashed size={30} color="#64748b" />
-                    <Typography sx={{ mt: 2, color: trackingPalette.text, fontSize: 16, fontWeight: 900 }}>
+                    <Typography sx={{ mt: 2, color: trackingPalette.text, fontSize: 16, fontWeight: 600 }}>
                       Nenhuma movimentação encontrada
                     </Typography>
                     <Typography sx={{ mx: 'auto', mt: 1, maxWidth: 520, color: trackingPalette.muted, fontSize: 14, lineHeight: 1.7 }}>
@@ -1994,7 +1621,7 @@ export default function TrackingsPage() {
                             transition: 'box-shadow 160ms ease, transform 160ms ease',
                             '&:hover': {
                               transform: 'translateY(-1px)',
-                              boxShadow: '0 14px 30px rgba(15,23,42,0.08)',
+                              boxShadow: "none",
                             },
                             '&:before': {
                               content: '""',
@@ -2041,20 +1668,20 @@ export default function TrackingsPage() {
                                       size="small"
                                       label={visual.label}
                                       variant="outlined"
-                                      sx={{ height: 26, fontSize: 11, fontWeight: 900, ...sxVisual.chip }}
+                                      sx={{ height: 26, fontSize: 11, fontWeight: 600, ...sxVisual.chip }}
                                     />
                                     {isCurrentMovement ? (
-                                      <MuiChip size="small" label="Atual" sx={{ height: 26, bgcolor: '#22c55e', color: '#ffffff', fontSize: 11, fontWeight: 900 }} />
+                                      <MuiChip size="small" label="Atual" sx={{ height: 26, bgcolor: '#22c55e', color: '#ffffff', fontSize: 11, fontWeight: 600 }} />
                                     ) : null}
                                     {item.tipo ? (
-                                      <MuiChip size="small" label={item.tipo} variant="outlined" sx={{ height: 26, borderColor: trackingPalette.border, color: trackingPalette.muted, fontSize: 11, fontWeight: 800 }} />
+                                      <MuiChip size="small" label={item.tipo} variant="outlined" sx={{ height: 26, borderColor: trackingPalette.border, color: trackingPalette.muted, fontSize: 11, fontWeight: 600 }} />
                                     ) : null}
                                     {occurrence.code ? (
-                                      <MuiChip size="small" label={`Código ${occurrence.code}`} variant="outlined" sx={{ height: 26, borderColor: trackingPalette.border, color: trackingPalette.muted, fontSize: 11, fontWeight: 800 }} />
+                                      <MuiChip size="small" label={`Código ${occurrence.code}`} variant="outlined" sx={{ height: 26, borderColor: trackingPalette.border, color: trackingPalette.muted, fontSize: 11, fontWeight: 600 }} />
                                     ) : null}
                                   </Stack>
 
-                                  <Typography sx={{ mt: 1.5, color: trackingPalette.title, fontSize: 16, fontWeight: 900, lineHeight: 1.45 }}>
+                                  <Typography sx={{ mt: 1.5, color: trackingPalette.title, fontSize: 16, fontWeight: 600, lineHeight: 1.45 }}>
                                     {occurrence.label}
                                   </Typography>
                                   <Typography sx={{ mt: 0.5, color: trackingPalette.muted, fontSize: 14, lineHeight: 1.65 }}>
@@ -2073,10 +1700,10 @@ export default function TrackingsPage() {
                                   bgcolor: '#f8fafc',
                                 }}
                               >
-                                <Typography sx={{ color: trackingPalette.title, fontSize: 13, fontWeight: 900 }}>
+                                <Typography sx={{ color: trackingPalette.title, fontSize: 13, fontWeight: 600 }}>
                                   {formatDateTime(item.data_hora_efetiva || item.data_hora)}
                                 </Typography>
-                                <Typography sx={{ mt: 0.5, color: '#94a3b8', fontSize: 10, fontWeight: 900, letterSpacing: '.14em', textTransform: 'uppercase' }}>
+                                <Typography sx={{ mt: 0.5, color: '#94a3b8', fontSize: 10, fontWeight: 600, letterSpacing: '.14em', textTransform: 'uppercase' }}>
                                   Atualização
                                 </Typography>
                               </Paper>
@@ -2127,10 +1754,10 @@ export default function TrackingsPage() {
                                       <InfoIcon size={16} />
                                     </Box>
                                     <Box sx={{ minWidth: 0 }}>
-                                      <Typography sx={{ color: '#94a3b8', fontSize: 10, fontWeight: 900, letterSpacing: '.14em', textTransform: 'uppercase' }}>
+                                      <Typography sx={{ color: '#94a3b8', fontSize: 10, fontWeight: 600, letterSpacing: '.14em', textTransform: 'uppercase' }}>
                                         {info.label}
                                       </Typography>
-                                      <Typography noWrap sx={{ mt: 0.35, color: trackingPalette.text, fontSize: 13, fontWeight: 900 }}>
+                                      <Typography noWrap sx={{ mt: 0.35, color: trackingPalette.text, fontSize: 13, fontWeight: 600 }}>
                                         {info.value}
                                       </Typography>
                                     </Box>
@@ -2151,10 +1778,10 @@ export default function TrackingsPage() {
                                   '& .MuiAlert-icon': { color: trackingPalette.green },
                                 }}
                               >
-                                <Typography sx={{ fontSize: 12, fontWeight: 900, letterSpacing: '.12em', textTransform: 'uppercase', color: trackingPalette.green }}>
+                                <Typography sx={{ fontSize: 12, fontWeight: 600, letterSpacing: '.12em', textTransform: 'uppercase', color: trackingPalette.green }}>
                                   Recebedor
                                 </Typography>
-                                <Typography sx={{ mt: 0.35, fontSize: 14, fontWeight: 900 }}>
+                                <Typography sx={{ mt: 0.35, fontSize: 14, fontWeight: 600 }}>
                                   {item.nome_recebedor}
                                 </Typography>
                                 {item.nro_doc_recebedor ? (
@@ -2193,10 +1820,10 @@ export default function TrackingsPage() {
                         bgcolor: 'rgba(255,255,255,0.05)',
                       }}
                     >
-                      <Typography sx={{ color: '#ffffff', fontSize: 14, fontWeight: 900 }}>
+                      <Typography sx={{ color: '#ffffff', fontSize: 14, fontWeight: 600 }}>
                         JSON retornado
                       </Typography>
-                      <MuiChip label="Debug" size="small" sx={{ bgcolor: 'rgba(255,255,255,0.10)', color: '#cbd5e1', fontWeight: 800 }} />
+                      <MuiChip label="Debug" size="small" sx={{ bgcolor: 'rgba(255,255,255,0.10)', color: '#cbd5e1', fontWeight: 600 }} />
                     </Stack>
                     <Box
                       component="pre"
@@ -2218,7 +1845,7 @@ export default function TrackingsPage() {
             </Paper>
           </>
         ) : null}
-      </Box>
+      </CrmPageShell>
     </AppLayout>
   );
 }

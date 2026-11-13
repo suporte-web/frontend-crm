@@ -1,12 +1,9 @@
 "use client";
 import { useCallback, useEffect, useState } from "react";
-import {
-  Alert,
-  Button,
-  CircularProgress,
-  Stack,
-  Typography,
-} from "@mui/material";
+import { Alert, Button, CircularProgress, Stack, Typography } from "@mui/material";
+import { CrmPageShell } from "@/components/mui/crm-primitives";
+import { PageTopContent } from "@/components/layout/page-top";
+import { paginaAtendimentoSx } from "@/components/atendimento-sac/estilos-atendimento";
 import { AppLayout } from "@/components/layout/app-layout";
 import { FeedbackToast } from "@/components/ui/feedback-toast";
 import { useAuth } from "@/context/auth-context";
@@ -60,18 +57,13 @@ export default function PaginaAcoesSac() {
   );
   return (
     <AppLayout>
-      <Stack spacing={3}>
-        <Typography variant="h4" sx={{ fontWeight: 800 }}>
-          Minhas ações pendentes
-        </Typography>
-        <Typography color="text.secondary">
-          Você acessa somente as tarefas atribuídas diretamente a você.
-        </Typography>
+      <CrmPageShell sx={paginaAtendimentoSx}>
+        <PageTopContent title="Minhas ações" />
         {erro && <Alert severity="error">{erro}</Alert>}
         {carregando ? (
           <CircularProgress />
         ) : (
-          <SecaoSac titulo={`${pendentes.length} ação pendente${pendentes.length !== 1 ? "s" : ""}`}>
+          <SecaoSac compacto titulo={`${pendentes.length} ação pendente${pendentes.length !== 1 ? "s" : ""}`}>
             {!pendentes.length && (
               <Alert severity="info">
                 Nenhuma ação pendente atribuída a você.
@@ -80,6 +72,7 @@ export default function PaginaAcoesSac() {
             {pendentes.map((t) => (
               <Stack
                 key={t.id}
+                data-tarefa-sac
                 direction={{ xs: "column", sm: "row" }}
                 sx={{ justifyContent: "space-between", gap: 1 }}
               >
@@ -123,7 +116,7 @@ export default function PaginaAcoesSac() {
           </SecaoSac>
         )}
         {acao && token && (
-          <SecaoSac titulo={`Ação corretiva · ${acao.protocolo}`}>
+          <SecaoSac compacto titulo={`Ação corretiva · ${acao.protocolo}`}>
             <FormularioAcaoSac
               acao={acao}
               token={token}
@@ -135,19 +128,20 @@ export default function PaginaAcoesSac() {
           </SecaoSac>
         )}
         {!!concluidas.length && (
-          <SecaoSac titulo="Histórico das minhas tarefas">
+          <SecaoSac compacto titulo="Histórico das minhas tarefas">
             {concluidas.map((t) => (
               <Stack
                 key={t.id}
-                direction="row"
-                sx={{ justifyContent: "space-between" }}
+                data-tarefa-sac
+                direction={{ xs: "column", sm: "row" }}
+                sx={{ justifyContent: "space-between", gap: 1 }}
               >
                 <Typography>
                   {t.atendimento.protocolo} ·{" "}
                   {t.status === "CANCELADA" ? "Cancelada" : "Concluída"} ·{" "}
                   {dataSac(t.concluidoEm)}
                 </Typography>
-                <Button disabled={t.status === "CANCELADA"} onClick={() => abrir(t.atendimento.id)}>
+                <Button variant="outlined" disabled={t.status === "CANCELADA"} onClick={() => abrir(t.atendimento.id)}>
                   Consultar
                 </Button>
               </Stack>
@@ -160,7 +154,7 @@ export default function PaginaAcoesSac() {
           message={mensagem}
           onClose={() => setMensagem("")}
         />
-      </Stack>
+      </CrmPageShell>
     </AppLayout>
   );
 }

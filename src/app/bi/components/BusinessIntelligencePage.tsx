@@ -1,5 +1,7 @@
 'use client';
 
+import { PageTopContent } from "@/components/layout/page-top";
+
 import { hasAnyRole } from "@/lib/user-roles";
 import {
   useEffect,
@@ -615,13 +617,10 @@ export default function BusinessIntelligencePage() {
       >
         {/* CABEÇALHO */}
 
-        <Stack direction={{ xs: 'column', sm: 'row' }} spacing={2} sx={{ justifyContent: 'space-between', alignItems: { xs: 'stretch', sm: 'center' }, mb: 2.5 }}>
-          <Box>
-            <Typography component="h1" sx={{ fontSize: { xs: 23, md: 26 }, fontWeight: 700, color: colors.text, lineHeight: 1.3 }}>Resumo do funil</Typography>
-            <Typography sx={{ mt: 0.75, color: colors.muted, fontSize: 13 }}>Leads em andamento, conversões e próximos contatos.</Typography>
-          </Box>
+        <PageTopContent title={"Resumo do funil"} description={"Leads em andamento, conversões e próximos contatos."} aside={<Stack direction={{ xs: 'column', sm: 'row' }} spacing={2} sx={{ justifyContent: 'space-between', alignItems: { xs: 'stretch', sm: 'center' }, mb: 2.5 }}>
+
           <Button type="button" onClick={() => setRefreshKey(atual => atual + 1)} disabled={loading} variant="contained" startIcon={<RefreshCcw size={16} />} sx={{ alignSelf: { xs: 'flex-start', sm: 'center' }, minHeight: 40, px: 2, borderRadius: '8px', bgcolor: colors.orange, color: '#fff', fontSize: 13, fontWeight: 600, textTransform: 'none', boxShadow: 'none', '&:hover': { bgcolor: '#e94f00', boxShadow: 'none' } }}>Atualizar</Button>
-        </Stack>
+        </Stack>} />
 
         {errorMessage ? (
           <Alert

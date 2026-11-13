@@ -233,7 +233,7 @@ export default function BiComercialPage() {
         <Stack spacing={2.2} sx={{ color: "#17374e", pb: 3 }}>
           <Paper elevation={0} sx={{ border: '1px solid #e2e8f0', borderRadius: '12px', p: { xs: 2, md: 2.5 }, bgcolor: '#fff', minWidth: 0 }}>
             <Stack direction="row" sx={{ justifyContent: 'space-between', alignItems: 'baseline', gap: 2, flexWrap: 'wrap', mb: 2 }}>
-              <Typography component="h1" sx={{ fontSize: { xs: 22, md: 24 }, fontWeight: 700, lineHeight: 1.3, color: '#1f2937' }}>BI Comercial</Typography>
+              <Typography component="h2" sx={{ fontSize: { xs: 22, md: 24 }, fontWeight: 700, lineHeight: 1.3, color: '#1f2937' }}>BI Comercial</Typography>
               {updated && <Typography sx={{ color: '#94a3b8', fontSize: 11 }}>Atualizado às {updated.toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' })}</Typography>}
             </Stack>
             <Box sx={{ display: 'grid', gridTemplateColumns: { xs: 'minmax(0, 1fr)', sm: 'repeat(2, minmax(0, 1fr))', md: 'repeat(3, minmax(0, 1fr))', lg: 'minmax(0, 1.3fr) repeat(2, minmax(0, 1fr)) auto' }, gap: 1.5, alignItems: 'center' }}>
