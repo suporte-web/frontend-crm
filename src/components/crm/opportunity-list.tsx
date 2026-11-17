@@ -1,10 +1,9 @@
-'use client';
 import { mascararValorMonetario, formatarValorMonetarioSalvo } from '@/lib/valor-oportunidade';
 import { converterValorTotalOportunidade, formatarCampoValorTotal } from '@/lib/valor-oportunidade';
 
 
 import { useEffect, useState } from 'react';
-import Link from 'next/link';
+import { Link } from 'react-router-dom';
 import {
   BadgeDollarSign,
   CalendarDays,
@@ -17,7 +16,7 @@ import { Button } from '@/components/ui/button';
 import {
   formatarEtapaOportunidade,
   getOpportunityStatusFromStage,
-} from '@/services/crm.service';
+} from '@/stores/crm/service';
 import type { Opportunity, OpportunityStage } from '@/types/crm';
 import { CamposPerdaOportunidade, DetalhesPerdaOportunidade } from './campos-perda-oportunidade';
 import { PipelineStageBadge } from './pipeline-stage-badge';
@@ -293,7 +292,7 @@ export function OpportunityList({
 
                   {opportunity.quoteId ? (
                     <Link
-                      href={`/cotacoes/${opportunity.quoteId}`}
+                      to={`/cotacoes/${opportunity.quoteId}`}
                       className={`mt-3 inline-flex rounded-2xl border px-3 py-2 text-xs font-semibold transition ${
                         darkMode
                           ? 'border-slate-700 bg-slate-900 text-slate-200 hover:bg-slate-800'

@@ -1,8 +1,6 @@
-"use client";
-
 import { useEffect, useState } from "react";
-import Link from "next/link";
-import { usePathname, useRouter } from "next/navigation";
+import { Link } from 'react-router-dom';
+import { useLocation, useNavigate } from 'react-router-dom';
 
 import AppBar from "@mui/material/AppBar";
 import Avatar from "@mui/material/Avatar";
@@ -37,7 +35,7 @@ import {
   getUnreadNotificationCount,
   markAllNotificationsRead,
   markNotificationRead,
-} from "@/services/notifications.service";
+} from "@/stores/notifications/service";
 import type { CrmNotification } from "@/types/notifications";
 
 const headerColors = {
@@ -139,8 +137,8 @@ function normalizeNotificationLink(link?: string | null) {
 }
 
 export function Header() {
-  const pathname = usePathname();
-  const router = useRouter();
+  const pathname = useLocation().pathname;
+  const navigate = useNavigate();
   const { user, token, signOut } = useAuth();
 
   const [appsAnchorEl, setAppsAnchorEl] = useState<HTMLElement | null>(null);
@@ -165,7 +163,7 @@ export function Header() {
   function handleSignOut() {
     setProfileAnchorEl(null);
     signOut();
-    router.replace("/entrar");
+    navigate("/entrar", { replace: true });
   }
 
   async function loadNotifications() {
@@ -212,12 +210,10 @@ export function Header() {
 
     const targetLink = normalizeNotificationLink(notification.link);
 
-    router.push(
-      targetLink ||
+    navigate(targetLink ||
       (notification.ticketId
         ? `/chamados?ticket=${notification.ticketId}`
-        : "/chamados"),
-    );
+        : "/chamados"));
   }
 
   async function handleMarkAllRead() {
@@ -287,7 +283,7 @@ export function Header() {
 
           <Tooltip title="Configurações da conta" arrow>
             <IconButton
-              onClick={() => router.push("/alterar-senha")}
+              onClick={() => navigate("/alterar-senha")}
               aria-label="Configurações da conta"
               sx={{
                 display: { xs: "none", md: "inline-flex" },
@@ -568,7 +564,7 @@ export function Header() {
         <ListItemButton
           onClick={() => {
             setProfileAnchorEl(null);
-            router.push("/alterar-senha");
+            navigate("/alterar-senha");
           }}
           sx={{
             minHeight: 50,
@@ -740,7 +736,7 @@ export function Header() {
               <Button
                 key={item.href}
                 component={Link}
-                href={item.href}
+                to={item.href}
                 onClick={() => setAppsAnchorEl(null)}
                 sx={{
                   minHeight: 92,

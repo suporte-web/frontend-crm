@@ -1,8 +1,6 @@
-'use client';
-
 import { useEffect, useState } from 'react';
 import { Alert, Box, Button, CircularProgress, Dialog, DialogActions, DialogContent, DialogTitle, Divider, Stack, Typography } from '@mui/material';
-import { getLeadById, getLeadObservations } from '@/services/leads.service';
+import { getLeadById, getLeadObservations } from '@/stores/leads/service';
 import { getLeadFunnelStageLabel } from '@/constants/lead-funnel';
 import { getLeadSourceLabel } from './lead-timeline';
 import type { Lead } from '@/types/leads';

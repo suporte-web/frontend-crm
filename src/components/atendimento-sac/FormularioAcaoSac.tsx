@@ -1,4 +1,3 @@
-"use client";
 import { useEffect, useRef, useState } from "react";
 import {
   Alert,
@@ -8,7 +7,7 @@ import {
   TextField,
   Typography,
 } from "@mui/material";
-import { requisitarSac } from "@/services/atendimento-sac.api";
+import { salvarPlanoAcaoSac } from "@/stores/atendimento-sac/service";
 import type { AcaoSac } from "@/types/atendimento-sac.types";
 import {
   camposSac,
@@ -65,18 +64,13 @@ export function FormularioAcaoSac({
         throw new Error("Preencha o plano, o executor e o prazo.");
       if (concluir && (!dados.dataExecucao || !dados.reporte.trim()))
         throw new Error("Informe a execução e o reporte antes de concluir.");
-      await requisitarSac(
-        token,
-        `/${acao.id}/acao${concluir ? "/concluir" : acao.status === "AGUARDANDO_ACAO" ? "/iniciar" : ""}`,
-        concluir || acao.status === "AGUARDANDO_ACAO" ? "POST" : "PUT",
-        {
+      await salvarPlanoAcaoSac(token, acao.id, {
           ...dados,
           prazo: new Date(dados.prazo).toISOString(),
           dataExecucao: dados.dataExecucao
             ? new Date(dados.dataExecucao).toISOString()
             : undefined,
-        },
-      );
+        }, concluir, acao.status === 'AGUARDANDO_ACAO');
       await atualizar();
       sucesso(
         concluir ? "Ação enviada para avaliação." : "Plano da ação salvo.",

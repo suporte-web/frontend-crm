@@ -1,8 +1,7 @@
-"use client";
 import { Chip, MenuItem, Stack, TextField } from "@mui/material";
 import { UploadAnexos } from "@/components/attachments/UploadAnexos";
 import { ListaAnexosSac } from "@/components/atendimento-sac/ComponentesSac";
-import { baixarAnexoVisita, enviarAnexoVisita } from "@/services/visitas.api";
+import { baixarAnexoVisita, enviarAnexoVisita, caminhoAnexosVisita } from "@/stores/visitas/service";
 import {
   rotulosStatusVisita,
   type EtapaVisita,
@@ -88,7 +87,7 @@ export function AnexosVisita({
         anexos={visita.anexos.filter((a) => a.etapa === etapa)}
         token={token}
         id={visita.id}
-        caminhoAnexos={`/visitas/${visita.id}/anexos`}
+        caminhoAnexos={caminhoAnexosVisita(visita.id)}
         erro={erro}
         baixar={(anexo) =>
           baixarAnexoVisita(token, visita.id, anexo.id, anexo.nome)

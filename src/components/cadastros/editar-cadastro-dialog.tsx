@@ -1,17 +1,15 @@
-"use client";
-
 import { FeedbackToast } from '@/components/ui/feedback-toast';
 import { useEffect, useState, type FormEvent } from "react";
 import { Alert, CircularProgress, Dialog, DialogContent, DialogTitle, Divider, IconButton, Stack, Typography } from "@mui/material";
 import { X } from "lucide-react";
 import { ClientForm, emptyClientContact, type ClientFormData, type ClientContactForm } from "@/components/clientes/client-form";
 import { CamposComplementaresCadastro, type CamposComerciaisCadastro } from "./campos-complementares-cadastro";
-import { alterarModalidade, atualizarEtapaCadastro, obterDadosLead, type ModalidadeCadastro } from "@/services/cadastros.service";
-import { updateClient, uploadClientDocuments } from "@/services/crm.service";
+import { alterarModalidade, atualizarEtapaCadastro, obterDadosLead, type ModalidadeCadastro } from "@/stores/cadastros/service";
+import { updateClient, uploadClientDocuments } from "@/stores/crm/service";
 import { normalizeLeadFunnelStage, type LeadFunnelStage } from "@/constants/lead-funnel";
 import { useCnpjLookup } from "@/hooks/use-cnpj-lookup";
 import type { LeadDetail } from "@/types/crm";
-import { clienteParaFormularioCliente, montarEnderecoCliente } from "@/app/clientes/[id]/components/detalhes-cliente/detalhes-cliente-compartilhado";
+import { clienteParaFormularioCliente, montarEnderecoCliente } from "@/pages/clientes/detalhes/components/detalhes-cliente/detalhes-cliente-compartilhado";
 
 export function EditarCadastroDialog({ cadastro, token, aoFechar, aoSalvar }: {
   cadastro: LeadDetail; token: string; aoFechar: () => void; aoSalvar: () => Promise<void>;
@@ -21,7 +19,7 @@ export function EditarCadastroDialog({ cadastro, token, aoFechar, aoSalvar }: {
   const [arquivos, setArquivos] = useState<File[]>([]);
   const [modalidade, setModalidade] = useState<ModalidadeCadastro>(cadastro.modalidadeCadastro || "CLIENTE");
   const [etapa, setEtapa] = useState<LeadFunnelStage>(modalidade === "CLIENTE" ? "venda_efetivada" : "entrada_leads");
-  const [comerciais, setComerciais] = useState<CamposComerciaisCadastro>({ proximaAcao: cadastro.proximaAcao || "", responsavel: cadastro.responsavel || "", volumeMensalEstimado: cadastro.volumeMensalEstimado || "" });
+  const [comerciais, setComerciais] = useState<CamposComerciaisCadastro>({ proximaAcao: cadastro.proximaAcao || "", responsavelId: cadastro.responsavelId || null, volumeMensalEstimado: cadastro.volumeMensalEstimado || "" });
   const [foto, setFoto] = useState(cadastro.fotoUrl || "");
   const [fotoOriginal, setFotoOriginal] = useState(cadastro.fotoUrl || "");
   const [carregando, setCarregando] = useState(true);
@@ -34,7 +32,7 @@ export function EditarCadastroDialog({ cadastro, token, aoFechar, aoSalvar }: {
       if (!ativo) return;
       if (lead) {
         setEtapa(normalizeLeadFunnelStage(lead.status));
-        setComerciais({ proximaAcao: String(lead.metadata?.nextAction ?? ""), responsavel: String(lead.metadata?.responsible ?? ""), volumeMensalEstimado: String(lead.metadata?.monthlyEstimatedValue ?? "") });
+        setComerciais({ proximaAcao: String(lead.metadata?.nextAction ?? ""), responsavelId: lead.responsavelId ?? null, volumeMensalEstimado: String(lead.metadata?.monthlyEstimatedValue ?? "") });
         const imagem = String(lead.metadata?.logoUrl ?? "");
         setFoto(imagem); setFotoOriginal(imagem);
       }

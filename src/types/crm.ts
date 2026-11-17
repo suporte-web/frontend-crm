@@ -54,6 +54,7 @@ export interface Opportunity {
 }
 
 export interface LeadSummary {
+  responsavelId?: string | null;
   fotoUrl?: string | null;
   proximaAcao?: string | null;
   responsavel?: string | null;

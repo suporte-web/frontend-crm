@@ -7,12 +7,16 @@ const ts = require('typescript');
 
 const root = resolve(process.argv[2] || '.');
 const user = { id: '1', name: 'Test', email: 'test@example.com', role: 'ADMIN' };
+class ApiError extends Error {
+  constructor(message, status) { super(message); this.status = status; }
+}
 
 function harness(fetch) {
   const stored = new Map([['crm_token', 'tab-token'], ['crm_user', JSON.stringify(user)]]);
   const states = [], effects = [], timers = new Map(), listeners = new Map(), redirects = [];
   let cursor = 0, timerId = 0;
   const react = {
+    useCallback: callback => callback,
     createContext: () => ({ Provider: 'provider' }),
     useState: (initial) => {
       const index = cursor++;
@@ -40,7 +44,18 @@ function harness(fetch) {
     require: name => {
       if (name === 'react') return react;
       if (name === 'react/jsx-runtime') return { jsx: (_type, props) => props };
-      if (name === '@/services/api') return { API_BASE_URL: 'http://localhost:3001/api' };
+      if (name === '@/utils/constants') return { TOKEN_KEY: 'crm_token', USER_KEY: 'crm_user', AUTH_SESSION_EXPIRED_EVENT: 'crm:session-expired' };
+      if (name === '@/utils/Api') return { ApiError };
+      if (name === '@/stores/login/service') return {
+        requestCurrentUser: async token => {
+          const response = await fetch('/api/auth/me', { headers: { Authorization: `Bearer ${token}` } });
+          const data = await response.json();
+          if (!response.ok) throw new ApiError(data.message, response.status);
+          return data;
+        },
+        requestLogin: (email, password) => fetch('/api/auth/login', { body: JSON.stringify({ email, password }) }),
+        requestChangePassword: (currentPassword, newPassword, token) => fetch('/api/auth/change-password', { headers: { Authorization: `Bearer ${token}` }, body: JSON.stringify({ currentPassword, newPassword }) }),
+      };
       throw new Error(`Unexpected dependency ${name}`);
     },
   });
@@ -68,6 +83,19 @@ test('background user refresh clears a session rejected with 401', async () => {
   await new Promise(setImmediate);
   assert.equal(app.stored.has('crm_token'), false);
   assert.equal(app.render().token, null);
+});
+
+test('resposta atrasada de auth/me não restaura usuário após logout', async () => {
+  let finish;
+  const response = new Promise(resolve => { finish = resolve; });
+  const app = harness(() => response);
+  const request = app.render().refreshUser();
+  app.render().signOut();
+  finish({ ok: true, status: 200, json: async () => user });
+  assert.equal(await request, null);
+  assert.equal(app.render().user, null);
+  assert.equal(app.stored.has('crm_user'), false);
+  assert.equal(app.stored.has('crm_token'), false);
 });
 
 test('inactivity clears the session and navigates to the existing login route', () => {

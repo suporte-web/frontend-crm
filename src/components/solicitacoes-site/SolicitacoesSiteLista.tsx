@@ -1,5 +1,3 @@
-'use client';
-
 import {
   useEffect,
   useMemo,
@@ -23,7 +21,7 @@ import { SolicitacoesSiteCards } from '@/components/solicitacoes-site/Solicitaco
 
 import { SolicitacoesSiteTabela } from '@/components/solicitacoes-site/SolicitacoesSiteTabela';
 
-import { listarSolicitacoesSite } from '@/services/solicitacoes-site.service';
+import { listarSolicitacoesSite } from '@/stores/solicitacoes-site/service';
 
 import type { EtapaCotacaoSite, SolicitacaoSite } from '@/types/solicitacao-site';
 

@@ -1,9 +1,9 @@
 import { normalizarNomesCadastro } from '@/lib/nome-cadastro';
 import type { ClientFormData } from '@/components/clientes/client-form';
-import type { CnpjData } from '@/services/cnpj.service';
+import type { CnpjData } from '@/stores/cnpj/service';
 
 export function mesclarDadosCnpj(current: ClientFormData, data: CnpjData, snapshot: ClientFormData): ClientFormData {
-  if (current.document.replace(/[.\/\-\s]/g, '') !== data.cnpj) return current;
+  if (current.document.replace(/[./\-\s]/g, '') !== data.cnpj) return current;
   const cep = data.address.zipCode?.replace(/\D/g, '') ?? '';
   const patch: Partial<ClientFormData> = {
     legalName: data.legalName, tradeName: data.tradeName,

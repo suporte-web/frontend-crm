@@ -1,5 +1,3 @@
-'use client';
-
 import { FeedbackToast } from '@/components/ui/feedback-toast';
 
 import {
@@ -84,7 +82,7 @@ const historyPostsPerPage =
   6;
 
 const publicSiteBaseUrl =
-  process.env.NEXT_PUBLIC_SITE_PUBLIC_URL?.replace(
+  import.meta.env.VITE_SITE_PUBLIC_URL?.replace(
     /\/$/,
     '',
   ) ?? '';

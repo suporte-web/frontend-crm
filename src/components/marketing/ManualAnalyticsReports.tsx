@@ -1,5 +1,3 @@
-"use client";
-
 import { FeedbackToast } from '@/components/ui/feedback-toast';
 
 import { useEffect, useRef, useState } from "react";
@@ -27,7 +25,7 @@ import {
   listManualReports,
   type ManualReport,
   type ManualReportSummary,
-} from "@/services/marketing-manual-reports.service";
+} from "@/stores/marketing-manual-reports/service";
 
 const dateLabel = (value: string) => value.split("-").reverse().join("/");
 

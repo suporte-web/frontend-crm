@@ -1,5 +1,3 @@
-'use client';
-
 import { FeedbackToast } from '@/components/ui/feedback-toast';
 
 import { notificarCrm } from '@/lib/feedback-crm';
@@ -13,7 +11,7 @@ import { ChevronDown } from 'lucide-react';
 import { LeadForm } from '@/components/leads/lead-form';
 import { LeadAttachments } from '@/components/attachments/LeadAttachments';
 import { LeadTimeline } from '@/components/leads/lead-timeline';
-import { atualizarDadosLead, obterDadosLead, registrarObservacaoCadastro } from '@/services/cadastros.service';
+import { atualizarDadosLead, obterDadosLead, registrarObservacaoCadastro } from '@/stores/cadastros/service';
 import type { Lead, CreateLeadPayload } from '@/types/leads';
 
 export function DadosLeadCadastro({ id, token, podeEditar, aoSalvar }: { id: string; token: string; podeEditar: boolean; aoSalvar: () => Promise<void> }) {

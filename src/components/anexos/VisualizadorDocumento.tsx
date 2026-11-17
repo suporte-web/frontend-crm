@@ -1,12 +1,10 @@
-"use client";
-
 import { useEffect, useState } from "react";
 import {
   Alert, Box, Button, CircularProgress, Dialog, DialogActions,
   DialogContent, DialogTitle, Stack, Typography,
 } from "@mui/material";
 import DownloadIcon from "@mui/icons-material/Download";
-import { baixarAnexo, obterArquivoAnexo } from "@/services/anexos.api";
+import { baixarAnexo, obterArquivoAnexo } from "@/stores/anexos/service";
 export type DocumentoVisualizavel = { id: string; nome: string; tipo?: string | null };
 
 export function VisualizadorDocumento({ token, caminho, anexo, onClose }: {

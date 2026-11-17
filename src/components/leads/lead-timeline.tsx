@@ -1,5 +1,3 @@
-'use client';
-
 import type { LeadTimelineEvent } from '@/types/leads';
 
 function formatDate(date: string) {

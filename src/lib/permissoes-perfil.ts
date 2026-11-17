@@ -15,8 +15,8 @@ const categorias = [
   { id: 'comercial', nome: 'Comercial', chaves: ['cadastros', 'clients', 'leads', 'bi', 'opportunities', 'quotes', 'prospectingManagement', 'commercialBi'] },
   { id: 'operacional', nome: 'Operacional', chaves: ['entregas', 'entregas-por-placas', 'trackings', 'visitas'] },
   { id: 'atendimento', nome: 'Atendimento', chaves: ['tickets', 'helpCenter', 'chat', 'atendimentoSac', 'entradas'] },
-  { id: 'administracao', nome: 'Administração', chaves: ['users', 'profilePermissions', 'marketingIntegrations', 'logs', 'marketingMetrics'] },
-  { id: 'site', nome: 'Site e Comunicação', chaves: ['siteInstitutional', 'siteRequests', 'marketing', 'informativo', 'virtualAssistant'] },
+  { id: 'administracao', nome: 'Administração', chaves: ['users', 'profilePermissions', 'logs'] },
+  { id: 'site', nome: 'Marketing e Comunicação', chaves: ['marketing', 'marketingIntegrations', 'marketingMetrics', 'informativo', 'siteInstitutional', 'siteRequests', 'virtualAssistant'] },
   { id: 'geral', nome: 'Geral', chaves: ['dashboard', 'suppliers', 'acoesSac'] },
 ];
 
@@ -86,4 +86,30 @@ export function alternarPermissaoPerfil(perfil: UserRole, base: readonly Permiss
     const itemSalvo = catalogo.find(atual => atual.key === valor.screenKey)!;
     return valor.isEnabled !== (salvo?.isEnabled ?? permissaoPerfilHabilitada(itemSalvo, perfil, base));
   });
+}
+
+/** Copia acessos salvos para um rascunho, respeitando as regras do destino. */
+export function copiarPermissoesPerfil(
+  destino: UserRole,
+  base: readonly PermissaoPerfil[],
+  origem: UserRole,
+  permissoesOrigem: readonly PermissaoPerfil[],
+  catalogo: readonly ItemPermissaoPerfil[],
+): PermissaoPerfil[] {
+  let rascunho: PermissaoPerfil[] = [];
+  // Cadastros precisa ser avaliado antes das modalidades vinculadas.
+  const ordem = [...catalogo].sort((a, b) => Number(b.key === 'cadastros') - Number(a.key === 'cadastros'));
+  for (const item of ordem) {
+    if (permissaoObrigatoriaAdmin(destino, item.key)) continue;
+    const efetivas = permissoesEfetivasPerfil(base, rascunho);
+    const atual = permissaoPerfilHabilitada(item, destino, efetivas);
+    const desejada = permissaoPerfilHabilitada(item, origem, permissoesOrigem);
+    if (atual === desejada) continue;
+    const proximas = alternarPermissaoPerfil(destino, base, rascunho, item.key, catalogo);
+    // Restrições próprias do perfil prevalecem sobre a cópia.
+    if (permissaoPerfilHabilitada(item, destino, permissoesEfetivasPerfil(base, proximas)) === desejada) {
+      rascunho = proximas;
+    }
+  }
+  return rascunho;
 }

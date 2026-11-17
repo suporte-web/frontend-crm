@@ -1,15 +1,13 @@
-"use client";
-
 import { FeedbackToast } from '@/components/ui/feedback-toast';
 
 import { notificarCrm } from '@/lib/feedback-crm';
 
-import Link from 'next/link';
+import { Link } from 'react-router-dom';
 import { useEffect, useRef, useState } from 'react';
 import { Button, Chip, Dialog, DialogActions, DialogContent, DialogTitle, MenuItem, Paper, Stack, TextField, Typography } from '@mui/material';
 import { useAuth } from '@/context/auth-context';
 import { hasAnyRole } from '@/lib/user-roles';
-import { direcionarCotacaoSite, listarComerciaisCotacaoSite, reprovarCotacaoSite } from '@/services/solicitacoes-site.service';
+import { direcionarCotacaoSite, listarComerciaisCotacaoSite, reprovarCotacaoSite } from '@/stores/solicitacoes-site/service';
 import type { BuscarSolicitacaoSiteResponse, SolicitacaoSite } from '@/types/solicitacao-site';
 
 export function CotacaoSiteWorkflow({ solicitacao, onChange }: {
@@ -87,7 +85,7 @@ export function CotacaoSiteWorkflow({ solicitacao, onChange }: {
           </Stack>
         </> : null}
         {solicitacao.oportunidadeId && solicitacao.cadastroId ? <Button component={Link}
-          href={`/oportunidades/cadastro/${solicitacao.cadastroId}`} variant="outlined" sx={{ alignSelf: 'flex-start' }}>Abrir oportunidade</Button> : null}
+          to={`/oportunidades/cadastro/${solicitacao.cadastroId}`} variant="outlined" sx={{ alignSelf: 'flex-start' }}>Abrir oportunidade</Button> : null}
       </Stack>
     </Paper>
     <Paper variant="outlined" sx={{ p: 3, borderRadius: 3 }}>

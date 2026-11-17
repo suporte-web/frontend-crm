@@ -1,7 +1,5 @@
-"use client";
-
 import { useEffect, useState } from "react";
-import { usePathname } from "next/navigation";
+import { useLocation } from 'react-router-dom';
 
 import Box from "@mui/material/Box";
 import Divider from "@mui/material/Divider";
@@ -21,7 +19,7 @@ import {
 } from "@/config/screens";
 
 import { useAuth } from "@/context/auth-context";
-import { getNotifications } from "@/services/notifications.service";
+import { getNotifications } from "@/stores/notifications/service";
 
 import { sidebarSections, type SidebarSectionConfig } from "./sidebar-config";
 
@@ -70,7 +68,7 @@ function buildSidebarSections(
 }
 
 export function AppSidebar() {
-  const pathname = usePathname();
+  const pathname = useLocation().pathname;
 
 
   const { user, token } = useAuth();

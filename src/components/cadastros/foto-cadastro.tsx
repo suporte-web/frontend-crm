@@ -1,5 +1,3 @@
-"use client";
-
 import { FeedbackToast } from '@/components/ui/feedback-toast';
 
 import { notificarCrm } from '@/lib/feedback-crm';
@@ -7,7 +5,7 @@ import { notificarCrm } from '@/lib/feedback-crm';
 import { useEffect, useState, type ChangeEvent } from "react";
 import { Avatar, Box, Button, Paper, Stack, Typography } from "@mui/material";
 import { ImagePlus } from "lucide-react";
-import { atualizarFotoCadastro } from "@/services/cadastros.service";
+import { atualizarFotoCadastro } from "@/stores/cadastros/service";
 
 export function FotoCadastro({ valor, aoAlterar, desabilitado = false }: {
   valor: string; aoAlterar: (foto: string) => void; desabilitado?: boolean;

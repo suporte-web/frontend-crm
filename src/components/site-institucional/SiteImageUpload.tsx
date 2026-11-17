@@ -1,5 +1,3 @@
-'use client';
-
 import { FeedbackToast } from '@/components/ui/feedback-toast';
 
 import { notificarCrm } from '@/lib/feedback-crm';
@@ -15,8 +13,8 @@ import Stack from '@mui/material/Stack';
 import Typography from '@mui/material/Typography';
 import { Image as ImageIcon, Trash2, Undo2, Upload } from 'lucide-react';
 import { crmPalette } from '@/components/mui/crm-primitives';
-import { API_BASE_URL } from '@/services/api';
-import { uploadImagemSite } from '@/services/site-institucional.service';
+import { API_BASE_URL } from '@/utils/Api';
+import { uploadImagemSite } from '@/stores/site-institucional/service';
 
 type SiteImageUploadProps = {
   slug: string;
@@ -32,7 +30,7 @@ type SiteImageUploadProps = {
 
 const MAX_FILE_SIZE = 5 * 1024 * 1024;
 const ACCEPTED_TYPES = new Set(['image/jpeg', 'image/png', 'image/webp']);
-const publicSiteBaseUrl = process.env.NEXT_PUBLIC_SITE_PUBLIC_URL ?? 'http://localhost:3002';
+const publicSiteBaseUrl = import.meta.env.VITE_SITE_PUBLIC_URL ?? 'http://localhost:3002';
 
 function getPreviewSrc(value: string) {
   if (!value || /^https?:\/\//.test(value)) return value;

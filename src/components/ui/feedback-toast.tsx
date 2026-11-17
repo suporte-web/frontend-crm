@@ -1,5 +1,3 @@
-'use client';
-
 import Alert from '@mui/material/Alert';
 import IconButton from '@mui/material/IconButton';
 import Portal from '@mui/material/Portal';

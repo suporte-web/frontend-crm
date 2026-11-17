@@ -1,9 +1,7 @@
-'use client';
-
 import { FeedbackToast } from '@/components/ui/feedback-toast';
 
 import { hasAnyRole } from '@/lib/user-roles';
-import Link from 'next/link';
+import { Link } from 'react-router-dom';
 
 import {
   useCallback,
@@ -66,7 +64,7 @@ import {
   buscarPaginaSite,
   publicarPaginaSite,
   salvarRascunhoPaginaSite,
-} from '@/services/site-institucional.service';
+} from '@/stores/site-institucional/service';
 
 import type {
   PaginaSite,
@@ -681,7 +679,7 @@ export function SitePageEditor({
             </Button>
             <Button
               component={Link}
-              href="/site-institucional"
+              to="/site-institucional"
               disabled={hasUploads || savingDraft || publishing}
               variant="outlined"
               startIcon={
@@ -1075,7 +1073,7 @@ export function SitePageEditor({
                 >
                   <Button
                     component={Link}
-                    href="/site-institucional"
+                    to="/site-institucional"
                     variant="outlined"
                     disabled={
                       savingDraft ||

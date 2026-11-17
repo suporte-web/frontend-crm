@@ -1,5 +1,3 @@
-'use client';
-
 import { useMemo, useState } from 'react';
 import { FileDown, Upload } from 'lucide-react';
 import { Button } from '@/components/ui/button';

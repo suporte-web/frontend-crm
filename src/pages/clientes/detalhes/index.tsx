@@ -1,0 +1,1872 @@
+import { solicitarExclusaoDocumentoCliente } from '@/stores/crm/service';
+import { useParams } from 'react-router-dom';
+import { notificarCrm } from '@/lib/feedback-crm';
+
+import { converterValorTotalOportunidade } from '@/lib/valor-oportunidade';
+import { acaoSecundariaOportunidadeSx } from '@/components/crm/estilos-oportunidades';
+import { EditarCadastroDialog } from "@/components/cadastros/editar-cadastro-dialog";
+import { ModalidadeCadastro } from "@/components/cadastros/modalidade-cadastro";
+import { hasAnyRole } from "@/lib/user-roles";
+import { Link } from 'react-router-dom';
+import { useNavigate, useSearchParams } from 'react-router-dom';
+import { useEffect, useMemo, useState } from "react";
+
+import Alert from "@mui/material/Alert";
+import Button from "@mui/material/Button";
+import CircularProgress from "@mui/material/CircularProgress";
+import Dialog from "@mui/material/Dialog";
+import DialogActions from "@mui/material/DialogActions";
+import DialogContent from "@mui/material/DialogContent";
+import DialogTitle from "@mui/material/DialogTitle";
+import Stack from "@mui/material/Stack";
+import Typography from "@mui/material/Typography";
+import TextField from "@mui/material/TextField";
+
+import {
+  CrmPageShell,
+  CrmSection,
+  crmPalette,
+} from "@/components/mui/crm-primitives";
+
+import { ArrowLeft, History, Trash2 } from "lucide-react";
+import { AppLayout } from "@/components/layout/app-layout";
+import { TimelineSection } from "@/components/crm/timeline-section";
+import { FeedbackToast } from "@/components/ui/feedback-toast";
+import { useAuth } from "@/context/auth-context";
+import { VisualizadorDocumento } from "@/components/anexos/VisualizadorDocumento";
+import {
+  addClientContact as createClientContactRecord,
+  criarOportunidade,
+  excluirOportunidade,
+  deleteClientContact,
+  excluirDocumentoPropostaOportunidade,
+  getCrmLeadById,
+  updateClient,
+  updateClientContactRecord,
+  atualizarOportunidade,
+  uploadClientDocuments,
+  enviarDocumentosPropostaOportunidade,
+  requestClientDeletion,
+
+} from "@/stores/crm/service";
+import type { LeadDetail, LeadStatus } from "@/types/crm";
+import { AbaCadastroCliente } from "./components/detalhes-cliente/AbaCadastroCliente";
+import { AbaCondicoesComerciaisCliente } from "./components/detalhes-cliente/AbaCondicoesComerciaisCliente";
+import { AbaContatosCliente } from "./components/detalhes-cliente/AbaContatosCliente";
+import { CabecalhoDetalhesCliente } from "./components/detalhes-cliente/CabecalhoDetalhesCliente";
+import { CabecalhoSecao } from "./components/detalhes-cliente/detalhes-cliente-compartilhado";
+import { AbasDetalhesCliente } from "./components/detalhes-cliente/AbasDetalhesCliente";
+import { AbaDocumentosCliente } from "./components/detalhes-cliente/AbaDocumentosCliente";
+import { AbaOportunidadePropostaCliente } from "./components/detalhes-cliente/AbaOportunidadePropostaCliente";
+import {
+  OPPORTUNITY_PROPOSAL_DOCUMENT_CATEGORY,
+  montarEnderecoCliente,
+  clienteParaFormularioCondicoesComerciais,
+  clienteParaFormularioCliente,
+  contatoClienteVazio,
+  formularioCondicoesComerciaisVazio,
+  novoContatoClienteVazio,
+  formularioPropostaOportunidadeVazio,
+  contatosClienteParaFormulario,
+  extrairCampoDasObservacoesContato,
+  formatarListaDadosBancarios,
+  formatarFormasPagamento,
+  limparObservacoesContato,
+  secondaryButtonSx,
+  temDadosBancarios,
+  textFieldSx,
+  propostaParaFormulario,
+  montarObservacoesProposta,
+} from "./components/detalhes-cliente/detalhes-cliente-compartilhado";
+import type {
+  FormularioContatoCliente,
+  PropriedadesAbaDetalhesCliente,
+  FormularioCondicoesComerciais,
+  FormularioNovoContatoCliente,
+  FormularioPropostaOportunidade,
+} from "./components/detalhes-cliente/detalhes-cliente-compartilhado";
+
+export default function PaginaDetalhesCliente({ somenteOportunidades = false }: { somenteOportunidades?: boolean } = {}) {
+  const { id: routeId = '' } = useParams<'id'>();
+  const { token, user } = useAuth();
+  const navigate = useNavigate();
+  const canDeleteDirectly = hasAnyRole(user, ["ADMIN", "GESTAO", "COMERCIAL"]);
+  const [searchParams] = useSearchParams();
+  const abaRecebida = searchParams.get("aba");
+  const [lead, setLead] = useState<LeadDetail | null>(null);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState("");
+  const [clientId, setClientId] = useState("");
+  const [deletionDialogOpen, setDeletionDialogOpen] = useState(false);
+  const [deletionReason, setDeletionReason] = useState("");
+  const [requestingDeletion, setRequestingDeletion] = useState(false);
+  const [isEditingClient, setIsEditingClient] = useState(false);
+  const [edicaoCadastroAberta, setEdicaoCadastroAberta] = useState(false);
+  const [activeTab, setActiveTab] = useState(0);
+  const [savingClient, setSavingClient] = useState(false);
+  const [clientFormError, setFormularioClienteError] = useState("");
+  const [clientForm, setFormularioCliente] = useState({
+    email: "",
+    companyName: "",
+    phone: "",
+    document: "",
+    legalName: "",
+    tradeName: "",
+    cnae: "",
+    stateRegistration: "",
+    businessActivity: "",
+    taxRegime: "",
+    taxation: "",
+    address: "",
+    zipCode: "",
+    street: "",
+    number: "",
+    complement: "",
+    neighborhood: "",
+    city: "",
+    state: "",
+    bankDetails: "",
+    modality: "",
+    registrationDate: "",
+    segment: "",
+    status: "PENDENTE" as LeadStatus,
+    notes: "",
+  });
+  const [clientContacts, setClientContacts] = useState<FormularioContatoCliente[]>([
+    contatoClienteVazio(),
+  ]);
+  const [isEditingCommercialTerms, setIsEditingCommercialTerms] =
+    useState(false);
+  const [savingCommercialTerms, setSavingCommercialTerms] = useState(false);
+  const [commercialTermsFormError, setFormularioCondicoesComerciaisError] = useState("");
+  const [commercialTermsForm, setFormularioCondicoesComerciais] =
+    useState<FormularioCondicoesComerciais>(formularioCondicoesComerciaisVazio());
+  const [opportunityProposalForm, setFormularioPropostaOportunidade] =
+    useState<FormularioPropostaOportunidade>(formularioPropostaOportunidadeVazio());
+  const [savingOpportunityProposal, setSavingOpportunityProposal] =
+    useState(false);
+  const [opportunityProposalError, setOpportunityProposalError] = useState("");
+  const [editingOpportunityId, setEditingOpportunityId] = useState<string | null>(
+    null,
+  );
+
+  const [editingOpportunityForm, setEditingOpportunityForm] =
+    useState<FormularioPropostaOportunidade>(
+      formularioPropostaOportunidadeVazio(),
+    );
+
+  const [savingEditingOpportunityId, setSavingEditingOpportunityId] =
+    useState<string | null>(null);
+  const [deletingOpportunityId, setDeletingOpportunityId] =
+    useState<string | null>(null);
+  const [newContactForm, setNewContactForm] = useState<FormularioNovoContatoCliente>(
+    novoContatoClienteVazio(),
+  );
+  const [showNewContactForm, setShowNewContactForm] = useState(false);
+  const [savingContact, setSavingContact] = useState(false);
+  const [editingContactId, setEditingContactId] = useState<string | null>(null);
+  const [editingContactForm, setEditingContactForm] =
+    useState<FormularioContatoCliente>(contatoClienteVazio());
+  const [savingEditingContactId, setSavingEditingContactId] = useState<
+    string | null
+  >(null);
+  const [deletingContactId, setDeletingContactId] = useState<string | null>(
+    null,
+  );
+  const [documentoVisualizado, setDocumentoVisualizado] = useState<LeadDetail["documents"][number] | null>(null);
+  const [documentFiles, setDocumentFiles] = useState<File[]>([]);
+  const [proposalFiles, setProposalFiles] = useState<Record<string, File[]>>({});
+
+  const [documentToDelete, setDocumentToDelete] = useState<
+    LeadDetail["documents"][number] | null
+  >(null);
+
+  const [documentDeleteJustification, setDocumentDeleteJustification] =
+    useState("");
+
+  const [deletingDocument, setDeletingDocument] = useState(false);
+
+  const [documentDeleteError, setDocumentDeleteError] = useState("");
+
+
+  const [uploadingDocuments, setUploadingDocuments] = useState(false);
+  const [uploadingProposalOpportunityId, setUploadingProposalOpportunityId] =
+    useState<string | null>(null);
+  const [toast, setToast] = useState<{
+    title: string;
+    message: string;
+    variant: "success" | "error";
+  } | null>(null);
+
+  const canEditCommercialData = user?.role
+    ? hasAnyRole(user, ["ADMIN", "GESTAO", "COMERCIAL", "CONSULTORA"])
+    : false;
+
+  const canEditClient = canEditCommercialData;
+  const canRequestDeletion = canEditCommercialData;
+  const cadastralDocuments = useMemo(
+    () =>
+      lead?.documents.filter(
+        (document) =>
+          document.category !== OPPORTUNITY_PROPOSAL_DOCUMENT_CATEGORY,
+      ) ?? [],
+    [lead?.documents],
+  );
+  const opportunityProposalDocuments = useMemo(
+    () =>
+      lead?.documents.filter(
+        (document) =>
+          document.category === OPPORTUNITY_PROPOSAL_DOCUMENT_CATEGORY,
+      ) ?? [],
+    [lead?.documents],
+  );
+
+  useEffect(() => {
+    if (abaRecebida === "propostas") {
+      setActiveTab(4);
+    }
+  }, [abaRecebida]);
+
+  useEffect(() => {
+    let active = true;
+
+    async function loadLead() {
+      if (!token) {
+        setLoading(false);
+        return;
+      }
+
+      try {
+        setLoading(true);
+        setError("");
+        const id = routeId;
+        setClientId(id);
+        const nextLead = await getCrmLeadById(id, token, somenteOportunidades || hasAnyRole(user, ["CONSULTORA"]));
+
+        if (!active) {
+          return;
+        }
+
+        if (!nextLead) {
+          setError("Cliente não encontrado.");
+          setLead(null);
+          return;
+        }
+
+        setLead(nextLead);
+        setFormularioCliente(clienteParaFormularioCliente(nextLead));
+        setClientContacts(contatosClienteParaFormulario(nextLead));
+        setFormularioCondicoesComerciais(clienteParaFormularioCondicoesComerciais(nextLead));
+      } catch (loadError) {
+        if (!active) {
+          return;
+        }
+
+        setError(
+          loadError instanceof Error
+            ? loadError.message
+            : "Erro ao carregar o detalhe do cliente.",
+        );
+      } finally {
+        if (active) {
+          setLoading(false);
+        }
+      }
+    }
+
+    loadLead();
+
+    return () => {
+      active = false;
+    };
+  }, [routeId, token, somenteOportunidades, user]);
+
+  async function reloadClient() {
+    if (!token || !clientId) {
+      return;
+    }
+
+    const nextLead = await getCrmLeadById(clientId, token, somenteOportunidades || hasAnyRole(user, ["CONSULTORA"]));
+    setLead(nextLead);
+    if (nextLead) {
+      setFormularioCliente(clienteParaFormularioCliente(nextLead));
+      setClientContacts(contatosClienteParaFormulario(nextLead));
+      setFormularioCondicoesComerciais(clienteParaFormularioCondicoesComerciais(nextLead));
+    }
+  }
+
+  async function handleUpdateClient(event: React.FormEvent<HTMLFormElement>) {
+    event.preventDefault();
+
+    if (!token || !lead) {
+      return;
+    }
+
+    if (!clientForm.companyName.trim()) {
+      setFormularioClienteError("Informe o nome da empresa.");
+      setToast({
+        title: "Campo obrigatório",
+        message: "Informe o nome da empresa.",
+        variant: "error",
+      });
+      return;
+    }
+
+    const validContacts = clientContacts
+      .map((contact) => ({
+        name: contact.name.trim(),
+        role: contact.role.trim(),
+        email: contact.email.trim(),
+        phone: contact.phone.trim(),
+        notes: contact.notes.trim(),
+      }))
+      .filter(
+        (contact) =>
+          contact.name ||
+          contact.role ||
+          contact.email ||
+          contact.phone ||
+          contact.notes,
+      )
+      .map((contact, index) => ({
+        name: contact.name || undefined,
+        role: contact.role || undefined,
+        cargo: contact.role || undefined,
+        email: contact.email || undefined,
+        phone: contact.phone || undefined,
+        telefone: contact.phone || undefined,
+        notes: contact.notes || undefined,
+        isPrimary: index === 0,
+      }));
+
+    try {
+      setSavingClient(true);
+      setFormularioClienteError("");
+      const fullAddress = montarEnderecoCliente(clientForm);
+
+      await updateClient(
+        lead.id,
+        {
+          name: clientForm.companyName.trim(),
+          companyName: clientForm.companyName.trim(),
+          phone: clientForm.phone.trim() || undefined,
+          document: clientForm.document.trim() || undefined,
+          legalName: clientForm.legalName.trim() || undefined,
+          tradeName: clientForm.tradeName.trim() || undefined,
+          cnae: clientForm.cnae.trim() || undefined,
+          stateRegistration: clientForm.stateRegistration.trim() || undefined,
+          businessActivity: clientForm.businessActivity.trim() || undefined,
+          taxRegime: clientForm.taxRegime.trim() || undefined,
+          address: fullAddress || clientForm.address.trim() || undefined,
+          city: clientForm.city.trim() || undefined,
+          bankDetails: clientForm.bankDetails.trim() || undefined,
+          modality: clientForm.modality.trim() || undefined,
+          registrationDate: clientForm.registrationDate || undefined,
+          segment: clientForm.segment.trim() || undefined,
+          status: clientForm.status,
+          notes: clientForm.notes.trim() || undefined,
+          contacts: validContacts,
+        },
+        token,
+      );
+      await reloadClient();
+      setIsEditingClient(false);
+      setToast({
+        title: "Cliente atualizado",
+        message: "Cadastro salvo com sucesso.",
+        variant: "success",
+      });
+    } catch (saveError) {
+      const message =
+        saveError instanceof Error
+          ? saveError.message
+          : "Erro ao atualizar cliente.";
+      setFormularioClienteError(message);
+      setToast({
+        title: "Falha ao atualizar cliente",
+        message,
+        variant: "error",
+      });
+    } finally {
+      setSavingClient(false);
+    }
+  }
+
+  async function handleCreateContact(event: React.FormEvent<HTMLFormElement>) {
+    event.preventDefault();
+
+    if (!token || !lead) {
+      return;
+    }
+
+    const nomeContato = newContactForm.nomeContato.trim();
+
+    if (!nomeContato) {
+      setToast({
+        title: "Nome obrigatório",
+        message: "Informe o nome do contato.",
+        variant: "error",
+      });
+      return;
+    }
+
+    try {
+      setSavingContact(true);
+      await createClientContactRecord(
+        lead.id,
+        {
+          nomeContato,
+          cargo: newContactForm.cargo.trim() || undefined,
+          email: newContactForm.email.trim() || undefined,
+          telefone: newContactForm.telefone.trim() || undefined,
+          whatsapp: newContactForm.whatsapp.trim() || undefined,
+          linkedin: newContactForm.linkedin.trim() || undefined,
+        },
+        token,
+      );
+      setNewContactForm(novoContatoClienteVazio());
+      setShowNewContactForm(false);
+      await reloadClient();
+      setToast({
+        title: "Contato adicionado",
+        message: "Contato cadastrado no cliente com sucesso.",
+        variant: "success",
+      });
+    } catch (contactError) {
+      setToast({
+        title: "Falha ao adicionar contato",
+        message:
+          contactError instanceof Error
+            ? contactError.message
+            : "Erro ao adicionar contato.",
+        variant: "error",
+      });
+    } finally {
+      setSavingContact(false);
+    }
+  }
+
+  async function handleUpdateCommercialTerms(
+    event: React.FormEvent<HTMLFormElement>,
+  ) {
+    event.preventDefault();
+
+    if (!token || !lead) {
+      return;
+    }
+
+    try {
+      setSavingCommercialTerms(true);
+      setFormularioCondicoesComerciaisError("");
+      await updateClient(
+        lead.id,
+        {
+          paymentMethod:
+            formatarFormasPagamento(commercialTermsForm.paymentMethods) ||
+            undefined,
+          paymentTerm: commercialTermsForm.paymentTerm.trim() || undefined,
+          contractValidity:
+            commercialTermsForm.contractValidity.trim() || undefined,
+          priceAdjustment:
+            commercialTermsForm.priceAdjustment.trim() || undefined,
+          invoiceContactName:
+            commercialTermsForm.invoiceContactName.trim() || undefined,
+          invoiceContactEmail:
+            commercialTermsForm.invoiceContactEmail.trim() || undefined,
+          invoiceContactPhone:
+            commercialTermsForm.invoiceContactPhone.trim() || undefined,
+          bankDetails:
+            formatarListaDadosBancarios([
+              ...commercialTermsForm.bankAccounts,
+              ...(temDadosBancarios(commercialTermsForm)
+                ? [commercialTermsForm]
+                : []),
+            ]) || undefined,
+          commercialTermsNotes:
+            commercialTermsForm.commercialTermsNotes.trim() || undefined,
+        },
+        token,
+      );
+      await reloadClient();
+      setIsEditingCommercialTerms(false);
+      setToast({
+        title: "Condições comerciais atualizadas",
+        message: "As informações foram salvas e registradas no histórico.",
+        variant: "success",
+      });
+    } catch (saveError) {
+      const message =
+        saveError instanceof Error
+          ? saveError.message
+          : "Erro ao atualizar condições comerciais.";
+      setFormularioCondicoesComerciaisError(message);
+      setToast({
+        title: "Falha ao salvar condições",
+        message,
+        variant: "error",
+      });
+    } finally {
+      setSavingCommercialTerms(false);
+    }
+  }
+
+  function startEditingContact(contact: LeadDetail["contacts"][number]) {
+    setEditingContactId(contact.id);
+    setEditingContactForm({
+      id: contact.id,
+      name: contact.name ?? contact.nomeContato ?? "",
+      role: contact.role ?? contact.cargo ?? "",
+      email: contact.email ?? "",
+      phone: contact.phone ?? contact.telefone ?? "",
+      whatsapp:
+        contact.whatsapp ??
+        extrairCampoDasObservacoesContato(contact.notes, "WhatsApp"),
+      linkedin:
+        contact.linkedin ??
+        extrairCampoDasObservacoesContato(contact.notes, "LinkedIn"),
+      notes: limparObservacoesContato(contact.notes),
+    });
+  }
+
+  function updateEditingContactForm(
+    field: keyof FormularioContatoCliente,
+    value: string,
+  ) {
+    setEditingContactForm((current) => ({
+      ...current,
+      [field]: value,
+    }));
+  }
+
+  async function handleUpdateContact(contactId: string) {
+    if (!token || !lead) {
+      return;
+    }
+
+    const nomeContato = editingContactForm.name.trim();
+
+    if (!nomeContato) {
+      setToast({
+        title: "Nome obrigatório",
+        message: "Informe o nome do contato.",
+        variant: "error",
+      });
+      return;
+    }
+
+    try {
+      setSavingEditingContactId(contactId);
+      await updateClientContactRecord(
+        lead.id,
+        contactId,
+        {
+          nomeContato,
+          cargo: editingContactForm.role.trim() || undefined,
+          email: editingContactForm.email.trim() || undefined,
+          telefone: editingContactForm.phone.trim() || undefined,
+          whatsapp: editingContactForm.whatsapp.trim() || undefined,
+          linkedin: editingContactForm.linkedin.trim() || undefined,
+          notes: editingContactForm.notes.trim() || undefined,
+        },
+        token,
+      );
+      setEditingContactId(null);
+      setEditingContactForm(contatoClienteVazio());
+      await reloadClient();
+      setToast({
+        title: "Contato atualizado",
+        message: "Contato salvo com sucesso.",
+        variant: "success",
+      });
+    } catch (contactError) {
+      setToast({
+        title: "Falha ao atualizar contato",
+        message:
+          contactError instanceof Error
+            ? contactError.message
+            : "Erro ao atualizar contato.",
+        variant: "error",
+      });
+    } finally {
+      setSavingEditingContactId(null);
+    }
+  }
+
+  async function handleDeleteContact(contactId: string) {
+    if (!token || !lead) {
+      return;
+    }
+
+    try {
+      setDeletingContactId(contactId);
+      await deleteClientContact(lead.id, contactId, token);
+      if (editingContactId === contactId) {
+        setEditingContactId(null);
+        setEditingContactForm(contatoClienteVazio());
+      }
+      await reloadClient();
+      setToast({
+        title: "Contato removido",
+        message: "Contato removido do cliente com sucesso.",
+        variant: "success",
+      });
+    } catch (deleteError) {
+      setToast({
+        title: "Falha ao remover contato",
+        message:
+          deleteError instanceof Error
+            ? deleteError.message
+            : "Erro ao remover contato.",
+        variant: "error",
+      });
+    } finally {
+      setDeletingContactId(null);
+    }
+  }
+
+  async function handleUploadDocuments() {
+    if (!token || !lead) {
+      return;
+    }
+
+    if (documentFiles.length === 0) {
+      setToast({
+        title: "Nenhum documento selecionado",
+        message: "Selecione um ou mais arquivos para anexar ao cliente.",
+        variant: "error",
+      });
+      return;
+    }
+
+    try {
+      setUploadingDocuments(true);
+      await uploadClientDocuments(
+        lead.id,
+        documentFiles,
+        token,
+        "Documento cadastral",
+      );
+      setDocumentFiles([]);
+      await reloadClient();
+      setToast({
+        title: "Documentos anexados",
+        message:
+          documentFiles.length === 1
+            ? "Documento anexado ao cliente com sucesso."
+            : `${documentFiles.length} documentos anexados ao cliente com sucesso.`,
+        variant: "success",
+      });
+    } catch (uploadError) {
+      setToast({
+        title: "Falha ao anexar documentos",
+        message:
+          uploadError instanceof Error
+            ? uploadError.message
+            : "Erro ao anexar documentos ao cliente.",
+        variant: "error",
+      });
+    } finally {
+      setUploadingDocuments(false);
+    }
+  }
+
+  async function handleUploadProposalDocuments(opportunityId: string) {
+    if (!token || !lead) {
+      return;
+    }
+
+    const selectedProposalFiles = proposalFiles[opportunityId] ?? [];
+
+    if (selectedProposalFiles.length === 0) {
+      setToast({
+        title: "Nenhum arquivo selecionado",
+        message: "Selecione um ou mais arquivos para anexar nesta proposta.",
+        variant: "error",
+      });
+      return;
+    }
+
+    try {
+      setUploadingProposalOpportunityId(opportunityId);
+      await enviarDocumentosPropostaOportunidade(
+        lead.id,
+        selectedProposalFiles,
+        token,
+        `Oportunidade/Proposta | oportunidade:${opportunityId}`,
+      );
+      setProposalFiles((current) => {
+        const nextFiles = { ...current };
+        delete nextFiles[opportunityId];
+        return nextFiles;
+      });
+      await reloadClient();
+      setToast({
+        title: "Propostas anexadas",
+        message:
+          selectedProposalFiles.length === 1
+            ? "Arquivo anexado nesta proposta com sucesso."
+            : `${selectedProposalFiles.length} arquivos anexados nesta proposta com sucesso.`,
+        variant: "success",
+      });
+    } catch (uploadError) {
+      setToast({
+        title: "Falha ao anexar proposta",
+        message:
+          uploadError instanceof Error
+            ? uploadError.message
+            : "Erro ao anexar arquivo nesta proposta.",
+        variant: "error",
+      });
+    } finally {
+      setUploadingProposalOpportunityId(null);
+    }
+  }
+
+  function toggleProposalOption(option: string) {
+    setFormularioPropostaOportunidade((current) => {
+      const field =
+        current.proposalType === "ARMAZENAGEM"
+          ? "storageOptions"
+          : "transportOptions";
+      const currentOptions = current[field];
+      const nextOptions = currentOptions.includes(option)
+        ? currentOptions.filter((item) => item !== option)
+        : [...currentOptions, option];
+
+      return {
+        ...current,
+        [field]: nextOptions,
+      };
+    });
+  }
+
+  function addCustomProposalOption() {
+    const option = opportunityProposalForm.customOption.trim();
+
+    if (!option || !opportunityProposalForm.proposalType) {
+      return;
+    }
+
+    setFormularioPropostaOportunidade((current) => {
+      const field =
+        current.proposalType === "ARMAZENAGEM"
+          ? "storageOptions"
+          : "transportOptions";
+
+      if (current[field].includes(option)) {
+        return {
+          ...current,
+          customOption: "",
+        };
+      }
+
+      return {
+        ...current,
+        [field]: [...current[field], option],
+        customOption: "",
+      };
+    });
+  }
+
+  async function handleCreateOpportunityProposal(
+    event: React.FormEvent<HTMLFormElement>,
+  ) {
+    event.preventDefault();
+
+    if (!token || !lead) {
+      return;
+    }
+
+    const title = opportunityProposalForm.title.trim();
+    const selectedOptions =
+      opportunityProposalForm.proposalType === "ARMAZENAGEM"
+        ? opportunityProposalForm.storageOptions
+        : opportunityProposalForm.transportOptions;
+
+    if (!title) {
+      setOpportunityProposalError("Informe o título da proposta.");
+      return;
+    }
+
+    if (!opportunityProposalForm.proposalType) {
+      setOpportunityProposalError("Selecione o tipo de proposta.");
+      return;
+    }
+
+    if (selectedOptions.length === 0) {
+      setOpportunityProposalError("Selecione ao menos uma opção da proposta.");
+      return;
+    }
+
+    const proposalTypeLabel =
+      opportunityProposalForm.proposalType === "ARMAZENAGEM"
+        ? "Armazenagem"
+        : "Transporte rodoviário";
+    const transportValueNotes = Object.entries(
+      opportunityProposalForm.transportValues,
+    )
+      .filter(([, value]) => value.trim())
+      .map(([item, value]) => `${item}: ${value.trim()}`);
+    const transportDetails =
+      opportunityProposalForm.proposalType === "TRANSPORTE_RODOVIARIO"
+        ? [
+          `Origem: ${opportunityProposalForm.origin.trim()}`,
+          `Destino: ${opportunityProposalForm.destination.trim()}`,
+          `Tipo de veículo: ${opportunityProposalForm.vehicleType}`,
+          `Tipo de carga: ${opportunityProposalForm.cargoType.trim()}`,
+          `Peso médio: ${opportunityProposalForm.averageWeight.trim()}`,
+          `Valor agregado: ${opportunityProposalForm.aggregateValue.trim()}`,
+          opportunityProposalForm.cubage.trim()
+            ? `Cubagem: ${opportunityProposalForm.cubage.trim()}`
+            : null,
+          opportunityProposalForm.monthlyShipments.trim()
+            ? `Quantidade de embarques/mês: ${opportunityProposalForm.monthlyShipments.trim()}`
+            : null,
+          `Produto perigoso: ${opportunityProposalForm.dangerousGoods === "SIM" ? "Sim" : "Não"
+          }`,
+          opportunityProposalForm.dangerousGoods === "SIM"
+            ? `FDS/Ficha de Emergência: ${opportunityProposalForm.dangerousGoodsInfo.trim()}`
+            : null,
+          transportValueNotes.length > 0
+            ? `Valores: ${transportValueNotes.join(" | ")}`
+            : null,
+        ]
+        : [];
+
+    try {
+      setSavingOpportunityProposal(true);
+      setOpportunityProposalError("");
+      await criarOportunidade(
+        {
+          clientId: lead.id,
+          title,
+          value: converterValorTotalOportunidade(opportunityProposalForm.valorTotal) ?? undefined,
+          stage: "PROPOSTA",
+          preContract: true,
+          preContractNotes: [
+            `Tipo de proposta: ${proposalTypeLabel}`,
+            `Opções: ${selectedOptions.join(", ")}`,
+            ...transportDetails,
+          ]
+            .filter(Boolean)
+            .join("\n"),
+        },
+        token,
+      );
+      setFormularioPropostaOportunidade(formularioPropostaOportunidadeVazio());
+      await reloadClient();
+      setToast({
+        title: "Proposta cadastrada",
+        message: "A proposta foi registrada na oportunidade e no histórico.",
+        variant: "success",
+      });
+    } catch (createError) {
+      const message =
+        createError instanceof Error
+          ? createError.message
+          : "Erro ao cadastrar proposta.";
+      setOpportunityProposalError(message);
+      setToast({
+        title: "Falha ao cadastrar proposta",
+        message,
+        variant: "error",
+      });
+    } finally {
+      setSavingOpportunityProposal(false);
+    }
+  }
+
+  function startEditingOpportunity(
+    opportunity: LeadDetail["opportunities"][number],
+  ) {
+    setEditingOpportunityId(opportunity.id);
+    setEditingOpportunityForm(propostaParaFormulario(opportunity));
+  }
+
+  function updateEditingOpportunityForm<
+    K extends keyof FormularioPropostaOportunidade,
+  >(
+    field: K,
+    value: FormularioPropostaOportunidade[K],
+  ) {
+    setEditingOpportunityForm((current) => ({
+      ...current,
+      [field]: value,
+    }));
+  }
+
+  async function handleUpdateOpportunity(
+    opportunityId: string,
+    event: React.FormEvent<HTMLFormElement>,
+  ) {
+    event.preventDefault();
+
+    if (!token || !lead) {
+      return;
+    }
+
+    const title = editingOpportunityForm.title.trim();
+
+    const selectedOptions =
+      editingOpportunityForm.proposalType === "ARMAZENAGEM"
+        ? editingOpportunityForm.storageOptions
+        : editingOpportunityForm.transportOptions;
+
+    if (!title) {
+      setToast({
+        title: "Campo obrigatório",
+        message: "Informe o título da proposta.",
+        variant: "error",
+      });
+
+      return;
+    }
+
+    if (!editingOpportunityForm.proposalType) {
+      setToast({
+        title: "Tipo obrigatório",
+        message: "Selecione o tipo da proposta.",
+        variant: "error",
+      });
+
+      return;
+    }
+
+    if (selectedOptions.length === 0) {
+      setToast({
+        title: "Serviço obrigatório",
+        message: "Selecione pelo menos um serviço da proposta.",
+        variant: "error",
+      });
+
+      return;
+    }
+
+    if (
+      editingOpportunityForm.proposalType ===
+      "TRANSPORTE_RODOVIARIO"
+    ) {
+      if (
+        !editingOpportunityForm.origin.trim() ||
+        !editingOpportunityForm.destination.trim() ||
+        !editingOpportunityForm.vehicleType ||
+        !editingOpportunityForm.cargoType.trim() ||
+        !editingOpportunityForm.averageWeight.trim() ||
+        !editingOpportunityForm.aggregateValue.trim() ||
+        !editingOpportunityForm.dangerousGoods
+      ) {
+        setToast({
+          title: "Campos obrigatórios",
+          message:
+            "Preencha origem, destino, veículo, tipo de carga, peso médio, valor agregado e produto perigoso.",
+          variant: "error",
+        });
+
+        return;
+      }
+
+      if (
+        editingOpportunityForm.dangerousGoods === "SIM" &&
+        !editingOpportunityForm.dangerousGoodsInfo.trim()
+      ) {
+        setToast({
+          title: "Informação obrigatória",
+          message:
+            "Informe os dados da FDS/Ficha de Emergência.",
+          variant: "error",
+        });
+
+        return;
+      }
+    }
+
+    try {
+      setSavingEditingOpportunityId(opportunityId);
+
+      await atualizarOportunidade(
+        opportunityId,
+        {
+          title,
+          value: converterValorTotalOportunidade(editingOpportunityForm.valorTotal),
+          ...(lead.opportunities.find(item=>item.id===opportunityId)?.status === "LOST" ? { motivoPerda: editingOpportunityForm.motivoPerda, observacaoPerda: editingOpportunityForm.observacaoPerda } : {}),
+          preContractNotes: montarObservacoesProposta(
+            editingOpportunityForm,
+          ),
+        },
+        token,
+      );
+
+      setEditingOpportunityId(null);
+
+      setEditingOpportunityForm(
+        formularioPropostaOportunidadeVazio(),
+      );
+
+      await reloadClient();
+
+      setToast({
+        title: "Proposta atualizada",
+        message: "Os dados da proposta foram salvos.",
+        variant: "success",
+      });
+    } catch (updateError) {
+      setToast({
+        title: "Falha ao atualizar proposta",
+        message:
+          updateError instanceof Error
+            ? updateError.message
+            : "Erro ao atualizar proposta.",
+        variant: "error",
+      });
+    } finally {
+      setSavingEditingOpportunityId(null);
+    }
+  }
+
+  async function handleDeleteOpportunity(opportunityId: string) {
+    if (!token || !lead) {
+      return;
+    }
+
+    const confirmed = window.confirm(
+      "Tem certeza que deseja excluir esta proposta?",
+    );
+
+    if (!confirmed) {
+      return;
+    }
+
+    try {
+      setDeletingOpportunityId(opportunityId);
+
+      await excluirOportunidade(opportunityId, token);
+
+      if (editingOpportunityId === opportunityId) {
+        setEditingOpportunityId(null);
+
+        setEditingOpportunityForm(
+          formularioPropostaOportunidadeVazio(),
+        );
+      }
+      await reloadClient();
+      setToast({
+        title: "Proposta excluída",
+        message: "A oportunidade foi removida do cliente.",
+        variant: "success",
+      });
+    } catch (deleteError) {
+      setToast({
+        title: "Falha ao excluir proposta",
+        message:
+          deleteError instanceof Error
+            ? deleteError.message
+            : "Erro ao excluir proposta.",
+        variant: "error",
+      });
+    } finally {
+      setDeletingOpportunityId(null);
+    }
+  }
+
+  async function handleOpenDocument(documento: LeadDetail["documents"][number]) {
+    if (token && lead) setDocumentoVisualizado(documento);
+  }
+
+  function openDeleteDocumentDialog(
+    clientDocument: LeadDetail["documents"][number],
+  ) {
+    setDocumentToDelete(clientDocument);
+    setDocumentDeleteJustification("");
+    setDocumentDeleteError("");
+  }
+
+  function closeDeleteDocumentDialog() {
+    if (deletingDocument) {
+      return;
+    }
+
+    setDocumentToDelete(null);
+    setDocumentDeleteJustification("");
+    setDocumentDeleteError("");
+  }
+
+  async function handleDeleteDocument() {
+    if (!token || !lead || !documentToDelete) {
+      return;
+    }
+
+    const justification = documentDeleteJustification.trim();
+
+    if (!justification) {
+      setDocumentDeleteError(
+        "Informe a justificativa para excluir o documento.",
+      );
+      return;
+    }
+
+    try {
+      setDeletingDocument(true);
+      setDocumentDeleteError("");
+
+      const data =
+        documentToDelete.category === OPPORTUNITY_PROPOSAL_DOCUMENT_CATEGORY
+          ? await excluirDocumentoPropostaOportunidade(
+            lead.id,
+            documentToDelete.id,
+            token,
+            justification,
+          )
+          : await solicitarExclusaoDocumentoCliente(lead.id, documentToDelete.id, justification, token);
+
+      await reloadClient();
+
+      setDocumentToDelete(null);
+      setDocumentDeleteJustification("");
+      setDocumentDeleteError("");
+
+      setToast({
+        title: "Documento excluído",
+        message: data?.message || "Documento excluído com sucesso.",
+        variant: "success",
+      });
+    } catch (deleteError) {
+      const message =
+        deleteError instanceof Error
+          ? deleteError.message
+          : "Erro ao excluir documento.";
+
+      setDocumentDeleteError(message);
+
+      setToast({
+        title: "Falha ao excluir documento",
+        message,
+        variant: "error",
+      });
+    } finally {
+      setDeletingDocument(false);
+    }
+  }
+  async function handleRequestClientDeletion() {
+    if (!token || !lead) {
+      return;
+    }
+
+    if (!deletionReason.trim()) {
+      setToast({
+        title: "Motivo obrigatório",
+        message: "Informe o motivo da exclusão do cliente.",
+        variant: "error",
+      });
+      return;
+    }
+
+    try {
+      setRequestingDeletion(true);
+
+      const result = await requestClientDeletion(
+        lead.id,
+        {
+          reason: deletionReason.trim(),
+        },
+        token,
+      );
+
+      setDeletionDialogOpen(false);
+      setDeletionReason("");
+
+      if (result.status === "APROVADA") {
+        notificarCrm('Cliente excluído com sucesso.');
+        navigate('/cadastros', { replace: true });
+      } else {
+        setToast({ title: 'Solicitação enviada', message: 'A exclusão do cliente foi enviada para aprovação do Comercial ou Gestão.', variant: 'success' });
+      }
+    } catch (deleteError) {
+      setToast({
+        title: canDeleteDirectly ? "Falha ao excluir cliente" : "Falha ao solicitar exclusão",
+        message:
+          deleteError instanceof Error
+            ? deleteError.message
+            : "Não foi possível concluir a exclusão do cliente.",
+        variant: "error",
+      });
+    } finally {
+      setRequestingDeletion(false);
+    }
+  }
+
+  function startEditingClient(nextLead: LeadDetail) {
+    setActiveTab(0);
+    setEdicaoCadastroAberta(true);
+    setFormularioCliente(clienteParaFormularioCliente(nextLead));
+    setClientContacts(contatosClienteParaFormulario(nextLead));
+    setFormularioClienteError("");
+  }
+
+  function startEditingCommercialTerms(nextLead: LeadDetail) {
+    setActiveTab(3);
+    setIsEditingCommercialTerms(true);
+    setFormularioCondicoesComerciais(clienteParaFormularioCondicoesComerciais(nextLead));
+    setFormularioCondicoesComerciaisError("");
+  }
+
+
+  function renderActiveTab(currentLead: LeadDetail) {
+    const tabProps: PropriedadesAbaDetalhesCliente = {
+      currentLead,
+      canEditClient,
+      canEditCommercialData,
+      clientForm,
+      setFormularioCliente,
+      clientFormError,
+      setFormularioClienteError,
+      isEditingClient: false,
+      setIsEditingClient: (valor) => setEdicaoCadastroAberta(typeof valor === "function" ? valor(false) : valor),
+      savingClient,
+      handleUpdateClient,
+      setClientContacts,
+      commercialTermsForm,
+      setFormularioCondicoesComerciais,
+      commercialTermsFormError,
+      setFormularioCondicoesComerciaisError,
+      isEditingCommercialTerms,
+      setIsEditingCommercialTerms,
+      savingCommercialTerms,
+      handleUpdateCommercialTerms,
+      startEditingCommercialTerms,
+      newContactForm,
+      setNewContactForm,
+      showNewContactForm,
+      setShowNewContactForm,
+      savingContact,
+      handleCreateContact,
+      editingContactId,
+      setEditingContactId,
+      editingContactForm,
+      setEditingContactForm,
+      savingEditingContactId,
+      deletingContactId,
+      startEditingContact,
+      updateEditingContactForm,
+      handleUpdateContact,
+      handleDeleteContact,
+      documentFiles,
+      setDocumentFiles,
+      uploadingDocuments,
+      handleUploadDocuments,
+      handleOpenDocument,
+      openDeleteDocumentDialog,
+      cadastralDocuments,
+      proposalFiles,
+      setProposalFiles,
+      uploadingProposalOpportunityId,
+      handleUploadProposalDocuments,
+      opportunityProposalDocuments,
+      opportunityProposalForm,
+      setFormularioPropostaOportunidade,
+      opportunityProposalError,
+      savingOpportunityProposal,
+      editingOpportunityId,
+      editingOpportunityForm,
+      setEditingOpportunityForm,
+      savingEditingOpportunityId,
+      deletingOpportunityId,
+      handleCreateOpportunityProposal,
+      startEditingOpportunity,
+      setEditingOpportunityId,
+      updateEditingOpportunityForm,
+      handleUpdateOpportunity,
+      handleDeleteOpportunity,
+      toggleProposalOption,
+      addCustomProposalOption,
+    };
+
+    if (somenteOportunidades) { return <AbaOportunidadePropostaCliente {...tabProps} />; }
+
+    if (activeTab === 0 || activeTab === 1) {
+      return <AbaCadastroCliente {...tabProps} />;
+    }
+
+    if (activeTab === 3) {
+      return <AbaCondicoesComerciaisCliente {...tabProps} />;
+    }
+
+    if (activeTab === 2) {
+      return <AbaContatosCliente {...tabProps} />;
+    }
+
+    if (activeTab === 4) {
+      return <Button component={Link} to={`/oportunidades/cadastro/${currentLead.id}`} variant="contained">Abrir oportunidades/propostas</Button>;
+    }
+
+    if (activeTab === 5) {
+      return <AbaDocumentosCliente {...tabProps} />;
+    }
+
+    if (activeTab === 7) {
+      return token ? (
+        <ModalidadeCadastro
+          id={currentLead.id}
+          modalidade={currentLead.modalidadeCadastro || 'CLIENTE'}
+          documento={currentLead.document}
+          token={token}
+          podeEditar={canEditClient}
+          aoSalvar={reloadClient}
+        />
+      ) : null;
+    }
+
+    return (
+      <CrmSection
+        sx={{
+          p: { xs: 2, md: 2.5 },
+          borderRadius: "12px",
+          border: `1px solid ${crmPalette.border}`,
+          bgcolor: "#ffffff",
+          boxShadow: "none",
+        }}
+      >
+        <Stack spacing={2}>
+          <CabecalhoSecao compacto
+            title="Histórico"
+          />
+          <TimelineSection compacto events={currentLead.timeline} darkMode={false} />
+        </Stack>
+      </CrmSection>
+    );
+  }
+
+  return (
+    <AppLayout>
+      <CrmPageShell sx={{ gap: 1.5, minWidth: 0 }}>
+        {edicaoCadastroAberta && lead && token && canEditClient && <EditarCadastroDialog cadastro={lead} token={token} aoFechar={() => setEdicaoCadastroAberta(false)} aoSalvar={async () => { await reloadClient(); setToast({ title: "Cadastro atualizado", message: "Alterações salvas com sucesso.", variant: "success" }); }} />}
+        <CabecalhoDetalhesCliente
+          hrefVoltar={somenteOportunidades ? "/oportunidades" : "/cadastros"}
+          lead={lead}
+          loading={loading}
+          error={error}
+          canEditClient={somenteOportunidades ? false : canEditClient}
+          onEditClient={() => {
+            if (lead) {
+              startEditingClient(lead);
+            }
+          }}
+          canRequestDeletion={somenteOportunidades ? false : canRequestDeletion}
+          onRequestDeletion={() => {
+            setDeletionReason("");
+            setDeletionDialogOpen(true);
+          }}
+        />
+        {somenteOportunidades ? (
+          <Stack
+            direction={{ xs: "column", sm: "row" }}
+            spacing={1.5}
+            sx={{
+              alignItems: { xs: "stretch", sm: "center" },
+              "& .MuiButton-root": {
+                minHeight: 40,
+                px: 2,
+                borderRadius: "8px",
+                bgcolor: "#475569",
+                color: "#fff",
+                fontSize: 13,
+                fontWeight: 600,
+                textTransform: "none",
+                boxShadow: "none",
+                "&:hover": { bgcolor: "#334155", color: "#fff", boxShadow: "none" },
+              },
+            }}
+          >
+            <Button component={Link} to="/oportunidades" variant="outlined" sx={acaoSecundariaOportunidadeSx}>Todas as oportunidades</Button>
+            <Button component={Link} to={`/cadastros/${clientId}`} variant="outlined" sx={acaoSecundariaOportunidadeSx}>Abrir cadastro</Button>
+          </Stack>
+        ) : (
+          <AbasDetalhesCliente lead={lead} activeTab={activeTab} setActiveTab={setActiveTab} />
+        )}
+
+        {lead ? (
+          renderActiveTab(lead)
+        ) : loading || error ? null : (
+          <CrmSection sx={{ p: 5, textAlign: "center" }}>
+            <Typography sx={{ color: crmPalette.muted, fontSize: 14 }}>
+              Não foi possível carregar os dados deste cliente.
+            </Typography>
+
+            <Button
+              component={Link}
+              to={somenteOportunidades ? "/oportunidades" : "/cadastros"}
+              variant="outlined"
+              startIcon={<ArrowLeft size={16} />}
+              sx={{
+                ...secondaryButtonSx,
+                width: "fit-content",
+                minHeight: 34,
+                px: 1.6,
+                borderRadius: "999px",
+                fontSize: 12,
+              }}
+            >
+              {somenteOportunidades ? "Voltar para oportunidades" : "Voltar para cadastros"}
+            </Button>
+          </CrmSection>
+        )}
+      </CrmPageShell>
+
+      {token && lead && <VisualizadorDocumento
+        token={token}
+        caminho={documentoVisualizado ? `/clients/${lead.id}/documents/${documentoVisualizado.id}/download` : ""}
+        anexo={documentoVisualizado ? { id: documentoVisualizado.id, nome: documentoVisualizado.originalName || documentoVisualizado.fileName, tipo: documentoVisualizado.mimeType } : null}
+        onClose={() => setDocumentoVisualizado(null)}
+      />}
+      <Dialog
+        open={!!documentToDelete}
+        onClose={closeDeleteDocumentDialog}
+        fullWidth
+        maxWidth="sm"
+        slotProps={{
+          paper: {
+            sx: {
+              borderRadius: "14px",
+            },
+          },
+        }}
+      >
+        <DialogTitle
+          sx={{
+            color: crmPalette.text,
+            fontSize: 18,
+            fontWeight: 900,
+          }}
+        >
+          Excluir documento
+        </DialogTitle>
+
+        <DialogContent>
+          <Typography
+            sx={{
+              mb: 2,
+              color: crmPalette.muted,
+              fontSize: 13,
+              lineHeight: 1.6,
+            }}
+          >
+            Você está excluindo o documento{" "}
+            <strong>
+              {documentToDelete?.originalName || documentToDelete?.fileName}
+            </strong>
+            . Essa ação removerá o arquivo armazenado no servidor.
+          </Typography>
+
+          {documentDeleteError ? (
+            <Alert
+              severity="error"
+              sx={{
+                mb: 2,
+                borderRadius: "10px",
+              }}
+            >
+              {documentDeleteError}
+            </Alert>
+          ) : null}
+
+          <TextField
+            autoFocus
+            fullWidth
+            required
+            multiline
+            minRows={3}
+            label="Justificativa da exclusão"
+            placeholder="Exemplo: documento anexado incorretamente."
+            value={documentDeleteJustification}
+            onChange={(event) => {
+              setDocumentDeleteJustification(event.target.value);
+
+              if (documentDeleteError) {
+                setDocumentDeleteError("");
+              }
+            }}
+            slotProps={{
+              htmlInput: {
+                maxLength: 500,
+              },
+            }}
+            helperText={`${documentDeleteJustification.length}/500 caracteres`}
+            disabled={deletingDocument}
+            sx={textFieldSx}
+          />
+        </DialogContent>
+
+        <DialogActions
+          sx={{
+            px: 3,
+            pb: 2.5,
+            gap: 1,
+          }}
+        >
+          <Button
+            type="button"
+            variant="outlined"
+            onClick={closeDeleteDocumentDialog}
+            disabled={deletingDocument}
+            sx={secondaryButtonSx}
+          >
+            Cancelar
+          </Button>
+
+          <Button
+            type="button"
+            variant="contained"
+            startIcon={
+              deletingDocument ? (
+                <CircularProgress size={16} color="inherit" />
+              ) : (
+                <Trash2 size={16} />
+              )
+            }
+            disabled={deletingDocument || !documentDeleteJustification.trim()}
+            onClick={handleDeleteDocument}
+            sx={{
+              minHeight: 40,
+              px: 2,
+              borderRadius: "10px",
+              bgcolor: "#dc2626",
+              color: "#ffffff",
+              fontSize: 13,
+              fontWeight: 900,
+              textTransform: "none",
+              boxShadow: "none",
+
+              "&:hover": {
+                bgcolor: "#b91c1c",
+                boxShadow: "none",
+              },
+
+              "&.Mui-disabled": {
+                bgcolor: "#fecaca",
+                color: "#ffffff",
+              },
+            }}
+          >
+            {deletingDocument ? "Excluindo..." : "Confirmar exclusão"}
+          </Button>
+        </DialogActions>
+      </Dialog>
+
+      <Dialog
+        open={deletionDialogOpen}
+        onClose={() => {
+          if (!requestingDeletion) {
+            setDeletionDialogOpen(false);
+            setDeletionReason("");
+          }
+        }}
+        fullWidth
+        maxWidth="sm"
+        slotProps={{
+          paper: {
+            sx: {
+              borderRadius: "20px",
+              overflow: "hidden",
+              border: "1px solid #e2e8f0",
+              boxShadow: "0 28px 80px rgba(15, 23, 42, 0.22)",
+            },
+          },
+        }}
+      >
+        {/* CABEÇALHO */}
+        <DialogTitle
+          component="div"
+          sx={{
+            px: 3,
+            pt: 3,
+            pb: 1.5,
+          }}
+        >
+          <Stack
+            direction="row"
+            spacing={1.5}
+            sx={{
+              alignItems: "center",
+            }}
+          >
+            <Stack
+              sx={{
+                width: 48,
+                height: 48,
+                flexShrink: 0,
+
+                alignItems: "center",
+                justifyContent: "center",
+
+                borderRadius: "14px",
+
+                bgcolor: "#fef2f2",
+                color: "#dc2626",
+
+                border: "1px solid #fecaca",
+              }}
+            >
+              <Trash2 size={22} />
+            </Stack>
+
+            <Stack spacing={0.3}>
+              <Typography
+                sx={{
+                  color: "#0f172a",
+                  fontSize: 19,
+                  fontWeight: 900,
+                  lineHeight: 1.2,
+                }}
+              >
+                Excluir cliente
+              </Typography>
+
+              <Typography
+                sx={{
+                  color: "#64748b",
+                  fontSize: 12,
+                  lineHeight: 1.4,
+                }}
+              >
+                {canDeleteDirectly ? "O cliente será excluído ao confirmar esta ação." : "A solicitação será enviada para aprovação do Comercial ou Gestão."}
+              </Typography>
+            </Stack>
+          </Stack>
+        </DialogTitle>
+
+        {/* CONTEÚDO */}
+        <DialogContent
+          sx={{
+            px: 3,
+            pt: "12px !important",
+          }}
+        >
+          {/* Cliente selecionado */}
+          <Stack
+            spacing={0.5}
+            sx={{
+              mb: 2.5,
+              p: 2,
+
+              borderRadius: "14px",
+
+              bgcolor: "#f8fafc",
+              border: "1px solid #e2e8f0",
+            }}
+          >
+            <Typography
+              sx={{
+                color: "#94a3b8",
+                fontSize: 10,
+                fontWeight: 900,
+                letterSpacing: ".08em",
+                textTransform: "uppercase",
+              }}
+            >
+              Cliente selecionado
+            </Typography>
+
+            <Typography
+              sx={{
+                color: "#0f172a",
+                fontSize: 15,
+                fontWeight: 900,
+              }}
+            >
+              {lead?.company || lead?.name || "Cliente"}
+            </Typography>
+
+            {lead?.document ? (
+              <Typography
+                sx={{
+                  color: "#64748b",
+                  fontSize: 12,
+                }}
+              >
+                {lead.document}
+              </Typography>
+            ) : null}
+          </Stack>
+
+          {/* Campo motivo */}
+          <TextField
+            autoFocus
+            fullWidth
+            required
+            multiline
+            minRows={3}
+            maxRows={5}
+            label="Motivo da exclusão"
+            placeholder="Ex.: cliente cadastrado em duplicidade."
+            value={deletionReason}
+            onChange={(event) =>
+              setDeletionReason(event.target.value)
+            }
+            disabled={requestingDeletion}
+            slotProps={{
+              htmlInput: {
+                maxLength: 500,
+              },
+            }}
+            helperText={`${deletionReason.length}/500 caracteres`}
+            sx={{
+              "& .MuiOutlinedInput-root": {
+                borderRadius: "12px",
+                bgcolor: "#ffffff",
+
+                "&:hover fieldset": {
+                  borderColor: "#94a3b8",
+                },
+
+                "&.Mui-focused fieldset": {
+                  borderColor: "#dc2626",
+                },
+              },
+
+              "& .MuiInputLabel-root.Mui-focused": {
+                color: "#dc2626",
+              },
+
+              "& .MuiFormHelperText-root": {
+                mx: 0,
+                mt: 0.75,
+                color: "#94a3b8",
+                textAlign: "right",
+                fontSize: 11,
+              },
+            }}
+          />
+
+          {/* Aviso */}
+          <Stack
+            direction="row"
+            spacing={1}
+            sx={{
+              mt: 2,
+
+              p: 1.5,
+
+              alignItems: "flex-start",
+
+              borderRadius: "12px",
+
+              bgcolor: "#fff7ed",
+              border: "1px solid #fed7aa",
+            }}
+          >
+            <Typography
+              sx={{
+                color: "#c2410c",
+                fontSize: 12,
+                lineHeight: 1.6,
+              }}
+            >
+              {canDeleteDirectly
+                ? "A exclusão será imediata e não poderá ser desfeita. Confirme antes de continuar."
+                : "O cliente continuará disponível no CRM até que a solicitação seja analisada e aprovada."}
+            </Typography>
+          </Stack>
+        </DialogContent>
+
+        {/* AÇÕES */}
+        <DialogActions
+          sx={{
+            px: 3,
+            pt: 2,
+            pb: 3,
+            gap: 1,
+
+            borderTop: "1px solid #f1f5f9",
+          }}
+        >
+          <Button
+            type="button"
+            variant="outlined"
+            disabled={requestingDeletion}
+            onClick={() => {
+              setDeletionDialogOpen(false);
+              setDeletionReason("");
+            }}
+            sx={{
+              minHeight: 42,
+              px: 2.25,
+
+              borderRadius: "11px",
+
+              borderColor: "#cbd5e1",
+              color: "#475569",
+
+              fontSize: 13,
+              fontWeight: 800,
+              textTransform: "none",
+
+              "&:hover": {
+                borderColor: "#94a3b8",
+                bgcolor: "#f8fafc",
+              },
+            }}
+          >
+            Cancelar
+          </Button>
+
+          <Button
+            type="button"
+            variant="contained"
+            disabled={
+              requestingDeletion ||
+              !deletionReason.trim()
+            }
+            onClick={handleRequestClientDeletion}
+            startIcon={
+              requestingDeletion ? (
+                <CircularProgress
+                  size={16}
+                  color="inherit"
+                />
+              ) : (
+                <Trash2 size={16} />
+              )
+            }
+            sx={{
+              minHeight: 42,
+              px: 2.25,
+
+              borderRadius: "11px",
+
+              bgcolor: "#dc2626",
+              color: "#ffffff",
+
+              fontSize: 13,
+              fontWeight: 900,
+              textTransform: "none",
+
+              boxShadow: "0 8px 18px rgba(220,38,38,0.18)",
+
+              "&:hover": {
+                bgcolor: "#b91c1c",
+                boxShadow: "0 10px 22px rgba(220,38,38,0.24)",
+              },
+
+              "&.Mui-disabled": {
+                bgcolor: "#fecaca",
+                color: "#ffffff",
+                boxShadow: "none",
+              },
+            }}
+          >
+            {requestingDeletion
+              ? (canDeleteDirectly ? "Excluindo..." : "Enviando...")
+              : (canDeleteDirectly ? "Excluir cliente" : "Solicitar exclusão")}
+          </Button>
+        </DialogActions>
+      </Dialog>
+
+      <FeedbackToast
+        open={!!toast}
+        title={toast?.title ?? ""}
+        message={toast?.message ?? ""}
+        variant={toast?.variant ?? "success"}
+        onClose={() => setToast(null)}
+      />
+    </AppLayout>
+  );
+}

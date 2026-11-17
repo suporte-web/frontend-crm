@@ -1,6 +1,6 @@
 import type { SitePageConfig } from '@/types/site-institucional';
 
-const publicSiteBaseUrl = process.env.NEXT_PUBLIC_SITE_PUBLIC_URL ?? 'http://localhost:3002';
+const publicSiteBaseUrl = import.meta.env.VITE_SITE_PUBLIC_URL ?? 'http://localhost:3002';
 
 const placements: Record<string, Record<string, string>> = {
   home: {

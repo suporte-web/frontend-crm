@@ -1,12 +1,10 @@
-"use client";
-
 import { FeedbackToast } from '@/components/ui/feedback-toast';
 
 import { notificarCrm } from '@/lib/feedback-crm';
 
 import { useEffect, useState } from "react";
 import { Box, Button, Chip, MenuItem, Paper, Stack, TextField, Typography } from "@mui/material";
-import { alterarModalidade, type ModalidadeCadastro } from "@/services/cadastros.service";
+import { alterarModalidade, type ModalidadeCadastro } from "@/stores/cadastros/service";
 
 export function ModalidadeCadastro({ id, modalidade, documento, token, podeEditar, aoSalvar }: {
   id: string;

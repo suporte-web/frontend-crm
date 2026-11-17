@@ -1,4 +1,3 @@
-"use client";
 import { useState } from "react";
 import { VisualizadorDocumento } from "@/components/anexos/VisualizadorDocumento";
 import { UploadAnexos } from "@/components/attachments/UploadAnexos";
@@ -12,7 +11,7 @@ import {
   TextField,
   Typography,
 } from "@mui/material";
-import { enviarAnexoSac, baixarAnexoSac } from "@/services/atendimento-sac.api";
+import { enviarAnexoSac, baixarAnexoSac, caminhoAnexosSac } from "@/stores/atendimento-sac/service";
 import {
   rotulosStatusSac,
   type AnexoSac,
@@ -128,7 +127,7 @@ export function SecaoSac({
   children: React.ReactNode;
 }) {
   return (
-    <Paper variant="outlined" sx={{ p: { xs: 2, md: 3 }, borderRadius: 3 }}>
+    <Paper variant="outlined" sx={{ p: { xs: 2, md: 3 }, borderRadius: 3, minWidth: 0, maxWidth: "100%" }}>
       <Stack spacing={2}>
         <Typography variant="h6" sx={{ fontWeight: 700 }}>
           {titulo}
@@ -144,7 +143,7 @@ export function ListaAnexosSac({
   id,
   erro,
   baixar,
-  caminhoAnexos = `/atendimento-sac/${id}/anexos`,
+  caminhoAnexos = caminhoAnexosSac(id),
 }: {
   anexos: AnexoSac[];
   caminhoAnexos?: string;

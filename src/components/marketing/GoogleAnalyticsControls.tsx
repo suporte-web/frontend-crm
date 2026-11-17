@@ -1,9 +1,7 @@
-"use client";
-
 import { FeedbackToast } from '@/components/ui/feedback-toast';
 
 import { useEffect, useState } from "react";
-import Link from "next/link";
+import { Link } from 'react-router-dom';
 import {
   Alert,
   Button,
@@ -22,7 +20,7 @@ import {
   listarPropriedadesGoogleAnalytics,
   selecionarPropriedadeGoogleAnalytics,
   testarGoogleAnalytics,
-} from "@/services/marketing-integrations.service";
+} from "@/stores/marketing-integrations/service";
 import type {
   GoogleAnalyticsProperty,
   MarketingIntegration,
@@ -111,7 +109,7 @@ export function GoogleAnalyticsControls({
         Para consultar relatórios sem Google Cloud, importe um CSV do GA4 em
         Métricas. A conexão automática abaixo exige credenciais.
       </Alert>
-      <Button component={Link} href="/marketing/metricas" variant="outlined">
+      <Button component={Link} to="/marketing/metricas" variant="outlined">
         Importar relatório do GA4
       </Button>
 

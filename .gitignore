@@ -1,5 +1,4 @@
 node_modules/
-.next/
 dist/
 build/
 .env
@@ -10,3 +9,5 @@ build/
 frontend-build.zip
 *.zip
 *.tar.gz
+.tmp/
+*.tsbuildinfo

@@ -1,6 +1,5 @@
-"use client";
 import { VisualizadorDocumento } from "@/components/anexos/VisualizadorDocumento";
-import type { LeadAnexo } from "@/services/lead-anexos.service";
+import type { LeadAnexo } from "@/stores/lead-anexos/service";
 export function LeadAttachmentPreview({ token, leadId, anexo, onClose }: {
  token: string; leadId: string; anexo: LeadAnexo | null; onClose: () => void;
 }) {

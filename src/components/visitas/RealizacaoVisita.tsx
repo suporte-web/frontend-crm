@@ -1,4 +1,3 @@
-"use client";
 import { useState } from "react";
 import {
   Alert,
@@ -18,7 +17,7 @@ import {
 import { montarRealizacao } from "@/lib/visitas-formularios";
 import type { Visita } from "@/types/visitas";
 import { acaoVisitaSx, AnexosVisita, SimNaoVisita } from "./ComponentesVisitas";
-import type { AcaoVisita } from "./PaginaDetalheVisita";
+import type { AcaoVisita } from "../../pages/atendimento/visitas/detalhes/index";
 export function RealizacaoVisita({
   visita,
   token,

@@ -1,4 +1,3 @@
-"use client";
 import { useState } from "react";
 import {
   Alert,
@@ -17,7 +16,7 @@ import {
 } from "@/components/atendimento-sac/ComponentesSac";
 import { type Visita } from "@/types/visitas";
 import { acaoVisitaSx, AnexosVisita } from "./ComponentesVisitas";
-import type { AcaoVisita } from "./PaginaDetalheVisita";
+import type { AcaoVisita } from "../../pages/atendimento/visitas/detalhes/index";
 export function ValidacaoVisita({
   visita,
   token,

@@ -1,4 +1,3 @@
-"use client";
 import { mascararValorMonetario, formatarValorMonetarioSalvo } from '@/lib/valor-oportunidade';
 
 import type { Dispatch, SetStateAction } from "react";
@@ -6,9 +5,10 @@ import { Box, MenuItem, Stack, TextField } from "@mui/material";
 import { campoCadastroSx } from "@/components/clientes/client-form";
 import { FotoCadastro } from "./foto-cadastro";
 import { LEAD_FUNNEL_STAGES, type LeadFunnelStage } from "@/constants/lead-funnel";
-import type { ModalidadeCadastro } from "@/services/cadastros.service";
+import type { ModalidadeCadastro } from "@/stores/cadastros/service";
+import { SeletorResponsavelCadastro } from './seletor-responsavel-cadastro';
 
-export type CamposComerciaisCadastro = { proximaAcao: string; responsavel: string; volumeMensalEstimado: string };
+export type CamposComerciaisCadastro = { proximaAcao: string; responsavelId: string | null; volumeMensalEstimado: string };
 export function CamposComplementaresCadastro({ modalidade, setModalidade, etapa, setEtapa, comerciais, setComerciais, foto, setFoto, desabilitado }: {
   modalidade: ModalidadeCadastro; setModalidade: (valor: ModalidadeCadastro) => void;
   etapa: LeadFunnelStage; setEtapa: (valor: LeadFunnelStage) => void;
@@ -22,7 +22,7 @@ export function CamposComplementaresCadastro({ modalidade, setModalidade, etapa,
     </Box>
     <Box sx={{ display: "grid", gridTemplateColumns: { xs: "minmax(0, 1fr)", md: "repeat(3, minmax(0, 1fr))" }, gap: 2 }}>
       <TextField size="small" fullWidth label="Próxima ação" placeholder="Ex.: Enviar proposta" value={comerciais.proximaAcao} onChange={evento => setComerciais(atual => ({ ...atual, proximaAcao: evento.target.value }))} disabled={desabilitado} sx={campoCadastroSx} />
-      <TextField size="small" fullWidth label="Responsável" value={comerciais.responsavel} onChange={evento => setComerciais(atual => ({ ...atual, responsavel: evento.target.value }))} disabled={desabilitado} sx={campoCadastroSx} />
+      <SeletorResponsavelCadastro valor={comerciais.responsavelId} aoAlterar={responsavelId => setComerciais(atual => ({ ...atual, responsavelId }))} desabilitado={desabilitado} />
       <TextField size="small" fullWidth label="Volume mensal estimado (R$)" placeholder="Ex.: 12.500,00" value={formatarValorMonetarioSalvo(comerciais.volumeMensalEstimado)} onChange={evento => setComerciais(atual => ({ ...atual, volumeMensalEstimado: mascararValorMonetario(evento.target.value) }))} slotProps={{ htmlInput: { inputMode: "decimal" } }} disabled={desabilitado} sx={campoCadastroSx} />
     </Box>
     <Box sx={{ p: 2, border: "1px solid #e2e8f0", borderRadius: "12px", bgcolor: "#fff" }}><FotoCadastro valor={foto} aoAlterar={setFoto} desabilitado={desabilitado} /></Box>

@@ -1,9 +1,7 @@
-"use client";
-
 import { useEffect, useRef, useState } from "react";
 import { Alert, Button, MenuItem, Stack, TextField, Typography } from "@mui/material";
 import { useAuth } from "@/context/auth-context";
-import { consultarMotivosPerda } from "@/services/motivos-perda.service";
+import { consultarMotivosPerda } from "@/stores/motivos-perda/service";
 import {
   rotuloPerda,
   type MotivoPerda,

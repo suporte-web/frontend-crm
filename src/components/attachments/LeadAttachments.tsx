@@ -1,4 +1,3 @@
-"use client";
 import { useCallback, useEffect, useState } from "react";
 import {
   Alert,
@@ -18,7 +17,7 @@ import {
   enviarAnexoLead,
   listarAnexosLead,
   type LeadAnexo,
-} from "@/services/lead-anexos.service";
+} from "@/stores/lead-anexos/service";
 
 export function LeadAttachments({
   token,

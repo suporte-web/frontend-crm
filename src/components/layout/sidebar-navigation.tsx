@@ -1,5 +1,3 @@
-"use client";
-
 import { useEffect, useState } from "react";
 import Menu from "@mui/material/Menu";
 import MenuItem from "@mui/material/MenuItem";
@@ -14,7 +12,7 @@ import Tooltip from "@mui/material/Tooltip";
 
 import ExpandMoreRoundedIcon from "@mui/icons-material/ExpandMoreRounded";
 
-import Link from "next/link";
+import { Link } from 'react-router-dom';
 import { UserSearch } from "lucide-react";
 
 import type { AppScreen } from "@/config/screens";
@@ -112,7 +110,7 @@ export function SidebarNavigation({
                 const menuButton = (
                   <ListItemButton
                     component={Link}
-                    href={item.href}
+                    to={item.href}
                     selected={active}
                     sx={{
                           ...(item.key === "prospectingManagement" ? { "&.Mui-selected .MuiListItemIcon-root": { color: "#ff5805" } } : {}),
@@ -381,7 +379,7 @@ export function SidebarNavigation({
                   <MenuItem
                     key={item.key}
                     component={Link}
-                    href={item.href}
+                    to={item.href}
                     selected={active}
                     onClick={() => setMenuRecolhido(null)}
                     sx={{
@@ -400,7 +398,7 @@ export function SidebarNavigation({
               })}
             </Menu>
 
-            {collapsed && section.items.some(item=>item.key==='prospectingManagement') && <Tooltip title="Gestão de Prospecções" placement="right" arrow><ListItemButton component={Link} href="/gestao-prospeccoes" selected={isScreenActive(pathname,'/gestao-prospeccoes')} aria-label="Gestão de Prospecções" sx={{width:48,minHeight:48,px:0,justifyContent:'center',borderRadius:'12px',color:sidebarColors.muted,'&.Mui-selected':{color:'#ff5805',bgcolor:sidebarColors.orangeSoft},'&:hover':{bgcolor:sidebarColors.orangeSoft}}}><ListItemIcon sx={{minWidth:0,color:'inherit'}}><UserSearch size={20}/></ListItemIcon></ListItemButton></Tooltip>}
+            {collapsed && section.items.some(item=>item.key==='prospectingManagement') && <Tooltip title="Gestão de Prospecções" placement="right" arrow><ListItemButton component={Link} to="/gestao-prospeccoes" selected={isScreenActive(pathname,'/gestao-prospeccoes')} aria-label="Gestão de Prospecções" sx={{width:48,minHeight:48,px:0,justifyContent:'center',borderRadius:'12px',color:sidebarColors.muted,'&.Mui-selected':{color:'#ff5805',bgcolor:sidebarColors.orangeSoft},'&:hover':{bgcolor:sidebarColors.orangeSoft}}}><ListItemIcon sx={{minWidth:0,color:'inherit'}}><UserSearch size={20}/></ListItemIcon></ListItemButton></Tooltip>}
             {!collapsed ? (
               <Collapse in={sectionOpen} timeout={180} unmountOnExit>
                 <List
@@ -433,7 +431,7 @@ export function SidebarNavigation({
                       <ListItemButton
                         key={item.href}
                         component={Link}
-                        href={item.href}
+                        to={item.href}
                         selected={active}
                         sx={{
                           ...(item.key === "prospectingManagement" ? { "&.Mui-selected .MuiListItemIcon-root": { color: "#ff5805" } } : {}),

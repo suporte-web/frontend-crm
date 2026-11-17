@@ -1,4 +1,3 @@
-"use client";
 import { Chip, Stack, Typography } from "@mui/material";
 import { useAuth } from "@/context/auth-context";
 import { hasAnyRole } from "@/lib/user-roles";

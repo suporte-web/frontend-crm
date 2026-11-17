@@ -1,5 +1,3 @@
-'use client';
-
 import { useMemo, useState } from 'react';
 import { v4 as uuidv4 } from 'uuid';
 
@@ -16,7 +14,7 @@ import {
   isPermissionEnabledForRole,
   virtualAssistantPermission,
 } from '@/config/screens';
-import { askHelpCenter } from '@/services/help-center.service';
+import { askHelpCenter } from '@/stores/help-center/service';
 
 type ChatMessage = {
   id: string;

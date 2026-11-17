@@ -1,5 +1,4 @@
-"use client";
-import Link from "next/link";
+import { Link } from 'react-router-dom';
 import { useState } from "react";
 import {
   Alert,
@@ -18,7 +17,7 @@ import {
 import { montarPosVisita } from "@/lib/visitas-formularios";
 import { classificacoesVisita, type Visita } from "@/types/visitas";
 import { acaoVisitaSx, AnexosVisita, SimNaoVisita } from "./ComponentesVisitas";
-import type { AcaoVisita } from "./PaginaDetalheVisita";
+import type { AcaoVisita } from "../../pages/atendimento/visitas/detalhes/index";
 const simNao = (v?: boolean | null) => (v == null ? "" : String(v));
 export function PosVisita({
   visita,
@@ -302,7 +301,7 @@ export function PosVisita({
         <Stack spacing={2}>
           <Button
             component={Link}
-            href={"/atendimento/" + visita.sac.id}
+            to={"/atendimento/" + visita.sac.id}
             variant="outlined"
             size="small"
             sx={{ alignSelf: "flex-start" }}

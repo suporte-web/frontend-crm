@@ -35,6 +35,8 @@ export type LeadTimelineEvent = {
 };
 
 export type Lead = {
+  responsavelId?: string | null;
+  responsavelNome?: string | null;
   prospectedById?: string | null;
   prospectedByName?: string | null;
   sourceLeadId?: string | null;

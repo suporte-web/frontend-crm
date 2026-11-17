@@ -1,5 +1,3 @@
-'use client';
-
 import { useEffect, useState } from 'react';
 import { EVENTO_FEEDBACK_CRM, type FeedbackCrm } from '@/lib/feedback-crm';
 import { FeedbackToast } from './feedback-toast';

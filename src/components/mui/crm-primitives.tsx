@@ -1,5 +1,3 @@
-"use client";
-
 import { cartaoCrmSx, indicadorCrmSx } from "./estilos-cartoes-crm";
 import Avatar from "@mui/material/Avatar";
 import Box from "@mui/material/Box";
@@ -46,6 +44,7 @@ export function CrmPageShell({ children, sx }: CrmPageShellProps) {
           mx: "auto",
           width: "100%",
           maxWidth: 1680,
+          minWidth: 0,
           display: "flex",
           flexDirection: "column",
           gap: 3,
@@ -74,6 +73,8 @@ export function CrmSection({ children, sx, className, "data-cartao-grupo": grupo
       sx={mergeSx(
         {
           ...crmPaperSx,
+          minWidth: 0,
+          maxWidth: "100%",
           overflow: "hidden",
           bgcolor: crmPalette.surface,
         },

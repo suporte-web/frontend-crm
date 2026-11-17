@@ -1,4 +1,3 @@
-"use client";
 import { useEffect, useState } from "react";
 import {
   Alert,
@@ -15,7 +14,7 @@ import {
   camposSac,
   entradaDataSac,
 } from "@/components/atendimento-sac/ComponentesSac";
-import { requisitarVisitas } from "@/services/visitas.api";
+import { getOpcoesVisitas } from "@/stores/visitas/service";
 import {
   type OpcoesVisitas,
   type ParticipanteVisita,
@@ -69,10 +68,7 @@ export function FormularioVisita({
     if (!permitido) return;
     let ativo = true;
     const timer = setTimeout(() => {
-      requisitarVisitas<OpcoesVisitas>(
-        token,
-        "/opcoes",
-      )
+      getOpcoesVisitas(token)
         .then((d) => {
           if (ativo) setOpcoes(d);
         })

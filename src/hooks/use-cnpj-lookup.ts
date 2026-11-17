@@ -1,7 +1,6 @@
-'use client';
 import { useEffect, useRef, useState, type Dispatch, type SetStateAction } from 'react';
 import type { ClientFormData } from '@/components/clientes/client-form';
-import { consultarCnpj } from '@/services/cnpj.service';
+import { consultarCnpj } from '@/stores/cnpj/service';
 import { mesclarDadosCnpj } from '@/lib/cnpj-form';
 
 export function useCnpjLookup(token: string | null, form: ClientFormData, setForm: Dispatch<SetStateAction<ClientFormData>>) {
@@ -17,7 +16,7 @@ export function useCnpjLookup(token: string | null, form: ClientFormData, setFor
     if (requestRef.current) return;
     setCnpjError('');
     if (!token) { setCnpjError('Sua sessão expirou. Entre novamente para consultar o CNPJ. O preenchimento manual continua disponível.'); return; }
-    if (!/^\d{14}$/.test(form.document.replace(/[.\/\-\s]/g, ''))) {
+    if (!/^\d{14}$/.test(form.document.replace(/[./\-\s]/g, ''))) {
       setCnpjError('Informe os 14 números do CNPJ. Você também pode preencher os dados manualmente.'); return;
     }
     const controller = new AbortController();

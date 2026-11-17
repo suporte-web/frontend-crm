@@ -63,7 +63,7 @@ export const appScreens: AppScreen[] = [
     label: 'Funil de Vendas',
     roles: ['ADMIN', 'GESTAO', 'COMERCIAL'],
   },
-  { key: 'commercialBi', href: '/bi-comercial', label: 'BI Comercial', roles: ['ADMIN', 'GESTAO', 'COMERCIAL'] },
+  { key: 'commercialBi', href: '/bi-comercial', label: 'BI Comercial', roles: ['ADMIN', 'GESTAO', 'COMERCIAL', 'CONSULTORA'] },
   {
     key: 'entregas',
     href: '/entregas',
@@ -248,7 +248,8 @@ export function isPermissionEnabledForRole(
 
   const perfis = Array.isArray(role) ? role : [role];
   const roles = perfis.includes('CONSULTORA') ? ['CONSULTORA' as UserRole] : perfis;
-  if (['prospectingManagement', 'commercialBi'].includes(permissionItem.key) && !roles.some(r=>['ADMIN','GESTAO','COMERCIAL'].includes(r))) return false;
+  if (permissionItem.key === 'prospectingManagement' && !roles.some(r=>['ADMIN','GESTAO','COMERCIAL'].includes(r))) return false;
+  if (permissionItem.key === 'commercialBi' && !roles.some(r=>['ADMIN','GESTAO','COMERCIAL','CONSULTORA'].includes(r))) return false;
   return roles.some((profile) => {
     const permission = permissions?.find(
       (item) => item.screenKey === permissionItem.key && (!item.role || item.role === profile),

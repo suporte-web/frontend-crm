@@ -1,4 +1,4 @@
-import { formatarEtapaOportunidade } from '@/services/crm.service';
+import { formatarEtapaOportunidade } from '@/stores/crm/service';
 import type { OpportunityStage } from '@/types/crm';
 
 const stageClasses: Record<OpportunityStage, string> = {

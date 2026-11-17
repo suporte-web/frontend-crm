@@ -1,13 +1,12 @@
 const assert = require('node:assert/strict');
-const { readFileSync } = require('node:fs');
 const { resolve } = require('node:path');
 const { test } = require('node:test');
-const vm = require('node:vm');
-const ts = require('typescript');
+const axios = require('axios');
+const { createSourceLoader } = require('./helpers/source-loader.cjs');
 
 const root = resolve(process.argv[2] || '.');
 const cases = [
-  ['auth', 'getUsers', []],
+  ['login', 'getUsers', []],
   ['users', 'getUsers', []],
   ['users', 'getScreenPermissions', []],
   ['help-center', 'getHelpArticles', []],
@@ -20,23 +19,25 @@ for (const [service, method, args] of cases) {
   test(`${service}.${method}: uses tab credentials and never falls back to old credentials`, async () => {
     let token = 'current-tab-token';
     const requests = [];
-    const exports = {};
-    const source = ts.transpileModule(readFileSync(resolve(root, `src/services/${service}.service.ts`), 'utf8'), {
-      compilerOptions: { module: ts.ModuleKind.CommonJS, target: ts.ScriptTarget.ES2020 },
-    }).outputText;
-    vm.runInNewContext(source, {
-      exports, process, FormData, window: {},
-      sessionStorage: { getItem: () => token },
-      localStorage: { getItem: () => 'obsolete-persistent-token' },
-      require: (name) => {
-        if (name === '@/services/api') return { API_BASE_URL: 'http://localhost:3001/api' };
-        throw new Error(`Unexpected runtime dependency: ${name}`);
+    const load = createSourceLoader({
+      globals: {
+        window: {},
+        sessionStorage: { getItem: () => token },
+        localStorage: { getItem: () => 'obsolete-persistent-token' },
       },
-      fetch: async (_url, options) => {
-        requests.push(options.headers?.Authorization);
-        return { ok: true, json: async () => [] };
-      },
+      mocks: { axios: {
+        isCancel: axios.isCancel,
+        create(config) {
+          const api = axios.create(config);
+          api.defaults.adapter = async config => {
+            requests.push(config.headers.get('Authorization'));
+            return { config, status: 200, statusText: 'OK', headers: {}, data: config.responseType === 'arraybuffer' ? new TextEncoder().encode('[]').buffer : [] };
+          };
+          return api;
+        },
+      } },
     });
+    const exports = load(resolve(root, `src/stores/${service}/service.ts`));
     await exports[method](...args);
     token = null;
     await exports[method](...args);

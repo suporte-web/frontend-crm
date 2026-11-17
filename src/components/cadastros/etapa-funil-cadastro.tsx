@@ -1,4 +1,3 @@
-"use client";
 import { mascararValorMonetario, formatarValorMonetarioSalvo } from '@/lib/valor-oportunidade';
 
 
@@ -7,15 +6,17 @@ import { FeedbackToast } from '@/components/ui/feedback-toast';
 import { useEffect, useState } from "react";
 import { Box, Button, CircularProgress, MenuItem, Paper, Stack, TextField, Typography } from "@mui/material";
 import { LEAD_FUNNEL_STAGES, normalizeLeadFunnelStage, type LeadFunnelStage } from "@/constants/lead-funnel";
-import { atualizarEtapaCadastro, obterDadosLead } from "@/services/cadastros.service";
+import { atualizarEtapaCadastro, obterDadosLead } from "@/stores/cadastros/service";
+import { SeletorResponsavelCadastro } from './seletor-responsavel-cadastro';
 
 export function EtapaFunilCadastro({ id, token, podeEditar, aoSalvar }: {
   id: string; token: string; podeEditar: boolean; aoSalvar: () => Promise<void>;
 }) {
   const [etapa, setEtapa] = useState<LeadFunnelStage | "">("");
   const [etapaSalva, setEtapaSalva] = useState<LeadFunnelStage | "">("");
-  const [dados, setDados] = useState({ proximaAcao: "", responsavel: "", volumeMensalEstimado: "" });
-  const [dadosSalvos, setDadosSalvos] = useState({ proximaAcao: "", responsavel: "", volumeMensalEstimado: "" });
+  const [dados, setDados] = useState<{ proximaAcao: string; responsavelId: string | null; volumeMensalEstimado: string }>({ proximaAcao: "", responsavelId: null, volumeMensalEstimado: "" });
+  const [dadosSalvos, setDadosSalvos] = useState<typeof dados>({ proximaAcao: "", responsavelId: null, volumeMensalEstimado: "" });
+  const [nomeResponsavel, setNomeResponsavel] = useState('');
   const [carregando, setCarregando] = useState(true);
   const [salvando, setSalvando] = useState(false);
   const [erro, setErro] = useState("");
@@ -26,8 +27,9 @@ export function EtapaFunilCadastro({ id, token, podeEditar, aoSalvar }: {
     setCarregando(true);
     setEtapa("");
     setEtapaSalva("");
-    setDados({ proximaAcao: "", responsavel: "", volumeMensalEstimado: "" });
-    setDadosSalvos({ proximaAcao: "", responsavel: "", volumeMensalEstimado: "" });
+    setDados({ proximaAcao: "", responsavelId: null, volumeMensalEstimado: "" });
+    setDadosSalvos({ proximaAcao: "", responsavelId: null, volumeMensalEstimado: "" });
+    setNomeResponsavel('');
     setErro("");
     setSucesso(false);
     obterDadosLead(id, token).then(lead => {
@@ -37,10 +39,11 @@ export function EtapaFunilCadastro({ id, token, podeEditar, aoSalvar }: {
       setEtapaSalva(valor);
       const comerciais = {
         proximaAcao: String(lead?.metadata?.nextAction ?? ""),
-        responsavel: String(lead?.metadata?.responsible ?? ""),
+        responsavelId: lead?.responsavelId ?? null,
         volumeMensalEstimado: String(lead?.metadata?.monthlyEstimatedValue ?? ""),
       };
       setDados(comerciais);
+      setNomeResponsavel(lead?.responsavelNome || String(lead?.metadata?.responsible ?? ''));
       setDadosSalvos(comerciais);
     }).catch(erro => {
       if (ativo) setErro(erro instanceof Error ? erro.message : "Não foi possível carregar a etapa.");
@@ -83,7 +86,7 @@ export function EtapaFunilCadastro({ id, token, podeEditar, aoSalvar }: {
           </Stack>
           <Box sx={{ display: "grid", gridTemplateColumns: { xs: "minmax(0, 1fr)", md: "repeat(3, minmax(0, 1fr))" }, gap: 2 }}>
             <TextField size="small" fullWidth label="Próxima ação" placeholder="Ex.: Enviar proposta" value={dados.proximaAcao} onChange={evento => { setDados(atual => ({ ...atual, proximaAcao: evento.target.value })); setSucesso(false); }} disabled={!podeEditar || salvando} />
-            <TextField size="small" fullWidth label="Responsável" value={dados.responsavel} onChange={evento => { setDados(atual => ({ ...atual, responsavel: evento.target.value })); setSucesso(false); }} disabled={!podeEditar || salvando} />
+            <SeletorResponsavelCadastro valor={dados.responsavelId} nomeAtual={nomeResponsavel} aoAlterar={responsavelId => { setDados(atual => ({ ...atual, responsavelId })); setSucesso(false); }} desabilitado={!podeEditar || salvando} />
             <TextField size="small" fullWidth label="Volume mensal estimado (R$)" placeholder="Ex.: 12.500,00" value={formatarValorMonetarioSalvo(dados.volumeMensalEstimado)} onChange={evento => { setDados(atual => ({ ...atual, volumeMensalEstimado: mascararValorMonetario(evento.target.value) })); setSucesso(false); }} slotProps={{ htmlInput: { inputMode: "decimal" } }} disabled={!podeEditar || salvando} />
           </Box>
           </Stack>

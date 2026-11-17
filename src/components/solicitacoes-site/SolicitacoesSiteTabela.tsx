@@ -1,6 +1,4 @@
-'use client';
-
-import Link from 'next/link';
+import { Link } from 'react-router-dom';
 
 import {
   Box,
@@ -522,7 +520,7 @@ export function SolicitacoesSiteTabela({
                   >
                     <Button
                       component={Link}
-                      href={`/solicitacoes-site/${solicitacao.id}`}
+                      to={`/solicitacoes-site/${solicitacao.id}`}
                       size="small"
                       variant="outlined"
                       endIcon={

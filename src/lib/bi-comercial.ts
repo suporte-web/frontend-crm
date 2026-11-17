@@ -8,7 +8,7 @@ import type { Lead } from "@/types/leads";
 import type {
   Cadastro,
   ModalidadeCadastro,
-} from "@/services/cadastros.service";
+} from "@/stores/cadastros/service";
 
 export type CadastroBi = Cadastro & { dadosAcompanhamentoDisponiveis?: boolean };
 
@@ -326,15 +326,15 @@ function responsavelCadastroBi(cadastro: CadastroBi) {
   const valor = 'responsavel' in cadastro ? cadastro.responsavel : metadata.responsible;
   return typeof valor === 'string' ? valor.trim().replace(/\s+/g, ' ') : '';
 }
-function chaveResponsavelBi(nome: string) {
-  return nome ? 'nome:' + nome.toLocaleLowerCase('pt-BR') : 'sem-responsavel';
+function chaveResponsavelBi(cadastro: CadastroBi) {
+  return cadastro.responsavelId || 'sem-responsavel';
 }
 export type ResponsavelBi = { valor: string; rotulo: string };
 export function listarResponsaveisBi(cadastros: readonly CadastroBi[]): ResponsavelBi[] {
   const opcoes = new Map<string, string>();
   for (const cadastro of cadastros) {
     const nome = responsavelCadastroBi(cadastro);
-    const chave = chaveResponsavelBi(nome);
+    const chave = chaveResponsavelBi(cadastro);
     if (!opcoes.has(chave)) opcoes.set(chave, nome || 'Sem responsável');
   }
   return Array.from(opcoes, ([valor, rotulo]) => ({ valor, rotulo })).sort((a, b) => a.rotulo.localeCompare(b.rotulo, 'pt-BR'));
@@ -342,7 +342,7 @@ export function listarResponsaveisBi(cadastros: readonly CadastroBi[]): Responsa
 /** O mesmo filtro alimenta todas as abas; oportunidades seguem seu cadastro de origem. */
 export function filtrarBiPorResponsavel(cadastros: CadastroBi[], oportunidades: OportunidadeBi[] | null, responsavel: string) {
   if (!responsavel) return { cadastros, oportunidades };
-  const filtrados = cadastros.filter(cadastro => chaveResponsavelBi(responsavelCadastroBi(cadastro)) === responsavel);
+  const filtrados = cadastros.filter(cadastro => chaveResponsavelBi(cadastro) === responsavel);
   const ids = new Set(filtrados.map(cadastro => cadastro.id));
   return { cadastros: filtrados, oportunidades: oportunidades === null ? null : oportunidades.filter(item => Boolean(item.cadastroId && ids.has(item.cadastroId))) };
 }

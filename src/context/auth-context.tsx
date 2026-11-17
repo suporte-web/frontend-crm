@@ -1,11 +1,12 @@
-'use client';
-
-import { createContext, useContext, useEffect, useMemo, useState } from 'react';
-import { API_BASE_URL } from '@/services/api';
+import { ApiError } from '@/utils/Api';
+import { createContext, useCallback, useContext, useEffect, useMemo, useState } from 'react';
+import { requestCurrentUser, requestLogin, requestChangePassword } from '@/stores/login/service';
+import { AUTH_SESSION_EXPIRED_EVENT, TOKEN_KEY, USER_KEY } from '@/utils/constants';
 import type { AuthUser, LoginResponse } from '@/types/auth';
 
 type AuthContextType = {
   user: AuthUser | null;
+  setUser: React.Dispatch<React.SetStateAction<AuthUser | null>>;
   token: string | null;
   loading: boolean;
   signIn: (email: string, password: string) => Promise<LoginResponse>;
@@ -21,8 +22,6 @@ const AuthContext = createContext<AuthContextType | null>(null);
 
 class AuthSessionExpiredError extends Error {}
 
-const TOKEN_KEY = 'crm_token';
-const USER_KEY = 'crm_user';
 
 export function AuthProvider({ children }: { children: React.ReactNode }) {
   const [user, setUser] = useState<AuthUser | null>(null);
@@ -83,100 +82,40 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     };
   }, [token]);
 
-  async function refreshUser() {
+  const refreshUser = useCallback(async () => {
     const activeToken = token || sessionStorage.getItem(TOKEN_KEY);
-
-    if (!activeToken) {
-      return null;
+    if (!activeToken) return null;
+    try {
+      const updatedUser = await requestCurrentUser(activeToken);
+      if (sessionStorage.getItem(TOKEN_KEY) !== activeToken) return null;
+      setUser(updatedUser);
+      sessionStorage.setItem(USER_KEY, JSON.stringify(updatedUser));
+      return updatedUser;
+    } catch (error) {
+      if (error instanceof ApiError && error.status === 401) {
+        throw new AuthSessionExpiredError('Sessao expirada. Faca login novamente.');
+      }
+      throw error;
     }
-
-    const response = await fetch(`${API_BASE_URL}/auth/me`, {
-      method: 'GET',
-      headers: {
-        'Content-Type': 'application/json',
-        Authorization: `Bearer ${activeToken}`,
-      },
-    });
-
-    if (response.status === 401) {
-      throw new AuthSessionExpiredError('Sessao expirada. Faca login novamente.');
-    }
-
-    const data = (await response.json()) as AuthUser | { message?: string };
-
-    if (!response.ok) {
-      throw new Error(
-        (data as { message?: string }).message || 'Erro ao atualizar usuário',
-      );
-    }
-
-    const updatedUser = data as AuthUser;
-
-    setUser(updatedUser);
-    sessionStorage.setItem(USER_KEY, JSON.stringify(updatedUser));
-
-    return updatedUser;
-  }
+  }, [token]);
 
   async function signIn(email: string, password: string) {
-    const response = await fetch(`${API_BASE_URL}/auth/login`, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ email, password }),
-    });
-
-    const data = (await response.json()) as
-      | LoginResponse
-      | { message?: string };
-
-    if (!response.ok) {
-      throw new Error(
-        (data as { message?: string }).message || 'Erro ao fazer login',
-      );
-    }
-
-    const loginData = data as LoginResponse;
-
+    const loginData = await requestLogin(email, password);
     setToken(loginData.access_token);
     setUser(loginData.user);
-
     sessionStorage.setItem(TOKEN_KEY, loginData.access_token);
     sessionStorage.setItem(USER_KEY, JSON.stringify(loginData.user));
-
     return loginData;
   }
 
   async function changePassword(currentPassword: string, newPassword: string) {
-    if (!token) {
-      throw new Error('Sessao expirada. Faca login novamente.');
-    }
-
-    const response = await fetch(`${API_BASE_URL}/auth/change-password`, {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        Authorization: `Bearer ${token}`,
-      },
-      body: JSON.stringify({ currentPassword, newPassword }),
-    });
-
-    const data = (await response.json()) as
-      | { user: AuthUser; message?: string }
-      | { message?: string };
-
-    if (!response.ok) {
-      throw new Error(
-        (data as { message?: string }).message || 'Erro ao alterar senha',
-      );
-    }
-
-    const updatedUser = (data as { user: AuthUser }).user;
-
+    if (!token) throw new Error('Sessao expirada. Faca login novamente.');
+    const { user: updatedUser } = await requestChangePassword(currentPassword, newPassword, token);
     setUser(updatedUser);
     sessionStorage.setItem(USER_KEY, JSON.stringify(updatedUser));
   }
 
-  function signOut() {
+  const signOut = useCallback(() => {
     setToken(null);
     setUser(null);
     sessionStorage.removeItem(TOKEN_KEY);
@@ -185,7 +124,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     localStorage.removeItem(TOKEN_KEY);
     localStorage.removeItem(USER_KEY);
 
-  }
+  }, []);
   
 
 useEffect(() => {
@@ -233,9 +172,16 @@ useEffect(() => {
 
   
 
+  useEffect(() => {
+    const onExpired = () => signOut();
+    window.addEventListener(AUTH_SESSION_EXPIRED_EVENT, onExpired);
+    return () => window.removeEventListener(AUTH_SESSION_EXPIRED_EVENT, onExpired);
+  }, []);
+
   const value = useMemo(
     () => ({
       user,
+      setUser,
       token,
       loading,
       signIn,

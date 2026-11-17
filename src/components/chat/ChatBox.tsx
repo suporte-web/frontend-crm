@@ -1,5 +1,3 @@
-'use client';
-
 import { notificarCrm } from '@/lib/feedback-crm';
 
 import { canUseInternalChat } from "@/lib/user-roles";
@@ -11,7 +9,7 @@ import {
   getChatMessages,
   markChatRead,
   sendChatMessage,
-} from '@/services/chatService';
+} from '@/stores/chat/service';
 
 import type {
   Chat,

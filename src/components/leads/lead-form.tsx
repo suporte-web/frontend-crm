@@ -1,4 +1,3 @@
-'use client';
 import { mascararValorMonetario, formatarValorMonetarioSalvo } from '@/lib/valor-oportunidade';
 
 

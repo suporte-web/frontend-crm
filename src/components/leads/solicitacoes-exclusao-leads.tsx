@@ -1,5 +1,3 @@
-'use client';
-
 import { FeedbackToast } from '@/components/ui/feedback-toast';
 
 import { notificarCrm } from '@/lib/feedback-crm';
@@ -9,7 +7,7 @@ import { Button, Dialog, DialogActions, DialogContent, DialogTitle, Stack, TextF
 import { CrmSection } from '@/components/mui/crm-primitives';
 import { useAuth } from '@/context/auth-context';
 import { hasAnyRole } from '@/lib/user-roles';
-import { decidirExclusaoLead, getSolicitacoesExclusaoLeads, type SolicitacaoExclusaoLead } from '@/services/leads.service';
+import { decidirExclusaoLead, getSolicitacoesExclusaoLeads, type SolicitacaoExclusaoLead } from '@/stores/leads/service';
 
 export function SolicitacoesExclusaoLeads({ onChanged }: { onChanged: () => Promise<void> }) {
   const { user, token } = useAuth();

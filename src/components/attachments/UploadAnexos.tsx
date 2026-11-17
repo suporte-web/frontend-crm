@@ -1,5 +1,3 @@
-"use client";
-
 import { notificarCrm } from '@/lib/feedback-crm';
 import { useRef, useState } from "react";
 import { Alert, Button, Stack, TextField } from "@mui/material";

@@ -1,5 +1,3 @@
-'use client';
-
 import AttachFileRoundedIcon from '@mui/icons-material/AttachFileRounded';
 import DescriptionOutlinedIcon from '@mui/icons-material/DescriptionOutlined';
 import ImageOutlinedIcon from '@mui/icons-material/ImageOutlined';

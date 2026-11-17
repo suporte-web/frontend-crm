@@ -1,7 +1,6 @@
-'use client';
+import { solicitarAnexoRelatoSite } from '@/stores/anexos/service';
 import { useState } from 'react';
 import { useAuth } from '@/context/auth-context';
-import { API_BASE_URL } from '@/services/api';
 
 type AtendimentoRelato = {
   id: string; protocolo?: string | null; nomeSolicitante?: string | null;
@@ -19,9 +18,8 @@ export function DadosRelatoSite({ atendimento }: { atendimento: AtendimentoRelat
     if (!token || baixando) return;
     definirBaixando(anexo.id); definirErro('');
     try {
-      const resposta = await fetch(`${API_BASE_URL}/atendimentos/site/relatos/${atendimento.id}/anexos/${anexo.id}`, { headers: { Authorization: `Bearer ${token}` }, cache: 'no-store' });
-      if (!resposta.ok) throw new Error('Não foi possível baixar o anexo.');
-      const url = URL.createObjectURL(await resposta.blob());
+      const arquivo = await solicitarAnexoRelatoSite(atendimento.id, anexo.id, token);
+      const url = URL.createObjectURL(arquivo);
       const link = document.createElement('a'); link.href = url; link.download = anexo.nome;
       document.body.appendChild(link); link.click(); link.remove(); setTimeout(() => URL.revokeObjectURL(url), 1000);
     } catch { definirErro('Não foi possível baixar o anexo. Tente novamente.'); }
