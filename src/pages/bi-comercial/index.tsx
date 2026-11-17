@@ -175,7 +175,7 @@ export default function BiComercialPage() {
   const [aba, setAba] = useState<AbaBi>('visao-geral');
   const [responsavel, setResponsavel] = useState<ResponsavelBi | null>(null);
   const [responsaveis, setResponsaveis] = useState<ResponsavelBi[]>([]);
-  const responsavelFiltro = consultora ? user?.id || '' : responsavel?.valor || '';
+  const responsavelFiltro = responsavel?.valor || '';
   useEffect(() => {
     if (authLoading || !allowed || !token || !user) return;
     let active = true;
@@ -200,7 +200,7 @@ export default function BiComercialPage() {
       .finally(() => { if (active) setLoading(false); });
     return () => { active = false; controller.abort(); };
   }, [allowed, authLoading, token, refresh, user, responsavelFiltro]);
-  const opcoesResponsavel = consultora ? [{ valor: user!.id, rotulo: user!.name }] : [{ valor: 'sem-responsavel', rotulo: 'Sem usuário responsável vinculado' }, ...responsaveis];
+  const opcoesResponsavel = [{ valor: 'sem-responsavel', rotulo: 'Sem usuário responsável vinculado' }, ...responsaveis];
   const dadosFiltrados = useMemo(() => filtrarBiPorResponsavel(cadastros, oportunidades, responsavelFiltro), [cadastros, oportunidades, responsavelFiltro]);
   const resultadoOportunidades = useMemo(() => {
     try { return { data: dadosFiltrados.oportunidades === null ? null : montarBiOportunidades(dadosFiltrados.oportunidades, { de, ate }), error: '' }; }
@@ -241,8 +241,8 @@ export default function BiComercialPage() {
               {updated && <Typography sx={{ color: '#94a3b8', fontSize: 11 }}>Atualizado às {updated.toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' })}</Typography>}
             </Stack>
             <Box sx={{ display: 'grid', gridTemplateColumns: { xs: 'minmax(0, 1fr)', sm: 'repeat(2, minmax(0, 1fr))', md: 'repeat(3, minmax(0, 1fr))', lg: 'minmax(0, 1.3fr) repeat(2, minmax(0, 1fr)) auto' }, gap: 1.5, alignItems: 'center' }}>
-              <TextField id="responsavel-bi" select label="Responsável" size="small" value={responsavelFiltro} disabled={loading || consultora} onChange={event => setResponsavel(opcoesResponsavel.find(item => item.valor === event.target.value) || null)} helperText={consultora ? 'Somente os cadastros vinculados ao seu usuário.' : undefined} slotProps={{ inputLabel: { shrink: true }, select: { displayEmpty: true, MenuProps: { slotProps: { paper: { sx: { maxHeight: 320 } } } } } }} sx={{ ...campoPeriodoSx, '& .MuiSelect-select': { minWidth: 0, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' } }}>
-                {!consultora && <MenuItem value="">Todos os responsáveis</MenuItem>}
+              <TextField id="responsavel-bi" select label="Responsável" size="small" value={responsavelFiltro} disabled={loading} onChange={event => setResponsavel(opcoesResponsavel.find(item => item.valor === event.target.value) || null)} helperText={consultora ? 'Carteira compartilhada da sua empresa consultora.' : undefined} slotProps={{ inputLabel: { shrink: true }, select: { displayEmpty: true, MenuProps: { slotProps: { paper: { sx: { maxHeight: 320 } } } } } }} sx={{ ...campoPeriodoSx, '& .MuiSelect-select': { minWidth: 0, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' } }}>
+                <MenuItem value="">{consultora ? 'Todos da minha empresa' : 'Todos os responsáveis'}</MenuItem>
                 {opcoesResponsavel.map(item => <MenuItem key={item.valor} value={item.valor}>{item.rotulo}</MenuItem>)}
               </TextField>
               <TextField id="periodo-bi-de" label="De" type="date" size="small" value={de} onChange={event => setDe(event.target.value)} slotProps={{ inputLabel: { shrink: true } }} sx={campoPeriodoSx} />

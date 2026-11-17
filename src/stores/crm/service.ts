@@ -23,6 +23,7 @@ type BackendUser = {
 };
 export type BackendClient = {
   responsavelId?: string | null;
+  empresaConsultoraId?: string | null;
   fotoUrl?: string | null;
   proximaAcao?: string | null;
   responsavel?: string | null;

@@ -15,7 +15,7 @@ const categorias = [
   { id: 'comercial', nome: 'Comercial', chaves: ['cadastros', 'clients', 'leads', 'bi', 'opportunities', 'quotes', 'prospectingManagement', 'commercialBi'] },
   { id: 'operacional', nome: 'Operacional', chaves: ['entregas', 'entregas-por-placas', 'trackings', 'visitas'] },
   { id: 'atendimento', nome: 'Atendimento', chaves: ['tickets', 'helpCenter', 'chat', 'atendimentoSac', 'entradas'] },
-  { id: 'administracao', nome: 'Administração', chaves: ['users', 'profilePermissions', 'logs'] },
+  { id: 'administracao', nome: 'Administração', chaves: ['users', 'empresasConsultoras', 'profilePermissions', 'logs'] },
   { id: 'site', nome: 'Marketing e Comunicação', chaves: ['marketing', 'marketingIntegrations', 'marketingMetrics', 'informativo', 'siteInstitutional', 'siteRequests', 'virtualAssistant'] },
   { id: 'geral', nome: 'Geral', chaves: ['dashboard', 'suppliers', 'acoesSac'] },
 ];

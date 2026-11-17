@@ -48,6 +48,7 @@ export const screenIcons: Record<ScreenKey, LucideIcon> = {
   chat: MessageCircle,
   suppliers: Handshake,
   users: Users,
+  empresasConsultoras: Building2,
   profilePermissions: Users,
   marketing: Megaphone,
   marketingIntegrations: Plug,
@@ -107,7 +108,7 @@ export const sidebarSections: SidebarSectionConfig[] = [
     id: "administracao",
     title: "Administração",
     icon: Users,
-    keys: ["users", "profilePermissions", "logs"],
+    keys: ["users", "empresasConsultoras", "profilePermissions", "logs"],
   },
 ];
 

@@ -24,10 +24,10 @@ export function SeletorResponsavelCadastro({ valor, nomeAtual, aoAlterar, desabi
   const ausente = valor && !opcoes.some(item => item.id === valor);
   return <Box sx={{ minWidth: 0 }}>
     <TextField select size="small" fullWidth label="Responsável comercial" value={valor || ''}
-      onChange={evento => aoAlterar(evento.target.value || null)} disabled={desabilitado || carregando || Boolean(erro) || consultora}
-      helperText={carregando ? 'Carregando usuários...' : consultora ? 'A alteração deste vínculo é feita pela gestão.' : !valor && nomeAtual ? `Responsável antigo: ${nomeAtual}. Selecione o usuário correspondente.` : 'Vinculado ao usuário do CRM.'}
+      onChange={evento => aoAlterar(evento.target.value || null)} disabled={desabilitado || carregando || Boolean(erro)}
+      helperText={carregando ? 'Carregando usuários...' : consultora ? 'Consultores da sua empresa. A carteira permanece com a empresa.' : !valor && nomeAtual ? `Responsável antigo: ${nomeAtual}. Selecione o usuário correspondente.` : 'Vinculado ao usuário do CRM.'}
       slotProps={{ inputLabel: { shrink: true }, select: { displayEmpty: true } }}>
-      <MenuItem value="">Sem responsável vinculado</MenuItem>
+      <MenuItem value="" disabled={consultora}>Sem responsável vinculado</MenuItem>
       {ausente && <MenuItem value={valor!} disabled>{nomeAtual || 'Usuário vinculado indisponível'} ({valor!.slice(0, 8)})</MenuItem>}
       {opcoes.map(item => <MenuItem key={item.id} value={item.id}>{item.name} ({item.id.slice(0, 8)})</MenuItem>)}
     </TextField>

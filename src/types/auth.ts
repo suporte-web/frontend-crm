@@ -25,6 +25,8 @@ export interface AuthUser {
   email: string;
   role: UserRole;
   roles?: UserRole[];
+  empresaConsultoraId?: string | null;
+  empresaConsultora?: { id: string; nome: string; ativa: boolean } | null;
   mustChangePassword?: boolean;
   clientProfile?: unknown | null;
   screenPermissions?: RoleScreenPermission[];

@@ -62,6 +62,8 @@ export interface User {
   email: string;
   role: UserRole;
   roles?: UserRole[];
+  empresaConsultoraId?: string | null;
+  empresaConsultora?: { id: string; nome: string; ativa: boolean } | null;
   isActive: boolean;
   createdAt: string;
   updatedAt: string;

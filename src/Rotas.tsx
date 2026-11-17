@@ -87,6 +87,7 @@ const DetalheSolicitacaoSite = lazy(
   () => import("@/pages/solicitacoes-site/detalhes/index"),
 );
 const Usuarios = lazy(() => import("@/pages/usuarios/index"));
+const EmpresasConsultoras = lazy(() => import("@/pages/empresas-consultoras/index"));
 
 const Rotas = () => (
   <App>
@@ -162,6 +163,7 @@ const Rotas = () => (
           element={<DetalheSolicitacaoSite />}
         />
         <Route path="/usuarios" element={<Usuarios />} />
+        <Route path="/empresas-consultoras" element={<EmpresasConsultoras />} />
       </Route>
 
       <Route

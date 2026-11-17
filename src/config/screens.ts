@@ -21,6 +21,7 @@ export type ScreenKey =
   | 'chat'
   | 'suppliers'
   | 'users'
+  | 'empresasConsultoras'
   | 'profilePermissions'
   | 'marketing'
   | 'marketingIntegrations'
@@ -146,6 +147,9 @@ export const appScreens: AppScreen[] = [
     roles: ['ADMIN', 'GESTAO'],
   },
   {
+    key: 'empresasConsultoras', href: '/empresas-consultoras', label: 'Empresas consultoras', roles: ['ADMIN', 'GESTAO'],
+  },
+  {
     key: 'profilePermissions', href: '/permissoes-por-perfil', label: 'Permissões por perfil', roles: ['ADMIN', 'GESTAO'],
   },
   {
@@ -248,6 +252,7 @@ export function isPermissionEnabledForRole(
 
   const perfis = Array.isArray(role) ? role : [role];
   const roles = perfis.includes('CONSULTORA') ? ['CONSULTORA' as UserRole] : perfis;
+  if (permissionItem.key === 'empresasConsultoras' && !roles.some(r => ['ADMIN', 'GESTAO'].includes(r))) return false;
   if (permissionItem.key === 'prospectingManagement' && !roles.some(r=>['ADMIN','GESTAO','COMERCIAL'].includes(r))) return false;
   if (permissionItem.key === 'commercialBi' && !roles.some(r=>['ADMIN','GESTAO','COMERCIAL','CONSULTORA'].includes(r))) return false;
   return roles.some((profile) => {
