@@ -1,11 +1,16 @@
-import { getCadastrosResumos as getCrmClientSummaries, criarCadastro, type ModalidadeCadastro } from "@/stores/cadastros/service";
+import {
+  getCadastrosResumos as getCrmClientSummaries,
+  criarCadastro,
+  type ModalidadeCadastro,
+} from "@/stores/cadastros/service";
 
 import { IdentificacaoProspeccao } from "@/components/crm/prospeccao-consultora";
 import { CamposComplementaresCadastro } from "@/components/cadastros/campos-complementares-cadastro";
+import { ImportarCadastrosDialog } from "@/components/cadastros/importar-cadastros-dialog";
 import { type LeadFunnelStage } from "@/constants/lead-funnel";
 import { hasAnyRole } from "@/lib/user-roles";
 import { useCnpjLookup } from "@/hooks/use-cnpj-lookup";
-import { Link } from 'react-router-dom';
+import { Link } from "react-router-dom";
 import { useEffect, useMemo, useState } from "react";
 
 import Alert from "@mui/material/Alert";
@@ -169,16 +174,50 @@ const textFieldSx = {
 };
 
 const filterFieldSx = {
-  width: '100%', minWidth: 0,
-  '& .MuiOutlinedInput-root': { height: 40, borderRadius: '8px', bgcolor: '#fff', '& fieldset': { borderColor: '#cbd5e1' }, '&.Mui-focused fieldset': { borderColor: '#ff5805' } },
-  '& .MuiInputLabel-root': { fontSize: 13, fontWeight: 400 },
-  '& .MuiInputLabel-root.Mui-focused': { color: '#ff5805' },
-  '& .MuiInputBase-input, & .MuiSelect-select': { fontSize: 13.5, fontWeight: 400 },
+  width: "100%",
+  minWidth: 0,
+  "& .MuiOutlinedInput-root": {
+    height: 40,
+    borderRadius: "8px",
+    bgcolor: "#fff",
+    "& fieldset": { borderColor: "#cbd5e1" },
+    "&.Mui-focused fieldset": { borderColor: "#ff5805" },
+  },
+  "& .MuiInputLabel-root": { fontSize: 13, fontWeight: 400 },
+  "& .MuiInputLabel-root.Mui-focused": { color: "#ff5805" },
+  "& .MuiInputBase-input, & .MuiSelect-select": {
+    fontSize: 13.5,
+    fontWeight: 400,
+  },
 };
 
-const superficieCadastrosSx = { p: { xs: 2, md: 2.5 }, minWidth: 0, border: '1px solid #e2e8f0', borderRadius: '12px', bgcolor: '#fff', boxShadow: 'none' };
-const acaoCadastroSx = { height: 40, minHeight: 40, minWidth: 0, px: 1.5, borderRadius: '8px', fontSize: 13, fontWeight: 600, lineHeight: 1.3, textTransform: 'none', whiteSpace: 'nowrap', boxShadow: 'none' };
-const acaoSecundariaCadastroSx = { ...acaoCadastroSx, color: '#475569', borderColor: '#cbd5e1', '&:hover': { bgcolor: '#f8fafc', borderColor: '#94a3b8' } };
+const superficieCadastrosSx = {
+  p: { xs: 2, md: 2.5 },
+  minWidth: 0,
+  border: "1px solid #e2e8f0",
+  borderRadius: "12px",
+  bgcolor: "#fff",
+  boxShadow: "none",
+};
+const acaoCadastroSx = {
+  height: 40,
+  minHeight: 40,
+  minWidth: 0,
+  px: 1.5,
+  borderRadius: "8px",
+  fontSize: 13,
+  fontWeight: 600,
+  lineHeight: 1.3,
+  textTransform: "none",
+  whiteSpace: "nowrap",
+  boxShadow: "none",
+};
+const acaoSecundariaCadastroSx = {
+  ...acaoCadastroSx,
+  color: "#475569",
+  borderColor: "#cbd5e1",
+  "&:hover": { bgcolor: "#f8fafc", borderColor: "#94a3b8" },
+};
 
 const PAGE_SIZE_OPTIONS = [10, 25, 50];
 
@@ -283,10 +322,20 @@ export default function ClientsPage() {
   const [search, setSearch] = useState("");
   const [modalidadeFiltro, setModalidadeFiltro] = useState("");
   const [responsavelFiltro, setResponsavelFiltro] = useState("");
-  const [modalidadeNovo, setModalidadeNovo] = useState<ModalidadeCadastro>("CLIENTE");
-  const [etapaNovo, setEtapaNovo] = useState<LeadFunnelStage>("venda_efetivada");
+  const [modalidadeNovo, setModalidadeNovo] =
+    useState<ModalidadeCadastro>("CLIENTE");
+  const [etapaNovo, setEtapaNovo] =
+    useState<LeadFunnelStage>("venda_efetivada");
   const [fotoNovo, setFotoNovo] = useState("");
-  const [comerciaisNovo, setComerciaisNovo] = useState<{ proximaAcao: string; responsavelId: string | null; volumeMensalEstimado: string }>({ proximaAcao: "", responsavelId: hasAnyRole(user, ['CONSULTORA']) ? user!.id : null, volumeMensalEstimado: "" });
+  const [comerciaisNovo, setComerciaisNovo] = useState<{
+    proximaAcao: string;
+    responsavelId: string | null;
+    volumeMensalEstimado: string;
+  }>({
+    proximaAcao: "",
+    responsavelId: hasAnyRole(user, ["CONSULTORA"]) ? user!.id : null,
+    volumeMensalEstimado: "",
+  });
   const [statusFilter, setStatusFilter] = useState<"TODOS" | LeadStatus>(
     "TODOS",
   );
@@ -296,6 +345,7 @@ export default function ClientsPage() {
     ClientDeletionRequest[]
   >([]);
   const [isModalOpen, setIsModalOpen] = useState(false);
+  const [importacaoAberta, setImportacaoAberta] = useState(false);
   const [deletionModalClient, setDeletionModalClient] =
     useState<LeadSummary | null>(null);
   const [deletionReason, setDeletionReason] = useState("");
@@ -304,7 +354,12 @@ export default function ClientsPage() {
   const [decisionMessage, setDecisionMessage] = useState("");
   const [saving, setSaving] = useState(false);
   const [form, setForm] = useState(initialClientForm);
-  const { searchingCnpj, cnpjError, searchCnpj: handleSearchCnpj, clearCnpjError } = useCnpjLookup(token, form, setForm);
+  const {
+    searchingCnpj,
+    cnpjError,
+    searchCnpj: handleSearchCnpj,
+    clearCnpjError,
+  } = useCnpjLookup(token, form, setForm);
   const [contacts, setContacts] = useState<ClientContactForm[]>([
     emptyClientContact(),
   ]);
@@ -315,7 +370,9 @@ export default function ClientsPage() {
     variant: "success" | "error";
   } | null>(null);
   const canDeleteDirectly = hasAnyRole(user, ["ADMIN", "GESTAO", "COMERCIAL"]);
-  const canDecideDeletion = ["ADMIN", "GESTAO", "COMERCIAL"].includes(user?.role ?? "");
+  const canDecideDeletion = ["ADMIN", "GESTAO", "COMERCIAL"].includes(
+    user?.role ?? "",
+  );
   const canManageClients = user?.role
     ? hasAnyRole(user, ["ADMIN", "GESTAO", "COMERCIAL", "CONSULTORA"])
     : false;
@@ -330,8 +387,8 @@ export default function ClientsPage() {
       setLoading(true);
       setPageError("");
       const [data, requests] = await Promise.all([
-        getCrmClientSummaries(token, user?.role === 'CONSULTORA'),
-        canManageClients && user?.role !== 'CONSULTORA'
+        getCrmClientSummaries(token, user?.role === "CONSULTORA"),
+        canManageClients && user?.role !== "CONSULTORA"
           ? getClientDeletionRequests(token).catch(() => [])
           : Promise.resolve([]),
       ]);
@@ -351,9 +408,18 @@ export default function ClientsPage() {
   }, [token, canManageClients]);
 
   const responsaveisDisponiveis = useMemo(
-    () => Array.from(new Set(clients.map((client) => client.responsavel?.trim() || "Sem responsável")))
-      .filter(Boolean)
-      .sort((primeiro, segundo) => primeiro.localeCompare(segundo, "pt-BR", { sensitivity: "base" })),
+    () =>
+      Array.from(
+        new Set(
+          clients.map(
+            (client) => client.responsavel?.trim() || "Sem responsável",
+          ),
+        ),
+      )
+        .filter(Boolean)
+        .sort((primeiro, segundo) =>
+          primeiro.localeCompare(segundo, "pt-BR", { sensitivity: "base" }),
+        ),
     [clients],
   );
 
@@ -381,9 +447,15 @@ export default function ClientsPage() {
             .toLowerCase()
             .includes(query);
 
-        return matchesStatus && matchesSearch
-          && (!modalidadeFiltro || client.modalidadeCadastro === modalidadeFiltro)
-          && (!responsavelFiltro || (client.responsavel?.trim() || "Sem responsável") === responsavelFiltro);
+        return (
+          matchesStatus &&
+          matchesSearch &&
+          (!modalidadeFiltro ||
+            client.modalidadeCadastro === modalidadeFiltro) &&
+          (!responsavelFiltro ||
+            (client.responsavel?.trim() || "Sem responsável") ===
+              responsavelFiltro)
+        );
       })
       .sort((first, second) =>
         getClientDisplayName(first).localeCompare(
@@ -408,10 +480,7 @@ export default function ClientsPage() {
   const paginationStart =
     filteredClients.length === 0 ? 0 : (page - 1) * rowsPerPage + 1;
 
-  const paginationEnd = Math.min(
-    page * rowsPerPage,
-    filteredClients.length,
-  );
+  const paginationEnd = Math.min(page * rowsPerPage, filteredClients.length);
 
   useEffect(() => {
     setPage(1);
@@ -424,7 +493,10 @@ export default function ClientsPage() {
   }, [page, totalPages]);
 
   const summary = useMemo(() => {
-    const active = clients.filter((client) => client.status === "ATIVO" && client.modalidadeCadastro !== "LEAD").length;
+    const active = clients.filter(
+      (client) =>
+        client.status === "ATIVO" && client.modalidadeCadastro !== "LEAD",
+    ).length;
     const pending = clients.filter(
       (client) => client.status === "PENDENTE",
     ).length;
@@ -546,8 +618,10 @@ export default function ClientsPage() {
           bankDetails: form.bankDetails.trim() || undefined,
           modality: form.modality.trim() || undefined,
           registrationDate: form.registrationDate || undefined,
-          segment:
-            form.segment.trim() || form.businessActivity.trim() || undefined,
+          segment: form.segment.trim() || undefined,
+          segmentoId: form.segmentoId,
+          segmentoAutomatico: form.segmentoAutomatico,
+          siteUrl: form.siteUrl?.trim() || undefined,
           status: form.status,
           etapaFunil: etapaNovo,
           fotoUrl: fotoNovo,
@@ -595,7 +669,11 @@ export default function ClientsPage() {
 
       setForm(initialClientForm);
       setFotoNovo("");
-      setComerciaisNovo({ proximaAcao: "", responsavelId: hasAnyRole(user, ['CONSULTORA']) ? user!.id : null, volumeMensalEstimado: "" });
+      setComerciaisNovo({
+        proximaAcao: "",
+        responsavelId: hasAnyRole(user, ["CONSULTORA"]) ? user!.id : null,
+        volumeMensalEstimado: "",
+      });
       setContacts([emptyClientContact()]);
       setDocumentFiles([]);
       setIsModalOpen(false);
@@ -629,10 +707,14 @@ export default function ClientsPage() {
         token,
       );
       setToast({
-        title: result.status === "APROVADA" ? "Cliente excluído" : "Solicitação enviada",
-        message: result.status === "APROVADA"
-          ? "Cliente excluído com sucesso."
-          : "A exclusão do cliente foi enviada para aprovação do Comercial ou Gestão.",
+        title:
+          result.status === "APROVADA"
+            ? "Cliente excluído"
+            : "Solicitação enviada",
+        message:
+          result.status === "APROVADA"
+            ? "Cliente excluído com sucesso."
+            : "A exclusão do cliente foi enviada para aprovação do Comercial ou Gestão.",
         variant: "success",
       });
       setDeletionModalClient(null);
@@ -640,7 +722,9 @@ export default function ClientsPage() {
       await loadClients();
     } catch (error) {
       setToast({
-        title: canDeleteDirectly ? "Falha ao excluir cliente" : "Falha ao solicitar exclusão",
+        title: canDeleteDirectly
+          ? "Falha ao excluir cliente"
+          : "Falha ao solicitar exclusão",
         message:
           error instanceof Error
             ? error.message
@@ -702,21 +786,159 @@ export default function ClientsPage() {
 
   return (
     <AppLayout>
-      <CrmPageShell sx={{ minWidth: 0, gap: 2, containerType: "inline-size", containerName: "cadastros-clientes" }}>
+      {importacaoAberta && (
+        <ImportarCadastrosDialog
+          aoFechar={() => setImportacaoAberta(false)}
+          aoImportar={loadClients}
+        />
+      )}
+      <CrmPageShell
+        sx={{
+          minWidth: 0,
+          gap: 2,
+          containerType: "inline-size",
+          containerName: "cadastros-clientes",
+        }}
+      >
         <CrmSection sx={superficieCadastrosSx}>
-          <Box data-cabecalho-cadastros sx={{ display: 'flex', gap: 2, alignItems: 'center', justifyContent: 'space-between', '@container cadastros-clientes (max-width: 960px)': { flexDirection: 'column', alignItems: 'stretch' } }}>
-            <Stack direction="row" spacing={1.5} sx={{ minWidth: 0, alignItems: 'flex-start', flex: '1 1 auto' }}>
-              <Box sx={{ width: 42, height: 42, flexShrink: 0, display: 'grid', placeItems: 'center', borderRadius: '10px', bgcolor: '#f8fafc', color: '#64748b', border: '1px solid #e2e8f0' }}><UsersRound size={22} /></Box>
+          <Box
+            data-cabecalho-cadastros
+            sx={{
+              display: "flex",
+              gap: 2,
+              alignItems: "center",
+              justifyContent: "space-between",
+              "@container cadastros-clientes (max-width: 960px)": {
+                flexDirection: "column",
+                alignItems: "stretch",
+              },
+            }}
+          >
+            <Stack
+              direction="row"
+              spacing={1.5}
+              sx={{ minWidth: 0, alignItems: "flex-start", flex: "1 1 auto" }}
+            >
+              <Box
+                sx={{
+                  width: 42,
+                  height: 42,
+                  flexShrink: 0,
+                  display: "grid",
+                  placeItems: "center",
+                  borderRadius: "10px",
+                  bgcolor: "#f8fafc",
+                  color: "#64748b",
+                  border: "1px solid #e2e8f0",
+                }}
+              >
+                <UsersRound size={22} />
+              </Box>
               <Box sx={{ minWidth: 0 }}>
-                <Typography sx={{ color: '#64748b', fontSize: 10.5, fontWeight: 600, letterSpacing: '.08em', mb: 0.25 }}>CRM</Typography>
-                <Typography component="h1" sx={{ color: '#1f2937', fontSize: { xs: 22, md: 25 }, fontWeight: 700, lineHeight: 1.25, letterSpacing: '-0.02em' }}>Cadastros</Typography>
-                <Typography sx={{ mt: 0.75, color: '#64748b', fontSize: 13, lineHeight: 1.6, overflowWrap: 'anywhere' }}>Clientes e Leads em uma única base, com contatos, documentos e acompanhamento comercial.</Typography>
+                <Typography
+                  sx={{
+                    color: "#64748b",
+                    fontSize: 10.5,
+                    fontWeight: 600,
+                    letterSpacing: ".08em",
+                    mb: 0.25,
+                  }}
+                >
+                  CRM
+                </Typography>
+                <Typography
+                  component="h1"
+                  sx={{
+                    color: "#1f2937",
+                    fontSize: { xs: 22, md: 25 },
+                    fontWeight: 700,
+                    lineHeight: 1.25,
+                    letterSpacing: "-0.02em",
+                  }}
+                >
+                  Cadastros
+                </Typography>
+                <Typography
+                  sx={{
+                    mt: 0.75,
+                    color: "#64748b",
+                    fontSize: 13,
+                    lineHeight: 1.6,
+                    overflowWrap: "anywhere",
+                  }}
+                >
+                  Clientes e Leads em uma única base, com contatos, documentos e
+                  acompanhamento comercial.
+                </Typography>
               </Box>
             </Stack>
-            <Box data-acoes-cadastros sx={{ display: 'flex', flexShrink: 0, flexWrap: 'wrap', justifyContent: 'flex-end', gap: 1, '&& .MuiButton-root': acaoCadastroSx, '@container cadastros-clientes (max-width: 480px)': { display: 'grid', gridTemplateColumns: 'repeat(2,minmax(0,1fr))', width: '100%', '& .MuiButton-contained': { gridColumn: '1 / -1' }, '&& .MuiButton-root': { ...acaoCadastroSx, px: 1, fontSize: 12.5 } } }}>
-              <Button variant="outlined" startIcon={<RefreshCcw size={16} />} onClick={() => loadClients()} disabled={loading} sx={acaoSecundariaCadastroSx}>Atualizar</Button>
-              <Button variant="outlined" startIcon={<Download size={16} />} onClick={() => exportClients(filteredClients)} disabled={filteredClients.length === 0} sx={acaoSecundariaCadastroSx}>Exportar lista</Button>
-              {canManageClients ? <Button variant="contained" startIcon={<PlusCircle size={16} />} onClick={() => { clearCnpjError(); setIsModalOpen(true); }} sx={{ ...acaoCadastroSx, bgcolor: '#ff5805', color: '#fff', '&:hover': { bgcolor: '#e94f00', boxShadow: 'none' } }}>Novo cadastro</Button> : null}
+            <Box
+              data-acoes-cadastros
+              sx={{
+                display: "flex",
+                flexShrink: 0,
+                flexWrap: "wrap",
+                justifyContent: "flex-end",
+                gap: 1,
+                "&& .MuiButton-root": acaoCadastroSx,
+                "@container cadastros-clientes (max-width: 480px)": {
+                  display: "grid",
+                  gridTemplateColumns: "repeat(2,minmax(0,1fr))",
+                  width: "100%",
+                  "& .MuiButton-contained": { gridColumn: "1 / -1" },
+                  "&& .MuiButton-root": {
+                    ...acaoCadastroSx,
+                    px: 1,
+                    fontSize: 12.5,
+                  },
+                },
+              }}
+            >
+              <Button
+                variant="outlined"
+                startIcon={<RefreshCcw size={16} />}
+                onClick={() => loadClients()}
+                disabled={loading}
+                sx={acaoSecundariaCadastroSx}
+              >
+                Atualizar
+              </Button>
+              <Button
+                variant="outlined"
+                startIcon={<Download size={16} />}
+                onClick={() => exportClients(filteredClients)}
+                disabled={filteredClients.length === 0}
+                sx={acaoSecundariaCadastroSx}
+              >
+                Exportar lista
+              </Button>
+              {canManageClients && (
+                <Button
+                  variant="outlined"
+                  onClick={() => setImportacaoAberta(true)}
+                  sx={acaoSecundariaCadastroSx}
+                >
+                  Importar planilha
+                </Button>
+              )}
+              {canManageClients ? (
+                <Button
+                  variant="contained"
+                  startIcon={<PlusCircle size={16} />}
+                  onClick={() => {
+                    clearCnpjError();
+                    setIsModalOpen(true);
+                  }}
+                  sx={{
+                    ...acaoCadastroSx,
+                    bgcolor: "#ff5805",
+                    color: "#fff",
+                    "&:hover": { bgcolor: "#e94f00", boxShadow: "none" },
+                  }}
+                >
+                  Novo cadastro
+                </Button>
+              ) : null}
             </Box>
           </Box>
         </CrmSection>
@@ -724,8 +946,10 @@ export default function ClientsPage() {
         <Box
           sx={{
             display: "grid",
-            gridTemplateColumns: 'repeat(4,minmax(0,1fr))',
-            '@container cadastros-clientes (max-width: 960px)': { gridTemplateColumns: 'repeat(2,minmax(0,1fr))' },
+            gridTemplateColumns: "repeat(4,minmax(0,1fr))",
+            "@container cadastros-clientes (max-width: 960px)": {
+              gridTemplateColumns: "repeat(2,minmax(0,1fr))",
+            },
             gap: 1.5,
             alignItems: "stretch",
           }}
@@ -824,15 +1048,17 @@ export default function ClientsPage() {
                     fontSize: 13,
                   }}
                 >
-                  Comercial, Gestão ou Admin aprovam ou recusam a remoção definitiva de clientes.
+                  Comercial, Gestão ou Admin aprovam ou recusam a remoção
+                  definitiva de clientes.
                 </Typography>
               </Box>
 
               <Chip
-                label={`${pendingDeletionRequests.length} ${pendingDeletionRequests.length === 1
-                  ? "solicitação"
-                  : "solicitações"
-                  }`}
+                label={`${pendingDeletionRequests.length} ${
+                  pendingDeletionRequests.length === 1
+                    ? "solicitação"
+                    : "solicitações"
+                }`}
                 size="small"
                 sx={{
                   height: 28,
@@ -1002,13 +1228,15 @@ export default function ClientsPage() {
           </CrmSection>
         ) : null}
 
-        <CrmSection
-          sx={superficieCadastrosSx}
-        >
+        <CrmSection sx={superficieCadastrosSx}>
           <Stack spacing={2} sx={{ width: "100%", minWidth: 0 }}>
             <Box>
-              <Typography component="h2" sx={{ color: "#1f2937", fontSize: 14, fontWeight: 600 }}>Base comercial</Typography>
-
+              <Typography
+                component="h2"
+                sx={{ color: "#1f2937", fontSize: 14, fontWeight: 600 }}
+              >
+                Base comercial
+              </Typography>
             </Box>
 
             <Box
@@ -1017,12 +1245,21 @@ export default function ClientsPage() {
                 display: "grid",
                 gap: 1.5,
 
-                gridTemplateColumns: 'minmax(0,2fr) repeat(3,minmax(0,1fr))',
-                '@container cadastros-clientes (max-width: 1000px)': { gridTemplateColumns: 'repeat(3,minmax(0,1fr))', '& > :first-child': { gridColumn: '1 / -1' } },
-                '@container cadastros-clientes (max-width: 760px)': { gridTemplateColumns: 'repeat(2,minmax(0,1fr))', '& > :first-child, & > :last-child': { gridColumn: '1 / -1' } },
-                '@container cadastros-clientes (max-width: 420px)': { gridTemplateColumns: 'minmax(0,1fr)' },
+                gridTemplateColumns: "minmax(0,2fr) repeat(3,minmax(0,1fr))",
+                "@container cadastros-clientes (max-width: 1000px)": {
+                  gridTemplateColumns: "repeat(3,minmax(0,1fr))",
+                  "& > :first-of-type": { gridColumn: "1 / -1" },
+                },
+                "@container cadastros-clientes (max-width: 760px)": {
+                  gridTemplateColumns: "repeat(2,minmax(0,1fr))",
+                  "& > :first-of-type, & > :last-child": {
+                    gridColumn: "1 / -1",
+                  },
+                },
+                "@container cadastros-clientes (max-width: 420px)": {
+                  gridTemplateColumns: "minmax(0,1fr)",
+                },
                 alignItems: "center",
-
               }}
             >
               <TextField
@@ -1061,16 +1298,13 @@ export default function ClientsPage() {
                 <MenuItem value="INATIVO">Inativo</MenuItem>
               </TextField>
 
-
               <TextField
                 select
                 size="small"
                 fullWidth
                 label="Modalidade"
                 value={modalidadeFiltro}
-                onChange={(event) =>
-                  setModalidadeFiltro(event.target.value)
-                }
+                onChange={(event) => setModalidadeFiltro(event.target.value)}
                 sx={filterFieldSx}
               >
                 <MenuItem value="">Todos os cadastros</MenuItem>
@@ -1086,14 +1320,18 @@ export default function ClientsPage() {
                 value={responsavelFiltro}
                 onChange={(event) => setResponsavelFiltro(event.target.value)}
                 sx={filterFieldSx}
-                slotProps={{ inputLabel: { shrink: true }, select: { displayEmpty: true } }}
+                slotProps={{
+                  inputLabel: { shrink: true },
+                  select: { displayEmpty: true },
+                }}
               >
                 <MenuItem value="">Todos os responsáveis</MenuItem>
                 {responsaveisDisponiveis.map((responsavel) => (
-                  <MenuItem key={responsavel} value={responsavel}>{responsavel}</MenuItem>
+                  <MenuItem key={responsavel} value={responsavel}>
+                    {responsavel}
+                  </MenuItem>
                 ))}
               </TextField>
-
             </Box>
           </Stack>
         </CrmSection>
@@ -1214,15 +1452,31 @@ export default function ClientsPage() {
                             display: "grid",
                             gap: 2,
                             minWidth: 0,
-                            gridTemplateColumns: 'minmax(0,1.6fr) minmax(0,.9fr) minmax(0,.9fr) minmax(0,1.1fr) auto',
-                            '@container cadastros-clientes (max-width: 960px)': { gridTemplateColumns: 'repeat(2,minmax(0,1fr))', '& > :first-child': { gridColumn: '1 / -1' }, '& > :last-child': { alignSelf: 'end' } },
-                            '@container cadastros-clientes (max-width: 420px)': { gridTemplateColumns: 'minmax(0,1fr)' },
-                            '& > *': { minWidth: 0, overflowWrap: 'anywhere' },
+                            gridTemplateColumns:
+                              "minmax(0,1.6fr) minmax(0,.9fr) minmax(0,.9fr) minmax(0,1.1fr) auto",
+                            "@container cadastros-clientes (max-width: 960px)":
+                              {
+                                gridTemplateColumns: "repeat(2,minmax(0,1fr))",
+                                "& > [data-cliente-identificacao]": {
+                                  gridColumn: "1 / -1",
+                                },
+                                "& > :last-child": { alignSelf: "end" },
+                              },
+                            "@container cadastros-clientes (max-width: 420px)":
+                              { gridTemplateColumns: "minmax(0,1fr)" },
+                            "& > *": { minWidth: 0, overflowWrap: "anywhere" },
                             alignItems: "center",
                           }}
                         >
-                          <Box sx={{ minWidth: 0 }}>
-                            <Typography sx={{ color: "#020617", fontSize: 15, fontWeight: 600, overflowWrap: "anywhere" }}>
+                          <Box data-cliente-identificacao sx={{ minWidth: 0 }}>
+                            <Typography
+                              sx={{
+                                color: "#020617",
+                                fontSize: 15,
+                                fontWeight: 600,
+                                overflowWrap: "anywhere",
+                              }}
+                            >
                               {getClientDisplayName(client)}
                             </Typography>
 
@@ -1268,33 +1522,72 @@ export default function ClientsPage() {
                                 {client.email}
                               </Typography>
                             ) : null}
-                            {client.company && client.company !== getClientDisplayName(client) ? (
-                              <Typography sx={{ mt: 0.25, color: "text.disabled", fontSize: 13 }}>
+                            {client.company &&
+                            client.company !== getClientDisplayName(client) ? (
+                              <Typography
+                                sx={{
+                                  mt: 0.25,
+                                  color: "text.disabled",
+                                  fontSize: 13,
+                                }}
+                              >
                                 {client.company}
                               </Typography>
                             ) : null}
                           </Box>
 
                           <Box>
-                            <Typography sx={{ color: crmPalette.muted, fontSize: 12, fontWeight: 400 }}>
+                            <Typography
+                              sx={{
+                                color: crmPalette.muted,
+                                fontSize: 12,
+                                fontWeight: 400,
+                              }}
+                            >
                               CNPJ
                             </Typography>
-                            <Typography sx={{ mt: 0.75, color: crmPalette.text, fontSize: 13, fontWeight: 500 }}>
+                            <Typography
+                              sx={{
+                                mt: 0.75,
+                                color: crmPalette.text,
+                                fontSize: 13,
+                                fontWeight: 500,
+                              }}
+                            >
                               {client.document || "-"}
                             </Typography>
                           </Box>
 
                           <Box>
-                            <Typography sx={{ color: crmPalette.muted, fontSize: 12, fontWeight: 400 }}>
+                            <Typography
+                              sx={{
+                                color: crmPalette.muted,
+                                fontSize: 12,
+                                fontWeight: 400,
+                              }}
+                            >
                               Cidade
                             </Typography>
-                            <Typography sx={{ mt: 0.75, color: crmPalette.text, fontSize: 13, fontWeight: 500 }}>
+                            <Typography
+                              sx={{
+                                mt: 0.75,
+                                color: crmPalette.text,
+                                fontSize: 13,
+                                fontWeight: 500,
+                              }}
+                            >
                               {client.city || "-"}
                             </Typography>
                           </Box>
 
                           <Box sx={{ minWidth: 0 }}>
-                            <Typography sx={{ color: crmPalette.muted, fontSize: 12, fontWeight: 400 }}>
+                            <Typography
+                              sx={{
+                                color: crmPalette.muted,
+                                fontSize: 12,
+                                fontWeight: 400,
+                              }}
+                            >
                               Segmento
                             </Typography>
                             <Typography
@@ -1313,7 +1606,11 @@ export default function ClientsPage() {
                             </Typography>
                           </Box>
 
-                          <Stack direction="row" spacing={1} sx={{ justifyContent: "flex-end" }}>
+                          <Stack
+                            direction="row"
+                            spacing={1}
+                            sx={{ justifyContent: "flex-end" }}
+                          >
                             <Button
                               component={Link}
                               to={`/cadastros/${client.id}`}
@@ -1338,9 +1635,11 @@ export default function ClientsPage() {
                     px: 2,
                     py: 1.5,
                     gap: 1.5,
-                    flexDirection: 'row',
-                    flexWrap: 'wrap',
-                    '@container cadastros-clientes (max-width: 760px)': { flexDirection: 'column' },
+                    flexDirection: "row",
+                    flexWrap: "wrap",
+                    "@container cadastros-clientes (max-width: 760px)": {
+                      flexDirection: "column",
+                    },
                     alignItems: { xs: "stretch", md: "center" },
                     justifyContent: "space-between",
                     borderTop: `1px solid ${crmPalette.border}`,
@@ -1360,7 +1659,17 @@ export default function ClientsPage() {
 
                   <Stack
                     spacing={0}
-                    sx={{ minWidth: 0, flexDirection: 'row', flexWrap: 'wrap', alignItems: 'center', justifyContent: 'flex-end', gap: 1.5, '@container cadastros-clientes (max-width: 760px)': { justifyContent: 'space-between' } }}
+                    sx={{
+                      minWidth: 0,
+                      flexDirection: "row",
+                      flexWrap: "wrap",
+                      alignItems: "center",
+                      justifyContent: "flex-end",
+                      gap: 1.5,
+                      "@container cadastros-clientes (max-width: 760px)": {
+                        justifyContent: "space-between",
+                      },
+                    }}
                   >
                     <TextField
                       select
@@ -1441,8 +1750,6 @@ export default function ClientsPage() {
               }}
             >
               <Box>
-
-
                 <Typography
                   component="h2"
                   sx={{
@@ -1494,17 +1801,51 @@ export default function ClientsPage() {
               px: { xs: 2, md: 2.5 },
               py: 2,
               bgcolor: "#fff",
-              '&& .MuiTextField-root .MuiOutlinedInput-root': { borderRadius: '8px' },
-              '&& .MuiTextField-root .MuiOutlinedInput-root:not(.MuiInputBase-multiline)': { height: 40 },
-              '&& .MuiInputLabel-root': { fontSize: 13, fontWeight: 400 },
-              '&& .MuiInputBase-input, && .MuiSelect-select': { fontSize: 13.5, fontWeight: 400 },
-              '& .MuiPaper-root': { boxShadow: 'none', borderRadius: '10px' },
-              '& .MuiButton-root': { minHeight: 40, fontSize: 13, fontWeight: 600, textTransform: 'none', borderRadius: '8px' },
-              '& .MuiButton-contained:not(.Mui-disabled)': { bgcolor: '#ff5805', '&:hover': { bgcolor: '#e94f00' } },
+              "&& .MuiTextField-root .MuiOutlinedInput-root": {
+                borderRadius: "8px",
+              },
+              "&& .MuiTextField-root .MuiOutlinedInput-root:not(.MuiInputBase-multiline)":
+                { height: 40 },
+              "&& .MuiInputLabel-root": { fontSize: 13, fontWeight: 400 },
+              "&& .MuiInputBase-input, && .MuiSelect-select": {
+                fontSize: 13.5,
+                fontWeight: 400,
+              },
+              "& .MuiPaper-root": { boxShadow: "none", borderRadius: "10px" },
+              "& .MuiButton-root": {
+                minHeight: 40,
+                fontSize: 13,
+                fontWeight: 600,
+                textTransform: "none",
+                borderRadius: "8px",
+              },
+              "& .MuiButton-contained:not(.Mui-disabled)": {
+                bgcolor: "#ff5805",
+                "&:hover": { bgcolor: "#e94f00" },
+              },
             }}
           >
             <ClientForm
-              camposIniciais={<CamposComplementaresCadastro modalidade={modalidadeNovo} setModalidade={modalidade => { setModalidadeNovo(modalidade); setEtapaNovo(modalidade === "CLIENTE" ? "venda_efetivada" : "entrada_leads"); }} etapa={etapaNovo} setEtapa={setEtapaNovo} comerciais={comerciaisNovo} setComerciais={setComerciaisNovo} foto={fotoNovo} setFoto={setFotoNovo} desabilitado={saving || searchingCnpj} />}
+              camposIniciais={
+                <CamposComplementaresCadastro
+                  modalidade={modalidadeNovo}
+                  setModalidade={(modalidade) => {
+                    setModalidadeNovo(modalidade);
+                    setEtapaNovo(
+                      modalidade === "CLIENTE"
+                        ? "venda_efetivada"
+                        : "entrada_leads",
+                    );
+                  }}
+                  etapa={etapaNovo}
+                  setEtapa={setEtapaNovo}
+                  comerciais={comerciaisNovo}
+                  setComerciais={setComerciaisNovo}
+                  foto={fotoNovo}
+                  setFoto={setFotoNovo}
+                  desabilitado={saving || searchingCnpj}
+                />
+              }
               form={form}
               setForm={setForm}
               contacts={contacts}
@@ -1578,7 +1919,9 @@ export default function ClientsPage() {
                       lineHeight: 1.2,
                     }}
                   >
-                    {canDeleteDirectly ? "Confirmar exclusão" : "Solicitar aprovação do Comercial ou Gestão"}
+                    {canDeleteDirectly
+                      ? "Confirmar exclusão"
+                      : "Solicitar aprovação do Comercial ou Gestão"}
                   </Typography>
 
                   <Typography
@@ -1599,7 +1942,9 @@ export default function ClientsPage() {
                     >
                       {deletionModalClient?.company || "selecionado"}
                     </Box>{" "}
-                    {canDeleteDirectly ? "será excluído ao confirmar esta ação." : "só será excluído após aprovação do Comercial ou Gestão."}
+                    {canDeleteDirectly
+                      ? "será excluído ao confirmar esta ação."
+                      : "só será excluído após aprovação do Comercial ou Gestão."}
                   </Typography>
                 </Box>
 
@@ -1715,7 +2060,13 @@ export default function ClientsPage() {
                   },
                 }}
               >
-                {saving ? (canDeleteDirectly ? "Excluindo..." : "Enviando...") : (canDeleteDirectly ? "Excluir cliente" : "Solicitar exclusão")}
+                {saving
+                  ? canDeleteDirectly
+                    ? "Excluindo..."
+                    : "Enviando..."
+                  : canDeleteDirectly
+                    ? "Excluir cliente"
+                    : "Solicitar exclusão"}
               </Button>
             </DialogActions>
           </Box>

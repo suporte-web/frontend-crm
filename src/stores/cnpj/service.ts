@@ -5,6 +5,7 @@ export interface CnpjData {
   tradeName: string;
   cnae: string;
   cnaeDescription: string;
+  segmento?: { id: string; nome: string; prefixo: string } | null;
   phone: string;
   email: string;
   status: string;

@@ -1,4 +1,5 @@
 import type * as React from "react";
+import type { ClientFormData } from '@/components/clientes/client-form';
 import { formatarCampoValorTotal } from '@/lib/valor-oportunidade';
 
 import Box from "@mui/material/Box";
@@ -1023,7 +1024,7 @@ export function limparObservacoesContato(notes: string | null | undefined) {
     .trim();
 }
 
-export function clienteParaFormularioCliente(lead: LeadDetail) {
+export function clienteParaFormularioCliente(lead: LeadDetail): ClientFormData & { email: string; taxation: string } {
   const address = lerEnderecoCliente(lead.address);
 
   return {
@@ -1050,6 +1051,9 @@ export function clienteParaFormularioCliente(lead: LeadDetail) {
     modality: lead.modality ?? "",
     registrationDate: paraValorInputData(lead.registrationDate),
     segment: lead.segment === "-" ? "" : lead.segment,
+    segmentoId: lead.segmentoId, segmentoOrigem: lead.segmentoOrigem,
+    segmentoAutomatico: lead.segmentoOrigem === 'CNAE' || (!lead.segmentoOrigem && (!lead.segment || lead.segment === '-')),
+    siteUrl: lead.siteUrl || '',
     status: lead.status,
     notes: lead.notes ?? "",
   };

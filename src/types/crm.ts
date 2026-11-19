@@ -54,6 +54,9 @@ export interface Opportunity {
 }
 
 export interface LeadSummary {
+  segmentoId?: string | null;
+  segmentoOrigem?: string | null;
+  siteUrl?: string | null;
   responsavelId?: string | null;
   fotoUrl?: string | null;
   proximaAcao?: string | null;

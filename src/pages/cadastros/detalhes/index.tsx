@@ -105,7 +105,7 @@ export default function PaginaDetalhesCliente({ somenteOportunidades = false }: 
   const [activeTab, setActiveTab] = useState(0);
   const [savingClient, setSavingClient] = useState(false);
   const [clientFormError, setFormularioClienteError] = useState("");
-  const [clientForm, setFormularioCliente] = useState({
+  const [clientForm, setFormularioCliente] = useState<ReturnType<typeof clienteParaFormularioCliente>>({
     email: "",
     companyName: "",
     phone: "",
@@ -363,6 +363,8 @@ export default function PaginaDetalhesCliente({ somenteOportunidades = false }: 
           modality: clientForm.modality.trim() || undefined,
           registrationDate: clientForm.registrationDate || undefined,
           segment: clientForm.segment.trim() || undefined,
+          segmentoId: clientForm.segmentoId, segmentoAutomatico: clientForm.segmentoAutomatico,
+          siteUrl: clientForm.siteUrl || '',
           status: clientForm.status,
           notes: clientForm.notes.trim() || undefined,
           contacts: validContacts,

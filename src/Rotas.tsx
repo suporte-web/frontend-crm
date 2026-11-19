@@ -19,15 +19,15 @@ const DetalheAtendimentoSac = lazy(
 const BusinessIntelligence = lazy(() => import("@/pages/bi/index"));
 const BiComercial = lazy(() => import("@/pages/bi-comercial/index"));
 const BiStudio = lazy(() => import("@/pages/bi-studio/index"));
-const Cadastros = lazy(() => import("@/pages/clientes/index"));
-const DetalheCadastro = lazy(() => import("@/pages/clientes/detalhes/index"));
+const Cadastros = lazy(() => import("@/pages/cadastros/index"));
+const DetalheCadastro = lazy(() => import("@/pages/cadastros/detalhes/index"));
 const CentralAjuda = lazy(() => import("@/pages/central-ajuda/index"));
 const Chamados = lazy(() => import("@/pages/chamados/index"));
 const Chat = lazy(() => import("@/pages/chat/index"));
-const Clientes = lazy(() => import("@/pages/clientes/index"));
-const DetalheCliente = lazy(() => import("@/pages/clientes/detalhes/index"));
+const Clientes = lazy(() => import("@/pages/cadastros/index"));
+const DetalheCliente = lazy(() => import("@/pages/cadastros/detalhes/index"));
 const DetalhePropostaCliente = lazy(
-  () => import("@/pages/clientes/detalhes/propostas/detalhes/index"),
+  () => import("@/pages/cadastros/detalhes/propostas/detalhes/index"),
 );
 const Cotacoes = lazy(() => import("@/pages/cotacoes/index"));
 const DetalheCotacao = lazy(() => import("@/pages/cotacoes/detalhes/index"));

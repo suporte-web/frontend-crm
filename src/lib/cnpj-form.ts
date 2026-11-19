@@ -8,13 +8,19 @@ export function mesclarDadosCnpj(current: ClientFormData, data: CnpjData, snapsh
   const patch: Partial<ClientFormData> = {
     legalName: data.legalName, tradeName: data.tradeName,
     companyName: data.tradeName || data.legalName, cnae: data.cnae,
-    businessActivity: data.cnaeDescription, segment: data.cnaeDescription,
+    businessActivity: data.cnaeDescription,
     taxRegime: data.simpleNational === true ? 'Simples Nacional' : '', phone: data.phone,
     zipCode: cep.length === 8 ? `${cep.slice(0, 5)}-${cep.slice(5)}` : '',
     street: data.address.street, number: data.address.number, complement: data.address.complement,
     neighborhood: data.address.neighborhood, city: data.address.city, state: data.address.state,
   };
   const result = { ...current };
+  const automatico = current.segmentoAutomatico ?? (current.segmentoOrigem === 'CNAE' || !snapshot.segment.trim());
+  if (automatico && current.cnae === snapshot.cnae && current.segment === snapshot.segment) {
+    result.segment = data.segmento?.nome || '';
+    result.segmentoId = data.segmento?.id ?? null;
+    result.segmentoAutomatico = true;
+  }
   for (const key of Object.keys(patch) as Array<keyof ClientFormData>) {
     const value = patch[key];
     if (typeof value === 'string' && value.trim() && current[key] === snapshot[key]) {

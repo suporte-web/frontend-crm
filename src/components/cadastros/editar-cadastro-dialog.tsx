@@ -9,7 +9,7 @@ import { updateClient, uploadClientDocuments } from "@/stores/crm/service";
 import { normalizeLeadFunnelStage, type LeadFunnelStage } from "@/constants/lead-funnel";
 import { useCnpjLookup } from "@/hooks/use-cnpj-lookup";
 import type { LeadDetail } from "@/types/crm";
-import { clienteParaFormularioCliente, montarEnderecoCliente } from "@/pages/clientes/detalhes/components/detalhes-cliente/detalhes-cliente-compartilhado";
+import { clienteParaFormularioCliente, montarEnderecoCliente } from "@/pages/cadastros/detalhes/components/detalhes-cliente/detalhes-cliente-compartilhado";
 
 export function EditarCadastroDialog({ cadastro, token, aoFechar, aoSalvar }: {
   cadastro: LeadDetail; token: string; aoFechar: () => void; aoSalvar: () => Promise<void>;
@@ -60,7 +60,8 @@ export function EditarCadastroDialog({ cadastro, token, aoFechar, aoSalvar }: {
         phone: form.phone, cnae: form.cnae, stateRegistration: form.stateRegistration, businessActivity: form.businessActivity,
         taxRegime: form.taxRegime, address: montarEnderecoCliente(form) || form.address, city: form.city,
         bankDetails: form.bankDetails, modality: form.modality, registrationDate: form.registrationDate || undefined,
-        segment: form.segment, status: form.status, notes: form.notes,
+        segment: form.segment, segmentoId: form.segmentoId, segmentoAutomatico: form.segmentoAutomatico,
+        siteUrl: form.siteUrl || '', status: form.status, notes: form.notes,
         contacts: contatos.filter(contato => Object.values(contato).some(valor => valor.trim())).map((contato, indice) => ({ ...contato, email: contato.email.trim() || undefined, isPrimary: indice === 0 })),
       }, token);
       alteracoesSalvas = true;

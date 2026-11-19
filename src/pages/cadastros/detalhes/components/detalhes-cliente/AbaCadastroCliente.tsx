@@ -1,4 +1,5 @@
 import type { ReactNode } from "react";
+import { CampoSegmento } from '@/components/cadastros/campo-segmento';
 import Alert from "@mui/material/Alert";
 import Box from "@mui/material/Box";
 import Button from "@mui/material/Button";
@@ -235,6 +236,7 @@ export function AbaCadastroCliente(props: PropriedadesAbaDetalhesCliente) {
           )
           .map((campo) => {
             const { chave, rotulo, opcoes, tipo, multiline } = campo;
+            if (isEditingClient && chave === 'segment') return <CampoSegmento key={chave} form={clientForm} setForm={acao => setFormularioCliente(atual => ({ ...atual, ...(typeof acao === 'function' ? acao(atual) : acao) }))} desabilitado={savingClient} />;
             if (isEditingClient)
               return (
                 <TextField
@@ -277,7 +279,7 @@ export function AbaCadastroCliente(props: PropriedadesAbaDetalhesCliente) {
                   ))}
                 </TextField>
               );
-            let valor: string = dadosCadastro[chave] || "";
+            let valor = String(dadosCadastro[chave] ?? "");
             if (chave === "registrationDate")
               valor = formatarData(
                 currentLead.registrationDate ?? currentLead.createdAt,

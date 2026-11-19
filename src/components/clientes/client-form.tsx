@@ -32,6 +32,7 @@ import {
 import { formatarNomeCadastro } from '@/lib/nome-cadastro';
 import { crmPalette } from '@/components/mui/crm-primitives';
 import type { LeadStatus } from '@/types/crm';
+import { CampoSegmento } from '@/components/cadastros/campo-segmento';
 
 export type ClientFormData = {
   companyName: string;
@@ -55,6 +56,10 @@ export type ClientFormData = {
   modality: string;
   registrationDate: string;
   segment: string;
+  segmentoId?: string | null;
+  segmentoOrigem?: string | null;
+  segmentoAutomatico?: boolean;
+  siteUrl?: string;
   notes: string;
   status: LeadStatus;
 };
@@ -432,18 +437,8 @@ export function ClientForm({
               sx={campoCadastroSx}
             />
 
-            <TextField
-              size="small"
-              label="Segmento"
-              value={form.segment}
-              onChange={(event) =>
-                setForm((current) => ({
-                  ...current,
-                  segment: event.target.value,
-                }))
-              }
-              sx={campoCadastroSx}
-            />
+            <CampoSegmento form={form} setForm={setForm} desabilitado={loading} />
+            <TextField size="small" label="Site / link" value={form.siteUrl || ''} onChange={event => setForm(current => ({ ...current, siteUrl: event.target.value }))} helperText="URL completa, iniciando com https://" sx={campoCadastroSx} />
 
             <TextField
               size="small"

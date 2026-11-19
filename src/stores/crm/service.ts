@@ -24,6 +24,9 @@ type BackendUser = {
 export type BackendClient = {
   responsavelId?: string | null;
   empresaConsultoraId?: string | null;
+  segmentoId?: string | null;
+  segmentoOrigem?: string | null;
+  siteUrl?: string | null;
   fotoUrl?: string | null;
   proximaAcao?: string | null;
   responsavel?: string | null;
@@ -171,6 +174,7 @@ export function mapClientSummary(client: BackendClient, owners: Map<string, stri
     phone: client.phone ?? null,
     city: client.city ?? "-",
     segment: client.segment || "-",
+    segmentoId: client.segmentoId, segmentoOrigem: client.segmentoOrigem, siteUrl: client.siteUrl,
     owner: client.internalOwnerId
       ? owners.get(client.internalOwnerId) ?? 'Responsável interno'
       : 'Sem responsável',
@@ -298,6 +302,9 @@ export async function updateClient(id: string, payload: {
   document?: string;
   phone?: string;
   segment?: string;
+  segmentoId?: string | null;
+  segmentoAutomatico?: boolean;
+  siteUrl?: string;
   notes?: string;
   status?: LeadStatus;
   internalOwnerId?: string;
@@ -349,6 +356,9 @@ export async function createClient(payload: {
   document?: string;
   phone?: string;
   segment?: string;
+  segmentoId?: string | null;
+  segmentoAutomatico?: boolean;
+  siteUrl?: string;
   notes?: string;
   status?: LeadStatus;
   internalOwnerId?: string;

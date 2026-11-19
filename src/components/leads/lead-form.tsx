@@ -17,6 +17,7 @@ import { ImageUp } from 'lucide-react';
 
 import { LEAD_FUNNEL_STAGES } from '@/constants/lead-funnel';
 import type { CreateLeadPayload } from '@/types/leads';
+import { listarSegmentos, type Segmento } from '@/stores/segmentos/service';
 
 type LeadFormProps = {
   loading: boolean;
@@ -65,6 +66,13 @@ export function LeadForm({
     ...initialValues,
   });
   const [error, setError] = useState('');
+  const [segmentos, setSegmentos] = useState<Segmento[]>([]);
+  const [erroSegmentos, setErroSegmentos] = useState('');
+  useEffect(() => {
+    const controller = new AbortController();
+    listarSegmentos(controller.signal).then(setSegmentos).catch(error => { if (!controller.signal.aborted) setErroSegmentos(error instanceof Error ? error.message : 'Não foi possível carregar o catálogo.'); });
+    return () => controller.abort();
+  }, []);
 
   useEffect(() => {
     setForm({
@@ -293,14 +301,19 @@ export function LeadForm({
           </TextField>
 
           <TextField
+            select
             label="Segmento"
-            value={form.segment}
+            value={form.segment || ''}
             onChange={(event) =>
               setForm((prev) => ({ ...prev, segment: event.target.value }))
             }
-            placeholder="Ex: Varejo"
+            helperText={erroSegmentos || 'Selecione um segmento do catálogo.'}
             sx={fieldSx}
-          />
+          >
+            <MenuItem value="">Não classificado</MenuItem>
+            {form.segment && !segmentos.some(item => item.nome === form.segment) && <MenuItem value={form.segment}>{form.segment} (legado)</MenuItem>}
+            {segmentos.map(item => <MenuItem key={item.id} value={item.nome}>{item.nome}</MenuItem>)}
+          </TextField>
 
           <TextField
             select
