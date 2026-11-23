@@ -26,7 +26,7 @@ async function tela({ etapa = 'entrada_leads', falhar = false } = {}) {
       },
     },
   } });
-  const Page = load('src/components/cadastros/importar-cadastros-dialog.tsx').ImportarCadastrosDialog;
+  const Page = load('src/pages/cadastros/components/importar-cadastros-dialog.tsx').ImportarCadastrosDialog;
   let tree;
   function render() { cursor = 0; tree = Page({ aoFechar() {}, aoImportar: async () => { importadas++; } }); }
   async function settle() { for (let i = 0; i < 3; i++) { render(); while (efeitos.length) efeitos.shift()(); await new Promise(setImmediate); } render(); }

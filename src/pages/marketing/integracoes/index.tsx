@@ -21,7 +21,7 @@ import {
 } from "lucide-react";
 
 import { AppLayout } from "@/components/layout/app-layout";
-import { GoogleAnalyticsControls } from "@/components/marketing/GoogleAnalyticsControls";
+import { GoogleAnalyticsControls } from "@/pages/marketing/integracoes/components/GoogleAnalyticsControls";
 import {
   CrmPageHeader,
   CrmPageShell,

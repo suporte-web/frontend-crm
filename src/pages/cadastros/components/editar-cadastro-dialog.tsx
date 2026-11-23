@@ -3,7 +3,7 @@ import { useEffect, useState, type FormEvent } from "react";
 import { Alert, CircularProgress, Dialog, DialogContent, DialogTitle, Divider, IconButton, Stack, Typography } from "@mui/material";
 import { X } from "lucide-react";
 import { ClientForm, emptyClientContact, type ClientFormData, type ClientContactForm } from "@/components/clientes/client-form";
-import { CamposComplementaresCadastro, type CamposComerciaisCadastro } from "./campos-complementares-cadastro";
+import { CamposComplementaresCadastro, type CamposComerciaisCadastro } from "@/components/cadastros/campos-complementares-cadastro";
 import { alterarModalidade, atualizarEtapaCadastro, obterDadosLead, type ModalidadeCadastro } from "@/stores/cadastros/service";
 import { updateClient, uploadClientDocuments } from "@/stores/crm/service";
 import { normalizeLeadFunnelStage, type LeadFunnelStage } from "@/constants/lead-funnel";

@@ -49,7 +49,7 @@ import {
 } from '@/components/site-institucional/SiteSectionEditor';
 import {
   SiteBlogPostsEditor,
-} from '@/components/site-institucional/SiteBlogPostsEditor';
+} from '@/pages/site-institucional/components/SiteBlogPostsEditor';
 
 import {
   getSitePageConfig,

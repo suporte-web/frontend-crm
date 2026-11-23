@@ -42,7 +42,7 @@ import {
   type SiteBlogHistoryPost,
 } from '@/config/site-institucional/site-blog-history';
 
-import { SiteImageUpload } from './SiteImageUpload';
+import { SiteImageUpload } from '@/components/site-institucional/SiteImageUpload';
 
 type BlogPostSite = {
   id?: string;

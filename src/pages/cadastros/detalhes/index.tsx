@@ -4,7 +4,7 @@ import { notificarCrm } from '@/lib/feedback-crm';
 
 import { converterValorTotalOportunidade } from '@/lib/valor-oportunidade';
 import { acaoSecundariaOportunidadeSx } from '@/components/crm/estilos-oportunidades';
-import { EditarCadastroDialog } from "@/components/cadastros/editar-cadastro-dialog";
+import { EditarCadastroDialog } from "@/pages/cadastros/components/editar-cadastro-dialog";
 import { ModalidadeCadastro } from "@/components/cadastros/modalidade-cadastro";
 import { hasAnyRole } from "@/lib/user-roles";
 import { Link } from 'react-router-dom';

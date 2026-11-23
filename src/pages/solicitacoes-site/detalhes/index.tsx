@@ -40,7 +40,7 @@ import {
   Inbox,
 } from 'lucide-react';
 
-import { CotacaoSiteWorkflow } from '@/components/solicitacoes-site/CotacaoSiteWorkflow';
+import { CotacaoSiteWorkflow } from '@/pages/solicitacoes-site/detalhes/components/CotacaoSiteWorkflow';
 import { AppLayout } from '@/components/layout/app-layout';
 
 import {

@@ -6,7 +6,7 @@ import {
 
 import { IdentificacaoProspeccao } from "@/components/crm/prospeccao-consultora";
 import { CamposComplementaresCadastro } from "@/components/cadastros/campos-complementares-cadastro";
-import { ImportarCadastrosDialog } from "@/components/cadastros/importar-cadastros-dialog";
+import { ImportarCadastrosDialog } from "@/pages/cadastros/components/importar-cadastros-dialog";
 import { type LeadFunnelStage } from "@/constants/lead-funnel";
 import { hasAnyRole } from "@/lib/user-roles";
 import { useCnpjLookup } from "@/hooks/use-cnpj-lookup";

@@ -11,7 +11,7 @@ import {
 import AttachFileIcon from "@mui/icons-material/AttachFile";
 import DownloadIcon from "@mui/icons-material/Download";
 import { UploadAnexos } from "./UploadAnexos";
-import { LeadAttachmentPreview } from "./LeadAttachmentPreview";
+import { LeadAttachmentPreview } from "@/pages/leads/components/LeadAttachmentPreview";
 import {
   baixarAnexoLead,
   enviarAnexoLead,

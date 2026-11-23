@@ -21,7 +21,7 @@ import { ArrowRight, Globe2, UserPlus, Users, X } from 'lucide-react';
 
 import { AppLayout } from '@/components/layout/app-layout';
 import { LeadForm } from '@/components/leads/lead-form';
-import { SolicitacoesExclusaoLeads } from '@/components/leads/solicitacoes-exclusao-leads';
+import { SolicitacoesExclusaoLeads } from '@/pages/leads/components/solicitacoes-exclusao-leads';
 import { getLeadSourceLabel } from '@/components/leads/lead-timeline';
 import {
   LEAD_FUNNEL_STAGES,
