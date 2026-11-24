@@ -63,6 +63,7 @@ type Filtros = {
 type Registro = {
   id: string;
   tipo: Tipo;
+  name: string;
   nome: string;
   companyName: string;
   contatoPrincipal: string | null;
@@ -694,7 +695,7 @@ export default function GestaoProspeccoesPage() {
                                   overflowWrap: "anywhere",
                                 }}
                               >
-                                {r.companyName || "Não informado"}
+                                {r.name || "Não informado"}
                               </Typography>
                             </TableCell>
                             <TableCell data-label="Contato principal">
