@@ -168,9 +168,7 @@ export default function PaginaEntregasPorPlacas() {
 
   const todasRotas = resultado?.dataRows ?? [];
   const resumo = resultado?.resumo;
-
-  console.log(todasRotas);
-
+  
   const rows = useMemo(() => {
     const termo = busca.trim().toUpperCase();
 
