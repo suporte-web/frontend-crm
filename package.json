@@ -9,6 +9,7 @@
   "scripts": {
     "dev": "vite",
     "build": "npm run typecheck && vite build",
+    "deploy:frontend": "bash deploy/publish-frontend.sh",
     "preview": "vite preview",
     "start": "vite preview",
     "typecheck": "tsc -b --pretty false",

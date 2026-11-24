@@ -115,10 +115,14 @@ As configurações TypeScript estão separadas em `tsconfig.app.json` e `tsconfi
 
 1. Configurar as variáveis públicas para o ambiente de destino.
 2. Executar `npm run build`.
-3. Publicar o conteúdo de `dist/` em um servidor estático.
+3. Publicar assets, depois `index.html` e por último `version.json`, preservando os assets anteriores.
 4. Configurar o retorno de `index.html` para rotas da aplicação e o encaminhamento de `/api/` e `/uploads/` ao backend.
 
 Há um exemplo em `deploy/nginx.conf`. Ajuste endereço do upstream, prefixo da API, domínio e TLS ao ambiente. O proxy do Vite não é incluído no build estático.
+
+No Ubuntu de produção, execute `npm run deploy:frontend` no repositório. O script já realiza o build e publica em `/var/www/frontend-crm`, sem apagar assets anteriores. Veja [controle de versão e publicação](docs/controle-versao-frontend.md) para os blocos de cache do Nginx e o roteiro de validação.
+
+Cada build gera `dist/version.json` e incorpora a mesma versão ao JavaScript. O monitor global verifica atualizações a cada 60 segundos e ao retornar à aba. O colaborador pode atualizar após confirmação ou adiar por 10 minutos. Em desenvolvimento, o monitor fica desativado. A consulta ao manifesto é a única exceção ao uso de `Api`: usa `fetch` em `stores/app-version/service.ts`, pois acessa um arquivo estático do frontend sem token, conforme o contrato desta funcionalidade.
 
 ## Validação da migração
 

@@ -206,7 +206,10 @@ test('camada visual não executa HTTP e serviços usam exclusivamente o cliente 
     function visit(node) {
       if (ts.isImportDeclaration(node) && node.moduleSpecifier.text === 'axios') assert.equal(filename.replaceAll('\\', '/'), 'src/utils/Api.ts');
       if (ts.isCallExpression(node) && ts.isIdentifier(node.expression)) {
-        assert.notEqual(node.expression.text, 'fetch', filename);
+        if (node.expression.text === 'fetch') {
+          // Única exceção: manifesto estático do próprio frontend, sem autenticação ou /api.
+          assert.equal(filename.replaceAll('\\', '/'), 'src/stores/app-version/service.ts');
+        }
         assert.ok(!['apiFetch', 'apiResponse'].includes(node.expression.text), filename);
       }
       if (ts.isCallExpression(node) && ts.isPropertyAccessExpression(node.expression) && node.expression.expression.getText(ast) === 'Api') assert.ok(filename.includes('stores'), filename);
