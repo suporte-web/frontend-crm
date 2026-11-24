@@ -1,5 +1,4 @@
 import { useCallback, useEffect, useMemo, useState } from "react";
-
 import Alert from "@mui/material/Alert";
 import Box from "@mui/material/Box";
 import Button from "@mui/material/Button";
@@ -27,9 +26,7 @@ import {
   RouteRounded,
   SearchRounded,
 } from "@mui/icons-material";
-
 import { AppLayout } from "@/components/layout/app-layout";
-
 import {
   CrmKpiCard,
   CrmPageHeader,
@@ -37,11 +34,8 @@ import {
   CrmSection,
   crmPalette,
 } from "@/components/mui/crm-primitives";
-
 import { useAuth } from "@/context/auth-context";
-
 import { getMonitoramentoEntregasPorPlacas } from "@/stores/entregas-por-placas/service";
-
 import type {
   MonitoramentoEntregasPorPlacasResponse,
   MonitoramentoEntregasPorPlacasRow,
@@ -175,6 +169,8 @@ export default function PaginaEntregasPorPlacas() {
   const todasRotas = resultado?.dataRows ?? [];
   const resumo = resultado?.resumo;
 
+  console.log(todasRotas);
+
   const rows = useMemo(() => {
     const termo = busca.trim().toUpperCase();
 
@@ -202,6 +198,7 @@ export default function PaginaEntregasPorPlacas() {
       );
     });
   }, [busca, filtroResumo, todasRotas]);
+
 
   const carregarMonitoramento = useCallback(async () => {
     if (!token) {
@@ -311,7 +308,9 @@ export default function PaginaEntregasPorPlacas() {
                 input: {
                   startAdornment: (
                     <InputAdornment position="start">
-                      <CalendarMonthRounded sx={{ color: "#94a3b8", fontSize: 19 }} />
+                      <CalendarMonthRounded
+                        sx={{ color: "#94a3b8", fontSize: 19 }}
+                      />
                     </InputAdornment>
                   ),
                 },
@@ -555,21 +554,14 @@ export default function PaginaEntregasPorPlacas() {
                   <TableHead>
                     <TableRow>
                       <TableCell sx={tableHeadSx}>Romaneio</TableCell>
-
                       <TableCell sx={tableHeadSx}>Placa</TableCell>
-
                       <TableCell sx={tableHeadSx}>Motorista</TableCell>
-
                       <TableCell sx={tableHeadSx}>Data / Hora</TableCell>
-
                       <TableCell sx={tableHeadSx}>CTRCs</TableCell>
-
                       <TableCell sx={tableHeadSx}>Entregues</TableCell>
-
                       <TableCell sx={tableHeadSx}>Faltam</TableCell>
-
                       <TableCell sx={tableHeadSx}>Progresso</TableCell>
-
+                      <TableCell sx={tableHeadSx}>Prazo para Entrega</TableCell>
                       <TableCell sx={tableHeadSx}>Status</TableCell>
                     </TableRow>
                   </TableHead>
@@ -700,6 +692,17 @@ export default function PaginaEntregasPorPlacas() {
                                 {formatPercent(progresso)}
                               </Typography>
                             </Stack>
+                          </TableCell>
+
+                          <TableCell>
+                            <Typography variant="body2" title="Menor previsão de entrega entre os documentos pendentes no SSW">
+                              {row.faltam === 0 ? "Concluídas" : row.data_prev_ent ? formatDate(row.data_prev_ent) : "Sem previsão"}
+                            </Typography>
+                            {row.faltam > 0 && row.pendentes_sem_previsao > 0 && (
+                              <Typography variant="caption" color="text.secondary">
+                                {formatNumber(row.pendentes_sem_previsao)} pendente(s) sem previsão
+                              </Typography>
+                            )}
                           </TableCell>
 
                           <TableCell>

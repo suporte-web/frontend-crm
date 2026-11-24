@@ -48,6 +48,9 @@ export type MonitoramentoEntregasPorPlacasRow = {
   modelo: string | null;
   nome_motorista: string | null;
   data_monitoramento: string | null;
+  /** Menor previsão SSW entre documentos ainda pendentes, em YYYY-MM-DD. */
+  data_prev_ent: string | null;
+  pendentes_sem_previsao: number;
   qtd_ctrcs: number;
   entregues: number;
   faltam: number;
