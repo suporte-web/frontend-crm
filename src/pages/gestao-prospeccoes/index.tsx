@@ -239,8 +239,6 @@ export default function GestaoProspeccoesPage() {
   const [carregandoHistorico, setCarregandoHistorico] = useState(false);
   const [erroHistorico, setErroHistorico] = useState("");
 
-  console.log(resultado.registros);
-
   useEffect(() => {
     if (!token || !autorizado) return;
     let ativo = true;
