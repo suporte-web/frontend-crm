@@ -65,7 +65,7 @@ type Registro = {
   tipo: Tipo;
   name: string;
   nome: string;
-  companyName: string;
+  company: string;
   contatoPrincipal: string | null;
   status: string | null;
   createdAt: string;
@@ -695,7 +695,7 @@ export default function GestaoProspeccoesPage() {
                                   overflowWrap: "anywhere",
                                 }}
                               >
-                                {r.name || "Não informado"}
+                                {r.company || "Não informado"}
                               </Typography>
                             </TableCell>
                             <TableCell data-label="Contato principal">
