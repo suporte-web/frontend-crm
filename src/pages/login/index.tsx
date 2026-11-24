@@ -1,4 +1,4 @@
-import { FormEvent, useEffect, useState } from 'react';
+import { FormEvent, useEffect, useState } from "react";
 
 import {
   Alert,
@@ -11,42 +11,43 @@ import {
   Stack,
   TextField,
   Typography,
-} from '@mui/material';
+} from "@mui/material";
 
-import EmailOutlinedIcon from '@mui/icons-material/EmailOutlined';
-import LockOutlinedIcon from '@mui/icons-material/LockOutlined';
-import VisibilityOutlinedIcon from '@mui/icons-material/VisibilityOutlined';
-import VisibilityOffOutlinedIcon from '@mui/icons-material/VisibilityOffOutlined';
+import EmailOutlinedIcon from "@mui/icons-material/EmailOutlined";
+import LockOutlinedIcon from "@mui/icons-material/LockOutlined";
+import VisibilityOutlinedIcon from "@mui/icons-material/VisibilityOutlined";
+import VisibilityOffOutlinedIcon from "@mui/icons-material/VisibilityOffOutlined";
 
-import { useNavigate } from 'react-router-dom';
+import { useNavigate } from "react-router-dom";
 
-import { useAuth } from '@/context/auth-context';
+import { useAuth } from "@/context/auth-context";
 
 export default function Login() {
   const navigate = useNavigate();
   const { signIn, user, token, loading: carregandoSessao } = useAuth();
 
   useEffect(() => {
-    if (!carregandoSessao && token && user) navigate('/painel', { replace: true });
+    if (!carregandoSessao && token && user)
+      navigate("/painel", { replace: true });
   }, [carregandoSessao, token, user, navigate]);
 
-  const [email, setEmail] = useState('');
-  const [password, setPassword] = useState('');
+  const [email, setEmail] = useState("");
+  const [password, setPassword] = useState("");
   const [showPassword, setShowPassword] = useState(false);
   const [loading, setLoading] = useState(false);
-  const [error, setError] = useState('');
+  const [error, setError] = useState("");
 
   async function handleSubmit(e: FormEvent) {
     e.preventDefault();
     setLoading(true);
-    setError('');
+    setError("");
 
     try {
       await signIn(email, password);
 
-      navigate('/painel', { replace: true });
+      navigate("/painel", { replace: true });
     } catch (err) {
-      setError(err instanceof Error ? err.message : 'Erro ao fazer login');
+      setError(err instanceof Error ? err.message : "Erro ao fazer login");
     } finally {
       setLoading(false);
     }
@@ -56,7 +57,7 @@ export default function Login() {
     <Box
       component="main"
       sx={{
-        minHeight: '100vh',
+        minHeight: "100vh",
 
         backgroundImage: `
     linear-gradient(
@@ -66,13 +67,13 @@ export default function Login() {
     url('/login/login-fundo.png')
   `,
 
-        backgroundSize: 'cover',
-        backgroundPosition: 'center',
-        backgroundRepeat: 'no-repeat',
+        backgroundSize: "cover",
+        backgroundPosition: "center",
+        backgroundRepeat: "no-repeat",
 
-        display: 'flex',
-        alignItems: 'center',
-        justifyContent: 'center',
+        display: "flex",
+        alignItems: "center",
+        justifyContent: "center",
 
         px: {
           xs: 2,
@@ -88,22 +89,22 @@ export default function Login() {
       <Paper
         elevation={0}
         sx={{
-          position: 'relative',
+          position: "relative",
           zIndex: 1,
 
-          width: '100%',
+          width: "100%",
           maxWidth: 460,
 
-          bgcolor: 'rgba(255,255,255,0.94)',
+          bgcolor: "rgba(255,255,255,0.94)",
 
-          border: '1px solid rgba(255,255,255,0.35)',
+          border: "1px solid rgba(255,255,255,0.35)",
 
           borderRadius: {
             xs: 3,
             sm: 4,
           },
 
-          backdropFilter: 'blur(14px)',
+          backdropFilter: "blur(14px)",
 
           boxShadow: `
       0 32px 80px rgba(0,0,0,0.32),
@@ -120,10 +121,10 @@ export default function Login() {
           {/* LOGO */}
           <Box
             sx={{
-              width: '100%',
-              display: 'flex',
-              justifyContent: 'center',
-              alignItems: 'center',
+              width: "100%",
+              display: "flex",
+              justifyContent: "center",
+              alignItems: "center",
               mb: 1,
             }}
           >
@@ -132,15 +133,15 @@ export default function Login() {
               src="/imagem/logopizzatto.png"
               alt="Pizzattolog"
               sx={{
-                display: 'block',
+                display: "block",
                 width: {
                   xs: 180,
                   sm: 210,
                 },
-                maxWidth: '100%',
-                height: 'auto',
-                objectFit: 'contain',
-                mx: 'auto',
+                maxWidth: "100%",
+                height: "auto",
+                objectFit: "contain",
+                mx: "auto",
               }}
             />
           </Box>
@@ -159,7 +160,7 @@ export default function Login() {
                 placeholder="E-mail"
                 slotProps={{
                   htmlInput: {
-                    'aria-label': 'E-mail',
+                    "aria-label": "E-mail",
                   },
                   input: {
                     startAdornment: (
@@ -175,7 +176,7 @@ export default function Login() {
               <TextField
                 id="password"
                 name="password"
-                type={showPassword ? 'text' : 'password'}
+                type={showPassword ? "text" : "password"}
                 required
                 fullWidth
                 autoComplete="current-password"
@@ -184,7 +185,7 @@ export default function Login() {
                 placeholder="Senha"
                 slotProps={{
                   htmlInput: {
-                    'aria-label': 'Senha',
+                    "aria-label": "Senha",
                   },
                   input: {
                     startAdornment: (
@@ -197,10 +198,16 @@ export default function Login() {
                         <IconButton
                           edge="end"
                           onClick={() => setShowPassword((current) => !current)}
-                          aria-label={showPassword ? 'Ocultar senha' : 'Mostrar senha'}
-                          sx={{ color: 'rgba(52,52,52,0.68)' }}
+                          aria-label={
+                            showPassword ? "Ocultar senha" : "Mostrar senha"
+                          }
+                          sx={{ color: "rgba(52,52,52,0.68)" }}
                         >
-                          {showPassword ? <VisibilityOffOutlinedIcon /> : <VisibilityOutlinedIcon />}
+                          {showPassword ? (
+                            <VisibilityOffOutlinedIcon />
+                          ) : (
+                            <VisibilityOutlinedIcon />
+                          )}
                         </IconButton>
                       </InputAdornment>
                     ),
@@ -214,11 +221,11 @@ export default function Login() {
                   severity="error"
                   variant="filled"
                   sx={{
-                    bgcolor: '#ec3139',
-                    color: '#fff',
+                    bgcolor: "#ec3139",
+                    color: "#fff",
                     borderRadius: 1.25,
                     fontWeight: 700,
-                    '& .MuiAlert-icon': { color: '#fff' },
+                    "& .MuiAlert-icon": { color: "#fff" },
                   }}
                 >
                   {error}
@@ -237,34 +244,34 @@ export default function Login() {
 
                   borderRadius: 2.5,
 
-                  bgcolor: '#ff5805',
+                  bgcolor: "#ff5805",
 
-                  color: '#fff',
+                  color: "#fff",
 
                   fontSize: 15,
                   fontWeight: 800,
 
-                  textTransform: 'none',
+                  textTransform: "none",
 
-                  boxShadow: '0 12px 26px rgba(255,88,5,0.30)',
+                  boxShadow: "0 12px 26px rgba(255,88,5,0.30)",
 
-                  transition: 'all 0.2s ease',
+                  transition: "all 0.2s ease",
 
-                  '&:hover': {
-                    bgcolor: '#e94f00',
+                  "&:hover": {
+                    bgcolor: "#e94f00",
 
-                    transform: 'translateY(-1px)',
+                    transform: "translateY(-1px)",
 
-                    boxShadow: '0 15px 30px rgba(255,88,5,0.38)',
+                    boxShadow: "0 15px 30px rgba(255,88,5,0.38)",
                   },
 
-                  '&:active': {
-                    transform: 'translateY(0)',
+                  "&:active": {
+                    transform: "translateY(0)",
                   },
 
-                  '&.Mui-disabled': {
-                    bgcolor: 'rgba(255,88,5,0.55)',
-                    color: 'rgba(255,255,255,0.75)',
+                  "&.Mui-disabled": {
+                    bgcolor: "rgba(255,88,5,0.55)",
+                    color: "rgba(255,255,255,0.75)",
                   },
                 }}
               >
@@ -273,33 +280,30 @@ export default function Login() {
                     direction="row"
                     spacing={1}
                     sx={{
-                      alignItems: 'center',
+                      alignItems: "center",
                     }}
                   >
-                    <CircularProgress
-                      size={17}
-                      sx={{ color: '#fff' }}
-                    />
+                    <CircularProgress size={17} sx={{ color: "#fff" }} />
 
                     <span>Entrando...</span>
                   </Stack>
                 ) : (
-                  'Entrar'
+                  "Entrar"
                 )}
               </Button>
 
               <Stack
                 spacing={0.8}
                 sx={{
-                  alignItems: 'center',
-                  textAlign: 'center',
+                  alignItems: "center",
+                  textAlign: "center",
                   mt: 0.8,
                 }}
               >
                 <Typography
                   component="h1"
                   sx={{
-                    color: '#343434',
+                    color: "#343434",
                     fontSize: {
                       xs: 17,
                       sm: 18,
@@ -307,7 +311,7 @@ export default function Login() {
                     lineHeight: 1.2,
                     fontWeight: 800,
                     letterSpacing: 0.3,
-                    textAlign: 'center',
+                    textAlign: "center",
                   }}
                 >
                   Portal CRM
@@ -318,11 +322,10 @@ export default function Login() {
                     width: 42,
                     height: 3,
                     borderRadius: 999,
-                    bgcolor: '#ff5805',
+                    bgcolor: "#ff5805",
                   }}
                 />
               </Stack>
-
             </Stack>
           </Box>
         </Stack>
@@ -331,51 +334,50 @@ export default function Login() {
   );
 }
 
-
 const loginTextFieldSx = {
-  '& .MuiOutlinedInput-root': {
+  "& .MuiOutlinedInput-root": {
     minHeight: 58,
 
     borderRadius: 2.5,
 
-    bgcolor: 'rgba(248,248,248,0.95)',
+    bgcolor: "rgba(248,248,248,0.95)",
 
-    color: '#343434',
+    color: "#343434",
 
-    transition: 'all 0.2s ease',
+    transition: "all 0.2s ease",
 
-    '& fieldset': {
-      borderColor: 'rgba(52,52,52,0.16)',
+    "& fieldset": {
+      borderColor: "rgba(52,52,52,0.16)",
     },
 
-    '&:hover fieldset': {
-      borderColor: 'rgba(255,88,5,0.50)',
+    "&:hover fieldset": {
+      borderColor: "rgba(255,88,5,0.50)",
     },
 
-    '&.Mui-focused': {
-      bgcolor: '#fff',
+    "&.Mui-focused": {
+      bgcolor: "#fff",
 
-      boxShadow: '0 0 0 4px rgba(255,88,5,0.08)',
+      boxShadow: "0 0 0 4px rgba(255,88,5,0.08)",
     },
 
-    '&.Mui-focused fieldset': {
-      borderColor: '#ff5805',
-      borderWidth: '1.5px',
+    "&.Mui-focused fieldset": {
+      borderColor: "#ff5805",
+      borderWidth: "1.5px",
     },
   },
 
-  '& .MuiInputAdornment-root': {
-    color: '#858585',
+  "& .MuiInputAdornment-root": {
+    color: "#858585",
   },
 
-  '& input': {
+  "& input": {
     fontSize: 14,
     fontWeight: 600,
-    color: '#343434',
+    color: "#343434",
   },
 
-  '& input::placeholder': {
-    color: '#8c8c8c',
+  "& input::placeholder": {
+    color: "#8c8c8c",
     opacity: 1,
     fontWeight: 500,
   },
