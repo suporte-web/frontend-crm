@@ -22,7 +22,7 @@ import { IdentificacaoProspeccao } from "@/components/crm/prospeccao-consultora"
 import { CrmSection } from "@/components/mui/crm-primitives";
 import { obterContatoPrincipal } from "@/lib/contato-principal";
 import { moeda, valorMonetario } from "@/lib/bi-comercial";
-import { formatLeadStatus } from "@/stores/crm/service";
+import { CrmService } from "@/stores/crm/service";
 import type { LeadDetail } from "@/types/crm";
 import { statusStyles } from "./detalhes-cliente-compartilhado";
 
@@ -222,7 +222,7 @@ export function CabecalhoDetalhesCliente({
                   <Chip
                     size="small"
                     variant="outlined"
-                    label={formatLeadStatus(lead.status)}
+                    label={CrmService.formatLeadStatus(lead.status)}
                     sx={{
                       ...statusStyles[lead.status],
                       height: 23,

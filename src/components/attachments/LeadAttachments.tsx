@@ -12,12 +12,7 @@ import AttachFileIcon from "@mui/icons-material/AttachFile";
 import DownloadIcon from "@mui/icons-material/Download";
 import { UploadAnexos } from "./UploadAnexos";
 import { LeadAttachmentPreview } from "@/pages/leads/components/LeadAttachmentPreview";
-import {
-  baixarAnexoLead,
-  enviarAnexoLead,
-  listarAnexosLead,
-  type LeadAnexo,
-} from "@/stores/lead-anexos/service";
+import { LeadAnexosService, type LeadAnexo } from "@/stores/lead-anexos/service";
 
 export function LeadAttachments({
   token,
@@ -31,7 +26,7 @@ export function LeadAttachments({
   const [anexoVisualizado, setAnexoVisualizado] = useState<LeadAnexo | null>(null);
   const [carregando, setCarregando] = useState(true);
   const carregar = useCallback(async () => {
-    const lista = await listarAnexosLead(token, leadId);
+    const lista = await LeadAnexosService.listarAnexosLead(leadId);
     setAnexos(lista);
   }, [token, leadId]);
   useEffect(() => {
@@ -40,7 +35,7 @@ export function LeadAttachments({
     setErro("");
     setAnexos([]);
     setAnexoVisualizado(null);
-    listarAnexosLead(token, leadId)
+    LeadAnexosService.listarAnexosLead(leadId)
       .then((lista) => {
         if (ativo) setAnexos(lista);
       })
@@ -121,7 +116,7 @@ export function LeadAttachments({
                   size="small"
                   startIcon={<DownloadIcon />}
                   onClick={() =>
-                    baixarAnexoLead(token, leadId, anexo).catch((e) =>
+                    LeadAnexosService.baixarAnexoLead(leadId, anexo).catch((e) =>
                       setErro(
                         e instanceof Error ? e.message : "Erro ao baixar.",
                       ),
@@ -139,7 +134,7 @@ export function LeadAttachments({
       <LeadAttachmentPreview token={token} leadId={leadId} anexo={anexoVisualizado} onClose={() => setAnexoVisualizado(null)} />
       <UploadAnexos
         enviarArquivo={(arquivo, comentario) =>
-          enviarAnexoLead(token, leadId, arquivo, comentario)
+          LeadAnexosService.enviarAnexoLead(leadId, arquivo, comentario)
         }
         concluido={async () => {
           await carregar();

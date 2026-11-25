@@ -9,7 +9,7 @@ import {
   SecaoSac,
 } from "@/components/atendimento-sac/ComponentesSac";
 import { useAuth } from "@/context/auth-context";
-import { criarVisita } from "@/stores/visitas/service";
+import { VisitasService } from "@/stores/visitas/service";
 import type { Visita } from "@/types/visitas";
 import { FormularioVisita } from "../../../../components/visitas/FormularioVisita";
 export default function PaginaNovaVisita() {
@@ -43,13 +43,12 @@ export default function PaginaNovaVisita() {
           token && (
             <SecaoSac titulo="Dados do agendamento">
               <FormularioVisita
-                token={token}
                 ocupado={ocupado}
                 salvar={async (dados) => {
                   if (ocupado) return;
                   setOcupado(true);
                   try {
-                    const v = await criarVisita(token, dados);
+                    const v = await VisitasService.criarVisita(dados);
                     notificarCrm('Visita cadastrada com sucesso.');
                     navigate("/atendimento/visitas/" + v.id);
                   } finally {

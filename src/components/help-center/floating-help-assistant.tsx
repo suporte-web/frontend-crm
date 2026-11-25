@@ -14,7 +14,7 @@ import {
   isPermissionEnabledForRole,
   virtualAssistantPermission,
 } from '@/config/screens';
-import { askHelpCenter } from '@/stores/help-center/service';
+import { HelpCenterService } from '@/stores/help-center/service';
 
 type ChatMessage = {
   id: string;
@@ -121,7 +121,7 @@ export function FloatingHelpAssistant() {
         },
       ]);
 
-      const response = await askHelpCenter(trimmed);
+      const response = await HelpCenterService.askHelpCenter(trimmed);
 
       setMessages((current) => [
         ...current,

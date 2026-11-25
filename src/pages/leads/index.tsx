@@ -37,7 +37,7 @@ import {
 } from '@/components/mui/crm-primitives';
 import { FeedbackToast } from '@/components/ui/feedback-toast';
 import { useAuth } from '@/context/auth-context';
-import { createLead, getLeads, getLeadsResumo } from '@/stores/leads/service';
+import { LeadsService } from '@/stores/leads/service';
 import type { CreateLeadPayload, Lead, LeadsResumo } from '@/types/leads';
 
 const internalRoles = new Set(['ADMIN', 'GESTAO', 'COMERCIAL', 'MARKETING', 'CONSULTORA']);
@@ -162,12 +162,12 @@ export default function ListaLeads() {
       setPageError('');
 
       const [dadosLead, resumoData] = await Promise.all([
-        getLeads(token, {
+        LeadsService.getLeads({
           ...filters,
           convertidoParaCliente: visao === 'convertidos',
         }),
 
-        getLeadsResumo(token),
+        LeadsService.getLeadsResumo(),
       ]);
 
       setLeads(dadosLead);
@@ -203,7 +203,7 @@ export default function ListaLeads() {
 
     try {
       setManualLoading(true);
-      await createLead(payload, token);
+      await LeadsService.createLead(payload);
       await loadData();
       setToast({
         title: 'Lead criado',

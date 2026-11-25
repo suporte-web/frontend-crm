@@ -4,7 +4,7 @@ import {
   DialogContent, DialogTitle, Stack, Typography,
 } from "@mui/material";
 import DownloadIcon from "@mui/icons-material/Download";
-import { baixarAnexo, obterArquivoAnexo } from "@/stores/anexos/service";
+import { AnexosService } from "@/stores/anexos/service";
 export type DocumentoVisualizavel = { id: string; nome: string; tipo?: string | null };
 
 export function VisualizadorDocumento({ token, caminho, anexo, onClose }: {
@@ -25,7 +25,7 @@ export function VisualizadorDocumento({ token, caminho, anexo, onClose }: {
     if (!anexo) return;
     let ativo = true;
     let url: string | undefined;
-    obterArquivoAnexo(token, caminho)
+    AnexosService.obterArquivoAnexo(caminho)
       .then((blob) => {
         if (!ativo) return;
         const tipoRecebido = blob.type.split(";")[0].toLowerCase();
@@ -74,7 +74,7 @@ export function VisualizadorDocumento({ token, caminho, anexo, onClose }: {
         <Button startIcon={<DownloadIcon />} disabled={!anexo} onClick={() => {
           if (!anexo) return;
           setErroDownload("");
-          baixarAnexo(token, caminho, anexo.nome).catch((error: unknown) => setErroDownload(error instanceof Error ? error.message : "Não foi possível baixar o anexo."));
+          AnexosService.baixarAnexo(caminho, anexo.nome).catch((error: unknown) => setErroDownload(error instanceof Error ? error.message : "Não foi possível baixar o anexo."));
         }}>Baixar</Button>
       </DialogActions>
     </Dialog>

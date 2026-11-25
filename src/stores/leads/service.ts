@@ -22,85 +22,6 @@ function buildQuery(filters: LeadFilters = {}) {
   const query = searchParams.toString();
   return query ? `?${query}` : '';
 }
-// Lead convertido para cliente
-export function getLeads(token: string, filters: LeadFilters = {}) {
-  return Api.get<Lead[]>(`/leads${buildQuery(filters)}`, { headers: { ...(token ? { Authorization: `Bearer ${token}` } : {}) } }).then(({ data }) => data).then(registros => registros.map(normalizarEmpresaLead));
-}
-// resumo leads
-export async function getLeadsResumo(token: string, filters: LeadFilters = {}) {
-  const { data } = await Api.get<LeadsResumo>(`/leads/resumo${buildQuery(filters)}`, { headers: { ...(token ? { Authorization: `Bearer ${token}` } : {}) } });
-  return data;
-}
-export function getLeadById(id: string, token: string) {
-  return Api.get<Lead>(`/leads/${id}`, { headers: { ...(token ? { Authorization: `Bearer ${token}` } : {}) } }).then(({ data }) => data).then(normalizarEmpresaLead);
-}
-export async function createLeadObservation(id: string, payload: CreateLeadObservationPayload, token: string) {
-  const { data } = await Api.post<LeadObservation>(`/leads/${id}/observacoes`, payload, { headers: { ...(token ? { Authorization: `Bearer ${token}` } : {}) } });
-  return data;
-}
-export async function getLeadObservations(id: string, token: string) {
-  const { data } = await Api.get<LeadObservation[]>(`/leads/${id}/observacoes`, { headers: { ...(token ? { Authorization: `Bearer ${token}` } : {}) } });
-  return data;
-}
-export function createLead(payload: CreateLeadPayload, token: string) {
-  return Api.post<Lead>('/leads', normalizarEmpresaLead(payload), { headers: { ...(token ? { Authorization: `Bearer ${token}` } : {}) } }).then(({ data }) => data).then(normalizarEmpresaLead);
-}
-export function updateLeadStatus(id: string, status: string, token: string) {
-  return Api.patch<Lead>(`/leads/${id}/status`, { status }, { headers: { ...(token ? { Authorization: `Bearer ${token}` } : {}) } }).then(({ data }) => data).then(normalizarEmpresaLead);
-}
-export function updateLead(id: string, payload: UpdateLeadPayload, token: string) {
-  return Api.patch<Lead>(`/leads/${id}`, normalizarEmpresaLead(payload), { headers: { ...(token ? { Authorization: `Bearer ${token}` } : {}) } }).then(({ data }) => data).then(normalizarEmpresaLead);
-}
-// exlcuir lead
-export async function excluirLead(id: string, token: string) {
-  const { data } = await Api.delete<{
-    message: string;
-  }>(`/leads/${id}`, { headers: { ...(token ? { Authorization: `Bearer ${token}` } : {}) } });
-  return data;
-}
-export async function convertLeadToClient(id: string, payload: ConvertLeadToClientPayload, token: string) {
-  const { data } = await Api.post<ConvertLeadToClientResponse>(`/leads/${id}/convert-to-client`, payload, { headers: { ...(token ? { Authorization: `Bearer ${token}` } : {}) } });
-  return data;
-}
-export async function getLeadImportJobs(token: string) {
-  const { data } = await Api.get<LeadImportJob[]>('/leads/import-jobs', { headers: { ...(token ? { Authorization: `Bearer ${token}` } : {}) } });
-  return data;
-}
-export async function getLeadImportJob(id: string, token: string) {
-  const { data } = await Api.get<LeadImportJob>(`/leads/import-jobs/${id}`, { headers: { ...(token ? { Authorization: `Bearer ${token}` } : {}) } });
-  return data;
-}
-export async function importLeadsCsv(payload: ImportLeadsCsvPayload, token: string) {
-  const formData = new FormData();
-  formData.append('file', payload.file);
-  if (payload.defaultSource?.trim()) {
-    formData.append('defaultSource', payload.defaultSource.trim());
-  }
-  if (payload.defaultStatus?.trim()) {
-    formData.append('defaultStatus', payload.defaultStatus.trim());
-  }
-  const response = await Api.post(`/leads/import/csv`, formData, {
-    headers: {
-      Authorization: `Bearer ${token}`,
-    }
-  });
-  const data = response.data;
-  return data as LeadImportJob;
-}
-export async function simulateWhatsAppLead(payload: ReceiveWhatsAppLeadPayload, integrationToken: string) {
-  const response = await Api.post(`/leads/integrations/whatsapp`, payload, {
-    headers: {
-      'Content-Type': 'application/json',
-      'x-integration-token': integrationToken,
-    }
-  });
-  const data = response.data;
-  return data as {
-    created: boolean;
-    lead: Lead;
-    message: string;
-  };
-}
 export interface SolicitacaoExclusaoLead {
   id: string;
   leadId: string | null;
@@ -113,20 +34,114 @@ export interface SolicitacaoExclusaoLead {
     name: string;
   };
 }
-export async function solicitarExclusaoLead(id: string, reason: string, token: string) {
-  const { data } = await Api.post<SolicitacaoExclusaoLead>(`/leads/${id}/deletion-request`, { reason }, { headers: { ...(token ? { Authorization: `Bearer ${token}` } : {}) } });
-  return data;
-}
-export async function getSolicitacoesExclusaoLeads(token: string) {
-  const { data } = await Api.get<SolicitacaoExclusaoLead[]>('/leads/deletion-requests', { headers: { ...(token ? { Authorization: `Bearer ${token}` } : {}) } });
-  return data;
-}
-export async function decidirExclusaoLead(id: string, payload: {
-  action: 'APPROVE' | 'REJECT';
-  message?: string;
-}, token: string) {
-  const { data } = await Api.post<{
-    message: string;
-  }>(`/leads/deletion-requests/${id}/decision`, payload, { headers: { ...(token ? { Authorization: `Bearer ${token}` } : {}) } });
-  return data;
-}
+
+export const LeadsService = {
+  // Lead convertido para cliente
+  getLeads: (filters: LeadFilters = {}) => {
+    return Api.get<Lead[]>(`/leads${buildQuery(filters)}`).then(({ data }) => data).then(registros => registros.map(normalizarEmpresaLead));
+  },
+
+  // resumo leads
+  getLeadsResumo: async (filters: LeadFilters = {}) => {
+    const { data } = await Api.get<LeadsResumo>(`/leads/resumo${buildQuery(filters)}`);
+    return data;
+  },
+
+  getLeadById: (id: string) => {
+    return Api.get<Lead>(`/leads/${id}`).then(({ data }) => data).then(normalizarEmpresaLead);
+  },
+
+  createLeadObservation: async (id: string, payload: CreateLeadObservationPayload) => {
+    const { data } = await Api.post<LeadObservation>(`/leads/${id}/observacoes`, payload);
+    return data;
+  },
+
+  getLeadObservations: async (id: string) => {
+    const { data } = await Api.get<LeadObservation[]>(`/leads/${id}/observacoes`);
+    return data;
+  },
+
+  createLead: (payload: CreateLeadPayload) => {
+    return Api.post<Lead>('/leads', normalizarEmpresaLead(payload)).then(({ data }) => data).then(normalizarEmpresaLead);
+  },
+
+  updateLeadStatus: (id: string, status: string) => {
+    return Api.patch<Lead>(`/leads/${id}/status`, { status }).then(({ data }) => data).then(normalizarEmpresaLead);
+  },
+
+  updateLead: (id: string, payload: UpdateLeadPayload) => {
+    return Api.patch<Lead>(`/leads/${id}`, normalizarEmpresaLead(payload)).then(({ data }) => data).then(normalizarEmpresaLead);
+  },
+
+  // exlcuir lead
+  excluirLead: async (id: string) => {
+    const { data } = await Api.delete<{
+      message: string;
+    }>(`/leads/${id}`);
+    return data;
+  },
+
+  convertLeadToClient: async (id: string, payload: ConvertLeadToClientPayload) => {
+    const { data } = await Api.post<ConvertLeadToClientResponse>(`/leads/${id}/convert-to-client`, payload);
+    return data;
+  },
+
+  getLeadImportJobs: async () => {
+    const { data } = await Api.get<LeadImportJob[]>('/leads/import-jobs');
+    return data;
+  },
+
+  getLeadImportJob: async (id: string) => {
+    const { data } = await Api.get<LeadImportJob>(`/leads/import-jobs/${id}`);
+    return data;
+  },
+
+  importLeadsCsv: async (payload: ImportLeadsCsvPayload) => {
+    const formData = new FormData();
+    formData.append('file', payload.file);
+    if (payload.defaultSource?.trim()) {
+      formData.append('defaultSource', payload.defaultSource.trim());
+    }
+    if (payload.defaultStatus?.trim()) {
+      formData.append('defaultStatus', payload.defaultStatus.trim());
+    }
+    const response = await Api.post(`/leads/import/csv`, formData);
+    const data = response.data;
+    return data as LeadImportJob;
+  },
+
+  simulateWhatsAppLead: async (payload: ReceiveWhatsAppLeadPayload, integrationToken: string) => {
+    const response = await Api.post(`/leads/integrations/whatsapp`, payload, {
+      headers: {
+        'Content-Type': 'application/json',
+        'x-integration-token': integrationToken,
+      }
+    });
+    const data = response.data;
+    return data as {
+      created: boolean;
+      lead: Lead;
+      message: string;
+    };
+  },
+
+  solicitarExclusaoLead: async (id: string, reason: string) => {
+    const { data } = await Api.post<SolicitacaoExclusaoLead>(`/leads/${id}/deletion-request`, { reason });
+    return data;
+  },
+
+  getSolicitacoesExclusaoLeads: async () => {
+    const { data } = await Api.get<SolicitacaoExclusaoLead[]>('/leads/deletion-requests');
+    return data;
+  },
+
+  decidirExclusaoLead: async (id: string, payload: {
+    action: 'APPROVE' | 'REJECT';
+    message?: string;
+  }) => {
+    const { data } = await Api.post<{
+      message: string;
+    }>(`/leads/deletion-requests/${id}/decision`, payload);
+    return data;
+  },
+};

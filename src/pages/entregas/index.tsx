@@ -7,13 +7,7 @@ import Typography from "@mui/material/Typography";
 import Button from "@mui/material/Button";
 import { AppLayout } from "@/components/layout/app-layout";
 import { useAuth } from "@/context/auth-context";
-import {
-  getCities,
-  getDeliveries,
-  getDeliveriesSummary,
-  getOccurrences,
-  getPayers,
-} from "@/stores/deliveries/service";
+import { DeliveriesService } from "@/stores/deliveries/service";
 import type {
   DeliveryCity,
   DeliveryFilters,
@@ -210,8 +204,8 @@ export default function DeliveriesPage() {
       try {
         // A lista e o resumo usam os mesmos filtros para manter o painel coerente.
         const [deliveryRows, deliverySummary] = await Promise.all([
-          getDeliveries(appliedFilters, authToken),
-          getDeliveriesSummary(appliedFilters, authToken),
+          DeliveriesService.getDeliveries(appliedFilters),
+          DeliveriesService.getDeliveriesSummary(appliedFilters),
         ]);
 
         if (!isMounted) {
@@ -448,9 +442,9 @@ export default function DeliveriesPage() {
         };
 
         const [deliveryCities, deliveryPayers, deliveryOccurrences] = await Promise.all([
-          getCities(optionFilters, authToken),
-          getPayers(optionFilters, authToken),
-          getOccurrences(optionFilters, authToken),
+          DeliveriesService.getCities(optionFilters),
+          DeliveriesService.getPayers(optionFilters),
+          DeliveriesService.getOccurrences(optionFilters),
         ]);
 
         if (!isMounted) {

@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react';
 import { Alert, Box, Button, CircularProgress, Dialog, DialogActions, DialogContent, DialogTitle, Divider, Stack, Typography } from '@mui/material';
-import { getLeadById, getLeadObservations } from '@/stores/leads/service';
+import { LeadsService } from '@/stores/leads/service';
 import { getLeadFunnelStageLabel } from '@/constants/lead-funnel';
 import { getLeadSourceLabel } from '@/components/leads/lead-timeline';
 import type { Lead } from '@/types/leads';
@@ -66,7 +66,7 @@ export function LeadPreviewDialog({ leadId, token, onClose }: {
     setResult(null);
     if (!leadId || !token) return;
     let active = true;
-    Promise.all([getLeadById(leadId, token), getLeadObservations(leadId, token)])
+    Promise.all([LeadsService.getLeadById(leadId), LeadsService.getLeadObservations(leadId)])
       .then(([lead, observations]) => { if (active) setResult({ id: leadId, token, lead: { ...lead, observations } }); })
       .catch((error: unknown) => {
         if (active) setResult({ id: leadId, token, error: error instanceof Error ? error.message : 'Não foi possível carregar o lead.' });

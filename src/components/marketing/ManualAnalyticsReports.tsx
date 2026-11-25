@@ -19,13 +19,7 @@ import {
   Typography,
 } from "@mui/material";
 import { CrmSection } from "@/components/mui/crm-primitives";
-import {
-  getManualReport,
-  importManualReport,
-  listManualReports,
-  type ManualReport,
-  type ManualReportSummary,
-} from "@/stores/marketing-manual-reports/service";
+import { MarketingManualReportsService, type ManualReport, type ManualReportSummary } from "@/stores/marketing-manual-reports/service";
 
 const dateLabel = (value: string) => value.split("-").reverse().join("/");
 
@@ -51,7 +45,7 @@ export function ManualAnalyticsReports({ token }: { token: string | null }) {
     const controller = new AbortController();
     setLoading(true);
     setError("");
-    listManualReports(token, controller.signal)
+    MarketingManualReportsService.listManualReports(controller.signal)
       .then((items) => {
         if (controller.signal.aborted) return;
         setReports(items);
@@ -80,7 +74,7 @@ export function ManualAnalyticsReports({ token }: { token: string | null }) {
     const controller = new AbortController();
     setReport(null);
     setPage(0);
-    getManualReport(token, selected, controller.signal)
+    MarketingManualReportsService.getManualReport(selected, controller.signal)
       .then((data) => {
         if (!controller.signal.aborted) setReport(data);
       })
@@ -112,7 +106,7 @@ export function ManualAnalyticsReports({ token }: { token: string | null }) {
       form.set("propertyId", propertyId);
       form.set("inicio", inicio);
       form.set("fim", fim);
-      const imported = await importManualReport(token, form);
+      const imported = await MarketingManualReportsService.importManualReport(form);
       setReports((current) => [imported, ...current].slice(0, 100));
       setSelected(imported.id);
       setReport(imported);

@@ -2,7 +2,7 @@ import { useEffect, useState } from 'react';
 import { Alert, Box, Button, MenuItem, TextField } from '@mui/material';
 import { useUser } from '@/UserContext';
 import { hasAnyRole } from '@/lib/user-roles';
-import { listarResponsaveisCadastro, type ResponsavelComercial } from '@/stores/cadastros/service';
+import { CadastrosService, type ResponsavelComercial } from '@/stores/cadastros/service';
 
 export function SeletorResponsavelCadastro({ valor, nomeAtual, aoAlterar, desabilitado = false }: {
   valor: string | null; nomeAtual?: string | null; aoAlterar: (id: string | null) => void; desabilitado?: boolean;
@@ -16,7 +16,7 @@ export function SeletorResponsavelCadastro({ valor, nomeAtual, aoAlterar, desabi
   useEffect(() => {
     let ativo = true;
     setCarregando(true); setErro('');
-    listarResponsaveisCadastro().then(dados => { if (ativo) setOpcoes(dados); })
+    CadastrosService.listarResponsaveisCadastro().then(dados => { if (ativo) setOpcoes(dados); })
       .catch(error => { if (ativo) setErro(error instanceof Error ? error.message : 'Não foi possível carregar os usuários.'); })
       .finally(() => { if (ativo) setCarregando(false); });
     return () => { ativo = false; };

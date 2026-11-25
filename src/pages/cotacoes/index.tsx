@@ -18,11 +18,7 @@ import {
 import { AppLayout } from "@/components/layout/app-layout";
 import { FeedbackToast } from "@/components/ui/feedback-toast";
 import { useAuth } from "@/context/auth-context";
-import {
-  createQuote,
-  getAllQuotes,
-  getMyQuotes,
-} from "@/stores/quotes/service";
+import { QuotesService } from "@/stores/quotes/service";
 import type { CreateQuotePayload, Quote, QuoteStatus } from "@/types/quotes";
 
 type QuoteFormState = {
@@ -157,8 +153,8 @@ export default function QuotesPage() {
       setLoading(true);
       setPageError("");
       const data = isClient
-        ? await getMyQuotes(token)
-        : await getAllQuotes(token);
+        ? await QuotesService.getMyQuotes()
+        : await QuotesService.getAllQuotes();
       setQuotes(data);
     } catch (error) {
       setPageError(
@@ -278,7 +274,7 @@ export default function QuotesPage() {
     try {
       setSaving(true);
       setFormError("");
-      const created = await createQuote(payload, token);
+      const created = await QuotesService.createQuote(payload);
       setQuotes((prev) => [created, ...prev]);
       setSuccessMessage("Cotação enviada com sucesso.");
       setIsModalOpen(false);

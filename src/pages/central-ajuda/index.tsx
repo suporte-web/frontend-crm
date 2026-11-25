@@ -17,13 +17,7 @@ import {
 import { AppLayout } from '@/components/layout/app-layout';
 import { FeedbackToast } from '@/components/ui/feedback-toast';
 import { useAuth } from '@/context/auth-context';
-import {
-  askHelpCenter,
-  createHelpArticle,
-  getHelpArticles,
-  updateHelpArticle,
-  updateHelpArticleStatus,
-} from '@/stores/help-center/service';
+import { HelpCenterService } from '@/stores/help-center/service';
 import type { HelpArticle, HelpArticlePayload } from '@/types/help-center';
 
 type FormState = {
@@ -137,7 +131,7 @@ export default function HelpCenterPage() {
     try {
       setLoadingArticles(true);
       setPageError('');
-      setArticles(await getHelpArticles());
+      setArticles(await HelpCenterService.getHelpArticles());
     } catch (error) {
       setPageError(
         error instanceof Error ? error.message : 'Erro ao carregar artigos.',
@@ -182,7 +176,7 @@ export default function HelpCenterPage() {
       setFormError('');
 
       if (editingId) {
-        const updated = await updateHelpArticle(editingId, payload);
+        const updated = await HelpCenterService.updateHelpArticle(editingId, payload);
         setArticles((current) =>
           current.map((article) =>
             article.id === updated.id ? updated : article,
@@ -194,7 +188,7 @@ export default function HelpCenterPage() {
           variant: 'success',
         });
       } else {
-        const created = await createHelpArticle(payload);
+        const created = await HelpCenterService.createHelpArticle(payload);
         setArticles((current) => [created, ...current]);
         setToast({
           title: 'Central de Ajuda',
@@ -216,7 +210,7 @@ export default function HelpCenterPage() {
 
   async function toggleStatus(article: HelpArticle) {
     try {
-      const updated = await updateHelpArticleStatus(article.id, !article.active);
+      const updated = await HelpCenterService.updateHelpArticleStatus(article.id, !article.active);
       setArticles((current) =>
         current.map((item) => (item.id === updated.id ? updated : item)),
       );
@@ -268,7 +262,7 @@ export default function HelpCenterPage() {
       setChatMessages((current) => [...current, userMessage]);
       setMessage('');
 
-      const response = await askHelpCenter(trimmed);
+      const response = await HelpCenterService.askHelpCenter(trimmed);
 
       setChatMessages((current) => [
         ...current,

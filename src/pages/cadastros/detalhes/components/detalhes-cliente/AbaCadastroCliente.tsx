@@ -17,7 +17,7 @@ import {
   StickyNote,
 } from "lucide-react";
 import { CrmSection } from "@/components/mui/crm-primitives";
-import { formatLeadStatus } from "@/stores/crm/service";
+import { CrmService } from "@/stores/crm/service";
 import type { LeadStatus } from "@/types/crm";
 import {
   UF_OPTIONS,
@@ -285,7 +285,7 @@ export function AbaCadastroCliente(props: PropriedadesAbaDetalhesCliente) {
                 currentLead.registrationDate ?? currentLead.createdAt,
               );
             else if (chave === "status")
-              valor = formatLeadStatus(currentLead.status);
+              valor = CrmService.formatLeadStatus(currentLead.status);
             else if (opcoes)
               valor =
                 opcoes.find((opcao) => opcao.valor === valor)?.rotulo || valor;

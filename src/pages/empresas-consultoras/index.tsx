@@ -31,20 +31,8 @@ import {
 } from "@/components/mui/crm-primitives";
 import { useUser } from "@/UserContext";
 import { hasAnyRole } from "@/lib/user-roles";
-import { listarCadastros, type Cadastro } from "@/stores/cadastros/service";
-import {
-  atualizarEmpresaConsultora,
-  criarEmpresaConsultora,
-  listarCarteiraEmpresa,
-  listarConsultoresEmpresas,
-  listarEmpresasConsultoras,
-  transferirCadastroEmpresa,
-  vincularCarteiraEmpresa,
-  vincularConsultorEmpresa,
-  type CadastroCarteira,
-  type ConsultorEmpresa,
-  type EmpresaConsultora,
-} from "@/stores/empresas-consultoras/service";
+import { CadastrosService, type Cadastro } from "@/stores/cadastros/service";
+import { EmpresasConsultorasService, type CadastroCarteira, type ConsultorEmpresa, type EmpresaConsultora } from "@/stores/empresas-consultoras/service";
 
 type Confirmacao = {
   titulo: string;
@@ -88,9 +76,9 @@ export default function EmpresasConsultoras() {
     setErro("");
     try {
       const [lista, usuarios, registros] = await Promise.all([
-        listarEmpresasConsultoras(),
-        listarConsultoresEmpresas(),
-        listarCadastros(token),
+        EmpresasConsultorasService.listarEmpresasConsultoras(),
+        EmpresasConsultorasService.listarConsultoresEmpresas(),
+        CadastrosService.listarCadastros(),
       ]);
       setEmpresas(lista);
       setConsultores(usuarios);
@@ -120,7 +108,7 @@ export default function EmpresasConsultoras() {
     if (!permitido || !empresaId) return;
     let ativo = true;
     setCarregandoCarteira(true);
-    listarCarteiraEmpresa(empresaId)
+    EmpresasConsultorasService.listarCarteiraEmpresa(empresaId)
       .then((dados) => {
         if (ativo) setCarteira(dados);
       })
@@ -162,7 +150,7 @@ export default function EmpresasConsultoras() {
       const ids = carteira
         .filter((item) => !item.empresaConsultoraId)
         .map((item) => item.id);
-      const resultado = await vincularCarteiraEmpresa(empresa.id, ids);
+      const resultado = await EmpresasConsultorasService.vincularCarteiraEmpresa(empresa.id, ids);
       setPrevia({ empresaId: empresa.id, cadastroIds: resultado.cadastroIds });
     } catch (error) {
       setErro(mensagemErro(error));
@@ -281,7 +269,7 @@ export default function EmpresasConsultoras() {
                         ? "Os consultores vinculados perderão o acesso à carteira enquanto a empresa estiver inativa. Os dados serão preservados."
                         : "Os consultores vinculados voltarão a acessar a carteira desta empresa.",
                       executar: () =>
-                        atualizarEmpresaConsultora(empresa.id, {
+                        EmpresasConsultorasService.atualizarEmpresaConsultora(empresa.id, {
                           ativa: !empresa.ativa,
                         }),
                     })
@@ -345,7 +333,7 @@ export default function EmpresasConsultoras() {
                       titulo: "Vincular colaborador",
                       descricao: `${consultor.name} passará a acessar a carteira de ${empresa.nome}.${consultor.empresaConsultoraId ? " O acesso à empresa anterior será removido, sem transferir a carteira." : ""}`,
                       executar: () =>
-                        vincularConsultorEmpresa(
+                        EmpresasConsultorasService.vincularConsultorEmpresa(
                           empresa.id,
                           consultor.id,
                           true,
@@ -391,7 +379,7 @@ export default function EmpresasConsultoras() {
                         titulo: "Remover vínculo",
                         descricao: `${item.name} perderá o acesso à carteira desta empresa. Os cadastros continuarão vinculados à empresa.`,
                         executar: () =>
-                          vincularConsultorEmpresa(empresa.id, item.id, false),
+                          EmpresasConsultorasService.vincularConsultorEmpresa(empresa.id, item.id, false),
                       })
                     }
                   >
@@ -439,7 +427,7 @@ export default function EmpresasConsultoras() {
                         titulo: "Alterar empresa do cadastro",
                         descricao: `${cadastro.companyName || cadastro.id} será vinculado a ${empresa.nome}. A empresa anterior perderá o acesso. O responsável individual será removido se pertencer a outra empresa; o histórico será preservado.`,
                         executar: () =>
-                          transferirCadastroEmpresa(cadastro.id, empresa.id),
+                          EmpresasConsultorasService.transferirCadastroEmpresa(cadastro.id, empresa.id),
                       });
                     }}
                   >
@@ -481,7 +469,7 @@ export default function EmpresasConsultoras() {
                                 titulo: "Aplicar vínculos da carteira",
                                 descricao: `Vincular ${previa.cadastroIds.length} cadastros a ${empresa.nome}? O responsável individual será preservado e cada alteração será auditada.`,
                                 executar: () =>
-                                  vincularCarteiraEmpresa(
+                                  EmpresasConsultorasService.vincularCarteiraEmpresa(
                                     empresa.id,
                                     previa.cadastroIds,
                                     true,
@@ -552,7 +540,7 @@ export default function EmpresasConsultoras() {
                                           "Desvincular cadastro da empresa",
                                         descricao: `${item.companyName || item.id} deixará de ser acessível pelos consultores desta empresa. O responsável será removido se estiver vinculado a uma empresa consultora.`,
                                         executar: () =>
-                                          transferirCadastroEmpresa(
+                                          EmpresasConsultorasService.transferirCadastroEmpresa(
                                             item.id,
                                             null,
                                           ),
@@ -640,8 +628,8 @@ export default function EmpresasConsultoras() {
                 void executar(
                   () =>
                     formulario.id
-                      ? atualizarEmpresaConsultora(formulario.id, dados)
-                      : criarEmpresaConsultora(dados),
+                      ? EmpresasConsultorasService.atualizarEmpresaConsultora(formulario.id, dados)
+                      : EmpresasConsultorasService.criarEmpresaConsultora(dados),
                   "Empresa salva.",
                 );
               }}

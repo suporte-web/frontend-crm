@@ -50,7 +50,7 @@ import { AppLayout } from "@/components/layout/app-layout";
 import { useAuth } from "@/context/auth-context";
 import { hasAnyRole } from "@/lib/user-roles";
 import { moeda, montarBiCadastros, montarBiOportunidades, numero, filtrarBiPorResponsavel, type ResponsavelBi, type CadastroBi, type OportunidadeBi } from "@/lib/bi-comercial";
-import { carregarBiComercial } from "@/stores/bi-comercial/service";
+import { BiComercialService } from "@/stores/bi-comercial/service";
 import { appScreens, isScreenEnabledForRole } from '@/config/screens';
 
 const abasBi = [
@@ -186,7 +186,7 @@ export default function BiComercialPage() {
     setOportunidades(null);
     setAvisos([]);
     const controller = new AbortController();
-    carregarBiComercial(token, responsavelFiltro, controller.signal)
+    BiComercialService.carregarBiComercial(responsavelFiltro, controller.signal)
       .then(dados => {
         if (!active) return;
         setCadastros(dados.cadastros);

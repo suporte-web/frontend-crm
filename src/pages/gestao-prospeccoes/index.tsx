@@ -1,8 +1,4 @@
-import {
-  getOpcoesProspeccoes,
-  getProspeccoes,
-  getHistoricoProspeccao,
-} from "@/stores/gestao-prospeccoes/service";
+import { GestaoProspeccoesService } from "@/stores/gestao-prospeccoes/service";
 import { useEffect, useState, type FormEvent, type ReactNode } from "react";
 import { Link } from "react-router-dom";
 import {
@@ -242,7 +238,7 @@ export default function GestaoProspeccoesPage() {
   useEffect(() => {
     if (!token || !autorizado) return;
     let ativo = true;
-    getOpcoesProspeccoes<typeof opcoes>(token)
+    GestaoProspeccoesService.getOpcoesProspeccoes<typeof opcoes>()
       .then((r) => {
         if (ativo) {
           setOpcoes(r);
@@ -272,7 +268,7 @@ export default function GestaoProspeccoesPage() {
     Object.entries(filtros).forEach(([k, v]) => {
       if (v) params.set(k, v);
     });
-    getProspeccoes<Resultado>(params, token)
+    GestaoProspeccoesService.getProspeccoes<Resultado>(params)
       .then((r) => {
         if (ativo) setResultado(r);
       })
@@ -297,7 +293,7 @@ export default function GestaoProspeccoesPage() {
     setHistorico(null);
     setErroHistorico("");
     setCarregandoHistorico(true);
-    getHistoricoProspeccao<Historico>(selecionado.tipo, selecionado.id, token)
+    GestaoProspeccoesService.getHistoricoProspeccao<Historico>(selecionado.tipo, selecionado.id)
       .then((r) => {
         if (ativo) setHistorico(r);
       })

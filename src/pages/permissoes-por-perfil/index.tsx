@@ -61,10 +61,7 @@ import {
   permissoesEfetivasPerfil,
   type PermissaoPerfil,
 } from "@/lib/permissoes-perfil";
-import {
-  getScreenPermissions,
-  updateRoleScreenPermissions,
-} from "@/stores/users/service";
+import { UsersService } from "@/stores/users/service";
 import type { RoleScreenPermissionsGroup, UserRole } from "@/types/user";
 
 const rotuloPerfil = (perfil: UserRole) => roleMeta[perfil]?.label ?? perfil;
@@ -136,7 +133,7 @@ export default function PermissionsPage() {
     setCarregando(true);
     setErroCarregamento("");
     try {
-      const dados = await getScreenPermissions();
+      const dados = await UsersService.getScreenPermissions();
       if (atual !== requisicao.current) return;
       setPerfis(dados);
       setPerfilSelecionado((anterior) =>
@@ -260,7 +257,7 @@ export default function PermissionsPage() {
     setSalvando(true);
     const perfil = perfilSelecionado;
     try {
-      const atualizado = await updateRoleScreenPermissions(perfil, {
+      const atualizado = await UsersService.updateRoleScreenPermissions(perfil, {
         screens: rascunho.map((item) => ({
           ...item,
           screenLabel: item.screenLabel ?? undefined,

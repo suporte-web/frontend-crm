@@ -33,12 +33,7 @@ import Button from "@mui/material/Button";
 import Collapse from "@mui/material/Collapse";
 
 import { useAuth } from "@/context/auth-context";
-import {
-  getCities,
-  getDeliveries,
-  getRegions,
-  getDeliveriesSummary,
-} from "@/stores/deliveries/service";
+import { DeliveriesService } from "@/stores/deliveries/service";
 import type {
   DeliveryCity,
   DeliveryFilters,
@@ -385,8 +380,8 @@ export default function DeliveriesTvPage() {
 
       try {
         const [deliveryRows, deliverySummary] = await Promise.all([
-          getDeliveries(activeFilters, authToken),
-          getDeliveriesSummary(activeFilters, authToken),
+          DeliveriesService.getDeliveries(activeFilters),
+          DeliveriesService.getDeliveriesSummary(activeFilters),
         ]);
 
         if (!isMounted) {
@@ -440,7 +435,7 @@ export default function DeliveriesTvPage() {
 
     async function loadOperations() {
       try {
-        const deliveryRegions = await getRegions(DEFAULT_FILTERS, authToken);
+        const deliveryRegions = await DeliveriesService.getRegions(DEFAULT_FILTERS);
 
         if (isMounted) {
           setRegions(deliveryRegions);
@@ -475,7 +470,7 @@ export default function DeliveriesTvPage() {
 
     async function loadCities() {
       try {
-        const deliveryCities = await getCities(optionFilters, authToken);
+        const deliveryCities = await DeliveriesService.getCities(optionFilters);
 
         if (isMounted) {
           setCities(deliveryCities);

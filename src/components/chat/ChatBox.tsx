@@ -4,12 +4,7 @@ import { canUseInternalChat } from "@/lib/user-roles";
 import { useEffect, useMemo, useState } from 'react';
 
 import { useAuth } from '@/context/auth-context';
-import {
-  createChat,
-  getChatMessages,
-  markChatRead,
-  sendChatMessage,
-} from '@/stores/chat/service';
+import { ChatService } from '@/stores/chat/service';
 
 import type {
   Chat,
@@ -79,24 +74,22 @@ export function ChatBox({ entityType, entityId, title }: ChatBoxProps) {
       setIsLoading(true);
       setError(null);
 
-      const createdOrExistingChat = await createChat(
+      const createdOrExistingChat = await ChatService.createChat(
         {
           entityType,
           entityId,
           title,
-        },
-        token,
+        }
       );
 
       setChat(createdOrExistingChat);
 
-      const chatMessages = await getChatMessages(
-        createdOrExistingChat.id,
-        token,
+      const chatMessages = await ChatService.getChatMessages(
+        createdOrExistingChat.id
       );
 
       setMessages(chatMessages);
-      await markChatRead(createdOrExistingChat.id, token).catch(() => undefined);
+      await ChatService.markChatRead(createdOrExistingChat.id).catch(() => undefined);
     } catch (err) {
       const message =
         err instanceof Error
@@ -125,15 +118,14 @@ export function ChatBox({ entityType, entityId, title }: ChatBoxProps) {
       setIsSending(true);
       setError(null);
 
-      const message = await sendChatMessage(
+      const message = await ChatService.sendChatMessage(
         chat.id,
         {
           content: trimmedContent,
           visibility: canSelectInternalVisibility
             ? visibility
             : 'PUBLICA_CLIENTE',
-        },
-        token,
+        }
       );
 
       setMessages((currentMessages) => [...currentMessages, message]);

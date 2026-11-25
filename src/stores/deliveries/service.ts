@@ -12,28 +12,36 @@ function buildQueryString(filters: Partial<DeliveryFilters>) {
   const queryString = params.toString();
   return queryString ? `?${queryString}` : '';
 }
-export async function getDeliveries(filters: Partial<DeliveryFilters>, token: string) {
-  const { data } = await Api.get<DeliveryRow[]>(`/entregas${buildQueryString(filters)}`, { headers: { Authorization: `Bearer ${token}` } });
-  return data;
-}
-export async function getDeliveriesSummary(filters: Partial<DeliveryFilters>, token: string) {
-  const { data } = await Api.get<DeliverySummary>(`/entregas/resumo${buildQueryString(filters)}`, { headers: { Authorization: `Bearer ${token}` } });
-  return data;
-}
-export async function getCities(filters: Partial<DeliveryFilters>, token: string) {
-  const { data } = await Api.get<DeliveryCity[]>(`/entregas/find-cities${buildQueryString(filters)}`, { headers: { Authorization: `Bearer ${token}` } });
-  return data;
-}
-export async function getRegions(filters: Partial<DeliveryFilters>, token: string) {
-  const { data } = await Api.get<DeliveryRegion[]>(`/entregas/find-regions${buildQueryString(filters)}`, { headers: { Authorization: `Bearer ${token}` } });
-  return data;
-}
-export async function getPayers(filters: Partial<DeliveryFilters>, token: string) {
-  const url = `/entregas/find-payers${buildQueryString(filters)}`;
-  const { data } = await Api.get<DeliveryPayer[]>(url, { headers: { Authorization: `Bearer ${token}` } });
-  return data;
-}
-export async function getOccurrences(filters: Partial<DeliveryFilters>, token: string) {
-  const { data } = await Api.get<DeliveryOccurrence[]>(`/entregas/find-occurrences${buildQueryString(filters)}`, { headers: { Authorization: `Bearer ${token}` } });
-  return data;
-}
+
+export const DeliveriesService = {
+  getDeliveries: async (filters: Partial<DeliveryFilters>) => {
+    const { data } = await Api.get<DeliveryRow[]>(`/entregas${buildQueryString(filters)}`);
+    return data;
+  },
+
+  getDeliveriesSummary: async (filters: Partial<DeliveryFilters>) => {
+    const { data } = await Api.get<DeliverySummary>(`/entregas/resumo${buildQueryString(filters)}`);
+    return data;
+  },
+
+  getCities: async (filters: Partial<DeliveryFilters>) => {
+    const { data } = await Api.get<DeliveryCity[]>(`/entregas/find-cities${buildQueryString(filters)}`);
+    return data;
+  },
+
+  getRegions: async (filters: Partial<DeliveryFilters>) => {
+    const { data } = await Api.get<DeliveryRegion[]>(`/entregas/find-regions${buildQueryString(filters)}`);
+    return data;
+  },
+
+  getPayers: async (filters: Partial<DeliveryFilters>) => {
+    const url = `/entregas/find-payers${buildQueryString(filters)}`;
+    const { data } = await Api.get<DeliveryPayer[]>(url);
+    return data;
+  },
+
+  getOccurrences: async (filters: Partial<DeliveryFilters>) => {
+    const { data } = await Api.get<DeliveryOccurrence[]>(`/entregas/find-occurrences${buildQueryString(filters)}`);
+    return data;
+  },
+};

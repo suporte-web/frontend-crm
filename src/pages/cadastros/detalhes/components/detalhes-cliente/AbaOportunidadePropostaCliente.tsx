@@ -38,7 +38,7 @@ import {
 } from "lucide-react";
 
 import { CrmSection } from "@/components/mui/crm-primitives";
-import { formatarEtapaOportunidade } from "@/stores/crm/service";
+import { CrmService } from "@/stores/crm/service";
 
 import {
   TituloSecaoFormulario,
@@ -1495,7 +1495,7 @@ export function AbaOportunidadePropostaCliente(props: PropriedadesAbaDetalhesCli
                     </Box>
 
                     <Chip
-                      label={formatarEtapaOportunidade(opportunity.stage)}
+                      label={CrmService.formatarEtapaOportunidade(opportunity.stage)}
                       size="small"
                       sx={{
                         display: "inline-flex",

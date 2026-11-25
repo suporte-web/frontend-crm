@@ -1,44 +1,54 @@
 import { Api } from '@/utils/Api';
 import type { Chat, ChatListItem, ChatMessage, CreateChatPayload, SendChatMessagePayload, UpdateChatMessagePayload, UpdateChatParticipantsPayload, } from "@/types/chat";
-export async function getChats(token: string): Promise<ChatListItem[]> {
-  const { data } = await Api.get<ChatListItem[]>("/chats", { headers: { ...(token ? { Authorization: `Bearer ${token}` } : {}) } });
-  return data;
-}
-export async function createChat(payload: CreateChatPayload, token: string): Promise<Chat> {
-  const { data } = await Api.post<Chat>("/chats", payload, { headers: { ...(token ? { Authorization: `Bearer ${token}` } : {}) } });
-  return data;
-}
-export async function getChatMessages(chatId: string, token: string): Promise<ChatMessage[]> {
-  const { data } = await Api.get<ChatMessage[]>(`/chats/${chatId}/messages`, { headers: { ...(token ? { Authorization: `Bearer ${token}` } : {}) } });
-  return data;
-}
-export async function markChatRead(chatId: string, token: string): Promise<{
-  chatId: string;
-  lastReadAt: string;
-}> {
-  const { data } = await Api.patch<{
+
+export const ChatService = {
+  getChats: async (): Promise<ChatListItem[]> => {
+    const { data } = await Api.get<ChatListItem[]>("/chats");
+    return data;
+  },
+
+  createChat: async (payload: CreateChatPayload): Promise<Chat> => {
+    const { data } = await Api.post<Chat>("/chats", payload);
+    return data;
+  },
+
+  getChatMessages: async (chatId: string): Promise<ChatMessage[]> => {
+    const { data } = await Api.get<ChatMessage[]>(`/chats/${chatId}/messages`);
+    return data;
+  },
+
+  markChatRead: async (chatId: string): Promise<{
     chatId: string;
     lastReadAt: string;
-  }>(`/chats/${chatId}/read`, {}, { headers: { ...(token ? { Authorization: `Bearer ${token}` } : {}) } });
-  return data;
-}
-export async function sendChatMessage(chatId: string, payload: SendChatMessagePayload, token: string): Promise<ChatMessage> {
-  const { data } = await Api.post<ChatMessage>(`/chats/${chatId}/messages`, payload, { headers: { ...(token ? { Authorization: `Bearer ${token}` } : {}) } });
-  return data;
-}
-export async function updateChatMessage(chatId: string, messageId: string, payload: UpdateChatMessagePayload, token: string): Promise<ChatMessage> {
-  const { data } = await Api.patch<ChatMessage>(`/chats/${chatId}/messages/${messageId}`, payload, { headers: { ...(token ? { Authorization: `Bearer ${token}` } : {}) } });
-  return data;
-}
-export async function deleteChatMessage(chatId: string, messageId: string, token: string): Promise<{
-  success: boolean;
-}> {
-  const { data } = await Api.delete<{
+  }> => {
+    const { data } = await Api.patch<{
+      chatId: string;
+      lastReadAt: string;
+    }>(`/chats/${chatId}/read`, {});
+    return data;
+  },
+
+  sendChatMessage: async (chatId: string, payload: SendChatMessagePayload): Promise<ChatMessage> => {
+    const { data } = await Api.post<ChatMessage>(`/chats/${chatId}/messages`, payload);
+    return data;
+  },
+
+  updateChatMessage: async (chatId: string, messageId: string, payload: UpdateChatMessagePayload): Promise<ChatMessage> => {
+    const { data } = await Api.patch<ChatMessage>(`/chats/${chatId}/messages/${messageId}`, payload);
+    return data;
+  },
+
+  deleteChatMessage: async (chatId: string, messageId: string): Promise<{
     success: boolean;
-  }>(`/chats/${chatId}/messages/${messageId}`, { headers: { ...(token ? { Authorization: `Bearer ${token}` } : {}) } });
-  return data;
-}
-export async function updateChatParticipants(chatId: string, payload: UpdateChatParticipantsPayload, token: string): Promise<Chat> {
-  const { data } = await Api.patch<Chat>(`/chats/${chatId}/participants`, payload, { headers: { ...(token ? { Authorization: `Bearer ${token}` } : {}) } });
-  return data;
-}
+  }> => {
+    const { data } = await Api.delete<{
+      success: boolean;
+    }>(`/chats/${chatId}/messages/${messageId}`);
+    return data;
+  },
+
+  updateChatParticipants: async (chatId: string, payload: UpdateChatParticipantsPayload): Promise<Chat> => {
+    const { data } = await Api.patch<Chat>(`/chats/${chatId}/participants`, payload);
+    return data;
+  },
+};

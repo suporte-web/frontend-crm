@@ -13,12 +13,7 @@ import {
 } from "lucide-react";
 import { AppLayout } from "@/components/layout/app-layout";
 import { useAuth } from "@/context/auth-context";
-import {
-  getChatMessages,
-  getChats,
-  markChatRead,
-  sendChatMessage,
-} from "@/stores/chat/service";
+import { ChatService } from "@/stores/chat/service";
 import type {
   ChatListItem,
   ChatMessage,
@@ -119,7 +114,7 @@ export default function ChatPage() {
     try {
       setLoadingChats(true);
       setError(null);
-      const data = await getChats(token);
+      const data = await ChatService.getChats();
       setChats(data);
       const requestedChatId =
         typeof window !== "undefined"
@@ -146,10 +141,10 @@ export default function ChatPage() {
     try {
       setLoadingMessages(true);
       setError(null);
-      const chatMessages = await getChatMessages(chatId, token);
+      const chatMessages = await ChatService.getChatMessages(chatId);
 
       setMessages(chatMessages);
-      await markChatRead(chatId, token).catch(() => undefined);
+      await ChatService.markChatRead(chatId).catch(() => undefined);
       setChats((current) =>
         current.map((chat) =>
           chat.id === chatId
@@ -176,13 +171,12 @@ export default function ChatPage() {
     try {
       setSaving(true);
       setError(null);
-      const message = await sendChatMessage(
+      const message = await ChatService.sendChatMessage(
         selectedChat.id,
         {
           content: content.trim(),
           visibility: canUseInternalVisibility ? visibility : "PUBLICA_CLIENTE",
-        },
-        token,
+        }
       );
 
       setMessages((current) => [...current, message]);

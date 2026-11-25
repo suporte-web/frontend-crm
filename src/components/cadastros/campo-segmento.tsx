@@ -1,7 +1,7 @@
 import { useEffect, useState, type Dispatch, type SetStateAction } from 'react';
 import { Alert, Autocomplete, Box, Button, FormControlLabel, Switch, TextField } from '@mui/material';
 import type { ClientFormData } from '@/components/clientes/client-form';
-import { classificarSegmento, listarSegmentos, type Segmento } from '@/stores/segmentos/service';
+import { SegmentosService, type Segmento } from '@/stores/segmentos/service';
 
 export function CampoSegmento({ form, setForm, desabilitado }: { form: ClientFormData; setForm: Dispatch<SetStateAction<ClientFormData>>; desabilitado: boolean }) {
   const [opcoes, setOpcoes] = useState<Segmento[]>([]);
@@ -12,7 +12,7 @@ export function CampoSegmento({ form, setForm, desabilitado }: { form: ClientFor
   const codigo = form.cnae.replace(/[./\-\s]/g, '');
   useEffect(() => {
     const controller = new AbortController();
-    listarSegmentos(controller.signal).then(setOpcoes).catch(error => { if (!controller.signal.aborted) setErro(error instanceof Error ? error.message : 'Não foi possível carregar os segmentos.'); });
+    SegmentosService.listarSegmentos(controller.signal).then(setOpcoes).catch(error => { if (!controller.signal.aborted) setErro(error instanceof Error ? error.message : 'Não foi possível carregar os segmentos.'); });
     return () => controller.abort();
   }, [tentativa]);
   useEffect(() => {
@@ -25,7 +25,7 @@ export function CampoSegmento({ form, setForm, desabilitado }: { form: ClientFor
     }
     const timer = setTimeout(() => {
       setBuscando(true); setErro('');
-      classificarSegmento(codigo, controller.signal).then(dados => {
+      SegmentosService.classificarSegmento(codigo, controller.signal).then(dados => {
         if (!controller.signal.aborted) setForm(atual => atual.segmentoAutomatico === false || atual.cnae.replace(/[./\-\s]/g, '') !== codigo ? atual : { ...atual, segment: dados.segmento?.nome || '', segmentoId: dados.segmento?.id ?? null, segmentoAutomatico: true });
       }).catch(error => { if (!controller.signal.aborted) setErro(error instanceof Error ? error.message : 'Não foi possível classificar o CNAE.'); })
         .finally(() => { if (!controller.signal.aborted) setBuscando(false); });

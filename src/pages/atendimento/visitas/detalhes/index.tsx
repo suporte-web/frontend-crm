@@ -27,7 +27,7 @@ import {
 } from "@/components/atendimento-sac/ComponentesSac";
 import { HistoricoAtendimento } from "@/components/atendimento/HistoricoAtendimento";
 import { useAuth } from "@/context/auth-context";
-import { getVisita, executarAcaoVisita, atualizarVisita } from "@/stores/visitas/service";
+import { VisitasService } from "@/stores/visitas/service";
 import {
   rotulosEtapaVisita,
   rotulosStatusVisita,
@@ -57,13 +57,13 @@ export default function PaginaDetalheVisita() {
   const lider = liderSac(user?.roles?.length ? user.roles : user?.role);
   const carregar = useCallback(async () => {
     if (!token) return;
-    const v = await getVisita(token, id);
+    const v = await VisitasService.getVisita(id);
     setVisita(v);
   }, [token, id]);
   useEffect(() => {
     let ativo = true;
     if (token)
-      getVisita(token, id)
+      VisitasService.getVisita(id)
         .then((v) => {
           if (ativo) {
             setVisita(v);
@@ -83,7 +83,7 @@ export default function PaginaDetalheVisita() {
     setOcupado(true);
     setErro("");
     try {
-      await executarAcaoVisita(token, id, acao, dados);
+      await VisitasService.executarAcaoVisita(id, acao, dados);
       await carregar();
       setMensagem("Visita atualizada.");
       return true;
@@ -295,7 +295,6 @@ export default function PaginaDetalheVisita() {
                   <FormularioVisita
                     key={visita.id}
                     visita={visita}
-                    token={token}
                     permitido={lider && agendamento}
                     ocupado={ocupado}
                     salvar={async (dados) => {
@@ -303,7 +302,7 @@ export default function PaginaDetalheVisita() {
                       enviando.current = true;
                       setOcupado(true);
                       try {
-                        await atualizarVisita(token, id, dados);
+                        await VisitasService.atualizarVisita(id, dados);
                         await carregar();
                         setMensagem("Dados da visita atualizados.");
                       } finally {

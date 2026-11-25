@@ -5,7 +5,7 @@ import { Eye, RefreshCcw, Search, UserCheck } from "lucide-react";
 import { AppLayout } from "@/components/layout/app-layout";
 import { FeedbackToast } from "@/components/ui/feedback-toast";
 import { useAuth } from "@/context/auth-context";
-import { assumirEntrada, getEntradas } from "@/stores/entradas/service";
+import { EntradasService } from "@/stores/entradas/service";
 import type {
   EntradaFilters,
   EntradaStatus,
@@ -86,7 +86,7 @@ export default function EntradasPage() {
     try {
       setLoading(true);
       setPageError("");
-      const data = await getEntradas(token, filters);
+      const data = await EntradasService.getEntradas(filters);
       setEntradas(data);
     } catch (error) {
       setPageError(
@@ -112,7 +112,7 @@ export default function EntradasPage() {
     }
 
     try {
-      const updated = await assumirEntrada(id, token);
+      const updated = await EntradasService.assumirEntrada(id);
       setEntradas((prev) =>
         prev.map((item) => (item.id === updated.id ? updated : item)),
       );

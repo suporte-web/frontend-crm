@@ -1,4 +1,4 @@
-import { solicitarDownloadDocumentoCliente } from '@/stores/crm/service';
+import { CrmService } from '@/stores/crm/service';
 import { coresSituacaoOportunidade, marcadorEtapaOportunidadeSx, acaoPrincipalOportunidadeSx, acaoSecundariaOportunidadeSx, campoOportunidadeSx, formularioOportunidadeSx, superficieOportunidadeSx } from '@/components/crm/estilos-oportunidades';
 import { formatarValorOportunidade, origemValorOportunidade } from '@/lib/valor-oportunidade';
 import { hasAnyRole } from "@/lib/user-roles";
@@ -37,14 +37,7 @@ import { FeedbackToast } from "@/components/ui/feedback-toast";
 import { CamposPerdaOportunidade, DetalhesPerdaOportunidade } from '@/components/crm/campos-perda-oportunidade';
 import { Dialog, DialogTitle, DialogContent, DialogActions } from '@mui/material';
 import { useAuth } from "@/context/auth-context";
-import {
-  excluirDocumentoPropostaOportunidade,
-  formatarEtapaOportunidade,
-  formatOpportunityStatus,
-  getCrmLeadById,
-  updateOpportunityStatus,
-  enviarDocumentosPropostaOportunidade,
-} from "@/stores/crm/service";
+
 import type { ClientDocument, LeadDetail, OpportunityStatus } from "@/types/crm";
 
 import {
@@ -150,7 +143,7 @@ export default function PaginaDetalhePropostaCliente({
       return;
     }
 
-    const nextLead = await getCrmLeadById(nextClientId, token, canEditCommercialData);
+    const nextLead = await CrmService.getCrmLeadById(nextClientId, canEditCommercialData);
     setLead(nextLead);
   }
 
@@ -166,7 +159,7 @@ export default function PaginaDetalhePropostaCliente({
         setLoading(true);
         setError("");
 
-        const nextLead = await getCrmLeadById(clientIdParam, token, canEditCommercialData);
+        const nextLead = await CrmService.getCrmLeadById(clientIdParam, canEditCommercialData);
 
         if (!active) {
           return;
@@ -204,10 +197,9 @@ export default function PaginaDetalhePropostaCliente({
 
     try {
       setUploading(true);
-      await enviarDocumentosPropostaOportunidade(
+      await CrmService.enviarDocumentosPropostaOportunidade(
         clientId,
         selectedFiles,
-        token,
         `Oportunidade/Proposta | ${marcadorAnexoProposta(proposalId)}`,
       );
       setSelectedFiles([]);
@@ -240,7 +232,7 @@ export default function PaginaDetalhePropostaCliente({
     }
 
     try {
-      const blob = await solicitarDownloadDocumentoCliente(clientId, document.id, token);
+      const blob = await CrmService.solicitarDownloadDocumentoCliente(clientId, document.id);
       const url = URL.createObjectURL(blob);
       const link = window.document.createElement("a");
 
@@ -288,10 +280,9 @@ export default function PaginaDetalhePropostaCliente({
 
     try {
       setDeletingDocumentId(document.id);
-      await excluirDocumentoPropostaOportunidade(
+      await CrmService.excluirDocumentoPropostaOportunidade(
         clientId,
         document.id,
-        token,
         justification,
       );
       await reloadClient();
@@ -333,11 +324,10 @@ export default function PaginaDetalhePropostaCliente({
     try {
       setSavingStatus(true);
 
-      await updateOpportunityStatus(
+      await CrmService.updateOpportunityStatus(
         clientId,
         proposalId,
         nextStatus,
-        token,
         { motivoPerda: lossCode, observacaoPerda: lossNotes },
       );
       setLossOpen(false);
@@ -346,7 +336,7 @@ export default function PaginaDetalhePropostaCliente({
 
       setToast({
         title: "Status atualizado",
-        message: `A oportunidade foi marcada como ${formatOpportunityStatus(
+        message: `A oportunidade foi marcada como ${CrmService.formatOpportunityStatus(
           nextStatus,
         ).toLowerCase()}.`,
         variant: "success",
@@ -415,7 +405,7 @@ export default function PaginaDetalhePropostaCliente({
                   </Box>
                 </Stack>
                 <Stack direction="row" spacing={.75} useFlexGap sx={{ flexWrap: 'wrap', flexShrink: 0 }}>
-                  <Chip label={formatarEtapaOportunidade(opportunity.stage)} size="small" sx={{ height: 25, borderRadius: '6px', fontSize: 11.5, fontWeight: 500, ...marcadorEtapaOportunidadeSx(opportunity.stage) }} />
+                  <Chip label={CrmService.formatarEtapaOportunidade(opportunity.stage)} size="small" sx={{ height: 25, borderRadius: '6px', fontSize: 11.5, fontWeight: 500, ...marcadorEtapaOportunidadeSx(opportunity.stage) }} />
                   <Chip label={statusVisual.label} size="small" sx={{ height: 25, borderRadius: '6px', bgcolor: statusVisual.background, color: statusVisual.color, fontSize: 11.5, fontWeight: 500 }} />
                 </Stack>
               </Box>
@@ -442,7 +432,7 @@ export default function PaginaDetalhePropostaCliente({
                     </TextField>
                   ) : <>
                     <Typography sx={{ color: '#64748b', fontSize: 12, mb: .75 }}>Status da oportunidade</Typography>
-                    <Typography sx={{ color: statusVisual.color, fontSize: 13.5, fontWeight: 500 }}>{formatOpportunityStatus(opportunity.status)}</Typography>
+                    <Typography sx={{ color: statusVisual.color, fontSize: 13.5, fontWeight: 500 }}>{CrmService.formatOpportunityStatus(opportunity.status)}</Typography>
                   </>}
                 </Box>
               </Box>

@@ -1,4 +1,4 @@
-import { Link } from 'react-router-dom';
+import { Link } from "react-router-dom";
 import { useEffect, useState } from "react";
 import {
   Alert,
@@ -26,13 +26,18 @@ import {
   SecaoSac,
 } from "@/components/atendimento-sac/ComponentesSac";
 import { useAuth } from "@/context/auth-context";
-import { listarVisitas, getOpcoesVisitas } from "@/stores/visitas/service";
+import { VisitasService } from "@/stores/visitas/service";
+import { ModalNovaVisita } from "./components/ModalNovaVisita";
 import {
   rotulosStatusVisita,
   type ListaVisitas,
   type OpcoesVisitas,
 } from "@/types/visitas";
-import { acaoVisitaSx, StatusVisitaChip } from "../../../components/visitas/ComponentesVisitas";
+import {
+  acaoVisitaSx,
+  StatusVisitaChip,
+} from "../../../components/visitas/ComponentesVisitas";
+import { useUser } from "@/UserContext";
 const vazio = {
   protocolo: "",
   cliente: "",
@@ -42,6 +47,7 @@ const vazio = {
   inicio: "",
   fim: "",
 };
+
 const cards = [
   { status: "AGENDADA", titulo: "Agendadas" },
   { status: "AGUARDANDO_REALIZACAO", titulo: "Aguardando realização" },
@@ -49,12 +55,14 @@ const cards = [
   { status: "REAGENDAMENTO", titulo: "Reagendadas" },
   { status: "CONCLUIDA", titulo: "Concluídas" },
 ] as const;
+
 export default function PaginaVisitas() {
-  const { token, user } = useAuth();
+  const { user } = useUser();
+
   const lider = liderSac(user?.roles?.length ? user.roles : user?.role);
-  const [filtros, setFiltros] = useState(vazio),
-    [aplicados, setAplicados] = useState(vazio),
-    [pagina, setPagina] = useState(1);
+  const [filtros, setFiltros] = useState(vazio);
+  const [aplicados, setAplicados] = useState(vazio);
+  const [pagina, setPagina] = useState(1);
   const [dados, setDados] = useState<ListaVisitas>({
     itens: [],
     total: 0,
@@ -66,10 +74,12 @@ export default function PaginaVisitas() {
     usuarios: [],
     responsaveis: [],
   });
-  const [erro, setErro] = useState(""),
-    [carregando, setCarregando] = useState(true);
+  const [erro, setErro] = useState("");
+  const [carregando, setCarregando] = useState(true);
+
+  const [flushHook, setFlushHook] = useState(false);
+
   useEffect(() => {
-    if (!token) return;
     let ativo = true;
     setCarregando(true);
     setErro("");
@@ -77,7 +87,7 @@ export default function PaginaVisitas() {
     Object.entries(aplicados).forEach(([k, v]) => {
       if (v) q.set(k, v);
     });
-    listarVisitas(token, q)
+    VisitasService.listarVisitas(q)
       .then((d) => {
         if (ativo) setDados(d);
       })
@@ -90,11 +100,11 @@ export default function PaginaVisitas() {
     return () => {
       ativo = false;
     };
-  }, [token, aplicados, pagina]);
+  }, [flushHook, aplicados, pagina]);
+
   useEffect(() => {
-    if (!token) return;
     let ativo = true;
-    getOpcoesVisitas(token)
+    VisitasService.getOpcoesVisitas()
       .then((d) => {
         if (ativo) setOpcoes(d);
       })
@@ -104,9 +114,11 @@ export default function PaginaVisitas() {
     return () => {
       ativo = false;
     };
-  }, [token]);
+  }, []);
+
   const campo = (k: keyof typeof vazio, v: string) =>
     setFiltros((f) => ({ ...f, [k]: v }));
+
   return (
     <AppLayout>
       <Stack spacing={3}>
@@ -129,15 +141,7 @@ export default function PaginaVisitas() {
             </Typography>
           </Box>
           {lider && (
-            <Button
-              component={Link}
-              to="/atendimento/visitas/nova"
-              variant="contained"
-              size="small"
-              sx={acaoVisitaSx}
-            >
-              Nova visita
-            </Button>
+            <ModalNovaVisita setFlushHook={setFlushHook} />
           )}
         </Stack>
         <Box

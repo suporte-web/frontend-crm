@@ -1,8 +1,4 @@
-import {
-  getCadastrosResumos as getCrmClientSummaries,
-  criarCadastro,
-  type ModalidadeCadastro,
-} from "@/stores/cadastros/service";
+import { CadastrosService, type ModalidadeCadastro } from "@/stores/cadastros/service";
 
 import { IdentificacaoProspeccao } from "@/components/crm/prospeccao-consultora";
 import { CamposComplementaresCadastro } from "@/components/cadastros/campos-complementares-cadastro";
@@ -59,13 +55,8 @@ import {
 import { AppLayout } from "@/components/layout/app-layout";
 import { FeedbackToast } from "@/components/ui/feedback-toast";
 import { useAuth } from "@/context/auth-context";
-import {
-  decideClientDeletionRequest,
-  getClientDeletionRequests,
-  requestClientDeletion,
-  uploadClientDocuments,
-} from "@/stores/crm/service";
-import { formatLeadStatus } from "@/stores/crm/service";
+import { CrmService } from "@/stores/crm/service";
+
 import type {
   ClientDeletionRequest,
   ClientDeletionRequestStatus,
@@ -387,9 +378,9 @@ export default function ClientsPage() {
       setLoading(true);
       setPageError("");
       const [data, requests] = await Promise.all([
-        getCrmClientSummaries(token, user?.role === "CONSULTORA"),
+        CadastrosService.getCadastrosResumos(user?.role === "CONSULTORA"),
         canManageClients && user?.role !== "CONSULTORA"
-          ? getClientDeletionRequests(token).catch(() => [])
+          ? CrmService.getClientDeletionRequests().catch(() => [])
           : Promise.resolve([]),
       ]);
       setClients(data);
@@ -596,7 +587,7 @@ export default function ClientsPage() {
 
     try {
       setSaving(true);
-      const createdClient = await criarCadastro(
+      const createdClient = await CadastrosService.criarCadastro(
         {
           name: displayName,
           notes: form.notes.trim() || undefined,
@@ -629,7 +620,6 @@ export default function ClientsPage() {
           internalOwnerId: user?.id,
           contacts: validContacts,
         },
-        token,
         modalidadeNovo,
       );
 
@@ -645,10 +635,9 @@ export default function ClientsPage() {
           documentUploadFailed = true;
         } else {
           try {
-            await uploadClientDocuments(
+            await CrmService.uploadClientDocuments(
               clientId,
               documentFiles,
-              token,
               "Documento cadastral",
             );
           } catch {
@@ -701,10 +690,9 @@ export default function ClientsPage() {
 
     try {
       setSaving(true);
-      const result = await requestClientDeletion(
+      const result = await CrmService.requestClientDeletion(
         deletionModalClient.id,
-        { reason: deletionReason.trim() || undefined },
-        token,
+        { reason: deletionReason.trim() || undefined }
       );
       setToast({
         title:
@@ -743,13 +731,12 @@ export default function ClientsPage() {
 
     try {
       setSaving(true);
-      const result = await decideClientDeletionRequest(
+      const result = await CrmService.decideClientDeletionRequest(
         decisionRequest.id,
         {
           action,
           message: decisionMessage.trim() || undefined,
-        },
-        token,
+        }
       );
       setToast({
         title:

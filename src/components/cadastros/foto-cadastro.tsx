@@ -5,7 +5,7 @@ import { notificarCrm } from '@/lib/feedback-crm';
 import { useEffect, useState, type ChangeEvent } from "react";
 import { Avatar, Box, Button, Paper, Stack, Typography } from "@mui/material";
 import { ImagePlus } from "lucide-react";
-import { atualizarFotoCadastro } from "@/stores/cadastros/service";
+import { CadastrosService } from "@/stores/cadastros/service";
 
 export function FotoCadastro({ valor, aoAlterar, desabilitado = false }: {
   valor: string; aoAlterar: (foto: string) => void; desabilitado?: boolean;
@@ -50,14 +50,14 @@ export function FotoCadastro({ valor, aoAlterar, desabilitado = false }: {
   </Stack>;
 }
 
-export function FotoCadastroSalvo({ id, foto, token, aoSalvar }: { id: string; foto?: string | null; token: string; aoSalvar: () => Promise<void> }) {
+export function FotoCadastroSalvo({ id, foto, aoSalvar }: { id: string; foto?: string | null; aoSalvar: () => Promise<void> }) {
   const [valor, setValor] = useState(foto || "");
   const [salvando, setSalvando] = useState(false);
   const [erro, setErro] = useState("");
   useEffect(() => { setValor(foto || ""); setErro(""); }, [id, foto]);
   async function salvar() {
     setSalvando(true); setErro("");
-    try { await atualizarFotoCadastro(id, valor, token); await aoSalvar(); notificarCrm('Imagem do cadastro atualizada com sucesso.'); }
+    try { await CadastrosService.atualizarFotoCadastro(id, valor); await aoSalvar(); notificarCrm('Imagem do cadastro atualizada com sucesso.'); }
     catch (erro) { setErro(erro instanceof Error ? erro.message : "Não foi possível salvar a imagem."); }
     finally { setSalvando(false); }
   }

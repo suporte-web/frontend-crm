@@ -1,4 +1,4 @@
-import { Link } from 'react-router-dom';
+import { Link } from "react-router-dom";
 import { useCallback, useEffect, useState } from "react";
 import {
   Alert,
@@ -21,13 +21,19 @@ import {
 } from "@mui/material";
 import { AppLayout } from "@/components/layout/app-layout";
 import { useAuth } from "@/context/auth-context";
-import { listarSac, getParticipantesSac } from "@/stores/atendimento-sac/service";
+import { AtendimentoSacService } from "@/stores/atendimento-sac/service";
 import {
   rotulosStatusSac,
   type AtendimentoSac,
   type PessoaSac,
 } from "@/types/atendimento-sac.types";
-import { dataSac, liderSac, SecaoSac, StatusSacChip } from "../../components/atendimento-sac/ComponentesSac";
+import {
+  dataSac,
+  liderSac,
+  SecaoSac,
+  StatusSacChip,
+} from "../../components/atendimento-sac/ComponentesSac";
+
 export default function PaginaFilaSac() {
   const { token, user } = useAuth();
   const [fila, setFila] = useState(0);
@@ -50,7 +56,9 @@ export default function PaginaFilaSac() {
   const [pessoas, setPessoas] = useState<PessoaSac[]>([]);
   const [erro, setErro] = useState("");
   const [carregando, setCarregando] = useState(true);
+
   const lider = liderSac(user?.roles?.length ? user.roles : user?.role);
+
   const carregar = useCallback(async () => {
     if (!token || !user) return;
     setCarregando(true);
@@ -63,7 +71,7 @@ export default function PaginaFilaSac() {
       if (lider && fila === 1) q.set("status", "NOVO");
       if (lider && fila === 2) q.set("atendenteId", user.id);
       q.set("pagina", String(pagina));
-      setDados(await listarSac(token, q));
+      setDados(await AtendimentoSacService.listarSac(q));
     } catch (e) {
       setErro(
         e instanceof Error ? e.message : "Erro ao carregar atendimentos.",
@@ -72,15 +80,18 @@ export default function PaginaFilaSac() {
       setCarregando(false);
     }
   }, [token, user, aplicados, pagina, lider, fila]);
+
   useEffect(() => {
     void carregar();
   }, [carregar]);
+
   useEffect(() => {
     if (token)
-      getParticipantesSac(token)
+      AtendimentoSacService.getParticipantesSac()
         .then(setPessoas)
         .catch(() => undefined);
   }, [token]);
+
   return (
     <AppLayout>
       <Stack spacing={3}>
@@ -386,8 +397,8 @@ export default function PaginaFilaSac() {
                         sx={{
                           color:
                             a.prazo &&
-                              new Date(a.prazo) < new Date() &&
-                              a.status !== "CONCLUIDO"
+                            new Date(a.prazo) < new Date() &&
+                            a.status !== "CONCLUIDO"
                               ? "error.main"
                               : "inherit",
                         }}

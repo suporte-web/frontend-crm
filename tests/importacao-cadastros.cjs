@@ -15,8 +15,8 @@ async function tela({ etapa = 'entrada_leads', falhar = false } = {}) {
     react, 'react/jsx-runtime': { jsx: (type, props) => ({ type, props }), jsxs: (type, props) => ({ type, props }), Fragment: 'Fragment' },
     '@mui/material': components, 'react-router-dom': { Link: 'Link' },
     '@/context/auth-context': { useAuth: () => ({ user: { id: 'admin', role: 'ADMIN' } }) },
-    '@/stores/segmentos/service': { listarSegmentos: async () => [{ id: 's', nome: 'Químico' }] },
-    '@/stores/importacoes-cadastros/service': {
+    '@/stores/segmentos/service': { SegmentosService: { listarSegmentos: async () => [{ id: 's', nome: 'Químico' }] } },
+    '@/stores/importacoes-cadastros/service': { ImportacoesCadastrosService: {
       listarOpcoesImportacao: async () => [{ id: 'u', name: 'Responsável', empresaConsultoraId: null, empresaConsultora: null }],
       listarImportacoesCadastros: async () => [], prepararImportacaoCadastro: async () => job,
       confirmarImportacaoCadastro: async (id, linhas) => {
@@ -24,7 +24,7 @@ async function tela({ etapa = 'entrada_leads', falhar = false } = {}) {
         if (falhar) throw new Error('A base mudou.');
         return { ...job, status: 'CONCLUIDA', resultado: { criados: [{ numero: 2, id: 'cadastro', nome: 'Empresa' }], ignorados: [] } };
       },
-    },
+    } },
   } });
   const Page = load('src/pages/cadastros/components/importar-cadastros-dialog.tsx').ImportarCadastrosDialog;
   let tree;

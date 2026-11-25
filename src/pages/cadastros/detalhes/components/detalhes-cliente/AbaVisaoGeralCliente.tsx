@@ -28,9 +28,7 @@ import {
   crmPalette,
 } from '@/components/mui/crm-primitives';
 
-import {
-  formatLeadStatus,
-} from '@/stores/crm/service';
+import { CrmService } from '@/stores/crm/service';
 
 import {
   CabecalhoSecao,
@@ -548,7 +546,7 @@ export function AbaVisaoGeralCliente(
               color="#2E7D32"
               value={
                 <Chip
-                  label={formatLeadStatus(
+                  label={CrmService.formatLeadStatus(
                     currentLead.status,
                   )}
                   size="small"

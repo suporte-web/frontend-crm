@@ -11,8 +11,10 @@ type RespostaBi = {
   avisos: string[];
 };
 
-export async function carregarBiComercial(token: string, responsavelId = '', signal?: AbortSignal) {
-  const params = responsavelId === 'sem-responsavel' ? { semResponsavel: 'true' } : responsavelId ? { responsavelId } : {};
-  const { data } = await Api.get<RespostaBi>('/bi-comercial', { params, signal, headers: { Authorization: `Bearer ${token}` } });
-  return { ...data, oportunidades: data.oportunidades === null ? null : normalizarOportunidadesBi(data.oportunidades) };
-}
+export const BiComercialService = {
+  carregarBiComercial: async (responsavelId = '', signal?: AbortSignal) => {
+    const params = responsavelId === 'sem-responsavel' ? { semResponsavel: 'true' } : responsavelId ? { responsavelId } : {};
+    const { data } = await Api.get<RespostaBi>('/bi-comercial', { params, signal });
+    return { ...data, oportunidades: data.oportunidades === null ? null : normalizarOportunidadesBi(data.oportunidades) };
+  },
+};

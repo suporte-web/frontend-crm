@@ -19,7 +19,7 @@ import {
 } from "@/config/screens";
 
 import { useAuth } from "@/context/auth-context";
-import { getNotifications } from "@/stores/notifications/service";
+import { NotificationsService } from "@/stores/notifications/service";
 
 import { sidebarSections, type SidebarSectionConfig } from "./sidebar-config";
 
@@ -107,7 +107,7 @@ export function AppSidebar() {
     const authToken = token;
 
     async function loadChatNotifications() {
-      const notifications = await getNotifications(authToken);
+      const notifications = await NotificationsService.getNotifications();
 
       if (!active) {
         return;

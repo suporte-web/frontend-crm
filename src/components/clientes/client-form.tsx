@@ -4,19 +4,19 @@ import type {
   FormEvent,
   ReactNode,
   SetStateAction,
-} from 'react';
+} from "react";
 
-import Alert from '@mui/material/Alert';
-import Box from '@mui/material/Box';
-import Button from '@mui/material/Button';
-import Chip from '@mui/material/Chip';
-import CircularProgress from '@mui/material/CircularProgress';
-import Divider from '@mui/material/Divider';
-import MenuItem from '@mui/material/MenuItem';
-import Paper from '@mui/material/Paper';
-import Stack from '@mui/material/Stack';
-import TextField from '@mui/material/TextField';
-import Typography from '@mui/material/Typography';
+import Alert from "@mui/material/Alert";
+import Box from "@mui/material/Box";
+import Button from "@mui/material/Button";
+import Chip from "@mui/material/Chip";
+import CircularProgress from "@mui/material/CircularProgress";
+import Divider from "@mui/material/Divider";
+import MenuItem from "@mui/material/MenuItem";
+import Paper from "@mui/material/Paper";
+import Stack from "@mui/material/Stack";
+import TextField from "@mui/material/TextField";
+import Typography from "@mui/material/Typography";
 
 import {
   Building2,
@@ -27,12 +27,12 @@ import {
   Trash2,
   UploadCloud,
   UsersRound,
-} from 'lucide-react';
+} from "lucide-react";
 
-import { formatarNomeCadastro } from '@/lib/nome-cadastro';
-import { crmPalette } from '@/components/mui/crm-primitives';
-import type { LeadStatus } from '@/types/crm';
-import { CampoSegmento } from '@/components/cadastros/campo-segmento';
+import { formatarNomeCadastro } from "@/lib/nome-cadastro";
+import { crmPalette } from "@/components/mui/crm-primitives";
+import type { LeadStatus } from "@/types/crm";
+import { CampoSegmento } from "@/components/cadastros/campo-segmento";
 
 export type ClientFormData = {
   companyName: string;
@@ -91,71 +91,74 @@ type ClientFormProps = {
 };
 
 const brazilianStates = [
-  'AC',
-  'AL',
-  'AP',
-  'AM',
-  'BA',
-  'CE',
-  'DF',
-  'ES',
-  'GO',
-  'MA',
-  'MT',
-  'MS',
-  'MG',
-  'PA',
-  'PB',
-  'PR',
-  'PE',
-  'PI',
-  'RJ',
-  'RN',
-  'RS',
-  'RO',
-  'RR',
-  'SC',
-  'SP',
-  'SE',
-  'TO',
+  "AC",
+  "AL",
+  "AP",
+  "AM",
+  "BA",
+  "CE",
+  "DF",
+  "ES",
+  "GO",
+  "MA",
+  "MT",
+  "MS",
+  "MG",
+  "PA",
+  "PB",
+  "PR",
+  "PE",
+  "PI",
+  "RJ",
+  "RN",
+  "RS",
+  "RO",
+  "RR",
+  "SC",
+  "SP",
+  "SE",
+  "TO",
 ];
 
 export const campoCadastroSx = {
   minWidth: 0,
-  '& .MuiOutlinedInput-root': {
-    borderRadius: '8px',
-    bgcolor: '#fff',
+  "& .MuiOutlinedInput-root": {
+    borderRadius: "8px",
+    bgcolor: "#fff",
     fontWeight: 400,
-    '& fieldset': { borderColor: '#cbd5e1' },
-    '&:hover fieldset': { borderColor: '#94a3b8' },
-    '&.Mui-focused fieldset': { borderColor: '#ff5805' },
+    "& fieldset": { borderColor: "#cbd5e1" },
+    "&:hover fieldset": { borderColor: "#94a3b8" },
+    "&.Mui-focused fieldset": { borderColor: "#ff5805" },
   },
-  '& .MuiOutlinedInput-root:not(.MuiInputBase-multiline)': { height: 44 },
-  '& .MuiInputBase-input, & .MuiSelect-select': { fontSize: 14, fontWeight: 400 },
-  '& .MuiInputLabel-root': { fontSize: 14, fontWeight: 400 },
-  '& .MuiInputLabel-root.Mui-focused': { color: '#ea580c' },
+  "& .MuiOutlinedInput-root:not(.MuiInputBase-multiline)": { height: 44 },
+  "& .MuiInputBase-input, & .MuiSelect-select": {
+    fontSize: 14,
+    fontWeight: 400,
+  },
+  "& .MuiInputLabel-root": { fontSize: 14, fontWeight: 400 },
+  "& .MuiInputLabel-root.Mui-focused": { color: "#ea580c" },
 };
 
 export const emptyClientContact = (): ClientContactForm => ({
-  name: '',
-  role: '',
-  email: '',
-  phone: '',
-  notes: '',
+  name: "",
+  role: "",
+  email: "",
+  phone: "",
+  notes: "",
 });
 
 function onlyDigits(value: string) {
-  return value.replace(/\D/g, '');
+  return value.replace(/\D/g, "");
 }
 
 function formatCnpj(value: string) {
   const digits = onlyDigits(value).slice(0, 14);
 
   return digits
-    .replace(/^(\d{2})(\d)/, '$1.$2')
-    .replace(/^(\d{2})\.(\d{3})(\d)/, '$1.$2.$3')
-    .replace(/\.(\d{3})(\d)/, '.$1/$2')
-    .replace(/(\d{4})(\d)/, '$1-$2');
+    .replace(/^(\d{2})(\d)/, "$1.$2")
+    .replace(/^(\d{2})\.(\d{3})(\d)/, "$1.$2.$3")
+    .replace(/\.(\d{3})(\d)/, ".$1/$2")
+    .replace(/(\d{4})(\d)/, "$1-$2");
 }
 
 function ClientFormSection({
@@ -176,11 +179,19 @@ function ClientFormSection({
       elevation={0}
       sx={{
         p: { xs: 2, md: 2.5 },
-        border: '1px solid',
-        borderColor: '#e2e8f0',
-        borderRadius: '12px',
-        bgcolor: '#ffffff',
-        ...(compacto ? { p: 0, pt: 2, border: 0, borderTop: '1px solid #f1f5f9', borderRadius: 0 } : {}),
+        border: "1px solid",
+        borderColor: "#e2e8f0",
+        borderRadius: "12px",
+        bgcolor: "#ffffff",
+        ...(compacto
+          ? {
+              p: 0,
+              pt: 2,
+              border: 0,
+              borderTop: "1px solid #f1f5f9",
+              borderRadius: 0,
+            }
+          : {}),
       }}
     >
       <Stack
@@ -188,30 +199,40 @@ function ClientFormSection({
         spacing={1.5}
         sx={{
           mb: 2,
-          alignItems: 'flex-start',
+          alignItems: "flex-start",
         }}
       >
-        {!compacto && <Box
-          sx={{
-            width: 36,
-            height: 36,
-            display: 'grid',
-            placeItems: 'center',
-            flexShrink: 0,
-            borderRadius: '12px',
-            bgcolor: '#f8fafc',
-            color: '#64748b',
-          }}
-        >
-          {icon}
-        </Box>}
+        {!compacto && (
+          <Box
+            sx={{
+              width: 36,
+              height: 36,
+              display: "grid",
+              placeItems: "center",
+              flexShrink: 0,
+              borderRadius: "12px",
+              bgcolor: "#f8fafc",
+              color: "#64748b",
+            }}
+          >
+            {icon}
+          </Box>
+        )}
 
         <Box sx={{ minWidth: 0 }}>
-          <Typography sx={{ color: '#1f2937', fontSize: compacto ? 14 : 15, fontWeight: compacto ? 600 : 700 }}>
+          <Typography
+            sx={{
+              color: "#1f2937",
+              fontSize: compacto ? 14 : 15,
+              fontWeight: compacto ? 600 : 700,
+            }}
+          >
             {title}
           </Typography>
           {description && !compacto ? (
-            <Typography sx={{ mt: 0.35, color: '#64748b', fontSize: compacto ? 12 : 13 }}>
+            <Typography
+              sx={{ mt: 0.35, color: "#64748b", fontSize: compacto ? 12 : 13 }}
+            >
               {description}
             </Typography>
           ) : null}
@@ -227,9 +248,9 @@ function FieldGrid({ children }: { children: ReactNode }) {
   return (
     <Box
       sx={{
-        display: 'grid',
+        display: "grid",
         gap: 2,
-        gridTemplateColumns: { xs: '1fr', md: 'repeat(2, minmax(0, 1fr))' },
+        gridTemplateColumns: { xs: "1fr", md: "repeat(2, minmax(0, 1fr))" },
       }}
     >
       {children}
@@ -250,7 +271,7 @@ export function ClientForm({
   onSearchCnpj,
   onCancel,
   onSubmit,
-  submitLabel = 'Salvar cadastro',
+  submitLabel = "Salvar cadastro",
   camposIniciais,
   compacto = false,
 }: ClientFormProps) {
@@ -281,26 +302,83 @@ export function ClientForm({
   }
 
   return (
-    <Box component="form" onSubmit={onSubmit} sx={compacto ? {
-      '& .MuiPaper-root': { boxShadow: 'none', bgcolor: '#fff' },
-      '&& .MuiTextField-root .MuiOutlinedInput-root': { borderRadius: '8px' },
-      '&& .MuiTextField-root .MuiOutlinedInput-root:not(.MuiInputBase-multiline)': { height: 40 },
-      '& .MuiButton-root': { minHeight: 40, borderRadius: '8px', fontWeight: 600 },
-      '&& .MuiInputLabel-root': { fontSize: 13, fontWeight: 400 },
-      '&& .MuiInputBase-input, && .MuiSelect-select': { fontSize: 13.5, fontWeight: 400 },
-      '& .MuiButton-outlined': { color: '#475569', bgcolor: '#fff', borderColor: '#cbd5e1', '&:hover': { bgcolor: '#f8fafc', borderColor: '#94a3b8' } },
-      '& .MuiButton-contained:not(.Mui-disabled)': { bgcolor: '#ff5805', boxShadow: 'none', '&:hover': { bgcolor: '#e94f00', boxShadow: 'none' } },
-    } : undefined}>
+    <Box
+      component="form"
+      onSubmit={onSubmit}
+      sx={
+        compacto
+          ? {
+              "& .MuiPaper-root": { boxShadow: "none", bgcolor: "#fff" },
+              "&& .MuiTextField-root .MuiOutlinedInput-root": {
+                borderRadius: "8px",
+              },
+              "&& .MuiTextField-root .MuiOutlinedInput-root:not(.MuiInputBase-multiline)":
+                { height: 40 },
+              "& .MuiButton-root": {
+                minHeight: 40,
+                borderRadius: "8px",
+                fontWeight: 600,
+              },
+              "&& .MuiInputLabel-root": { fontSize: 13, fontWeight: 400 },
+              "&& .MuiInputBase-input, && .MuiSelect-select": {
+                fontSize: 13.5,
+                fontWeight: 400,
+              },
+              "& .MuiButton-outlined": {
+                color: "#475569",
+                bgcolor: "#fff",
+                borderColor: "#cbd5e1",
+                "&:hover": { bgcolor: "#f8fafc", borderColor: "#94a3b8" },
+              },
+              "& .MuiButton-contained:not(.Mui-disabled)": {
+                bgcolor: "#ff5805",
+                boxShadow: "none",
+                "&:hover": { bgcolor: "#e94f00", boxShadow: "none" },
+              },
+            }
+          : undefined
+      }
+    >
       <Stack spacing={2}>
-        <Paper elevation={0} sx={{ p: { xs: 2, md: 2.5 }, border: '1px solid #e2e8f0', borderRadius: '12px', bgcolor: '#f8fafc', ...(compacto ? { p: 0, border: 0, borderRadius: 0, bgcolor: '#fff' } : {}) }}>
+        <Paper
+          elevation={0}
+          sx={{
+            p: { xs: 2, md: 2.5 },
+            border: "1px solid #e2e8f0",
+            borderRadius: "12px",
+            bgcolor: "#f8fafc",
+            ...(compacto
+              ? { p: 0, border: 0, borderRadius: 0, bgcolor: "#fff" }
+              : {}),
+          }}
+        >
           <Stack spacing={2}>
-            {!compacto && <Box>
-              <Typography sx={{ color: '#1f2937', fontSize: 14, fontWeight: 700 }}>Preenchimento por CNPJ</Typography>
-              <Typography sx={{ mt: 0.5, color: '#64748b', fontSize: 12.5 }}>Consulte os dados da empresa ou preencha os campos abaixo manualmente.</Typography>
-            </Box>}
-            <Box sx={{ display: 'grid', gridTemplateColumns: { xs: 'minmax(0, 1fr)', sm: 'minmax(0, 1fr) auto' }, gap: 1.5, alignItems: 'start' }}>
+            {!compacto && (
+              <Box>
+                <Typography
+                  sx={{ color: "#1f2937", fontSize: 14, fontWeight: 700 }}
+                >
+                  Preenchimento por CNPJ
+                </Typography>
+                <Typography sx={{ mt: 0.5, color: "#64748b", fontSize: 12.5 }}>
+                  Consulte os dados da empresa ou preencha os campos abaixo
+                  manualmente.
+                </Typography>
+              </Box>
+            )}
+            <Box
+              sx={{
+                display: "grid",
+                gridTemplateColumns: {
+                  xs: "minmax(0, 1fr)",
+                  sm: "minmax(0, 1fr) auto",
+                },
+                gap: 1.5,
+                alignItems: "start",
+              }}
+            >
               <TextField
-              size="small"
+                size="small"
                 label={compacto ? "CNPJ" : "CNPJ (opcional)"}
                 value={form.document}
                 onChange={(event) =>
@@ -328,19 +406,19 @@ export function ClientForm({
                 sx={{
                   minHeight: 44,
                   px: 2.25,
-                  borderRadius: '8px',
+                  borderRadius: "8px",
                   bgcolor: crmPalette.orange,
                   fontWeight: 700,
-                  textTransform: 'none',
-                  whiteSpace: 'nowrap',
-                  boxShadow: 'none',
-                  '&:hover': {
+                  textTransform: "none",
+                  whiteSpace: "nowrap",
+                  boxShadow: "none",
+                  "&:hover": {
                     bgcolor: crmPalette.orangeDark,
-                    boxShadow: 'none',
+                    boxShadow: "none",
                   },
                 }}
               >
-                {searchingCnpj ? 'Buscando...' : 'Buscar CNPJ'}
+                {searchingCnpj ? "Buscando..." : "Buscar CNPJ"}
               </Button>
             </Box>
           </Stack>
@@ -360,7 +438,12 @@ export function ClientForm({
               size="small"
               label="Razão social"
               value={form.legalName}
-              onBlur={() => setForm(current => ({ ...current, legalName: formatarNomeCadastro(current.legalName) }))}
+              onBlur={() =>
+                setForm((current) => ({
+                  ...current,
+                  legalName: formatarNomeCadastro(current.legalName),
+                }))
+              }
               onChange={(event) =>
                 setForm((current) => ({
                   ...current,
@@ -374,7 +457,12 @@ export function ClientForm({
               size="small"
               label="Nome fantasia"
               value={form.tradeName}
-              onBlur={() => setForm(current => ({ ...current, tradeName: formatarNomeCadastro(current.tradeName) }))}
+              onBlur={() =>
+                setForm((current) => ({
+                  ...current,
+                  tradeName: formatarNomeCadastro(current.tradeName),
+                }))
+              }
               onChange={(event) =>
                 setForm((current) => ({
                   ...current,
@@ -388,7 +476,12 @@ export function ClientForm({
               size="small"
               label="Empresa / Grupo"
               value={form.companyName}
-              onBlur={() => setForm(current => ({ ...current, companyName: formatarNomeCadastro(current.companyName) }))}
+              onBlur={() =>
+                setForm((current) => ({
+                  ...current,
+                  companyName: formatarNomeCadastro(current.companyName),
+                }))
+              }
               onChange={(event) =>
                 setForm((current) => ({
                   ...current,
@@ -437,8 +530,24 @@ export function ClientForm({
               sx={campoCadastroSx}
             />
 
-            <CampoSegmento form={form} setForm={setForm} desabilitado={loading} />
-            <TextField size="small" label="Site / link" value={form.siteUrl || ''} onChange={event => setForm(current => ({ ...current, siteUrl: event.target.value }))} helperText="URL completa, iniciando com https://" sx={campoCadastroSx} />
+            <CampoSegmento
+              form={form}
+              setForm={setForm}
+              desabilitado={loading}
+            />
+            <TextField
+              size="small"
+              label="Site / link"
+              value={form.siteUrl || ""}
+              onChange={(event) =>
+                setForm((current) => ({
+                  ...current,
+                  siteUrl: event.target.value,
+                }))
+              }
+              helperText="URL completa, iniciando com https://"
+              sx={campoCadastroSx}
+            />
 
             <TextField
               size="small"
@@ -611,29 +720,31 @@ export function ClientForm({
                 elevation={0}
                 sx={{
                   p: 2,
-                  border: '1px solid',
-                  borderColor: index === 0 ? '#fed7aa' : 'divider',
-                  borderRadius: '14px',
-                  bgcolor: index === 0 ? '#fffaf7' : '#ffffff',
+                  border: "1px solid",
+                  borderColor: index === 0 ? "#fed7aa" : "divider",
+                  borderRadius: "14px",
+                  bgcolor: index === 0 ? "#fffaf7" : "#ffffff",
                 }}
               >
                 <Stack
-                  direction={{ xs: 'column', sm: 'row' }}
+                  direction={{ xs: "column", sm: "row" }}
                   spacing={1.5}
                   sx={{
                     mb: 1.75,
-                    alignItems: { xs: 'stretch', sm: 'center' },
-                    justifyContent: 'space-between',
+                    alignItems: { xs: "stretch", sm: "center" },
+                    justifyContent: "space-between",
                   }}
                 >
                   <Chip
-                    label={index === 0 ? 'Contato principal' : `Contato ${index + 1}`}
+                    label={
+                      index === 0 ? "Contato principal" : `Contato ${index + 1}`
+                    }
                     size="small"
                     sx={{
-                      width: 'fit-content',
-                      borderRadius: '8px',
-                      bgcolor: index === 0 ? '#ffedd5' : '#f1f5f9',
-                      color: index === 0 ? crmPalette.orangeDark : '#475569',
+                      width: "fit-content",
+                      borderRadius: "8px",
+                      bgcolor: index === 0 ? "#ffedd5" : "#f1f5f9",
+                      color: index === 0 ? crmPalette.orangeDark : "#475569",
                       fontWeight: 700,
                     }}
                   />
@@ -649,10 +760,10 @@ export function ClientForm({
                       !Object.values(contact).some(Boolean)
                     }
                     sx={{
-                      alignSelf: { xs: 'flex-start', sm: 'center' },
-                      borderRadius: '10px',
+                      alignSelf: { xs: "flex-start", sm: "center" },
+                      borderRadius: "10px",
                       fontWeight: 800,
-                      textTransform: 'none',
+                      textTransform: "none",
                     }}
                   >
                     Remover
@@ -661,58 +772,58 @@ export function ClientForm({
 
                 <FieldGrid>
                   <TextField
-              size="small"
+                    size="small"
                     label="Nome do contato"
                     value={contact.name}
                     onChange={(event) =>
-                      updateContact(index, 'name', event.target.value)
+                      updateContact(index, "name", event.target.value)
                     }
                     sx={campoCadastroSx}
                   />
 
                   <TextField
-              size="small"
+                    size="small"
                     label="Cargo / Função"
                     value={contact.role}
                     onChange={(event) =>
-                      updateContact(index, 'role', event.target.value)
+                      updateContact(index, "role", event.target.value)
                     }
                     sx={campoCadastroSx}
                   />
 
                   <TextField
-              size="small"
+                    size="small"
                     type="email"
                     label="E-mail"
                     value={contact.email}
                     onChange={(event) =>
-                      updateContact(index, 'email', event.target.value)
+                      updateContact(index, "email", event.target.value)
                     }
                     sx={campoCadastroSx}
                   />
 
                   <TextField
-              size="small"
+                    size="small"
                     label="Telefone"
                     value={contact.phone}
                     onChange={(event) =>
-                      updateContact(index, 'phone', event.target.value)
+                      updateContact(index, "phone", event.target.value)
                     }
                     sx={campoCadastroSx}
                   />
 
                   <TextField
-              size="small"
+                    size="small"
                     label="Observações do contato"
                     multiline
                     minRows={2}
                     value={contact.notes}
                     onChange={(event) =>
-                      updateContact(index, 'notes', event.target.value)
+                      updateContact(index, "notes", event.target.value)
                     }
                     sx={{
                       ...campoCadastroSx,
-                      gridColumn: { xs: 'auto', md: '1 / -1' },
+                      gridColumn: { xs: "auto", md: "1 / -1" },
                     }}
                   />
                 </FieldGrid>
@@ -726,13 +837,13 @@ export function ClientForm({
               onClick={addContact}
               sx={{
                 minHeight: 42,
-                width: 'fit-content',
-                borderRadius: '10px',
-                borderColor: '#fed7aa',
-                color: '#9a3412',
+                width: "fit-content",
+                borderRadius: "10px",
+                borderColor: "#fed7aa",
+                color: "#9a3412",
                 fontWeight: 700,
-                textTransform: 'none',
-                '&:hover': { borderColor: '#f97316', bgcolor: '#ffedd5' },
+                textTransform: "none",
+                "&:hover": { borderColor: "#f97316", bgcolor: "#ffedd5" },
               }}
             >
               Adicionar contato
@@ -750,24 +861,28 @@ export function ClientForm({
             elevation={0}
             sx={{
               p: 2,
-              border: '1px dashed #cbd5e1',
-              borderRadius: '14px',
-              bgcolor: '#f8fafc',
+              border: "1px dashed #cbd5e1",
+              borderRadius: "14px",
+              bgcolor: "#f8fafc",
             }}
           >
             <Stack
-              direction={{ xs: 'column', sm: 'row' }}
+              direction={{ xs: "column", sm: "row" }}
               spacing={2}
-              sx={{ alignItems: { xs: 'stretch', sm: 'center' } }}
+              sx={{ alignItems: { xs: "stretch", sm: "center" } }}
             >
               <Box sx={{ flex: 1, minWidth: 0 }}>
-                {!compacto && <Typography sx={{ color: '#334155', fontSize: 14, fontWeight: 700 }}>
-                  Inserir documentos
-                </Typography>}
-                <Typography sx={{ mt: 0.35, color: '#64748b', fontSize: 13 }}>
+                {!compacto && (
+                  <Typography
+                    sx={{ color: "#334155", fontSize: 14, fontWeight: 700 }}
+                  >
+                    Inserir documentos
+                  </Typography>
+                )}
+                <Typography sx={{ mt: 0.35, color: "#64748b", fontSize: 13 }}>
                   {documentFiles.length > 0
                     ? `${documentFiles.length} arquivo(s) selecionado(s).`
-                    : 'Nenhum arquivo selecionado.'}
+                    : "Nenhum arquivo selecionado."}
                 </Typography>
               </Box>
 
@@ -777,12 +892,12 @@ export function ClientForm({
                 startIcon={<UploadCloud size={17} />}
                 sx={{
                   minHeight: 42,
-                  borderRadius: '10px',
-                  borderColor: '#fed7aa',
-                  color: '#9a3412',
+                  borderRadius: "10px",
+                  borderColor: "#fed7aa",
+                  color: "#9a3412",
                   fontWeight: 700,
-                  textTransform: 'none',
-                  '&:hover': { borderColor: '#f97316', bgcolor: '#ffedd5' },
+                  textTransform: "none",
+                  "&:hover": { borderColor: "#f97316", bgcolor: "#ffedd5" },
                 }}
               >
                 Selecionar arquivos
@@ -794,14 +909,14 @@ export function ClientForm({
                     setDocumentFiles(Array.from(event.target.files ?? []))
                   }
                   sx={{
-                    clip: 'rect(0 0 0 0)',
-                    clipPath: 'inset(50%)',
+                    clip: "rect(0 0 0 0)",
+                    clipPath: "inset(50%)",
                     height: 1,
-                    overflow: 'hidden',
-                    position: 'absolute',
+                    overflow: "hidden",
+                    position: "absolute",
                     bottom: 0,
                     left: 0,
-                    whiteSpace: 'nowrap',
+                    whiteSpace: "nowrap",
                     width: 1,
                   }}
                 />
@@ -811,7 +926,12 @@ export function ClientForm({
             {documentFiles.length > 0 ? (
               <>
                 <Divider sx={{ my: 1.75 }} />
-                <Stack direction="row" spacing={1} useFlexGap sx={{ flexWrap: 'wrap' }}>
+                <Stack
+                  direction="row"
+                  spacing={1}
+                  useFlexGap
+                  sx={{ flexWrap: "wrap" }}
+                >
                   {documentFiles.map((file) => (
                     <Chip
                       key={`${file.name}-${file.size}`}
@@ -829,15 +949,15 @@ export function ClientForm({
                         )
                       }
                       sx={{
-                        maxWidth: '100%',
-                        borderRadius: '8px',
-                        bgcolor: '#ffffff',
-                        color: '#334155',
+                        maxWidth: "100%",
+                        borderRadius: "8px",
+                        bgcolor: "#ffffff",
+                        color: "#334155",
                         fontSize: 12,
                         fontWeight: 700,
-                        '& .MuiChip-label': {
-                          overflow: 'hidden',
-                          textOverflow: 'ellipsis',
+                        "& .MuiChip-label": {
+                          overflow: "hidden",
+                          textOverflow: "ellipsis",
                         },
                       }}
                     />
@@ -849,7 +969,7 @@ export function ClientForm({
         </ClientFormSection>
 
         <TextField
-              size="small"
+          size="small"
           label="Observações"
           multiline
           minRows={4}
@@ -861,22 +981,24 @@ export function ClientForm({
           sx={campoCadastroSx}
         />
 
-        {!compacto && <Alert
-          severity="info"
-          sx={{
-            borderRadius: '12px',
-            bgcolor: '#f8fafc',
-            color: '#475569',
-            '& .MuiAlert-icon': { color: crmPalette.orange },
-          }}
-        >
-          Revise os dados da empresa e os contatos antes de salvar o cadastro.
-        </Alert>}
+        {!compacto && (
+          <Alert
+            severity="info"
+            sx={{
+              borderRadius: "12px",
+              bgcolor: "#f8fafc",
+              color: "#475569",
+              "& .MuiAlert-icon": { color: crmPalette.orange },
+            }}
+          >
+            Revise os dados da empresa e os contatos antes de salvar o cadastro.
+          </Alert>
+        )}
 
         <Stack
-          direction={{ xs: 'column-reverse', sm: 'row' }}
+          direction={{ xs: "column-reverse", sm: "row" }}
           spacing={1.25}
-          sx={{ justifyContent: 'flex-end' }}
+          sx={{ justifyContent: "flex-end" }}
         >
           <Button
             type="button"
@@ -885,9 +1007,9 @@ export function ClientForm({
             onClick={onCancel}
             sx={{
               minHeight: 44,
-              borderRadius: '10px',
+              borderRadius: "10px",
               fontWeight: 800,
-              textTransform: 'none',
+              textTransform: "none",
             }}
           >
             Cancelar
@@ -907,18 +1029,18 @@ export function ClientForm({
             sx={{
               minHeight: 44,
               px: 2.5,
-              borderRadius: '10px',
+              borderRadius: "10px",
               bgcolor: crmPalette.orange,
               fontWeight: 700,
-              textTransform: 'none',
-              boxShadow: 'none',
-              '&:hover': {
+              textTransform: "none",
+              boxShadow: "none",
+              "&:hover": {
                 bgcolor: crmPalette.orangeDark,
-                boxShadow: 'none',
+                boxShadow: "none",
               },
             }}
           >
-            {loading ? 'Salvando...' : submitLabel}
+            {loading ? "Salvando..." : submitLabel}
           </Button>
         </Stack>
       </Stack>

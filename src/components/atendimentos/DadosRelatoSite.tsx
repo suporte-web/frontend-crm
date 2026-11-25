@@ -1,4 +1,4 @@
-import { solicitarAnexoRelatoSite } from '@/stores/anexos/service';
+import { AnexosService } from '@/stores/anexos/service';
 import { useState } from 'react';
 import { useAuth } from '@/context/auth-context';
 
@@ -18,7 +18,7 @@ export function DadosRelatoSite({ atendimento }: { atendimento: AtendimentoRelat
     if (!token || baixando) return;
     definirBaixando(anexo.id); definirErro('');
     try {
-      const arquivo = await solicitarAnexoRelatoSite(atendimento.id, anexo.id, token);
+      const arquivo = await AnexosService.solicitarAnexoRelatoSite(atendimento.id, anexo.id);
       const url = URL.createObjectURL(arquivo);
       const link = document.createElement('a'); link.href = url; link.download = anexo.nome;
       document.body.appendChild(link); link.click(); link.remove(); setTimeout(() => URL.revokeObjectURL(url), 1000);

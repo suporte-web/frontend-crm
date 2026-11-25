@@ -19,7 +19,7 @@ function ambiente() {
     Date: class extends Date { static now() { return now; } },
     setTimeout: (fn, delay) => adicionar(fn, delay), clearTimeout: id => timers.delete(id),
     setInterval: (fn, delay) => adicionar(fn, delay, true), clearInterval: id => timers.delete(id),
-  }, mocks: { '@/stores/app-version/service': { getAvailableVersion: signal => { consultas++; return resposta(signal); } } } });
+  }, mocks: { '@/stores/app-version/service': { AppVersionService: { getAvailableVersion: signal => { consultas++; return resposta(signal); } } } } });
   const { AppVersionMonitor } = load('src/lib/app-version-monitor.ts');
   const monitor = new AppVersionMonitor('build-a');
   return {
@@ -61,18 +61,18 @@ test('serviço lê arquivo estático sem cache e valida JSON, HTTP e estrutura',
   const load = createSourceLoader({ globals: { AbortController, __APP_VERSION__: metadata('build-a'), fetch: async (...values) => { args = values; return response; } } });
   const service = load('src/stores/app-version/service.ts');
   assert.equal(service.currentVersion, 'build-a');
-  assert.equal((await service.getAvailableVersion(new AbortController().signal)).version, 'build-b');
+  assert.equal((await service.AppVersionService.getAvailableVersion(new AbortController().signal)).version, 'build-b');
   assert.match(args[0], /^\/version\.json\?t=\d+$/);
   assert.equal(args[1].cache, 'no-store');
   assert.equal(args[1].headers, undefined);
   for (const invalid of [null, {}, { ...metadata('b'), buildDate: 'ontem' }, { ...metadata('b'), commit: '<html>' }, { ...metadata('b'), version: '' }]) {
     response = new Response(JSON.stringify(invalid), { headers: { 'content-type': 'application/json' } });
-    await assert.rejects(() => service.getAvailableVersion(new AbortController().signal));
+    await assert.rejects(() => service.AppVersionService.getAvailableVersion(new AbortController().signal));
   }
   response = new Response('<html>SPA</html>', { headers: { 'content-type': 'text/html' } });
-  await assert.rejects(() => service.getAvailableVersion(new AbortController().signal));
+  await assert.rejects(() => service.AppVersionService.getAvailableVersion(new AbortController().signal));
   response = new Response('{}', { status: 503 });
-  await assert.rejects(() => service.getAvailableVersion(new AbortController().signal));
+  await assert.rejects(() => service.AppVersionService.getAvailableVersion(new AbortController().signal));
 });
 
 test('timeout cancela a consulta sem deixar timers pendentes', async () => {
@@ -82,7 +82,7 @@ test('timeout cancela a consulta sem deixar timers pendentes', async () => {
     setTimeout: fn => { timeout = fn; return 1; }, clearTimeout() { cleared = true; },
     fetch: (_url, options) => new Promise((_resolve, reject) => options.signal.addEventListener('abort', () => reject(Error('timeout')))),
   } });
-  const promise = load('src/stores/app-version/service.ts').getAvailableVersion(new AbortController().signal);
+  const promise = load('src/stores/app-version/service.ts').AppVersionService.getAvailableVersion(new AbortController().signal);
   timeout();
   await assert.rejects(promise);
   assert.equal(cleared, true);

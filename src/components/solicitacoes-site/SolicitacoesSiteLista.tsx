@@ -21,7 +21,7 @@ import { SolicitacoesSiteCards } from '@/components/solicitacoes-site/Solicitaco
 
 import { SolicitacoesSiteTabela } from '@/components/solicitacoes-site/SolicitacoesSiteTabela';
 
-import { listarSolicitacoesSite } from '@/stores/solicitacoes-site/service';
+import { SolicitacoesSiteService } from '@/stores/solicitacoes-site/service';
 
 import type { EtapaCotacaoSite, SolicitacaoSite } from '@/types/solicitacao-site';
 
@@ -51,7 +51,7 @@ export function SolicitacoesSiteLista({ mode = 'queue' }: { mode?: 'queue' | 'pr
         setErro('');
 
         const response =
-          await listarSolicitacoesSite(
+          await SolicitacoesSiteService.listarSolicitacoesSite(
             // mode === 'prospects' ? { tipo: 'COTACAO' } : {}
           );
 

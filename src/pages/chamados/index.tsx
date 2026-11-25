@@ -24,31 +24,8 @@ import { ChatBox } from "@/components/chat/ChatBox";
 import { FeedbackToast } from "@/components/ui/feedback-toast";
 import { useAuth } from "@/context/auth-context";
 import { API_BASE_URL } from "@/utils/Api";
-import { getCrmClientSummaries } from "@/stores/crm/service";
-import {
-  addInternalTicketNote,
-  createTicketProposta,
-  createTicket,
-  getAllTickets,
-  getMyTickets,
-  getTicket,
-  getTicketPropostas,
-  managementTicketDecision,
-  approveTicketPropostaByClient,
-  approveTicketPropostaByManagement,
-  rejectTicketPropostaByClient,
-  rejectTicketPropostaByManagement,
-  replyTicket,
-  requestTicketPropostaAdjustmentByClient,
-  requestTicketPropostaAdjustmentByManagement,
-  sendPreProposal,
-  sendTicketPropostaToClient,
-  sendTicketPropostaToManagement,
-  sendTicketToManagement,
-  startTicket,
-  updateTicketStatus,
-  updateTicketProposta,
-} from "@/stores/tickets/service";
+import { CrmService } from "@/stores/crm/service";
+import { TicketsService } from "@/stores/tickets/service";
 import type { LeadSummary } from "@/types/crm";
 import type {
   Proposta,
@@ -544,9 +521,9 @@ export default function TicketsPage() {
       setPageError("");
       const [ticketData, clientData] = await Promise.all([
         isClient
-          ? getMyTickets(token, { status: statusFilter, type: typeFilter })
-          : getAllTickets(token, { status: statusFilter, type: typeFilter }),
-        isInternal ? getCrmClientSummaries(token) : Promise.resolve([]),
+          ? TicketsService.getMyTickets({ status: statusFilter, type: typeFilter })
+          : TicketsService.getAllTickets({ status: statusFilter, type: typeFilter }),
+        isInternal ? CrmService.getCrmClientSummaries() : Promise.resolve([]),
       ]);
       setTickets(ticketData);
       setClients(clientData);
@@ -574,8 +551,8 @@ export default function TicketsPage() {
 
     if (ticketId) {
       Promise.all([
-        getTicket(ticketId, token),
-        getTicketPropostas(ticketId, token),
+        TicketsService.getTicket(ticketId),
+        TicketsService.getTicketPropostas(ticketId),
       ])
         .then(([ticket, ticketPropostas]) => {
           setSelectedTicket(ticket);
@@ -676,8 +653,8 @@ export default function TicketsPage() {
     }
 
     const [fullTicket, ticketPropostas] = await Promise.all([
-      getTicket(ticket.id, token),
-      getTicketPropostas(ticket.id, token),
+      TicketsService.getTicket(ticket.id),
+      TicketsService.getTicketPropostas(ticket.id),
     ]);
     setSelectedTicket(fullTicket);
     setPropostas(ticketPropostas);
@@ -711,14 +688,13 @@ export default function TicketsPage() {
 
     try {
       setSaving(true);
-      const created = await createTicket(
+      const created = await TicketsService.createTicket(
         {
           clientId: isInternal ? form.clientId : undefined,
           type: form.type,
           subject: form.subject.trim(),
           description: form.description.trim(),
-        },
-        token,
+        }
       );
       setTickets((current) => [created, ...current]);
       setForm({ clientId: "", type: "SUPORTE", subject: "", description: "" });
@@ -782,8 +758,8 @@ export default function TicketsPage() {
       setSaving(true);
       const result = await action();
       const [updatedTicket, updatedPropostas] = await Promise.all([
-        getTicket(selectedTicket.id, token),
-        getTicketPropostas(selectedTicket.id, token),
+        TicketsService.getTicket(selectedTicket.id),
+        TicketsService.getTicketPropostas(selectedTicket.id),
       ]);
       await refreshSelected(updatedTicket);
       setPropostas(updatedPropostas);
@@ -814,8 +790,8 @@ export default function TicketsPage() {
     }
 
     const [updatedTicket, updatedPropostas] = await Promise.all([
-      getTicket(ticketId, token),
-      getTicketPropostas(ticketId, token),
+      TicketsService.getTicket(ticketId),
+      TicketsService.getTicketPropostas(ticketId),
     ]);
 
     await refreshSelected(updatedTicket);
@@ -891,17 +867,15 @@ export default function TicketsPage() {
 
       const proposta =
         selectedPropostaId === "new" || !selectedProposta
-          ? await createTicketProposta(
+          ? await TicketsService.createTicketProposta(
               selectedTicket.id,
               payload,
-              token,
               proposalFile,
             )
-          : await updateTicketProposta(
+          : await TicketsService.updateTicketProposta(
               selectedTicket.id,
               selectedProposta.id,
               payload,
-              token,
               proposalFile,
             );
 
@@ -949,10 +923,9 @@ export default function TicketsPage() {
 
     try {
       setSaving(true);
-      const result = await sendTicketPropostaToClient(
+      const result = await TicketsService.sendTicketPropostaToClient(
         selectedTicket.id,
         selectedProposta.id,
-        token,
         buildProposalPayload(),
       );
       await reloadSelectedTicketData(selectedTicket.id);
@@ -981,7 +954,7 @@ export default function TicketsPage() {
     }
 
     await executeTicketAction(
-      () => replyTicket(selectedTicket.id, reply.trim(), token),
+      () => TicketsService.replyTicket(selectedTicket.id, reply.trim()),
       "Resposta enviada.",
     );
   }
@@ -995,7 +968,7 @@ export default function TicketsPage() {
 
     await executeTicketAction(
       () =>
-        addInternalTicketNote(selectedTicket.id, internalNote.trim(), token),
+        TicketsService.addInternalTicketNote(selectedTicket.id, internalNote.trim()),
       "Observação interna registrada.",
     );
   }
@@ -1006,7 +979,7 @@ export default function TicketsPage() {
     }
 
     await executeTicketAction(
-      () => updateTicketStatus(ticket.id, status, token),
+      () => TicketsService.updateTicketStatus(ticket.id, status),
       "Status atualizado.",
     );
   }
@@ -2112,7 +2085,7 @@ export default function TicketsPage() {
                           onClick={() =>
                             token &&
                             executeTicketAction(
-                              () => startTicket(selectedTicket.id, token),
+                              () => TicketsService.startTicket(selectedTicket.id),
                               "Atendimento iniciado.",
                             )
                           }
@@ -2165,10 +2138,9 @@ export default function TicketsPage() {
                             token &&
                             executeTicketAction(
                               () =>
-                                sendPreProposal(
+                                TicketsService.sendPreProposal(
                                   selectedTicket.id,
-                                  { message: preProposal.trim() },
-                                  token,
+                                  { message: preProposal.trim() }
                                 ),
                               "Pré-proposta enviada ao cliente.",
                             )
@@ -2195,19 +2167,17 @@ export default function TicketsPage() {
                             (selectedProposta
                               ? executePropostaAction(
                                   () =>
-                                    sendTicketPropostaToManagement(
+                                    TicketsService.sendTicketPropostaToManagement(
                                       selectedTicket.id,
-                                      selectedProposta.id,
-                                      token,
+                                      selectedProposta.id
                                     ),
                                   "Proposta enviada para Gestão.",
                                 )
                               : executeTicketAction(
                                   () =>
-                                    sendTicketToManagement(
+                                    TicketsService.sendTicketToManagement(
                                       selectedTicket.id,
-                                      {},
-                                      token,
+                                      {}
                                     ),
                                   "Negociação enviada para Gestão.",
                                 ))
@@ -2251,10 +2221,9 @@ export default function TicketsPage() {
                             token &&
                             executePropostaAction(
                               () =>
-                                approveTicketPropostaByClient(
+                                TicketsService.approveTicketPropostaByClient(
                                   selectedTicket.id,
-                                  activeClientProposta.id,
-                                  token,
+                                  activeClientProposta.id
                                 ),
                               "Proposta aprovada com sucesso.",
                             )
@@ -2271,11 +2240,10 @@ export default function TicketsPage() {
                             token &&
                             executePropostaAction(
                               () =>
-                                requestTicketPropostaAdjustmentByClient(
+                                TicketsService.requestTicketPropostaAdjustmentByClient(
                                   selectedTicket.id,
                                   activeClientProposta.id,
-                                  proposalDecisionReason.trim(),
-                                  token,
+                                  proposalDecisionReason.trim()
                                 ),
                               "Solicitação de ajuste enviada com sucesso.",
                             )
@@ -2292,11 +2260,10 @@ export default function TicketsPage() {
                             token &&
                             executePropostaAction(
                               () =>
-                                rejectTicketPropostaByClient(
+                                TicketsService.rejectTicketPropostaByClient(
                                   selectedTicket.id,
                                   activeClientProposta.id,
-                                  proposalDecisionReason.trim(),
-                                  token,
+                                  proposalDecisionReason.trim()
                                 ),
                               "Proposta recusada com sucesso.",
                             )
@@ -2334,23 +2301,21 @@ export default function TicketsPage() {
                             (selectedProposta?.status === "ENVIADA_PARA_GESTAO"
                               ? executePropostaAction(
                                   () =>
-                                    approveTicketPropostaByManagement(
+                                    TicketsService.approveTicketPropostaByManagement(
                                       selectedTicket.id,
-                                      selectedProposta.id,
-                                      token,
+                                      selectedProposta.id
                                     ),
                                   "Aprovação da Gestão registrada.",
                                 )
                               : executeTicketAction(
                                   () =>
-                                    managementTicketDecision(
+                                    TicketsService.managementTicketDecision(
                                       selectedTicket.id,
                                       {
                                         action: "APPROVE",
                                         message:
                                           managementMessage.trim() || undefined,
-                                      },
-                                      token,
+                                      }
                                     ),
                                   "Aprovação da Gestão registrada.",
                                 ))
@@ -2368,24 +2333,22 @@ export default function TicketsPage() {
                             (selectedProposta?.status === "ENVIADA_PARA_GESTAO"
                               ? executePropostaAction(
                                   () =>
-                                    requestTicketPropostaAdjustmentByManagement(
+                                    TicketsService.requestTicketPropostaAdjustmentByManagement(
                                       selectedTicket.id,
                                       selectedProposta.id,
-                                      managementMessage.trim(),
-                                      token,
+                                      managementMessage.trim()
                                     ),
                                   "Ajuste solicitado ao Comercial.",
                                 )
                               : executeTicketAction(
                                   () =>
-                                    managementTicketDecision(
+                                    TicketsService.managementTicketDecision(
                                       selectedTicket.id,
                                       {
                                         action: "REQUEST_ADJUSTMENT",
                                         message:
                                           managementMessage.trim() || undefined,
-                                      },
-                                      token,
+                                      }
                                     ),
                                   "Ajuste solicitado ao Comercial.",
                                 ))
@@ -2403,24 +2366,22 @@ export default function TicketsPage() {
                             (selectedProposta?.status === "ENVIADA_PARA_GESTAO"
                               ? executePropostaAction(
                                   () =>
-                                    rejectTicketPropostaByManagement(
+                                    TicketsService.rejectTicketPropostaByManagement(
                                       selectedTicket.id,
                                       selectedProposta.id,
-                                      managementMessage.trim(),
-                                      token,
+                                      managementMessage.trim()
                                     ),
                                   "Reprovacao registrada.",
                                 )
                               : executeTicketAction(
                                   () =>
-                                    managementTicketDecision(
+                                    TicketsService.managementTicketDecision(
                                       selectedTicket.id,
                                       {
                                         action: "REJECT",
                                         message:
                                           managementMessage.trim() || undefined,
-                                      },
-                                      token,
+                                      }
                                     ),
                                   "Reprovacao registrada.",
                                 ))

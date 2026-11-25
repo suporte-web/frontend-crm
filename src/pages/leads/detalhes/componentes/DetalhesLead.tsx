@@ -65,16 +65,7 @@ import {
 } from '@/components/mui/crm-primitives';
 import { FeedbackToast } from '@/components/ui/feedback-toast';
 import { useAuth } from '@/context/auth-context';
-import {
-  convertLeadToClient,
-  createLeadObservation,
-  excluirLead,
-  solicitarExclusaoLead,
-  getLeadById,
-  getLeadObservations,
-  updateLead,
-  updateLeadStatus,
-} from '@/stores/leads/service';
+import { LeadsService } from '@/stores/leads/service';
 
 import type {
   CreateLeadPayload,
@@ -1088,8 +1079,8 @@ export default function DetalhesLead() {
         setLoading(true);
         setError('');
         const [dadosLead, observationsData] = await Promise.all([
-          getLeadById(id, token),
-          getLeadObservations(id, token),
+          LeadsService.getLeadById(id),
+          LeadsService.getLeadObservations(id),
         ]);
 
         setLead(dadosLead);
@@ -1154,7 +1145,7 @@ export default function DetalhesLead() {
 
     try {
       setConverting(true);
-      const response = await convertLeadToClient(
+      const response = await LeadsService.convertLeadToClient(
         lead.id,
         {
           document: convertForm.document.trim(),
@@ -1167,8 +1158,7 @@ export default function DetalhesLead() {
             lead.name,
           segment: convertForm.segment.trim() || undefined,
           status: convertForm.status,
-        },
-        token,
+        }
       );
       setLead(response.lead);
       setConvertOpen(false);
@@ -1200,7 +1190,7 @@ export default function DetalhesLead() {
 
     try {
       setUpdatingStage(true);
-      const updatedLead = await updateLeadStatus(lead.id, normalized, token);
+      const updatedLead = await LeadsService.updateLeadStatus(lead.id, normalized);
       setLead(updatedLead);
       setToast({
         title: 'Etapa atualizada',
@@ -1228,7 +1218,7 @@ export default function DetalhesLead() {
 
     try {
       setEditing(true);
-      const updatedLead = await updateLead(lead.id, payload, token);
+      const updatedLead = await LeadsService.updateLead(lead.id, payload);
       setLead(updatedLead);
       setEditOpen(false);
       setToast({
@@ -1272,12 +1262,11 @@ export default function DetalhesLead() {
     try {
       setSavingObservation(true);
 
-      const createdObservation = await createLeadObservation(
+      const createdObservation = await LeadsService.createLeadObservation(
         lead.id,
         {
           content,
-        },
-        token,
+        }
       );
 
       setObservations((current) => [
@@ -1339,13 +1328,13 @@ export default function DetalhesLead() {
           setToast({ title: 'Motivo obrigatório', message: 'Informe o motivo para solicitar a exclusão.', variant: 'error' });
           return;
         }
-        await solicitarExclusaoLead(lead.id, reason.trim(), token);
+        await LeadsService.solicitarExclusaoLead(lead.id, reason.trim());
         setLeadDeletionRequestOpen(false);
         setLeadDeletionReason("");
         setToast({ title: 'Solicitação enviada', message: 'A exclusão será analisada pelo Comercial ou Gestão.', variant: 'success' });
         return;
       }
-      await excluirLead(lead.id, token);
+      await LeadsService.excluirLead(lead.id);
       notificarCrm('Lead excluído com sucesso.');
 
       navigate('/leads');

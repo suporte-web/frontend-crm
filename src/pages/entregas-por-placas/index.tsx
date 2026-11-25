@@ -1,21 +1,4 @@
 import { useCallback, useEffect, useMemo, useState } from "react";
-import Alert from "@mui/material/Alert";
-import Box from "@mui/material/Box";
-import Button from "@mui/material/Button";
-import Chip from "@mui/material/Chip";
-import CircularProgress from "@mui/material/CircularProgress";
-import InputAdornment from "@mui/material/InputAdornment";
-import LinearProgress from "@mui/material/LinearProgress";
-import Paper from "@mui/material/Paper";
-import Stack from "@mui/material/Stack";
-import Table from "@mui/material/Table";
-import TableBody from "@mui/material/TableBody";
-import TableCell from "@mui/material/TableCell";
-import TableContainer from "@mui/material/TableContainer";
-import TableHead from "@mui/material/TableHead";
-import TableRow from "@mui/material/TableRow";
-import TextField from "@mui/material/TextField";
-import Typography from "@mui/material/Typography";
 import {
   AccessTimeRounded,
   CalendarMonthRounded,
@@ -34,12 +17,31 @@ import {
   CrmSection,
   crmPalette,
 } from "@/components/mui/crm-primitives";
-import { useAuth } from "@/context/auth-context";
-import { getMonitoramentoEntregasPorPlacas } from "@/stores/entregas-por-placas/service";
+import { EntregasPorPlacasService } from "@/stores/entregas-por-placas/service";
 import type {
   MonitoramentoEntregasPorPlacasResponse,
   MonitoramentoEntregasPorPlacasRow,
 } from "@/types/entregas-por-placas";
+import { useUser } from "@/UserContext";
+import {
+  Alert,
+  Box,
+  Button,
+  Chip,
+  CircularProgress,
+  InputAdornment,
+  LinearProgress,
+  Paper,
+  Stack,
+  Table,
+  TableBody,
+  TableCell,
+  TableContainer,
+  TableHead,
+  TableRow,
+  TextField,
+  Typography,
+} from "@mui/material";
 
 const tableHeadSx = {
   bgcolor: crmPalette.text,
@@ -154,7 +156,7 @@ function getDataHoje() {
 }
 
 export default function PaginaEntregasPorPlacas() {
-  const { token, loading: authLoading } = useAuth();
+  const { user } = useUser();
 
   const [resultado, setResultado] =
     useState<MonitoramentoEntregasPorPlacasResponse | null>(null);
@@ -166,9 +168,11 @@ export default function PaginaEntregasPorPlacas() {
   const [carregando, setCarregando] = useState(false);
   const [erro, setErro] = useState<string | null>(null);
 
+  const [flushHook, setFlushHook] = useState(false);
+
   const todasRotas = resultado?.dataRows ?? [];
   const resumo = resultado?.resumo;
-  
+
   const rows = useMemo(() => {
     const termo = busca.trim().toUpperCase();
 
@@ -197,23 +201,16 @@ export default function PaginaEntregasPorPlacas() {
     });
   }, [busca, filtroResumo, todasRotas]);
 
-
-  const carregarMonitoramento = useCallback(async () => {
-    if (!token) {
-      return;
-    }
-
+  const fetchDataMonitoramento = async () => {
     setErro(null);
 
     try {
       setCarregando(true);
 
-      const data = await getMonitoramentoEntregasPorPlacas(
-        {
+      const data =
+        await EntregasPorPlacasService.getMonitoramentoEntregasPorPlacas({
           data: dataFiltro,
-        },
-        token,
-      );
+        });
 
       setResultado(data);
     } catch (error) {
@@ -226,13 +223,11 @@ export default function PaginaEntregasPorPlacas() {
     } finally {
       setCarregando(false);
     }
-  }, [token, dataFiltro]);
+  };
 
   useEffect(() => {
-    if (!authLoading && token) {
-      void carregarMonitoramento();
-    }
-  }, [authLoading, carregarMonitoramento, token]);
+    fetchDataMonitoramento();
+  }, [dataFiltro, flushHook]);
 
   return (
     <AppLayout>
@@ -245,7 +240,7 @@ export default function PaginaEntregasPorPlacas() {
           aside={
             <Button
               variant="contained"
-              disabled={carregando || authLoading}
+              disabled={carregando}
               startIcon={
                 carregando ? (
                   <CircularProgress size={18} color="inherit" />
@@ -253,7 +248,7 @@ export default function PaginaEntregasPorPlacas() {
                   <RefreshRounded sx={{ fontSize: 20 }} />
                 )
               }
-              onClick={() => void carregarMonitoramento()}
+              onClick={(prev: any) => setFlushHook(!prev)}
               sx={{
                 minHeight: 46,
                 px: 2.5,
@@ -534,11 +529,8 @@ export default function PaginaEntregasPorPlacas() {
                 elevation={0}
                 sx={{
                   border: `1px solid ${crmPalette.border}`,
-
                   borderRadius: "14px",
-
                   overflow: "auto",
-
                   boxShadow: "0 8px 24px rgba(15, 23, 42, 0.06)",
                 }}
               >
@@ -693,14 +685,26 @@ export default function PaginaEntregasPorPlacas() {
                           </TableCell>
 
                           <TableCell>
-                            <Typography variant="body2" title="Menor previsão de entrega entre os documentos pendentes no SSW">
-                              {row.faltam === 0 ? "Concluídas" : row.data_prev_ent ? formatDate(row.data_prev_ent) : "Sem previsão"}
+                            <Typography
+                              variant="body2"
+                              title="Menor previsão de entrega entre os documentos pendentes no SSW"
+                            >
+                              {row.faltam === 0
+                                ? "Concluídas"
+                                : row.data_prev_ent
+                                  ? formatDate(row.data_prev_ent)
+                                  : "Sem previsão"}
                             </Typography>
-                            {row.faltam > 0 && row.pendentes_sem_previsao > 0 && (
-                              <Typography variant="caption" color="text.secondary">
-                                {formatNumber(row.pendentes_sem_previsao)} pendente(s) sem previsão
-                              </Typography>
-                            )}
+                            {row.faltam > 0 &&
+                              row.pendentes_sem_previsao > 0 && (
+                                <Typography
+                                  variant="caption"
+                                  color="text.secondary"
+                                >
+                                  {formatNumber(row.pendentes_sem_previsao)}{" "}
+                                  pendente(s) sem previsão
+                                </Typography>
+                              )}
                           </TableCell>
 
                           <TableCell>

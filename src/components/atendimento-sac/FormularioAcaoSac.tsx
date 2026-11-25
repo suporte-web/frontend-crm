@@ -7,7 +7,7 @@ import {
   TextField,
   Typography,
 } from "@mui/material";
-import { salvarPlanoAcaoSac } from "@/stores/atendimento-sac/service";
+import { AtendimentoSacService } from "@/stores/atendimento-sac/service";
 import type { AcaoSac } from "@/types/atendimento-sac.types";
 import {
   camposSac,
@@ -64,7 +64,7 @@ export function FormularioAcaoSac({
         throw new Error("Preencha o plano, o executor e o prazo.");
       if (concluir && (!dados.dataExecucao || !dados.reporte.trim()))
         throw new Error("Informe a execução e o reporte antes de concluir.");
-      await salvarPlanoAcaoSac(token, acao.id, {
+      await AtendimentoSacService.salvarPlanoAcaoSac(acao.id, {
           ...dados,
           prazo: new Date(dados.prazo).toISOString(),
           dataExecucao: dados.dataExecucao
@@ -361,7 +361,6 @@ export function FormularioAcaoSac({
           }}
         >
           <UploadAnexosSac
-            token={token}
             id={acao.id}
             etapa="ACAO_CORRETIVA"
             concluido={atualizar}

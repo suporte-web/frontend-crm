@@ -10,7 +10,7 @@ import {
   Typography,
 } from "@mui/material";
 import { CircleHelp } from "lucide-react";
-import { consultarMotivosPerda } from "@/stores/motivos-perda/service";
+import { MotivosPerdaService } from "@/stores/motivos-perda/service";
 import { analisarPerdas, type MotivoPerda } from "@/lib/perda-oportunidade";
 import { numero, type OportunidadeBi } from "@/lib/bi-comercial";
 
@@ -40,7 +40,7 @@ export function AnalisePerdasOportunidades({
     setError("");
     setCatalog([]);
     if (carregando || erroOportunidades) { setLoading(false); return; }
-    consultarMotivosPerda(token)
+    MotivosPerdaService.consultarMotivosPerda()
       .then((reasons) => { if (active) setCatalog(reasons); })
       .catch((e: unknown) => {
         if (active)

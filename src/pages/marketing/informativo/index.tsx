@@ -26,7 +26,7 @@ import {
 } from "@/components/mui/crm-primitives";
 import { appScreens, isScreenEnabledForRole } from "@/config/screens";
 import { useAuth } from "@/context/auth-context";
-import { listarAssinantesInformativo } from "@/stores/informativo/service";
+import { InformativoService } from "@/stores/informativo/service";
 import type {
   InformativoAssinante,
   ListagemInformativo,
@@ -85,8 +85,7 @@ export default function InformativoPage() {
       setLoading(true);
       setError("");
       try {
-        const result = await listarAssinantesInformativo(
-          token,
+        const result = await InformativoService.listarAssinantesInformativo(
           { q, status: status || undefined },
           controller.signal,
         );

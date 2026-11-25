@@ -1,6 +1,6 @@
 import { ApiError } from '@/utils/Api';
 import { createContext, useCallback, useContext, useEffect, useMemo, useState } from 'react';
-import { requestCurrentUser, requestLogin, requestChangePassword } from '@/stores/login/service';
+import { LoginService } from '@/stores/login/service';
 import { AUTH_SESSION_EXPIRED_EVENT, TOKEN_KEY, USER_KEY } from '@/utils/constants';
 import type { AuthUser, LoginResponse } from '@/types/auth';
 
@@ -86,7 +86,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     const activeToken = token || sessionStorage.getItem(TOKEN_KEY);
     if (!activeToken) return null;
     try {
-      const updatedUser = await requestCurrentUser(activeToken);
+      const updatedUser = await LoginService.requestCurrentUser();
       if (sessionStorage.getItem(TOKEN_KEY) !== activeToken) return null;
       setUser(updatedUser);
       sessionStorage.setItem(USER_KEY, JSON.stringify(updatedUser));
@@ -100,7 +100,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   }, [token]);
 
   async function signIn(email: string, password: string) {
-    const loginData = await requestLogin(email, password);
+    const loginData = await LoginService.requestLogin(email, password);
     setToken(loginData.access_token);
     setUser(loginData.user);
     sessionStorage.setItem(TOKEN_KEY, loginData.access_token);
@@ -110,7 +110,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
   async function changePassword(currentPassword: string, newPassword: string) {
     if (!token) throw new Error('Sessao expirada. Faca login novamente.');
-    const { user: updatedUser } = await requestChangePassword(currentPassword, newPassword, token);
+    const { user: updatedUser } = await LoginService.requestChangePassword(currentPassword, newPassword);
     setUser(updatedUser);
     sessionStorage.setItem(USER_KEY, JSON.stringify(updatedUser));
   }

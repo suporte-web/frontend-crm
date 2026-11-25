@@ -9,10 +9,15 @@ import {
 import { AppLayout } from "@/components/layout/app-layout";
 import { FeedbackToast } from "@/components/ui/feedback-toast";
 import { useAuth } from "@/context/auth-context";
-import { listarMinhasAcoesSac, getMinhaAcaoSac } from "@/stores/atendimento-sac/service";
+import { AtendimentoSacService } from "@/stores/atendimento-sac/service";
 import type { AcaoSac, MinhaTarefaSac } from "@/types/atendimento-sac.types";
-import { dataSac, SecaoSac, StatusSacChip } from "../../../components/atendimento-sac/ComponentesSac";
+import {
+  dataSac,
+  SecaoSac,
+  StatusSacChip,
+} from "../../../components/atendimento-sac/ComponentesSac";
 import { FormularioAcaoSac } from "../../../components/atendimento-sac/FormularioAcaoSac";
+
 export default function PaginaAcoesSac() {
   const { token } = useAuth();
   const [tarefas, setTarefas] = useState<MinhaTarefaSac[]>([]);
@@ -20,21 +25,23 @@ export default function PaginaAcoesSac() {
   const [erro, setErro] = useState("");
   const [carregando, setCarregando] = useState(true);
   const [mensagem, setMensagem] = useState("");
+
   const carregar = useCallback(async () => {
     if (!token) return;
     try {
-      setTarefas(await listarMinhasAcoesSac(token));
+      setTarefas(await AtendimentoSacService.listarMinhasAcoesSac());
     } catch (e) {
       setErro(e instanceof Error ? e.message : "Erro ao carregar ações.");
     } finally {
       setCarregando(false);
     }
   }, [token]);
+
   const abrir = useCallback(
     async (id: string) => {
       if (!token) return;
       try {
-        setAcao(await getMinhaAcaoSac(token, id));
+        setAcao(await AtendimentoSacService.getMinhaAcaoSac(id));
         setErro("");
       } catch (e) {
         setErro(e instanceof Error ? e.message : "Erro ao abrir ação.");
@@ -42,21 +49,26 @@ export default function PaginaAcoesSac() {
     },
     [token],
   );
+
   useEffect(() => {
     void carregar();
     const id = new URLSearchParams(window.location.search).get("atendimento");
     if (id) void abrir(id);
   }, [carregar, abrir]);
+
   async function atualizar() {
     await carregar();
     if (acao) await abrir(acao.id);
   }
+
   const pendentes = tarefas.filter((t) =>
     ["PENDENTE", "EM_ANDAMENTO"].includes(t.status),
   );
+
   const concluidas = tarefas.filter(
     (t) => !["PENDENTE", "EM_ANDAMENTO"].includes(t.status),
   );
+
   return (
     <AppLayout>
       <Stack spacing={3}>
@@ -70,7 +82,9 @@ export default function PaginaAcoesSac() {
         {carregando ? (
           <CircularProgress />
         ) : (
-          <SecaoSac titulo={`${pendentes.length} ação pendente${pendentes.length !== 1 ? "s" : ""}`}>
+          <SecaoSac
+            titulo={`${pendentes.length} ação pendente${pendentes.length !== 1 ? "s" : ""}`}
+          >
             {!pendentes.length && (
               <Alert severity="info">
                 Nenhuma ação pendente atribuída a você.
@@ -146,7 +160,10 @@ export default function PaginaAcoesSac() {
                   {t.status === "CANCELADA" ? "Cancelada" : "Concluída"} ·{" "}
                   {dataSac(t.concluidoEm)}
                 </Typography>
-                <Button disabled={t.status === "CANCELADA"} onClick={() => abrir(t.atendimento.id)}>
+                <Button
+                  disabled={t.status === "CANCELADA"}
+                  onClick={() => abrir(t.atendimento.id)}
+                >
                   Consultar
                 </Button>
               </Stack>

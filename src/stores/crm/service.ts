@@ -1,18 +1,6 @@
 import { Api, ApiError } from '@/utils/Api';
 import { normalizarNomesCadastro } from '@/lib/nome-cadastro';
-import { validarDadosPerda } from '@/stores/motivos-perda/service';
-export async function solicitarDownloadDocumentoCliente(clientId: string, documentId: string, token: string): Promise<Blob> {
-  const { data } = await Api.get<Blob>(`/clients/${clientId}/documents/${documentId}/download`, { responseType: 'blob', headers: { Authorization: `Bearer ${token}` } });
-  return data;
-}
-export async function solicitarExclusaoDocumentoCliente(clientId: string, documentId: string, justification: string, token: string): Promise<{
-  message?: string;
-}> {
-  const { data } = await Api.delete<{
-    message?: string;
-  }>(`/clients/${clientId}/documents/${documentId}`, { data: { justification }, headers: { Authorization: `Bearer ${token}` } });
-  return data;
-}
+import { MotivosPerdaService } from '@/stores/motivos-perda/service';
 import { validarDocumentosOportunidade, OPPORTUNITY_DOCUMENT_LIMIT_MESSAGE } from '@/lib/opportunity-documents';
 import type { ClientContact, ClientDocument, ClientDeletionRequest, ClientDeletionRequestStatus, CrmDashboardSummary, LeadDetail, LeadStatus, LeadSummary, Opportunity, OpportunityStage, OpportunityStatus, TimelineEvent, } from '@/types/crm';
 type BackendUser = {
@@ -150,38 +138,6 @@ function mapOpportunity(opportunity: BackendOpportunity): Opportunity {
     updatedAt: opportunity.updatedAt,
   };
 }
-export function mapClientSummary(client: BackendClient, owners: Map<string, string>): LeadSummary {
-  const clientName = client.tradeName ||
-    client.legalName ||
-    client.companyName ||
-    client.user?.name ||
-    client.document ||
-    'Cliente';
-  const clientEmail = client.contacts?.find(contato => contato.isPrimary)?.email || client.contacts?.[0]?.email || client.user?.email || '';
-  return normalizarNomesCadastro({
-    id: client.id,
-    responsavel: client.responsavel?.trim() || null,
-    responsavelId: client.responsavelId ?? null,
-    modalidadeCadastro: client.modalidadeCadastro || 'CLIENTE',
-    prospectedById: client.prospectedById,
-    prospectedByName: client.prospectedByName,
-    sourceLeadId: client.sourceLeadId,
-    sourceProspectId: client.sourceProspectId,
-    name: clientName,
-    email: isTechnicalNoAccessEmail(clientEmail) ? '' : clientEmail,
-    company: client.tradeName || client.legalName || client.companyName || clientName,
-    document: client.document ?? null,
-    phone: client.phone ?? null,
-    city: client.city ?? "-",
-    segment: client.segment || "-",
-    segmentoId: client.segmentoId, segmentoOrigem: client.segmentoOrigem, siteUrl: client.siteUrl,
-    owner: client.internalOwnerId
-      ? owners.get(client.internalOwnerId) ?? 'Responsável interno'
-      : 'Sem responsável',
-    status: normalizeStatus(client.status),
-    createdAt: client.createdAt,
-  });
-}
 function mapTimelineEvent(clientId: string, event: BackendTimelineEvent): TimelineEvent {
   const eventType = [
     'LEAD_CREATED',
@@ -223,105 +179,6 @@ function mapClientContact(contact: ClientContact, index: number): ClientContact 
     isPrimary: contact.isPrimary ?? index === 0,
   };
 }
-export async function getCrmClientSummaries(token: string, consultora = false, filtros: Record<string, string | undefined> = {}): Promise<LeadSummary[]> {
-  const [clients, owners] = await Promise.all([
-    Api.get<BackendClient[]>(`/clients?${new URLSearchParams(Object.entries(filtros).filter(([, v]) => v) as [
-      string,
-      string
-    ][]).toString()}`, { headers: { ...(token ? { Authorization: `Bearer ${token}` } : {}) } }).then(({ data }) => data),
-    consultora ? Promise.resolve([] as OwnerSummary[]) : Api.get<OwnerSummary[]>('/clients/owners/summary', { headers: { ...(token ? { Authorization: `Bearer ${token}` } : {}) } }).then(({ data }) => data),
-  ]);
-  const ownerMap = new Map(owners.map((item) => [item.owner.id, item.owner.name]));
-  return clients.map((client) => mapClientSummary(client, ownerMap));
-}
-export async function getCrmLeadById(id: string, token: string, somenteOportunidades = false): Promise<LeadDetail | null> {
-  const endpoint = somenteOportunidades ? `/opportunities/clients/${id}/detail` : `/clients/${id}/detail`;
-  const detail = await Api.get<BackendClientDetail>(endpoint, { headers: { ...(token ? { Authorization: `Bearer ${token}` } : {}) } }).then(({ data }) => data);
-  const summary = mapClientSummary(detail.client, new Map());
-  return normalizarNomesCadastro({
-    ...summary,
-    fotoUrl: detail.client.fotoUrl,
-    proximaAcao: detail.client.proximaAcao,
-    responsavel: detail.client.responsavel,
-    responsavelId: detail.client.responsavelId,
-    volumeMensalEstimado: detail.client.volumeMensalEstimado,
-    userId: detail.client.user?.id ?? detail.client.id,
-    internalOwnerId: detail.client.internalOwnerId ?? null,
-    document: detail.client.document ?? null,
-    phone: detail.client.phone ?? null,
-    legalName: detail.client.legalName ?? null,
-    tradeName: detail.client.tradeName ?? null,
-    cnae: detail.client.cnae ?? null,
-    stateRegistration: detail.client.stateRegistration ?? null,
-    businessActivity: detail.client.businessActivity ?? null,
-    taxRegime: detail.client.taxRegime ?? null,
-    address: detail.client.address ?? null,
-    bankDetails: detail.client.bankDetails ?? null,
-    modality: detail.client.modality ?? null,
-    registrationDate: detail.client.registrationDate ?? null,
-    paymentMethod: detail.client.paymentMethod ?? null,
-    paymentTerm: detail.client.paymentTerm ?? null,
-    contractValidity: detail.client.contractValidity ?? null,
-    priceAdjustment: detail.client.priceAdjustment ?? null,
-    invoiceContactName: detail.client.invoiceContactName ?? null,
-    invoiceContactEmail: detail.client.invoiceContactEmail ?? null,
-    invoiceContactPhone: detail.client.invoiceContactPhone ?? null,
-    commercialTermsNotes: detail.client.commercialTermsNotes ?? null,
-    source: 'CRM',
-    notes: detail.client.notes ?? null,
-    lastContactAt: detail.client.updatedAt,
-    timeline: (detail.timeline ?? []).map((event) => mapTimelineEvent(detail.client.id, event)),
-    opportunities: (detail.opportunities ?? []).map(mapOpportunity),
-    documents: detail.client.documents ?? [],
-    contacts: (detail.client.contacts ?? []).map(mapClientContact),
-  });
-}
-export async function updateClient(id: string, payload: {
-  name?: string;
-  email?: string;
-  companyName?: string;
-  legalName?: string;
-  tradeName?: string;
-  cnae?: string;
-  stateRegistration?: string;
-  businessActivity?: string;
-  taxRegime?: string;
-  address?: string;
-  city?: string;
-  bankDetails?: string;
-  modality?: string;
-  registrationDate?: string;
-  paymentMethod?: string;
-  paymentTerm?: string;
-  contractValidity?: string;
-  priceAdjustment?: string;
-  invoiceContactName?: string;
-  invoiceContactEmail?: string;
-  invoiceContactPhone?: string;
-  commercialTermsNotes?: string;
-  document?: string;
-  phone?: string;
-  segment?: string;
-  segmentoId?: string | null;
-  segmentoAutomatico?: boolean;
-  siteUrl?: string;
-  notes?: string;
-  status?: LeadStatus;
-  internalOwnerId?: string;
-  contacts?: Array<{
-    name?: string;
-    role?: string;
-    cargo?: string;
-    email?: string;
-    phone?: string;
-    telefone?: string;
-    notes?: string;
-    isPrimary?: boolean;
-  }>;
-}, token: string) {
-  const { data } = await Api.patch<BackendClient>(`/clients/${id}`, normalizarNomesCadastro(payload), { headers: { ...(token ? { Authorization: `Bearer ${token}` } : {}) } });
-  return data;
-}
 type CreatedClientResponse = {
   id?: string;
   client?: {
@@ -331,280 +188,448 @@ type CreatedClientResponse = {
     id: string;
   } | null;
 };
-export async function createClient(payload: {
-  name?: string;
-  companyName?: string;
-  legalName?: string;
-  tradeName?: string;
-  cnae?: string;
-  stateRegistration?: string;
-  businessActivity?: string;
-  taxRegime?: string;
-  address?: string;
-  city?: string;
-  bankDetails?: string;
-  modality?: string;
-  registrationDate?: string;
-  paymentMethod?: string;
-  paymentTerm?: string;
-  contractValidity?: string;
-  priceAdjustment?: string;
-  invoiceContactName?: string;
-  invoiceContactEmail?: string;
-  invoiceContactPhone?: string;
-  commercialTermsNotes?: string;
-  document?: string;
-  phone?: string;
-  segment?: string;
-  segmentoId?: string | null;
-  segmentoAutomatico?: boolean;
-  siteUrl?: string;
-  notes?: string;
-  status?: LeadStatus;
-  internalOwnerId?: string;
-  contacts?: Array<{
-    name?: string;
-    role?: string;
-    cargo?: string;
-    email?: string;
-    phone?: string;
-    telefone?: string;
-    notes?: string;
-    isPrimary?: boolean;
-  }>;
-}, token: string): Promise<CreatedClientResponse> {
-  const { data } = await Api.post<CreatedClientResponse>('/clients', normalizarNomesCadastro(payload), { headers: { ...(token ? { Authorization: `Bearer ${token}` } : {}) } });
-  return data;
-}
-export async function uploadClientDocument(clientId: string, file: File, token: string, description?: string): Promise<ClientDocument> {
-  const [document] = await uploadClientDocuments(clientId, [file], token, description);
-  if (!document) {
-    throw new Error('Erro ao enviar documento do cliente.');
-  }
-  return document;
-}
-export async function uploadClientDocuments(clientId: string, files: File[], token: string, description?: string): Promise<ClientDocument[]> {
-  const body = new FormData();
-  files.forEach((file) => {
-    body.append('file', file);
-  });
-  if (description?.trim()) {
-    body.append('description', description.trim());
-  }
-  const response = await Api.post(`/clients/${clientId}/documents`, body, {
-    headers: {
-      Authorization: `Bearer ${token}`,
-    }
-  });
-  const data = response.data;
-  return Array.isArray(data) ? data as ClientDocument[] : [data as ClientDocument];
-}
-export async function addClientContact(clientId: string, payload: {
-  nomeContato: string;
-  cargo?: string;
-  email?: string;
-  telefone?: string;
-  whatsapp?: string;
-  linkedin?: string;
-}, token: string): Promise<ClientContact> {
-  const data = await Api.post<{
-    contact?: ClientContact;
-    contacts?: ClientContact[];
-  }>(`/clients/${clientId}/contacts`, payload, { headers: { ...(token ? { Authorization: `Bearer ${token}` } : {}) } }).then(({ data }) => data);
-  const contact = data.contact ?? data.contacts?.at(-1);
-  if (!contact) {
-    throw new Error('Contato não foi retornado pelo servidor.');
-  }
-  return mapClientContact(contact, 0);
-}
-export async function updateClientContactRecord(clientId: string, contactId: string, payload: {
-  nomeContato: string;
-  cargo?: string;
-  email?: string;
-  telefone?: string;
-  whatsapp?: string;
-  linkedin?: string;
-  notes?: string;
-}, token: string): Promise<ClientContact> {
-  const data = await Api.patch<{
-    contact?: ClientContact;
-  }>(`/clients/${clientId}/contacts/${contactId}`, payload, { headers: { ...(token ? { Authorization: `Bearer ${token}` } : {}) } }).then(({ data }) => data);
-  if (!data.contact) {
-    throw new Error('Contato não foi retornado pelo servidor.');
-  }
-  return mapClientContact(data.contact, 0);
-}
-export async function deleteClientContact(clientId: string, contactId: string, token: string) {
-  const { data } = await Api.delete<{
-    message: string;
-  }>(`/clients/${clientId}/contacts/${contactId}`, { headers: { ...(token ? { Authorization: `Bearer ${token}` } : {}) } });
-  return data;
-}
-export async function enviarDocumentosPropostaOportunidade(clientId: string, files: File[], token: string, description?: string): Promise<ClientDocument[]> {
-  const validationError = validarDocumentosOportunidade(files);
-  if (validationError)
-    throw new Error(validationError);
-  const body = new FormData();
-  files.forEach((file) => {
-    body.append('file', file);
-  });
-  if (description?.trim()) {
-    body.append('description', description.trim());
-  }
-  body.append('category', 'OPORTUNIDADE_PROPOSTA');
-  try {
-    const { data } = await Api.post<ClientDocument | ClientDocument[]>(`/clients/${clientId}/documents`, body, { headers: { Authorization: `Bearer ${token}` } });
-    return Array.isArray(data) ? data : [data];
-  }
-  catch (error) {
-    if (error instanceof ApiError && error.status === 413)
-      throw new Error(OPPORTUNITY_DOCUMENT_LIMIT_MESSAGE);
-    throw error;
-  }
-}
-export async function excluirDocumentoPropostaOportunidade(clientId: string, documentId: string, token: string, justification = 'Exclusao de anexo da proposta.') {
-  const { data } = await Api.delete<{
-    message: string;
-  }>(`/clients/${clientId}/documents/${documentId}`, { headers: { ...(token ? { Authorization: `Bearer ${token}` } : {}) }, data: { justification } });
-  return data;
-}
-export async function createTimelineContact(clientId: string, payload: {
-  title?: string;
-  description: string;
-  contactChannel?: string;
-  contactPerson?: string;
-  contactedAt?: string;
-}, token: string): Promise<TimelineEvent> {
-  const event = await Api.post<BackendTimelineEvent>(`/clients/${clientId}/timeline`, payload, { headers: { ...(token ? { Authorization: `Bearer ${token}` } : {}) } }).then(({ data }) => data);
-  return mapTimelineEvent(clientId, event);
-}
-export async function getCrmDashboardSummary(token: string): Promise<CrmDashboardSummary> {
-  const { data } = await Api.get<CrmDashboardSummary>('/clients/dashboard/summary', { headers: { ...(token ? { Authorization: `Bearer ${token}` } : {}) } });
-  return data;
-}
-export async function getClientDeletionRequests(token: string, status?: ClientDeletionRequestStatus | 'TODOS') {
-  const query = status && status !== 'TODOS'
-    ? `?status=${encodeURIComponent(status)}`
-    : '';
-  const { data } = await Api.get<ClientDeletionRequest[]>(`/clients/deletion-requests${query}`, { headers: { ...(token ? { Authorization: `Bearer ${token}` } : {}) } });
-  return data;
-}
-export async function requestClientDeletion(clientId: string, payload: {
-  reason?: string;
-}, token: string) {
-  const { data } = await Api.post<ClientDeletionRequest>(`/clients/${clientId}/deletion-request`, payload, { headers: { ...(token ? { Authorization: `Bearer ${token}` } : {}) } });
-  return data;
-}
-export async function decideClientDeletionRequest(requestId: string, payload: {
-  action: 'APPROVE' | 'REJECT';
-  message?: string;
-}, token: string) {
-  const { data } = await Api.post<{
-    message: string;
-    request: ClientDeletionRequest;
-  }>(`/clients/deletion-requests/${requestId}/decision`, payload, { headers: { ...(token ? { Authorization: `Bearer ${token}` } : {}) } });
-  return data;
-}
-export async function atualizarEtapaOportunidade(oportunidadeId: string, etapa: OpportunityStage, token: string, motivoPerda?: string, observacaoPerda?: string) {
-  if (etapa === 'PERDIDO')
-    await validarDadosPerda(token, motivoPerda, observacaoPerda);
-  const { data } = await Api.patch<Opportunity>(`/opportunities/${oportunidadeId}/stage`, { stage: etapa, motivoPerda, observacaoPerda }, { headers: { ...(token ? { Authorization: `Bearer ${token}` } : {}) } });
-  return data;
-}
-export async function atualizarOportunidade(opportunityId: string, payload: {
-  quoteId?: string | null;
-  title?: string;
-  value?: number | null;
-  stage?: OpportunityStage;
-  expectedCloseDate?: string | null;
-  preContract?: boolean;
-  preContractNotes?: string | null;
-  lostReason?: string | null;
-  motivoPerda?: string | null;
-  observacaoPerda?: string | null;
-}, token: string) {
-  if (payload.stage === 'PERDIDO' || (payload.stage === undefined && (payload.motivoPerda !== undefined || payload.lostReason !== undefined)))
-    await validarDadosPerda(token, payload.motivoPerda ?? payload.lostReason, payload.observacaoPerda);
-  const { data } = await Api.patch<Opportunity>(`/opportunities/${opportunityId}`, payload, { headers: { ...(token ? { Authorization: `Bearer ${token}` } : {}) } });
-  return data;
-}
-export async function excluirOportunidade(opportunityId: string, token: string) {
-  const { data } = await Api.delete<{
-    message: string;
-  }>(`/opportunities/${opportunityId}`, { headers: { ...(token ? { Authorization: `Bearer ${token}` } : {}) } });
-  return data;
-}
-export async function criarOportunidade(payload: {
-  clientId: string;
-  quoteId?: string;
-  title: string;
-  value?: number;
-  stage?: OpportunityStage;
-  motivoPerda?: string;
-  lostReason?: string;
-  observacaoPerda?: string;
-  expectedCloseDate?: string;
-  preContract?: boolean;
-  preContractNotes?: string;
-}, token: string) {
-  if (payload.stage === 'PERDIDO')
-    await validarDadosPerda(token, payload.motivoPerda ?? payload.lostReason, payload.observacaoPerda);
-  const { data } = await Api.post<Opportunity>('/opportunities', payload, { headers: { ...(token ? { Authorization: `Bearer ${token}` } : {}) } });
-  return data;
-}
-export function formatLeadStatus(status: LeadStatus) {
-  const labels: Record<LeadStatus, string> = {
-    ATIVO: 'Ativo',
-    PENDENTE: 'Pendente',
-    INATIVO: 'Inativo',
-  };
-  return labels[status];
-}
-export function formatarEtapaOportunidade(stage: OpportunityStage) {
-  const labels: Record<OpportunityStage, string> = {
-    NOVO: 'Novo',
-    QUALIFICADO: 'Qualificado',
-    PROPOSTA: 'Proposta',
-    NEGOCIACAO: 'Negociação',
-    GANHO: 'Ganho',
-    PERDIDO: 'Perdido',
-  };
-  return labels[stage];
-}
-export function getOpportunityStatusFromStage(stage: OpportunityStage) {
-  if (stage === 'GANHO') {
-    return 'WON';
-  }
-  if (stage === 'PERDIDO') {
-    return 'LOST';
-  }
-  return 'OPEN';
-}
 const OPPORTUNITY_STATUS_LABELS = {
   OPEN: "ABERTA",
   WON: "GANHA",
   LOST: "PERDIDA",
 } satisfies Record<OpportunityStatus, string>;
-export function formatOpportunityStatus(status: OpportunityStatus): string {
-  return OPPORTUNITY_STATUS_LABELS[status];
-}
-// Status da proposta
-export async function updateOpportunityStatus(clientId: string, opportunityId: string, status: OpportunityStatus, token: string, perda: {
-  motivoPerda?: string;
-  observacaoPerda?: string;
-} = {}) {
-  if (status === 'LOST')
-    await validarDadosPerda(token, perda.motivoPerda, perda.observacaoPerda);
-  const response = await Api.patch(`/clients/${clientId}/opportunities/${opportunityId}/status`, {
-    status,
-    motivoPerda: perda.motivoPerda,
-    observacaoPerda: perda.observacaoPerda,
-  }, {
-    headers: {
-      Authorization: `Bearer ${token}`,
-      "Content-Type": "application/json",
+
+export const CrmService = {
+  solicitarDownloadDocumentoCliente: async (clientId: string, documentId: string): Promise<Blob> => {
+    const { data } = await Api.get<Blob>(`/clients/${clientId}/documents/${documentId}/download`, { responseType: 'blob' });
+    return data;
+  },
+
+  solicitarExclusaoDocumentoCliente: async (clientId: string, documentId: string, justification: string): Promise<{
+    message?: string;
+  }> => {
+    const { data } = await Api.delete<{
+      message?: string;
+    }>(`/clients/${clientId}/documents/${documentId}`, { data: { justification } });
+    return data;
+  },
+
+  mapClientSummary: (client: BackendClient, owners: Map<string, string>): LeadSummary => {
+    const clientName = client.tradeName ||
+      client.legalName ||
+      client.companyName ||
+      client.user?.name ||
+      client.document ||
+      'Cliente';
+    const clientEmail = client.contacts?.find(contato => contato.isPrimary)?.email || client.contacts?.[0]?.email || client.user?.email || '';
+    return normalizarNomesCadastro({
+      id: client.id,
+      responsavel: client.responsavel?.trim() || null,
+      responsavelId: client.responsavelId ?? null,
+      modalidadeCadastro: client.modalidadeCadastro || 'CLIENTE',
+      prospectedById: client.prospectedById,
+      prospectedByName: client.prospectedByName,
+      sourceLeadId: client.sourceLeadId,
+      sourceProspectId: client.sourceProspectId,
+      name: clientName,
+      email: isTechnicalNoAccessEmail(clientEmail) ? '' : clientEmail,
+      company: client.tradeName || client.legalName || client.companyName || clientName,
+      document: client.document ?? null,
+      phone: client.phone ?? null,
+      city: client.city ?? "-",
+      segment: client.segment || "-",
+      segmentoId: client.segmentoId, segmentoOrigem: client.segmentoOrigem, siteUrl: client.siteUrl,
+      owner: client.internalOwnerId
+        ? owners.get(client.internalOwnerId) ?? 'Responsável interno'
+        : 'Sem responsável',
+      status: normalizeStatus(client.status),
+      createdAt: client.createdAt,
+    });
+  },
+
+  getCrmClientSummaries: async (consultora = false, filtros: Record<string, string | undefined> = {}): Promise<LeadSummary[]> => {
+    const [clients, owners] = await Promise.all([
+      Api.get<BackendClient[]>(`/clients?${new URLSearchParams(Object.entries(filtros).filter(([, v]) => v) as [
+        string,
+        string
+      ][]).toString()}`).then(({ data }) => data),
+      consultora ? Promise.resolve([] as OwnerSummary[]) : Api.get<OwnerSummary[]>('/clients/owners/summary').then(({ data }) => data),
+    ]);
+    const ownerMap = new Map(owners.map((item) => [item.owner.id, item.owner.name]));
+    return clients.map((client) => CrmService.mapClientSummary(client, ownerMap));
+  },
+
+  getCrmLeadById: async (id: string, somenteOportunidades = false): Promise<LeadDetail | null> => {
+    const endpoint = somenteOportunidades ? `/opportunities/clients/${id}/detail` : `/clients/${id}/detail`;
+    const detail = await Api.get<BackendClientDetail>(endpoint).then(({ data }) => data);
+    const summary = CrmService.mapClientSummary(detail.client, new Map());
+    return normalizarNomesCadastro({
+      ...summary,
+      fotoUrl: detail.client.fotoUrl,
+      proximaAcao: detail.client.proximaAcao,
+      responsavel: detail.client.responsavel,
+      responsavelId: detail.client.responsavelId,
+      volumeMensalEstimado: detail.client.volumeMensalEstimado,
+      userId: detail.client.user?.id ?? detail.client.id,
+      internalOwnerId: detail.client.internalOwnerId ?? null,
+      document: detail.client.document ?? null,
+      phone: detail.client.phone ?? null,
+      legalName: detail.client.legalName ?? null,
+      tradeName: detail.client.tradeName ?? null,
+      cnae: detail.client.cnae ?? null,
+      stateRegistration: detail.client.stateRegistration ?? null,
+      businessActivity: detail.client.businessActivity ?? null,
+      taxRegime: detail.client.taxRegime ?? null,
+      address: detail.client.address ?? null,
+      bankDetails: detail.client.bankDetails ?? null,
+      modality: detail.client.modality ?? null,
+      registrationDate: detail.client.registrationDate ?? null,
+      paymentMethod: detail.client.paymentMethod ?? null,
+      paymentTerm: detail.client.paymentTerm ?? null,
+      contractValidity: detail.client.contractValidity ?? null,
+      priceAdjustment: detail.client.priceAdjustment ?? null,
+      invoiceContactName: detail.client.invoiceContactName ?? null,
+      invoiceContactEmail: detail.client.invoiceContactEmail ?? null,
+      invoiceContactPhone: detail.client.invoiceContactPhone ?? null,
+      commercialTermsNotes: detail.client.commercialTermsNotes ?? null,
+      source: 'CRM',
+      notes: detail.client.notes ?? null,
+      lastContactAt: detail.client.updatedAt,
+      timeline: (detail.timeline ?? []).map((event) => mapTimelineEvent(detail.client.id, event)),
+      opportunities: (detail.opportunities ?? []).map(mapOpportunity),
+      documents: detail.client.documents ?? [],
+      contacts: (detail.client.contacts ?? []).map(mapClientContact),
+    });
+  },
+
+  updateClient: async (id: string, payload: {
+    name?: string;
+    email?: string;
+    companyName?: string;
+    legalName?: string;
+    tradeName?: string;
+    cnae?: string;
+    stateRegistration?: string;
+    businessActivity?: string;
+    taxRegime?: string;
+    address?: string;
+    city?: string;
+    bankDetails?: string;
+    modality?: string;
+    registrationDate?: string;
+    paymentMethod?: string;
+    paymentTerm?: string;
+    contractValidity?: string;
+    priceAdjustment?: string;
+    invoiceContactName?: string;
+    invoiceContactEmail?: string;
+    invoiceContactPhone?: string;
+    commercialTermsNotes?: string;
+    document?: string;
+    phone?: string;
+    segment?: string;
+    segmentoId?: string | null;
+    segmentoAutomatico?: boolean;
+    siteUrl?: string;
+    notes?: string;
+    status?: LeadStatus;
+    internalOwnerId?: string;
+    contacts?: Array<{
+      name?: string;
+      role?: string;
+      cargo?: string;
+      email?: string;
+      phone?: string;
+      telefone?: string;
+      notes?: string;
+      isPrimary?: boolean;
+    }>;
+  }) => {
+    const { data } = await Api.patch<BackendClient>(`/clients/${id}`, normalizarNomesCadastro(payload));
+    return data;
+  },
+
+  createClient: async (payload: {
+    name?: string;
+    companyName?: string;
+    legalName?: string;
+    tradeName?: string;
+    cnae?: string;
+    stateRegistration?: string;
+    businessActivity?: string;
+    taxRegime?: string;
+    address?: string;
+    city?: string;
+    bankDetails?: string;
+    modality?: string;
+    registrationDate?: string;
+    paymentMethod?: string;
+    paymentTerm?: string;
+    contractValidity?: string;
+    priceAdjustment?: string;
+    invoiceContactName?: string;
+    invoiceContactEmail?: string;
+    invoiceContactPhone?: string;
+    commercialTermsNotes?: string;
+    document?: string;
+    phone?: string;
+    segment?: string;
+    segmentoId?: string | null;
+    segmentoAutomatico?: boolean;
+    siteUrl?: string;
+    notes?: string;
+    status?: LeadStatus;
+    internalOwnerId?: string;
+    contacts?: Array<{
+      name?: string;
+      role?: string;
+      cargo?: string;
+      email?: string;
+      phone?: string;
+      telefone?: string;
+      notes?: string;
+      isPrimary?: boolean;
+    }>;
+  }): Promise<CreatedClientResponse> => {
+    const { data } = await Api.post<CreatedClientResponse>('/clients', normalizarNomesCadastro(payload));
+    return data;
+  },
+
+  uploadClientDocument: async (clientId: string, file: File, description?: string): Promise<ClientDocument> => {
+    const [document] = await CrmService.uploadClientDocuments(clientId, [file], description);
+    if (!document) {
+      throw new Error('Erro ao enviar documento do cliente.');
     }
-  });
-  const data = response.data;
-  return data;
-}
+    return document;
+  },
+
+  uploadClientDocuments: async (clientId: string, files: File[], description?: string): Promise<ClientDocument[]> => {
+    const body = new FormData();
+    files.forEach((file) => {
+      body.append('file', file);
+    });
+    if (description?.trim()) {
+      body.append('description', description.trim());
+    }
+    const response = await Api.post(`/clients/${clientId}/documents`, body);
+    const data = response.data;
+    return Array.isArray(data) ? data as ClientDocument[] : [data as ClientDocument];
+  },
+
+  addClientContact: async (clientId: string, payload: {
+    nomeContato: string;
+    cargo?: string;
+    email?: string;
+    telefone?: string;
+    whatsapp?: string;
+    linkedin?: string;
+  }): Promise<ClientContact> => {
+    const data = await Api.post<{
+      contact?: ClientContact;
+      contacts?: ClientContact[];
+    }>(`/clients/${clientId}/contacts`, payload).then(({ data }) => data);
+    const contact = data.contact ?? data.contacts?.at(-1);
+    if (!contact) {
+      throw new Error('Contato não foi retornado pelo servidor.');
+    }
+    return mapClientContact(contact, 0);
+  },
+
+  updateClientContactRecord: async (clientId: string, contactId: string, payload: {
+    nomeContato: string;
+    cargo?: string;
+    email?: string;
+    telefone?: string;
+    whatsapp?: string;
+    linkedin?: string;
+    notes?: string;
+  }): Promise<ClientContact> => {
+    const data = await Api.patch<{
+      contact?: ClientContact;
+    }>(`/clients/${clientId}/contacts/${contactId}`, payload).then(({ data }) => data);
+    if (!data.contact) {
+      throw new Error('Contato não foi retornado pelo servidor.');
+    }
+    return mapClientContact(data.contact, 0);
+  },
+
+  deleteClientContact: async (clientId: string, contactId: string) => {
+    const { data } = await Api.delete<{
+      message: string;
+    }>(`/clients/${clientId}/contacts/${contactId}`);
+    return data;
+  },
+
+  enviarDocumentosPropostaOportunidade: async (clientId: string, files: File[], description?: string): Promise<ClientDocument[]> => {
+    const validationError = validarDocumentosOportunidade(files);
+    if (validationError)
+      throw new Error(validationError);
+    const body = new FormData();
+    files.forEach((file) => {
+      body.append('file', file);
+    });
+    if (description?.trim()) {
+      body.append('description', description.trim());
+    }
+    body.append('category', 'OPORTUNIDADE_PROPOSTA');
+    try {
+      const { data } = await Api.post<ClientDocument | ClientDocument[]>(`/clients/${clientId}/documents`, body);
+      return Array.isArray(data) ? data : [data];
+    }
+    catch (error) {
+      if (error instanceof ApiError && error.status === 413)
+        throw new Error(OPPORTUNITY_DOCUMENT_LIMIT_MESSAGE);
+      throw error;
+    }
+  },
+
+  excluirDocumentoPropostaOportunidade: async (clientId: string, documentId: string, justification = 'Exclusao de anexo da proposta.') => {
+    const { data } = await Api.delete<{
+      message: string;
+    }>(`/clients/${clientId}/documents/${documentId}`, { data: { justification } });
+    return data;
+  },
+
+  createTimelineContact: async (clientId: string, payload: {
+    title?: string;
+    description: string;
+    contactChannel?: string;
+    contactPerson?: string;
+    contactedAt?: string;
+  }): Promise<TimelineEvent> => {
+    const event = await Api.post<BackendTimelineEvent>(`/clients/${clientId}/timeline`, payload).then(({ data }) => data);
+    return mapTimelineEvent(clientId, event);
+  },
+
+  getCrmDashboardSummary: async (): Promise<CrmDashboardSummary> => {
+    const { data } = await Api.get<CrmDashboardSummary>('/clients/dashboard/summary');
+    return data;
+  },
+
+  getClientDeletionRequests: async (status?: ClientDeletionRequestStatus | 'TODOS') => {
+    const query = status && status !== 'TODOS'
+      ? `?status=${encodeURIComponent(status)}`
+      : '';
+    const { data } = await Api.get<ClientDeletionRequest[]>(`/clients/deletion-requests${query}`);
+    return data;
+  },
+
+  requestClientDeletion: async (clientId: string, payload: {
+    reason?: string;
+  }) => {
+    const { data } = await Api.post<ClientDeletionRequest>(`/clients/${clientId}/deletion-request`, payload);
+    return data;
+  },
+
+  decideClientDeletionRequest: async (requestId: string, payload: {
+    action: 'APPROVE' | 'REJECT';
+    message?: string;
+  }) => {
+    const { data } = await Api.post<{
+      message: string;
+      request: ClientDeletionRequest;
+    }>(`/clients/deletion-requests/${requestId}/decision`, payload);
+    return data;
+  },
+
+  atualizarEtapaOportunidade: async (oportunidadeId: string, etapa: OpportunityStage, motivoPerda?: string, observacaoPerda?: string) => {
+    if (etapa === 'PERDIDO')
+      await MotivosPerdaService.validarDadosPerda(motivoPerda, observacaoPerda);
+    const { data } = await Api.patch<Opportunity>(`/opportunities/${oportunidadeId}/stage`, { stage: etapa, motivoPerda, observacaoPerda });
+    return data;
+  },
+
+  atualizarOportunidade: async (opportunityId: string, payload: {
+    quoteId?: string | null;
+    title?: string;
+    value?: number | null;
+    stage?: OpportunityStage;
+    expectedCloseDate?: string | null;
+    preContract?: boolean;
+    preContractNotes?: string | null;
+    lostReason?: string | null;
+    motivoPerda?: string | null;
+    observacaoPerda?: string | null;
+  }) => {
+    if (payload.stage === 'PERDIDO' || (payload.stage === undefined && (payload.motivoPerda !== undefined || payload.lostReason !== undefined)))
+      await MotivosPerdaService.validarDadosPerda(payload.motivoPerda ?? payload.lostReason, payload.observacaoPerda);
+    const { data } = await Api.patch<Opportunity>(`/opportunities/${opportunityId}`, payload);
+    return data;
+  },
+
+  excluirOportunidade: async (opportunityId: string) => {
+    const { data } = await Api.delete<{
+      message: string;
+    }>(`/opportunities/${opportunityId}`);
+    return data;
+  },
+
+  criarOportunidade: async (payload: {
+    clientId: string;
+    quoteId?: string;
+    title: string;
+    value?: number;
+    stage?: OpportunityStage;
+    motivoPerda?: string;
+    lostReason?: string;
+    observacaoPerda?: string;
+    expectedCloseDate?: string;
+    preContract?: boolean;
+    preContractNotes?: string;
+  }) => {
+    if (payload.stage === 'PERDIDO')
+      await MotivosPerdaService.validarDadosPerda(payload.motivoPerda ?? payload.lostReason, payload.observacaoPerda);
+    const { data } = await Api.post<Opportunity>('/opportunities', payload);
+    return data;
+  },
+
+  formatLeadStatus: (status: LeadStatus) => {
+    const labels: Record<LeadStatus, string> = {
+      ATIVO: 'Ativo',
+      PENDENTE: 'Pendente',
+      INATIVO: 'Inativo',
+    };
+    return labels[status];
+  },
+
+  formatarEtapaOportunidade: (stage: OpportunityStage) => {
+    const labels: Record<OpportunityStage, string> = {
+      NOVO: 'Novo',
+      QUALIFICADO: 'Qualificado',
+      PROPOSTA: 'Proposta',
+      NEGOCIACAO: 'Negociação',
+      GANHO: 'Ganho',
+      PERDIDO: 'Perdido',
+    };
+    return labels[stage];
+  },
+
+  getOpportunityStatusFromStage: (stage: OpportunityStage) => {
+    if (stage === 'GANHO') {
+      return 'WON';
+    }
+    if (stage === 'PERDIDO') {
+      return 'LOST';
+    }
+    return 'OPEN';
+  },
+
+  formatOpportunityStatus: (status: OpportunityStatus): string => {
+    return OPPORTUNITY_STATUS_LABELS[status];
+  },
+
+  // Status da proposta
+  updateOpportunityStatus: async (clientId: string, opportunityId: string, status: OpportunityStatus, perda: {
+    motivoPerda?: string;
+    observacaoPerda?: string;
+  } = {}) => {
+    if (status === 'LOST')
+      await MotivosPerdaService.validarDadosPerda(perda.motivoPerda, perda.observacaoPerda);
+    const response = await Api.patch(`/clients/${clientId}/opportunities/${opportunityId}/status`, {
+      status,
+      motivoPerda: perda.motivoPerda,
+      observacaoPerda: perda.observacaoPerda,
+    }, {
+      headers: {
+        "Content-Type": "application/json",
+      }
+    });
+    const data = response.data;
+    return data;
+  },
+};

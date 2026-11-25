@@ -1,4 +1,4 @@
-import { listarOportunidades, listarCadastrosOportunidade } from '@/stores/oportunidades/service';
+import { OportunidadesService } from '@/stores/oportunidades/service';
 import { Link } from 'react-router-dom';
 import { useSearchParams } from 'react-router-dom';
 import { normalizarNomesCadastro } from '@/lib/nome-cadastro';
@@ -12,7 +12,7 @@ import { acaoPrincipalOportunidadeSx, acaoSecundariaOportunidadeSx, campoOportun
 import { formatarValorOportunidade, origemValorOportunidade } from '@/lib/valor-oportunidade';
 import { useAuth } from '@/context/auth-context';
 import type { Cadastro } from '@/stores/cadastros/service';
-import { formatarEtapaOportunidade } from '@/stores/crm/service';
+import { CrmService } from '@/stores/crm/service';
 import type { OpportunityStage, OpportunityStatus } from '@/types/crm';
 
 type Oportunidade = { id: string; clientId: string; title: string; value: string | number | null; valorPropostaComercial?: string | number | null; stage: OpportunityStage; status: OpportunityStatus; client: Cadastro };
@@ -49,7 +49,7 @@ function ConteudoOportunidades() {
   useEffect(() => {
     if (!token) return;
     let ativo = true;
-    Promise.all([listarOportunidades<Oportunidade[]>(token), listarCadastrosOportunidade<Cadastro[]>(token)])
+    Promise.all([OportunidadesService.listarOportunidades<Oportunidade[]>(), OportunidadesService.listarCadastrosOportunidade<Cadastro[]>()])
       .then(([oportunidades, registros]) => { if (ativo) { setLista(oportunidades.map(item => ({ ...item, client: normalizarNomesCadastro(item.client) }))); setCadastros(registros.map(registro => normalizarNomesCadastro(registro))); } })
       .catch(e => { if (ativo) setErro(e instanceof Error ? e.message : 'Erro ao carregar oportunidades.'); })
       .finally(() => { if (ativo) setCarregando(false); });
@@ -85,7 +85,7 @@ function ConteudoOportunidades() {
           slotProps={{ input: { startAdornment: <InputAdornment position="start"><Search size={16} color="#64748b" /></InputAdornment> } }} />
         <TextField select label="Modalidade" value={modalidade} onChange={e => setModalidade(e.target.value)} size="small" fullWidth sx={campoOportunidadeSx} slotProps={selecaoVazia}><MenuItem value="">Todas</MenuItem><MenuItem value="CLIENTE">Cliente</MenuItem><MenuItem value="LEAD">Lead</MenuItem></TextField>
         <TextField select label="Cadastro" value={cadastroFiltro} onChange={e => setCadastroFiltro(e.target.value)} size="small" fullWidth sx={campoOportunidadeSx} slotProps={selecaoVazia}><MenuItem value="">Todos</MenuItem>{cadastros.map(item => <MenuItem key={item.id} value={item.id}>{item.tradeName || item.companyName || item.legalName || 'Sem nome'}</MenuItem>)}</TextField>
-        <TextField select label="Etapa" value={etapa} onChange={e => setEtapa(e.target.value)} size="small" fullWidth sx={campoOportunidadeSx} slotProps={selecaoVazia}><MenuItem value="">Todas</MenuItem>{etapas.map(item => <MenuItem key={item} value={item}>{formatarEtapaOportunidade(item)}</MenuItem>)}</TextField>
+        <TextField select label="Etapa" value={etapa} onChange={e => setEtapa(e.target.value)} size="small" fullWidth sx={campoOportunidadeSx} slotProps={selecaoVazia}><MenuItem value="">Todas</MenuItem>{etapas.map(item => <MenuItem key={item} value={item}>{CrmService.formatarEtapaOportunidade(item)}</MenuItem>)}</TextField>
         <TextField select label="Situação" value={situacao} onChange={e => setSituacao(e.target.value)} size="small" fullWidth sx={campoOportunidadeSx} slotProps={selecaoVazia}><MenuItem value="">Todas</MenuItem>{Object.entries(situacoes).map(([valor, rotulo]) => <MenuItem key={valor} value={valor}>{rotulo}</MenuItem>)}</TextField>
       </Box>
     </Paper>

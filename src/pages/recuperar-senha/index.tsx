@@ -3,7 +3,7 @@ import { FeedbackToast } from '@/components/ui/feedback-toast';
 import { FormEvent, useState } from 'react';
 import { Link } from 'react-router-dom';
 import { ArrowLeft, Mail, ShieldCheck } from 'lucide-react';
-import { forgotPassword } from '@/stores/login/service';
+import { LoginService } from '@/stores/login/service';
 
 export default function ForgotPasswordPage() {
   const [email, setEmail] = useState('');
@@ -19,7 +19,7 @@ export default function ForgotPasswordPage() {
     setError('');
 
     try {
-      const response = await forgotPassword(email.trim());
+      const response = await LoginService.forgotPassword(email.trim());
 
       setMessage(response.message);
     } catch (err) {

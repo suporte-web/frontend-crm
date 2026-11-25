@@ -1,4 +1,4 @@
-import { buscarCadastroDoLead } from '@/stores/cadastros/service';
+import { CadastrosService } from '@/stores/cadastros/service';
 import { useEffect, useState } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
 import { Alert, CircularProgress } from '@mui/material';
@@ -13,7 +13,7 @@ export default function AbrirCadastroLead() {
   useEffect(() => {
     if (!token) return;
     let ativo = true;
-    buscarCadastroDoLead(id, token)
+    CadastrosService.buscarCadastroDoLead(id)
       .then(cadastro => { if (ativo) navigate(`/cadastros/${cadastro.id}`, { replace: true }); })
       .catch(e => { if (ativo) setErro(e instanceof Error ? e.message : 'Não foi possível abrir o cadastro.'); });
     return () => { ativo = false; };

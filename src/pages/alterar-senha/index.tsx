@@ -1,20 +1,7 @@
-import { notificarCrm } from '@/lib/feedback-crm';
-
+import { notificarCrm } from "@/lib/feedback-crm";
 import { FormEvent, useState } from "react";
-import { useNavigate } from 'react-router-dom';
-
-import Alert from "@mui/material/Alert";
-import Box from "@mui/material/Box";
-import Button from "@mui/material/Button";
-import CircularProgress from "@mui/material/CircularProgress";
-import IconButton from "@mui/material/IconButton";
-import InputAdornment from "@mui/material/InputAdornment";
-import Stack from "@mui/material/Stack";
-import TextField from "@mui/material/TextField";
-import Typography from "@mui/material/Typography";
-
+import { useNavigate } from "react-router-dom";
 import { Eye, EyeOff, KeyRound, LockKeyhole } from "lucide-react";
-
 import { AppLayout } from "@/components/layout/app-layout";
 import {
   CrmPageHeader,
@@ -23,6 +10,17 @@ import {
   crmPalette,
 } from "@/components/mui/crm-primitives";
 import { useAuth } from "@/context/auth-context";
+import {
+  Alert,
+  Box,
+  Button,
+  CircularProgress,
+  IconButton,
+  InputAdornment,
+  Stack,
+  TextField,
+  Typography,
+} from "@mui/material";
 
 // PADRÃO VISUAL DOS CAMPOS
 const passwordFieldSx = {
@@ -115,13 +113,13 @@ export default function ChangePasswordPage() {
 
       await changePassword(currentPassword, newPassword);
 
-      notificarCrm('Senha alterada com sucesso.');
+      notificarCrm("Senha alterada com sucesso.");
       navigate("/painel", { replace: true });
     } catch (changeError) {
       setError(
         changeError instanceof Error
           ? changeError.message
-          : "Erro ao alterar senha."
+          : "Erro ao alterar senha.",
       );
     } finally {
       setSaving(false);
@@ -132,7 +130,7 @@ export default function ChangePasswordPage() {
   function passwordAdornment(
     visible: boolean,
     onToggle: () => void,
-    label: string
+    label: string,
   ) {
     return {
       startAdornment: (
@@ -229,19 +227,16 @@ export default function ChangePasswordPage() {
                 label="Senha atual"
                 type={showCurrentPassword ? "text" : "password"}
                 value={currentPassword}
-                onChange={(event) =>
-                  setCurrentPassword(event.target.value)
-                }
+                onChange={(event) => setCurrentPassword(event.target.value)}
                 autoComplete="current-password"
                 disabled={saving}
                 slotProps={{
                   input: passwordAdornment(
                     showCurrentPassword,
-                    () =>
-                      setShowCurrentPassword((current) => !current),
+                    () => setShowCurrentPassword((current) => !current),
                     showCurrentPassword
                       ? "Ocultar senha atual"
-                      : "Mostrar senha atual"
+                      : "Mostrar senha atual",
                   ),
                 }}
                 sx={passwordFieldSx}
@@ -255,19 +250,16 @@ export default function ChangePasswordPage() {
                 label="Nova senha"
                 type={showNewPassword ? "text" : "password"}
                 value={newPassword}
-                onChange={(event) =>
-                  setNewPassword(event.target.value)
-                }
+                onChange={(event) => setNewPassword(event.target.value)}
                 autoComplete="new-password"
                 disabled={saving}
                 slotProps={{
                   input: passwordAdornment(
                     showNewPassword,
-                    () =>
-                      setShowNewPassword((current) => !current),
+                    () => setShowNewPassword((current) => !current),
                     showNewPassword
                       ? "Ocultar nova senha"
-                      : "Mostrar nova senha"
+                      : "Mostrar nova senha",
                   ),
                 }}
                 sx={passwordFieldSx}
@@ -281,19 +273,16 @@ export default function ChangePasswordPage() {
                 label="Confirmar nova senha"
                 type={showConfirmPassword ? "text" : "password"}
                 value={confirmPassword}
-                onChange={(event) =>
-                  setConfirmPassword(event.target.value)
-                }
+                onChange={(event) => setConfirmPassword(event.target.value)}
                 autoComplete="new-password"
                 disabled={saving}
                 slotProps={{
                   input: passwordAdornment(
                     showConfirmPassword,
-                    () =>
-                      setShowConfirmPassword((current) => !current),
+                    () => setShowConfirmPassword((current) => !current),
                     showConfirmPassword
                       ? "Ocultar confirmação de senha"
-                      : "Mostrar confirmação de senha"
+                      : "Mostrar confirmação de senha",
                   ),
                 }}
                 sx={passwordFieldSx}
@@ -331,10 +320,7 @@ export default function ChangePasswordPage() {
                   disabled={saving}
                   startIcon={
                     saving ? (
-                      <CircularProgress
-                        size={15}
-                        color="inherit"
-                      />
+                      <CircularProgress size={15} color="inherit" />
                     ) : (
                       <KeyRound size={15} />
                     )

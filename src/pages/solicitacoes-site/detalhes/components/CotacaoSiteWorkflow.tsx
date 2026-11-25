@@ -7,7 +7,7 @@ import { useEffect, useRef, useState } from 'react';
 import { Button, Chip, Dialog, DialogActions, DialogContent, DialogTitle, MenuItem, Paper, Stack, TextField, Typography } from '@mui/material';
 import { useAuth } from '@/context/auth-context';
 import { hasAnyRole } from '@/lib/user-roles';
-import { direcionarCotacaoSite, listarComerciaisCotacaoSite, reprovarCotacaoSite } from '@/stores/solicitacoes-site/service';
+import { SolicitacoesSiteService } from '@/stores/solicitacoes-site/service';
 import type { BuscarSolicitacaoSiteResponse, SolicitacaoSite } from '@/types/solicitacao-site';
 
 export function CotacaoSiteWorkflow({ solicitacao, onChange }: {
@@ -31,7 +31,7 @@ export function CotacaoSiteWorkflow({ solicitacao, onChange }: {
     if (!triagem || !pendente || solicitacao.tipo !== 'COTACAO') return;
     let ativo = true;
     setCarregando(true);
-    listarComerciaisCotacaoSite()
+    SolicitacoesSiteService.listarComerciaisCotacaoSite()
       .then(result => { if (ativo) setComerciais(result); })
       .catch((error: unknown) => { if (ativo) setErro(error instanceof Error ? error.message : 'Erro ao carregar responsáveis.'); })
       .finally(() => { if (ativo) setCarregando(false); });
@@ -80,7 +80,7 @@ export function CotacaoSiteWorkflow({ solicitacao, onChange }: {
           </TextField>
           <Stack direction={{ xs: 'column', sm: 'row' }} spacing={2}>
             <Button variant="contained" disabled={ocupado || carregando || !responsavelId}
-              onClick={() => decidir(() => direcionarCotacaoSite(solicitacao.id, responsavelId))}>Enviar ao Comercial</Button>
+              onClick={() => decidir(() => SolicitacoesSiteService.direcionarCotacaoSite(solicitacao.id, responsavelId))}>Enviar ao Comercial</Button>
             <Button variant="outlined" color="error" disabled={ocupado} onClick={() => { setErro(''); setMotivo(''); setReprovando(true); }}>Reprovar</Button>
           </Stack>
         </> : null}
@@ -109,7 +109,7 @@ export function CotacaoSiteWorkflow({ solicitacao, onChange }: {
       <DialogActions>
         <Button disabled={ocupado} onClick={() => setReprovando(false)}>Cancelar</Button>
         <Button variant="contained" color="error" disabled={ocupado || !motivo.trim()}
-          onClick={() => decidir(() => reprovarCotacaoSite(solicitacao.id, motivo.trim()))}>Confirmar reprovação</Button>
+          onClick={() => decidir(() => SolicitacoesSiteService.reprovarCotacaoSite(solicitacao.id, motivo.trim()))}>Confirmar reprovação</Button>
       </DialogActions>
     </Dialog>
   </Stack>;

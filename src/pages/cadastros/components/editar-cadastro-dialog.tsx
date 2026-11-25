@@ -4,8 +4,8 @@ import { Alert, CircularProgress, Dialog, DialogContent, DialogTitle, Divider, I
 import { X } from "lucide-react";
 import { ClientForm, emptyClientContact, type ClientFormData, type ClientContactForm } from "@/components/clientes/client-form";
 import { CamposComplementaresCadastro, type CamposComerciaisCadastro } from "@/components/cadastros/campos-complementares-cadastro";
-import { alterarModalidade, atualizarEtapaCadastro, obterDadosLead, type ModalidadeCadastro } from "@/stores/cadastros/service";
-import { updateClient, uploadClientDocuments } from "@/stores/crm/service";
+import { CadastrosService, type ModalidadeCadastro } from "@/stores/cadastros/service";
+import { CrmService } from "@/stores/crm/service";
 import { normalizeLeadFunnelStage, type LeadFunnelStage } from "@/constants/lead-funnel";
 import { useCnpjLookup } from "@/hooks/use-cnpj-lookup";
 import type { LeadDetail } from "@/types/crm";
@@ -28,7 +28,7 @@ export function EditarCadastroDialog({ cadastro, token, aoFechar, aoSalvar }: {
   const [erro, setErro] = useState("");
   useEffect(() => {
     let ativo = true;
-    obterDadosLead(cadastro.id, token).then(lead => {
+    CadastrosService.obterDadosLead(cadastro.id).then(lead => {
       if (!ativo) return;
       if (lead) {
         setEtapa(normalizeLeadFunnelStage(lead.status));
@@ -52,10 +52,10 @@ export function EditarCadastroDialog({ cadastro, token, aoFechar, aoSalvar }: {
     let alteracoesSalvas = false;
     try {
       if (modalidade !== (cadastro.modalidadeCadastro || "CLIENTE")) {
-        await alterarModalidade(cadastro.id, modalidade, form.document, token);
+        await CadastrosService.alterarModalidade(cadastro.id, modalidade, form.document);
         alteracoesSalvas = true;
       }
-      await updateClient(cadastro.id, {
+      await CrmService.updateClient(cadastro.id, {
         name: nome, companyName: nome, legalName: form.legalName, tradeName: form.tradeName, document: form.document,
         phone: form.phone, cnae: form.cnae, stateRegistration: form.stateRegistration, businessActivity: form.businessActivity,
         taxRegime: form.taxRegime, address: montarEnderecoCliente(form) || form.address, city: form.city,
@@ -63,10 +63,10 @@ export function EditarCadastroDialog({ cadastro, token, aoFechar, aoSalvar }: {
         segment: form.segment, segmentoId: form.segmentoId, segmentoAutomatico: form.segmentoAutomatico,
         siteUrl: form.siteUrl || '', status: form.status, notes: form.notes,
         contacts: contatos.filter(contato => Object.values(contato).some(valor => valor.trim())).map((contato, indice) => ({ ...contato, email: contato.email.trim() || undefined, isPrimary: indice === 0 })),
-      }, token);
+      });
       alteracoesSalvas = true;
-      await atualizarEtapaCadastro(cadastro.id, etapa, token, { ...comerciais, ...(foto !== fotoOriginal ? { fotoUrl: foto } : {}) });
-      if (arquivos.length) await uploadClientDocuments(cadastro.id, arquivos, token, "Documento cadastral");
+      await CadastrosService.atualizarEtapaCadastro(cadastro.id, etapa, { ...comerciais, ...(foto !== fotoOriginal ? { fotoUrl: foto } : {}) });
+      if (arquivos.length) await CrmService.uploadClientDocuments(cadastro.id, arquivos, "Documento cadastral");
       await aoSalvar(); aoFechar();
     } catch (erro) {
       const mensagem = erro instanceof Error ? erro.message : "Não foi possível salvar o cadastro.";

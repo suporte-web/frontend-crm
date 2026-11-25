@@ -4,10 +4,7 @@ import { Copy, Send } from 'lucide-react';
 import { AppLayout } from '@/components/layout/app-layout';
 import { FeedbackToast } from '@/components/ui/feedback-toast';
 import { useAuth } from '@/context/auth-context';
-import {
-  createSupplierInvite,
-  getSupplierInvites,
-} from '@/stores/suppliers/service';
+import { SuppliersService } from '@/stores/suppliers/service';
 import type { SupplierInvite } from '@/types/suppliers';
 
 const statusLabels: Record<string, string> = {
@@ -54,7 +51,7 @@ export default function SuppliersPage() {
     try {
       setLoading(true);
       setPageError('');
-      setInvites(await getSupplierInvites(token));
+      setInvites(await SuppliersService.getSupplierInvites());
     } catch (error) {
       setPageError(error instanceof Error ? error.message : 'Erro ao carregar fornecedores.');
     } finally {
@@ -75,15 +72,14 @@ export default function SuppliersPage() {
 
     try {
       setSaving(true);
-      const invite = await createSupplierInvite(
+      const invite = await SuppliersService.createSupplierInvite(
         {
           companyName: form.companyName.trim(),
           email: form.email.trim(),
           contactName: form.contactName.trim() || undefined,
           phone: form.phone.trim() || undefined,
           notes: form.notes.trim() || undefined,
-        },
-        token,
+        }
       );
       setInvites((current) => [invite, ...current]);
       setForm({

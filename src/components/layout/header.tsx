@@ -30,12 +30,7 @@ import { screenIcons } from "./sidebar-config";
 import { SidebarTrigger } from "@/components/ui/sidebar";
 import { appScreens, isScreenEnabledForRole } from "@/config/screens";
 import { useAuth } from "@/context/auth-context";
-import {
-  getNotifications,
-  getUnreadNotificationCount,
-  markAllNotificationsRead,
-  markNotificationRead,
-} from "@/stores/notifications/service";
+import { NotificationsService } from "@/stores/notifications/service";
 import type { CrmNotification } from "@/types/notifications";
 
 const headerColors = {
@@ -174,8 +169,8 @@ export function Header() {
     }
 
     const [items, unread] = await Promise.all([
-      getNotifications(token),
-      getUnreadNotificationCount(token),
+      NotificationsService.getNotifications(),
+      NotificationsService.getUnreadNotificationCount(),
     ]);
 
     setNotifications(items);
@@ -202,7 +197,7 @@ export function Header() {
     }
 
     if (!notification.readAt) {
-      await markNotificationRead(notification.id, token).catch(() => undefined);
+      await NotificationsService.markNotificationRead(notification.id).catch(() => undefined);
       setUnreadCount((current) => Math.max(0, current - 1));
     }
 
@@ -221,7 +216,7 @@ export function Header() {
       return;
     }
 
-    await markAllNotificationsRead(token).catch(() => undefined);
+    await NotificationsService.markAllNotificationsRead().catch(() => undefined);
     setUnreadCount(0);
 
     setNotifications((current) =>

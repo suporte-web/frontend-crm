@@ -16,14 +16,21 @@ export type ImportacaoCadastro = {
   resultado: ResultadoImportacao | null;
 };
 const rota = '/importacoes-cadastros';
-export async function listarOpcoesImportacao(signal?: AbortSignal) { return (await Api.get<ResponsavelImportacao[]>(`${rota}/opcoes`, { signal })).data; }
-export async function listarImportacoesCadastros() { return (await Api.get<Array<Pick<ImportacaoCadastro, 'id' | 'arquivo' | 'status' | 'createdAt' | 'resultado'>>>(rota)).data; }
-export async function obterImportacaoCadastro(id: string) { return (await Api.get<ImportacaoCadastro>(`${rota}/${id}`)).data; }
-export async function prepararImportacaoCadastro(arquivo: File, responsavelId: string, empresaConsultoraId: string | null) {
-  const form = new FormData(); form.append('arquivo', arquivo); form.append('responsavelId', responsavelId);
-  if (empresaConsultoraId) form.append('empresaConsultoraId', empresaConsultoraId);
-  return (await Api.post<ImportacaoCadastro>(`${rota}/previa`, form, { timeout: 60000 })).data;
-}
-export async function confirmarImportacaoCadastro(id: string, linhas: Array<{ numero: number; etapa: string; segmentoId: string | null; segmentoAutomatico: boolean }>) {
-  return (await Api.post<ImportacaoCadastro>(`${rota}/${id}/confirmar`, { linhas }, { timeout: 70000 })).data;
-}
+
+export const ImportacoesCadastrosService = {
+  listarOpcoesImportacao: async (signal?: AbortSignal) => { return (await Api.get<ResponsavelImportacao[]>(`${rota}/opcoes`, { signal })).data; },
+
+  listarImportacoesCadastros: async () => { return (await Api.get<Array<Pick<ImportacaoCadastro, 'id' | 'arquivo' | 'status' | 'createdAt' | 'resultado'>>>(rota)).data; },
+
+  obterImportacaoCadastro: async (id: string) => { return (await Api.get<ImportacaoCadastro>(`${rota}/${id}`)).data; },
+
+  prepararImportacaoCadastro: async (arquivo: File, responsavelId: string, empresaConsultoraId: string | null) => {
+    const form = new FormData(); form.append('arquivo', arquivo); form.append('responsavelId', responsavelId);
+    if (empresaConsultoraId) form.append('empresaConsultoraId', empresaConsultoraId);
+    return (await Api.post<ImportacaoCadastro>(`${rota}/previa`, form, { timeout: 60000 })).data;
+  },
+
+  confirmarImportacaoCadastro: async (id: string, linhas: Array<{ numero: number; etapa: string; segmentoId: string | null; segmentoAutomatico: boolean }>) => {
+    return (await Api.post<ImportacaoCadastro>(`${rota}/${id}/confirmar`, { linhas }, { timeout: 70000 })).data;
+  },
+};

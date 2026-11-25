@@ -19,7 +19,7 @@ import { SolicitacoesSiteCards } from '@/components/solicitacoes-site/Solicitaco
 
 import { SolicitacoesSiteTabela } from '@/components/solicitacoes-site/SolicitacoesSiteTabela';
 
-import { listarSolicitacoesSite } from '@/stores/solicitacoes-site/service';
+import { SolicitacoesSiteService } from '@/stores/solicitacoes-site/service';
 
 import type { SolicitacaoSite } from '@/types/solicitacao-site';
 
@@ -47,7 +47,7 @@ export default function SolicitacoesSitePage() {
         setErro('');
 
         const response =
-          await listarSolicitacoesSite({
+          await SolicitacoesSiteService.listarSolicitacoesSite({
             // excluirTipo: 'COTACAO',
           });
 

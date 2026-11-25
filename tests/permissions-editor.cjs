@@ -37,7 +37,7 @@ async function editor({ failSave = false } = {}) {
     '@/UserContext': { useUser: () => ({ user: null, refreshUser: async () => null }) },
     '@/lib/user-role-presentation': { roleMeta: { ADMIN: { label: 'Admin' }, GESTAO: { label: 'Gestão' } } },
     '@/lib/feedback-crm': { notificarCrm: (...args) => notices.push(args) },
-    '@/stores/users/service': {
+    '@/stores/users/service': { UsersService: {
       getScreenPermissions: async () => [
         { role: 'ADMIN', screens: [{ screenKey: 'chat', isEnabled: false }] },
         { role: 'GESTAO', screens: [{ screenKey: 'chat', isEnabled: true }] },
@@ -47,7 +47,7 @@ async function editor({ failSave = false } = {}) {
         if (failSave) throw new Error('Falha simulada');
         return { role, screens: payload.screens };
       },
-    },
+    } },
   } });
   const Page = load('src/pages/permissoes-por-perfil/index.tsx').default;
   let tree;

@@ -60,11 +60,7 @@ import {
 
 import { useAuth } from '@/context/auth-context';
 
-import {
-  buscarPaginaSite,
-  publicarPaginaSite,
-  salvarRascunhoPaginaSite,
-} from '@/stores/site-institucional/service';
+import { SiteInstitucionalService } from '@/stores/site-institucional/service';
 
 import type {
   PaginaSite,
@@ -408,9 +404,8 @@ export function SitePageEditor({
         setPageError('');
 
         const resultado =
-          await buscarPaginaSite(
-            slug,
-            authToken,
+          await SiteInstitucionalService.buscarPaginaSite(
+            slug
           );
 
         if (!resultado) {
@@ -503,11 +498,10 @@ export function SitePageEditor({
       setPageError('');
 
       const resultado =
-        await salvarRascunhoPaginaSite(
+        await SiteInstitucionalService.salvarRascunhoPaginaSite(
           slug,
           config.title,
-          conteudo,
-          token,
+          conteudo
         );
 
       setPagina(
@@ -554,11 +548,10 @@ export function SitePageEditor({
        * o conteúdo atual.
        */
 
-      await salvarRascunhoPaginaSite(
+      await SiteInstitucionalService.salvarRascunhoPaginaSite(
         slug,
         config.title,
-        conteudo,
-        token,
+        conteudo
       );
 
       /*
@@ -566,9 +559,8 @@ export function SitePageEditor({
        */
 
       const resultado =
-        await publicarPaginaSite(
-          slug,
-          token,
+        await SiteInstitucionalService.publicarPaginaSite(
+          slug
         );
 
       setPagina(

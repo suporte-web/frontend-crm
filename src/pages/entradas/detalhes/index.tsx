@@ -15,15 +15,7 @@ import { DadosRelatoSite } from '@/components/atendimentos/DadosRelatoSite';
 import { AppLayout } from "@/components/layout/app-layout";
 import { FeedbackToast } from "@/components/ui/feedback-toast";
 import { useAuth } from "@/context/auth-context";
-import {
-  assumirEntrada,
-  createEntradaQuote,
-  finalizarEntrada,
-  getEntrada,
-  getProspectSuggestions,
-  linkOrCreateProspect,
-  marcarEntradaPerdida,
-} from "@/stores/entradas/service";
+import { EntradasService } from "@/stores/entradas/service";
 import type {
   CreateEntradaQuotePayload,
   EntradaTicket,
@@ -129,7 +121,7 @@ export default function EntradaDetailPage() {
       setPageError("");
       const id = idOverride || routeId;
       setEntradaId(id);
-      const data = await getEntrada(id, token);
+      const data = await EntradasService.getEntrada(id);
       setEntrada(data);
       setProspectForm({
         nomeRazaoSocial:
@@ -150,7 +142,7 @@ export default function EntradaDetailPage() {
       }));
 
       if (!data.prospectId && !data.clientId) {
-        const suggestionData = await getProspectSuggestions(id, token);
+        const suggestionData = await EntradasService.getProspectSuggestions(id);
         setSuggestions(suggestionData);
       }
     } catch (error) {
@@ -212,10 +204,9 @@ export default function EntradaDetailPage() {
 
     await runAction(
       () =>
-        linkOrCreateProspect(
+        EntradasService.linkOrCreateProspect(
           entrada.id,
-          cleanProspectPayload(prospectForm),
-          token,
+          cleanProspectPayload(prospectForm)
         ),
       "Cadastro vinculado",
       "A entrada já pode seguir para criação de cotação.",
@@ -230,7 +221,7 @@ export default function EntradaDetailPage() {
     }
 
     await runAction(
-      () => createEntradaQuote(entrada.id, cleanQuotePayload(quoteForm), token),
+      () => EntradasService.createEntradaQuote(entrada.id, cleanQuotePayload(quoteForm)),
       "Cotação criada",
       "A cotação foi vinculada ao ticket de entrada.",
     );
@@ -264,7 +255,7 @@ export default function EntradaDetailPage() {
                   disabled={actionLoading}
                   onClick={() =>
                     runAction(
-                      () => assumirEntrada(entrada.id, token ?? ""),
+                      () => EntradasService.assumirEntrada(entrada.id),
                       "Entrada assumida",
                       "O ticket foi atribuído ao seu usuário.",
                     )
@@ -281,7 +272,7 @@ export default function EntradaDetailPage() {
                 disabled={actionLoading}
                 onClick={() =>
                   runAction(
-                    () => finalizarEntrada(entrada.id, "Entrada finalizada.", token ?? ""),
+                    () => EntradasService.finalizarEntrada(entrada.id, "Entrada finalizada."),
                     "Entrada finalizada",
                     "O atendimento foi finalizado.",
                   )
@@ -297,7 +288,7 @@ export default function EntradaDetailPage() {
                 disabled={actionLoading}
                 onClick={() =>
                   runAction(
-                    () => marcarEntradaPerdida(entrada.id, "Entrada perdida.", token ?? ""),
+                    () => EntradasService.marcarEntradaPerdida(entrada.id, "Entrada perdida."),
                     "Entrada perdida",
                     "A entrada foi marcada como perdida.",
                   )
@@ -467,10 +458,9 @@ export default function EntradaDetailPage() {
                             onClick={() =>
                               runAction(
                                 () =>
-                                  linkOrCreateProspect(
+                                  EntradasService.linkOrCreateProspect(
                                     entrada.id,
-                                    { prospectId: prospect.id },
-                                    token ?? "",
+                                    { prospectId: prospect.id }
                                   ),
                                 "Cadastro vinculado",
                                 "A entrada foi vinculada a um cadastro existente.",
@@ -494,10 +484,9 @@ export default function EntradaDetailPage() {
                             onClick={() =>
                               runAction(
                                 () =>
-                                  linkOrCreateProspect(
+                                  EntradasService.linkOrCreateProspect(
                                     entrada.id,
-                                    { clientId: client.id },
-                                    token ?? "",
+                                    { clientId: client.id }
                                   ),
                                 "Cliente vinculado",
                                 "A entrada foi vinculada a um cliente ativo existente.",

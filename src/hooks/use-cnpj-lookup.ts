@@ -1,6 +1,6 @@
 import { useEffect, useRef, useState, type Dispatch, type SetStateAction } from 'react';
 import type { ClientFormData } from '@/components/clientes/client-form';
-import { consultarCnpj } from '@/stores/cnpj/service';
+import { CnpjService } from '@/stores/cnpj/service';
 import { mesclarDadosCnpj } from '@/lib/cnpj-form';
 
 export function useCnpjLookup(token: string | null, form: ClientFormData, setForm: Dispatch<SetStateAction<ClientFormData>>) {
@@ -24,7 +24,7 @@ export function useCnpjLookup(token: string | null, form: ClientFormData, setFor
     setSearchingCnpj(true);
     const snapshot = { ...form };
     try {
-      const data = await consultarCnpj(snapshot.document, token, controller.signal);
+      const data = await CnpjService.consultarCnpj(snapshot.document, controller.signal);
       if (!controller.signal.aborted) setForm(current => mesclarDadosCnpj(current, data, snapshot));
     } catch (error) {
       if (!controller.signal.aborted) {

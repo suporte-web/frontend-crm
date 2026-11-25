@@ -1,4 +1,4 @@
-import { consultarRastreamento } from '@/stores/rastreamentos/service';
+import { RastreamentosService } from '@/stores/rastreamentos/service';
 import { useMemo, useState } from 'react';
 import { AppLayout } from '@/components/layout/app-layout';
 import Alert from '@mui/material/Alert';
@@ -1104,7 +1104,7 @@ export default function TrackingsPage() {
         }),
       };
 
-      const data = await consultarRastreamento(payload);
+      const data = await RastreamentosService.consultarRastreamento(payload);
 
       setResponseData(data);
     } catch (error) {

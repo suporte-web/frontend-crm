@@ -55,13 +55,7 @@ import {
 import { cartaoCrmSx } from "@/components/mui/estilos-cartoes-crm";
 import { FeedbackToast } from "@/components/ui/feedback-toast";
 import { useAuth } from "@/context/auth-context";
-import {
-  createUser,
-  deleteUser,
-  getUsers,
-  resetUserPassword,
-  updateUser,
-} from "@/stores/users/service";
+import { UsersService } from "@/stores/users/service";
 import type {
   CreateUserPayload,
   UpdateUserPayload,
@@ -277,7 +271,7 @@ export default function UsersPage() {
       setLoading(true);
       setPageError("");
 
-      const usersData = await getUsers();
+      const usersData = await UsersService.getUsers();
 
       setUsers(usersData);
     } catch (error) {
@@ -458,7 +452,7 @@ export default function UsersPage() {
           isActive: form.isActive,
         };
 
-        const updatedUser = await updateUser(editingUser.id, payload);
+        const updatedUser = await UsersService.updateUser(editingUser.id, payload);
 
         setUsers((prev) =>
           prev.map((user) =>
@@ -477,7 +471,7 @@ export default function UsersPage() {
         };
 
         if (form.roles.includes('CONSULTORA')) payload.password = consultoraPassword;
-        const createdUser = await createUser(payload);
+        const createdUser = await UsersService.createUser(payload);
         setUsers((prev) => [createdUser, ...prev]);
         setSuccessMessage("Usuário criado com sucesso.");
       }
@@ -500,7 +494,7 @@ export default function UsersPage() {
 
   async function handleToggleStatus(user: User) {
     try {
-      const updatedUser = await updateUser(user.id, {
+      const updatedUser = await UsersService.updateUser(user.id, {
         isActive: !user.isActive,
       });
 
@@ -542,13 +536,13 @@ export default function UsersPage() {
       setConfirmLoading(true);
 
       if (confirmAction.type === "delete") {
-        await deleteUser(confirmAction.user.id);
+        await UsersService.deleteUser(confirmAction.user.id);
         setUsers((prev) =>
           prev.filter((item) => item.id !== confirmAction.user.id),
         );
         setSuccessMessage("Usuário excluído com sucesso.");
       } else {
-        const updatedUser = await resetUserPassword(confirmAction.user.id);
+        const updatedUser = await UsersService.resetUserPassword(confirmAction.user.id);
 
         setUsers((prev) =>
           prev.map((item) =>

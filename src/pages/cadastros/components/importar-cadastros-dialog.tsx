@@ -24,20 +24,8 @@ import {
 import { useAuth } from "@/context/auth-context";
 import { hasAnyRole } from "@/lib/user-roles";
 import { LEAD_FUNNEL_STAGES } from "@/constants/lead-funnel";
-import {
-  classificarSegmento,
-  listarSegmentos,
-  type Segmento,
-} from "@/stores/segmentos/service";
-import {
-  confirmarImportacaoCadastro,
-  listarImportacoesCadastros,
-  listarOpcoesImportacao,
-  obterImportacaoCadastro,
-  prepararImportacaoCadastro,
-  type ImportacaoCadastro,
-  type ResponsavelImportacao,
-} from "@/stores/importacoes-cadastros/service";
+import { SegmentosService, type Segmento } from "@/stores/segmentos/service";
+import { ImportacoesCadastrosService, type ImportacaoCadastro, type ResponsavelImportacao } from "@/stores/importacoes-cadastros/service";
 
 type Escolha = {
   selecionada: boolean;
@@ -89,9 +77,9 @@ export function ImportarCadastrosDialog({
   useEffect(() => {
     const controller = new AbortController();
     Promise.all([
-      listarOpcoesImportacao(controller.signal),
-      listarSegmentos(controller.signal),
-      listarImportacoesCadastros(),
+      ImportacoesCadastrosService.listarOpcoesImportacao(controller.signal),
+      SegmentosService.listarSegmentos(controller.signal),
+      ImportacoesCadastrosService.listarImportacoesCadastros(),
     ])
       .then(([pessoas, catalogo, anteriores]) => {
         if (!controller.signal.aborted) {
@@ -173,7 +161,7 @@ export function ImportarCadastrosDialog({
     )
       return;
     void executar(() =>
-      confirmarImportacaoCadastro(
+      ImportacoesCadastrosService.confirmarImportacaoCadastro(
         job.id,
         selecionadas.map((item) => ({
           numero: item.numero,
@@ -310,7 +298,7 @@ export function ImportarCadastrosDialog({
                 onClick={() => {
                   if (arquivo)
                     void executar(() =>
-                      prepararImportacaoCadastro(
+                      ImportacoesCadastrosService.prepararImportacaoCadastro(
                         arquivo,
                         responsavel,
                         empresa || null,
@@ -331,7 +319,7 @@ export function ImportarCadastrosDialog({
                       key={item.id}
                       disabled={ocupado}
                       onClick={() =>
-                        void executar(() => obterImportacaoCadastro(item.id))
+                        void executar(() => ImportacoesCadastrosService.obterImportacaoCadastro(item.id))
                       }
                     >
                       {item.arquivo} · {item.status} ·{" "}
@@ -549,7 +537,7 @@ export function ImportarCadastrosDialog({
                               onClick={() => {
                                 setOcupado(true);
                                 setErro("");
-                                void classificarSegmento(item.cnae)
+                                void SegmentosService.classificarSegmento(item.cnae)
                                   .then((dados) =>
                                     alterar(item.numero, {
                                       segmentoId: dados.segmento?.id ?? null,

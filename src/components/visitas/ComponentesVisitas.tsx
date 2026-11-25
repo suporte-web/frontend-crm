@@ -1,7 +1,7 @@
 import { Chip, MenuItem, Stack, TextField } from "@mui/material";
 import { UploadAnexos } from "@/components/attachments/UploadAnexos";
 import { ListaAnexosSac } from "@/components/atendimento-sac/ComponentesSac";
-import { baixarAnexoVisita, enviarAnexoVisita, caminhoAnexosVisita } from "@/stores/visitas/service";
+import { VisitasService } from "@/stores/visitas/service";
 import {
   rotulosStatusVisita,
   type EtapaVisita,
@@ -87,16 +87,16 @@ export function AnexosVisita({
         anexos={visita.anexos.filter((a) => a.etapa === etapa)}
         token={token}
         id={visita.id}
-        caminhoAnexos={caminhoAnexosVisita(visita.id)}
+        caminhoAnexos={VisitasService.caminhoAnexosVisita(visita.id)}
         erro={erro}
         baixar={(anexo) =>
-          baixarAnexoVisita(token, visita.id, anexo.id, anexo.nome)
+          VisitasService.baixarAnexoVisita(visita.id, anexo.id, anexo.nome)
         }
       />
       {permitido && (
         <UploadAnexos
           enviarArquivo={(arquivo, comentario) =>
-            enviarAnexoVisita(token, visita.id, arquivo, etapa, comentario)
+            VisitasService.enviarAnexoVisita(visita.id, arquivo, etapa, comentario)
           }
           concluido={atualizar}
           erro={erro}

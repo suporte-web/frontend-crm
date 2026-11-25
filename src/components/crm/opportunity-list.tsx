@@ -13,10 +13,7 @@ import {
   X,
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
-import {
-  formatarEtapaOportunidade,
-  getOpportunityStatusFromStage,
-} from '@/stores/crm/service';
+import { CrmService } from '@/stores/crm/service';
 import type { Opportunity, OpportunityStage } from '@/types/crm';
 import { CamposPerdaOportunidade, DetalhesPerdaOportunidade } from './campos-perda-oportunidade';
 import { PipelineStageBadge } from './pipeline-stage-badge';
@@ -146,7 +143,7 @@ export function OpportunityList({
               {String(index + 1).padStart(2, '0')}
             </p>
             <p className={`mt-1 text-sm font-semibold ${darkMode ? 'text-white' : 'text-slate-800'}`}>
-              {formatarEtapaOportunidade(stage)}
+              {CrmService.formatarEtapaOportunidade(stage)}
             </p>
           </div>
         ))}
@@ -276,7 +273,7 @@ export function OpportunityList({
                       </span>
                       <span className="inline-flex items-center gap-2">
                         <BadgeDollarSign className="h-4 w-4 text-slate-400" />
-                        Status: {getOpportunityStatusFromStage(opportunity.stage)}
+                        Status: {CrmService.getOpportunityStatusFromStage(opportunity.stage)}
                       </span>
                     </div>
                   )}
@@ -392,7 +389,7 @@ export function OpportunityList({
                   >
                     {pipelineStages.map((stage) => (
                       <option key={stage} value={stage}>
-                        {formatarEtapaOportunidade(stage)}
+                        {CrmService.formatarEtapaOportunidade(stage)}
                       </option>
                     ))}
                   </select>

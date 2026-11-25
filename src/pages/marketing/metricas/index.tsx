@@ -27,8 +27,8 @@ import {
 import { appScreens, isScreenEnabledForRole } from "@/config/screens";
 import { useAuth } from "@/context/auth-context";
 import { ManualAnalyticsReports } from "@/components/marketing/ManualAnalyticsReports";
-import { listarIntegracoesMarketing } from "@/stores/marketing-integrations/service";
-import { carregarMetricasMarketing } from "@/stores/marketing-metrics/service";
+import { MarketingIntegrationsService } from "@/stores/marketing-integrations/service";
+import { MarketingMetricsService } from "@/stores/marketing-metrics/service";
 import type {
   MarketingMetrics,
   MarketingSummary,
@@ -215,7 +215,7 @@ export default function MarketingMetricsPage() {
       setError("");
       setMetrics(null);
       try {
-        const integrations = await listarIntegracoesMarketing(token);
+        const integrations = await MarketingIntegrationsService.listarIntegracoesMarketing();
         if (controller.signal.aborted) return;
         const ga = integrations.find(
           (item) => item.provider === "GOOGLE_ANALYTICS",
@@ -225,8 +225,7 @@ export default function MarketingMetricsPage() {
         );
         setConnected(isConnected);
         if (isConnected) {
-          const result = await carregarMetricasMarketing(
-            token!,
+          const result = await MarketingMetricsService.carregarMetricasMarketing(
             filter,
             controller.signal,
           );

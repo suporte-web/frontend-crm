@@ -14,6 +14,7 @@ function createSourceLoader({ globals = {}, mocks = {} } = {}) {
     cache.set(filename, module);
     const source = fs.readFileSync(filename, 'utf8').replaceAll('import.meta.env', '__env');
     const code = ts.transpileModule(source, {
+      fileName: filename,
       compilerOptions: { module: ts.ModuleKind.CommonJS, target: ts.ScriptTarget.ES2022, jsx: ts.JsxEmit.ReactJSX, esModuleInterop: true },
     }).outputText;
     vm.runInNewContext(code, {

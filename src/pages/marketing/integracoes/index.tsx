@@ -29,7 +29,7 @@ import {
   crmPalette,
 } from "@/components/mui/crm-primitives";
 import { useAuth } from "@/context/auth-context";
-import { listarIntegracoesMarketing } from "@/stores/marketing-integrations/service";
+import { MarketingIntegrationsService } from "@/stores/marketing-integrations/service";
 import type {
   MarketingIntegration,
   MarketingIntegrationStatus,
@@ -164,7 +164,7 @@ export default function MarketingIntegrationsPage() {
   const isAllowed = user?.role ? hasAnyRole(user, [...allowedRoles]) : false;
 
   async function reloadIntegrations() {
-    setIntegrations(await listarIntegracoesMarketing(token));
+    setIntegrations(await MarketingIntegrationsService.listarIntegracoesMarketing());
   }
 
   useEffect(() => {
@@ -180,7 +180,7 @@ export default function MarketingIntegrationsPage() {
         setLoading(true);
         setPageError("");
 
-        const data = await listarIntegracoesMarketing(token);
+        const data = await MarketingIntegrationsService.listarIntegracoesMarketing();
 
         if (active) {
           setIntegrations(data);

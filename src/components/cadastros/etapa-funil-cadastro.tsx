@@ -6,7 +6,7 @@ import { FeedbackToast } from '@/components/ui/feedback-toast';
 import { useEffect, useState } from "react";
 import { Box, Button, CircularProgress, MenuItem, Paper, Stack, TextField, Typography } from "@mui/material";
 import { LEAD_FUNNEL_STAGES, normalizeLeadFunnelStage, type LeadFunnelStage } from "@/constants/lead-funnel";
-import { atualizarEtapaCadastro, obterDadosLead } from "@/stores/cadastros/service";
+import { CadastrosService } from "@/stores/cadastros/service";
 import { SeletorResponsavelCadastro } from './seletor-responsavel-cadastro';
 
 export function EtapaFunilCadastro({ id, token, podeEditar, aoSalvar }: {
@@ -32,7 +32,7 @@ export function EtapaFunilCadastro({ id, token, podeEditar, aoSalvar }: {
     setNomeResponsavel('');
     setErro("");
     setSucesso(false);
-    obterDadosLead(id, token).then(lead => {
+    CadastrosService.obterDadosLead(id).then(lead => {
       if (!ativo) return;
       const valor = lead ? normalizeLeadFunnelStage(lead.status) : "";
       setEtapa(valor);
@@ -57,7 +57,7 @@ export function EtapaFunilCadastro({ id, token, podeEditar, aoSalvar }: {
     setErro("");
     setSucesso(false);
     try {
-      const lead = await atualizarEtapaCadastro(id, etapa, token, dados);
+      const lead = await CadastrosService.atualizarEtapaCadastro(id, etapa, dados);
       setEtapaSalva(normalizeLeadFunnelStage(lead.status));
       setDadosSalvos({ ...dados });
       await aoSalvar();

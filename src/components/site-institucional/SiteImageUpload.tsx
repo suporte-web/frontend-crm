@@ -14,7 +14,7 @@ import Typography from '@mui/material/Typography';
 import { Image as ImageIcon, Trash2, Undo2, Upload } from 'lucide-react';
 import { crmPalette } from '@/components/mui/crm-primitives';
 import { API_BASE_URL } from '@/utils/Api';
-import { uploadImagemSite } from '@/stores/site-institucional/service';
+import { SiteInstitucionalService } from '@/stores/site-institucional/service';
 
 type SiteImageUploadProps = {
   slug: string;
@@ -78,7 +78,7 @@ export function SiteImageUpload({
     onUploadingChange?.(true);
     setError('');
     try {
-      const result = await uploadImagemSite(slug, file, token);
+      const result = await SiteInstitucionalService.uploadImagemSite(slug, file);
       onChange(result.path);
       notificarCrm('Imagem enviada. Salve a página para aplicar a alteração.');
       setRemovedValue('');

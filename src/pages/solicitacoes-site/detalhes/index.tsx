@@ -48,10 +48,7 @@ import {
   CrmPageShell,
 } from '@/components/mui/crm-primitives';
 
-import {
-  buscarAnexoSolicitacaoSite,
-  buscarSolicitacaoSitePorId,
-} from '@/stores/solicitacoes-site/service';
+import { SolicitacoesSiteService } from '@/stores/solicitacoes-site/service';
 
 import type { SolicitacaoSite } from '@/types/solicitacao-site';
 import { useParams } from 'react-router-dom';
@@ -409,7 +406,7 @@ export default function SolicitacaoSiteDetalhePage() {
 
     try {
       const arquivo =
-        await buscarAnexoSolicitacaoSite(
+        await SolicitacoesSiteService.buscarAnexoSolicitacaoSite(
           id,
           anexoId,
         );
@@ -459,7 +456,7 @@ export default function SolicitacaoSiteDetalhePage() {
         setError('');
 
         const response =
-          await buscarSolicitacaoSitePorId(
+          await SolicitacoesSiteService.buscarSolicitacaoSitePorId(
             id,
           );
 

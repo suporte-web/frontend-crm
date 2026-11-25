@@ -14,13 +14,7 @@ import {
   TextField,
   Typography,
 } from "@mui/material";
-import {
-  conectarGoogleAnalytics,
-  desconectarGoogleAnalytics,
-  listarPropriedadesGoogleAnalytics,
-  selecionarPropriedadeGoogleAnalytics,
-  testarGoogleAnalytics,
-} from "@/stores/marketing-integrations/service";
+import { MarketingIntegrationsService } from "@/stores/marketing-integrations/service";
 import type {
   GoogleAnalyticsProperty,
   MarketingIntegration,
@@ -59,8 +53,7 @@ export function GoogleAnalyticsControls({
     }
     async function load() {
       try {
-        const result = await listarPropriedadesGoogleAnalytics(
-          token!,
+        const result = await MarketingIntegrationsService.listarPropriedadesGoogleAnalytics(
           controller.signal,
         );
         if (controller.signal.aborted) return;
@@ -120,7 +113,7 @@ export function GoogleAnalyticsControls({
           disabled={busy || !token}
           onClick={() =>
             void action(async () => {
-              const result = await conectarGoogleAnalytics(token!);
+              const result = await MarketingIntegrationsService.conectarGoogleAnalytics();
               window.location.assign(result.url);
             })
           }
@@ -142,7 +135,7 @@ export function GoogleAnalyticsControls({
             disabled={busy}
             onClick={() =>
               void action(async () => {
-                const result = await testarGoogleAnalytics(token!);
+                const result = await MarketingIntegrationsService.testarGoogleAnalytics();
                 await onChanged();
                 setMessage(result.message);
               })
@@ -205,8 +198,7 @@ export function GoogleAnalyticsControls({
             disabled={busy || !propertyId}
             onClick={() =>
               void action(async () => {
-                const result = await selecionarPropriedadeGoogleAnalytics(
-                  token!,
+                const result = await MarketingIntegrationsService.selecionarPropriedadeGoogleAnalytics(
                   propertyId,
                 );
                 setPending(false);
@@ -238,7 +230,7 @@ export function GoogleAnalyticsControls({
             disabled={busy}
             onClick={() =>
               void action(async () => {
-                const result = await desconectarGoogleAnalytics(token!);
+                const result = await MarketingIntegrationsService.desconectarGoogleAnalytics();
                 setPending(false);
                 setOpen(false);
                 setConfirmDisconnect(false);

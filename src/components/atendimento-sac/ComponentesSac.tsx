@@ -11,7 +11,7 @@ import {
   TextField,
   Typography,
 } from "@mui/material";
-import { enviarAnexoSac, baixarAnexoSac, caminhoAnexosSac } from "@/stores/atendimento-sac/service";
+import { AtendimentoSacService } from "@/stores/atendimento-sac/service";
 import {
   rotulosStatusSac,
   type AnexoSac,
@@ -143,7 +143,7 @@ export function ListaAnexosSac({
   id,
   erro,
   baixar,
-  caminhoAnexos = caminhoAnexosSac(id),
+  caminhoAnexos = AtendimentoSacService.caminhoAnexosSac(id),
 }: {
   anexos: AnexoSac[];
   caminhoAnexos?: string;
@@ -184,7 +184,7 @@ export function ListaAnexosSac({
             <Button onClick={() => setAnexoVisualizado(a)}>Visualizar</Button>
             <Button
               onClick={() =>
-                (baixar ? baixar(a) : baixarAnexoSac(token, id, a.id, a.nome)).catch((e) =>
+                (baixar ? baixar(a) : AtendimentoSacService.baixarAnexoSac(id, a.id, a.nome)).catch((e) =>
                   erro(e.message),
                 )
               }
@@ -199,9 +199,9 @@ export function ListaAnexosSac({
     </Stack>
   );
 }
-export function UploadAnexosSac({ token, id, etapa, concluido, erro }: {
-  token: string; id: string; etapa: string;
+export function UploadAnexosSac({ id, etapa, concluido, erro }: {
+  id: string; etapa: string;
   concluido: () => Promise<void>; erro: (m: string) => void;
 }) {
-  return <UploadAnexos enviarArquivo={(arquivo, comentario) => enviarAnexoSac(token, id, arquivo, etapa, comentario)} concluido={concluido} erro={erro} />;
+  return <UploadAnexos enviarArquivo={(arquivo, comentario) => AtendimentoSacService.enviarAnexoSac(id, arquivo, etapa, comentario)} concluido={concluido} erro={erro} />;
 }

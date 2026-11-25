@@ -7,7 +7,7 @@ import { Button, Dialog, DialogActions, DialogContent, DialogTitle, Stack, TextF
 import { CrmSection } from '@/components/mui/crm-primitives';
 import { useAuth } from '@/context/auth-context';
 import { hasAnyRole } from '@/lib/user-roles';
-import { decidirExclusaoLead, getSolicitacoesExclusaoLeads, type SolicitacaoExclusaoLead } from '@/stores/leads/service';
+import { LeadsService, type SolicitacaoExclusaoLead } from '@/stores/leads/service';
 
 export function SolicitacoesExclusaoLeads({ onChanged }: { onChanged: () => Promise<void> }) {
   const { user, token } = useAuth();
@@ -19,7 +19,7 @@ export function SolicitacoesExclusaoLeads({ onChanged }: { onChanged: () => Prom
   const [message, setMessage] = useState('');
   const load = useCallback(async () => {
     if (!token || !allowed) { setItems([]); return; }
-    try { setItems(await getSolicitacoesExclusaoLeads(token)); setError(''); }
+    try { setItems(await LeadsService.getSolicitacoesExclusaoLeads()); setError(''); }
     catch (e) { setError(e instanceof Error ? e.message : 'Não foi possível carregar as solicitações.'); }
   }, [token, allowed]);
   useEffect(() => { void load(); }, [load]);
@@ -28,7 +28,7 @@ export function SolicitacoesExclusaoLeads({ onChanged }: { onChanged: () => Prom
     if (!token || !decision || busy) return;
     setBusy(true); setError('');
     try {
-      await decidirExclusaoLead(decision.request.id, { action: decision.action, message: message.trim() || undefined }, token);
+      await LeadsService.decidirExclusaoLead(decision.request.id, { action: decision.action, message: message.trim() || undefined });
       setDecision(null); setMessage(''); await load(); await onChanged();
       notificarCrm(decision.action === 'APPROVE' ? 'Exclusão do lead aprovada com sucesso.' : 'Solicitação de exclusão recusada.');
     } catch (e) { setError(e instanceof Error ? e.message : 'Não foi possível analisar a solicitação.'); }

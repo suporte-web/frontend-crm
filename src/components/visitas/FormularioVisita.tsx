@@ -14,7 +14,7 @@ import {
   camposSac,
   entradaDataSac,
 } from "@/components/atendimento-sac/ComponentesSac";
-import { getOpcoesVisitas } from "@/stores/visitas/service";
+import { VisitasService } from "@/stores/visitas/service";
 import {
   type OpcoesVisitas,
   type ParticipanteVisita,
@@ -22,7 +22,9 @@ import {
   type Visita,
 } from "@/types/visitas";
 import { montarClienteVisita } from "@/lib/visitas-formularios";
+import { formatarTelefone } from "@/utils/formatadores";
 import { acaoVisitaSx, SimNaoVisita } from "./ComponentesVisitas";
+import { formatarCNPJ } from "@/utils/formatadores";
 export type DadosFormularioVisita = {
   clienteNome: string;
   cnpj: string;
@@ -34,13 +36,15 @@ export type DadosFormularioVisita = {
   participantes?: ParticipanteVisita[];
 };
 export function FormularioVisita({
-  token,
+  id,
+  exibirAcaoSalvar = true,
   visita,
   permitido = true,
   ocupado,
   salvar,
 }: {
-  token: string;
+  id?: string;
+  exibirAcaoSalvar?: boolean;
   visita?: Visita;
   permitido?: boolean;
   ocupado: boolean;
@@ -68,7 +72,7 @@ export function FormularioVisita({
     if (!permitido) return;
     let ativo = true;
     const timer = setTimeout(() => {
-      getOpcoesVisitas(token)
+      VisitasService.getOpcoesVisitas()
         .then((d) => {
           if (ativo) setOpcoes(d);
         })
@@ -80,7 +84,7 @@ export function FormularioVisita({
       ativo = false;
       clearTimeout(timer);
     };
-  }, [token, permitido]);
+  }, [permitido]);
   const campo = (k: keyof typeof dados, v: string) =>
     setDados((d) => ({ ...d, [k]: v }));
   const bloqueado = ocupado || !permitido;
@@ -90,13 +94,13 @@ export function FormularioVisita({
     const participantes =
       incluir === "true"
         ? [
-          ...internos.map((u) => ({
-            nome: u.name,
-            email: u.email,
-            usuarioId: u.id,
-          })),
-          ...externos,
-        ]
+            ...internos.map((u) => ({
+              nome: u.name,
+              email: u.email,
+              usuarioId: u.id,
+            })),
+            ...externos,
+          ]
         : [];
     if (incluir === "true" && !participantes.length) {
       setErro("Inclua pelo menos um participante.");
@@ -128,7 +132,7 @@ export function FormularioVisita({
     }
   }
   return (
-    <Box component="form" onSubmit={enviar}>
+    <Box id={id} component="form" onSubmit={enviar}>
       <Stack spacing={2}>
         {erro && <Alert severity="error">{erro}</Alert>}
         <Box
@@ -162,13 +166,30 @@ export function FormularioVisita({
             },
           }}
         >
-          <TextField
+          {/* <TextField
             label="CNPJ"
             size="small"
             disabled={bloqueado}
             value={dados.cnpj}
             onChange={(e) => campo("cnpj", e.target.value)}
             slotProps={{ htmlInput: { maxLength: 40 } }}
+          /> */}
+          <TextField
+            label="Nome do cliente"
+            size="small"
+            required
+            disabled={bloqueado}
+            value={dados.clienteNome}
+            onChange={(e) => campo("clienteNome", e.target.value)}
+            slotProps={{ htmlInput: { minLength: 2, maxLength: 150 } }}
+          />
+          <TextField
+            size="small"
+            label={"CNPJ (opcional)"}
+            disabled={bloqueado}
+            value={dados.cnpj}
+            onChange={(e) => campo("cnpj", formatarCNPJ(e.target.value))}
+            placeholder="00.000.000/0000-00"
           />
           <TextField
             label="Local da visita"
@@ -205,7 +226,7 @@ export function FormularioVisita({
             onChange={(e) => campo("responsavelId", e.target.value)}
             sx={{
               "& .MuiOutlinedInput-root": {
-                height: 68,
+                // height: 68,
                 borderRadius: "8px",
               },
               "& .MuiSelect-select": {
@@ -224,9 +245,7 @@ export function FormularioVisita({
               </MenuItem>
             ))}
 
-            {!opcoes.responsaveis.some(
-              (p) => p.id === visita?.responsavelId
-            ) &&
+            {!opcoes.responsaveis.some((p) => p.id === visita?.responsavelId) &&
               visita && (
                 <MenuItem value={visita.responsavelId}>
                   {visita.responsavel.name}
@@ -246,7 +265,7 @@ export function FormularioVisita({
             }}
             sx={{
               "& .MuiOutlinedInput-root": {
-                height: 68,
+                // height: 68,
                 borderRadius: "8px",
               },
               "& .MuiOutlinedInput-input": {
@@ -261,7 +280,7 @@ export function FormularioVisita({
           <Box
             sx={{
               "& .MuiOutlinedInput-root": {
-                height: 68,
+                // height: 68,
                 borderRadius: "8px",
               },
               "& .MuiSelect-select": {
@@ -317,12 +336,16 @@ export function FormularioVisita({
                   label={
                     { nome: "Nome", email: "E-mail", telefone: "Telefone" }[k]
                   }
-                  type={k === "email" ? "email" : "text"}
+                  type={k === "email" ? "email" : k === "telefone" ? "tel" : "text"}
+                  placeholder={k === "telefone" ? "(00) 00000-0000" : undefined}
                   size="small"
                   disabled={bloqueado}
                   value={externo[k]}
                   onChange={(e) =>
-                    setExterno((d) => ({ ...d, [k]: e.target.value }))
+                    setExterno((d) => ({
+                      ...d,
+                      [k]: k === "telefone" ? formatarTelefone(e.target.value) : e.target.value,
+                    }))
                   }
                 />
               ))}
@@ -386,7 +409,7 @@ export function FormularioVisita({
           onChange={(e) => campo("observacoes", e.target.value)}
           slotProps={{ htmlInput: { maxLength: 10000 } }}
         />
-        {permitido && (
+        {permitido && exibirAcaoSalvar && (
           <Button
             type="submit"
             variant="contained"

@@ -23,8 +23,8 @@ async function abrir({ role = 'ADMIN', falhar = false } = {}) {
     '@/components/layout/app-layout': { AppLayout: 'AppLayout' },
     '@/components/mui/crm-primitives': componentes,
     '@/UserContext': { useUser: () => ({ user: { id: 'gestor', role }, token: 'token-teste' }) },
-    '@/stores/cadastros/service': { listarCadastros: async () => [] },
-    '@/stores/empresas-consultoras/service': {
+    '@/stores/cadastros/service': { CadastrosService: { listarCadastros: async () => [] } },
+    '@/stores/empresas-consultoras/service': { EmpresasConsultorasService: {
       listarEmpresasConsultoras: async () => { consultas++; return [{ id: 'empresa', nome: 'Empresa A', ativa: true, usuarios: [], _count: { cadastros: 0 } }]; },
       listarConsultoresEmpresas: async () => [],
       listarCarteiraEmpresa: async () => [{ id: 'cadastro', companyName: 'Cadastro A', empresaConsultoraId: null, responsavel: { id: 'colega', name: 'Colega' } }],
@@ -33,7 +33,7 @@ async function abrir({ role = 'ADMIN', falhar = false } = {}) {
         else simulacoes.push({ id, cadastroIds });
         return { aplicado: aplicar, quantidade: cadastroIds.length, cadastroIds };
       },
-    },
+    } },
   } });
   const Page = load('src/pages/empresas-consultoras/index.tsx').default;
   let arvore;

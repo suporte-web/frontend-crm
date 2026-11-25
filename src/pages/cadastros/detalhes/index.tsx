@@ -1,4 +1,4 @@
-import { solicitarExclusaoDocumentoCliente } from '@/stores/crm/service';
+import { CrmService } from '@/stores/crm/service';
 import { useParams } from 'react-router-dom';
 import { notificarCrm } from '@/lib/feedback-crm';
 
@@ -34,21 +34,7 @@ import { TimelineSection } from "@/components/crm/timeline-section";
 import { FeedbackToast } from "@/components/ui/feedback-toast";
 import { useAuth } from "@/context/auth-context";
 import { VisualizadorDocumento } from "@/components/anexos/VisualizadorDocumento";
-import {
-  addClientContact as createClientContactRecord,
-  criarOportunidade,
-  excluirOportunidade,
-  deleteClientContact,
-  excluirDocumentoPropostaOportunidade,
-  getCrmLeadById,
-  updateClient,
-  updateClientContactRecord,
-  atualizarOportunidade,
-  uploadClientDocuments,
-  enviarDocumentosPropostaOportunidade,
-  requestClientDeletion,
 
-} from "@/stores/crm/service";
 import type { LeadDetail, LeadStatus } from "@/types/crm";
 import { AbaCadastroCliente } from "./components/detalhes-cliente/AbaCadastroCliente";
 import { AbaCondicoesComerciaisCliente } from "./components/detalhes-cliente/AbaCondicoesComerciaisCliente";
@@ -241,7 +227,7 @@ export default function PaginaDetalhesCliente({ somenteOportunidades = false }: 
         setError("");
         const id = routeId;
         setClientId(id);
-        const nextLead = await getCrmLeadById(id, token, somenteOportunidades || hasAnyRole(user, ["CONSULTORA"]));
+        const nextLead = await CrmService.getCrmLeadById(id, somenteOportunidades || hasAnyRole(user, ["CONSULTORA"]));
 
         if (!active) {
           return;
@@ -286,7 +272,7 @@ export default function PaginaDetalhesCliente({ somenteOportunidades = false }: 
       return;
     }
 
-    const nextLead = await getCrmLeadById(clientId, token, somenteOportunidades || hasAnyRole(user, ["CONSULTORA"]));
+    const nextLead = await CrmService.getCrmLeadById(clientId, somenteOportunidades || hasAnyRole(user, ["CONSULTORA"]));
     setLead(nextLead);
     if (nextLead) {
       setFormularioCliente(clienteParaFormularioCliente(nextLead));
@@ -344,7 +330,7 @@ export default function PaginaDetalhesCliente({ somenteOportunidades = false }: 
       setFormularioClienteError("");
       const fullAddress = montarEnderecoCliente(clientForm);
 
-      await updateClient(
+      await CrmService.updateClient(
         lead.id,
         {
           name: clientForm.companyName.trim(),
@@ -368,8 +354,7 @@ export default function PaginaDetalhesCliente({ somenteOportunidades = false }: 
           status: clientForm.status,
           notes: clientForm.notes.trim() || undefined,
           contacts: validContacts,
-        },
-        token,
+        }
       );
       await reloadClient();
       setIsEditingClient(false);
@@ -414,7 +399,7 @@ export default function PaginaDetalhesCliente({ somenteOportunidades = false }: 
 
     try {
       setSavingContact(true);
-      await createClientContactRecord(
+      await CrmService.addClientContact(
         lead.id,
         {
           nomeContato,
@@ -423,8 +408,7 @@ export default function PaginaDetalhesCliente({ somenteOportunidades = false }: 
           telefone: newContactForm.telefone.trim() || undefined,
           whatsapp: newContactForm.whatsapp.trim() || undefined,
           linkedin: newContactForm.linkedin.trim() || undefined,
-        },
-        token,
+        }
       );
       setNewContactForm(novoContatoClienteVazio());
       setShowNewContactForm(false);
@@ -460,7 +444,7 @@ export default function PaginaDetalhesCliente({ somenteOportunidades = false }: 
     try {
       setSavingCommercialTerms(true);
       setFormularioCondicoesComerciaisError("");
-      await updateClient(
+      await CrmService.updateClient(
         lead.id,
         {
           paymentMethod:
@@ -486,8 +470,7 @@ export default function PaginaDetalhesCliente({ somenteOportunidades = false }: 
             ]) || undefined,
           commercialTermsNotes:
             commercialTermsForm.commercialTermsNotes.trim() || undefined,
-        },
-        token,
+        }
       );
       await reloadClient();
       setIsEditingCommercialTerms(false);
@@ -558,7 +541,7 @@ export default function PaginaDetalhesCliente({ somenteOportunidades = false }: 
 
     try {
       setSavingEditingContactId(contactId);
-      await updateClientContactRecord(
+      await CrmService.updateClientContactRecord(
         lead.id,
         contactId,
         {
@@ -569,8 +552,7 @@ export default function PaginaDetalhesCliente({ somenteOportunidades = false }: 
           whatsapp: editingContactForm.whatsapp.trim() || undefined,
           linkedin: editingContactForm.linkedin.trim() || undefined,
           notes: editingContactForm.notes.trim() || undefined,
-        },
-        token,
+        }
       );
       setEditingContactId(null);
       setEditingContactForm(contatoClienteVazio());
@@ -601,7 +583,7 @@ export default function PaginaDetalhesCliente({ somenteOportunidades = false }: 
 
     try {
       setDeletingContactId(contactId);
-      await deleteClientContact(lead.id, contactId, token);
+      await CrmService.deleteClientContact(lead.id, contactId);
       if (editingContactId === contactId) {
         setEditingContactId(null);
         setEditingContactForm(contatoClienteVazio());
@@ -642,10 +624,9 @@ export default function PaginaDetalhesCliente({ somenteOportunidades = false }: 
 
     try {
       setUploadingDocuments(true);
-      await uploadClientDocuments(
+      await CrmService.uploadClientDocuments(
         lead.id,
         documentFiles,
-        token,
         "Documento cadastral",
       );
       setDocumentFiles([]);
@@ -690,10 +671,9 @@ export default function PaginaDetalhesCliente({ somenteOportunidades = false }: 
 
     try {
       setUploadingProposalOpportunityId(opportunityId);
-      await enviarDocumentosPropostaOportunidade(
+      await CrmService.enviarDocumentosPropostaOportunidade(
         lead.id,
         selectedProposalFiles,
-        token,
         `Oportunidade/Proposta | oportunidade:${opportunityId}`,
       );
       setProposalFiles((current) => {
@@ -838,7 +818,7 @@ export default function PaginaDetalhesCliente({ somenteOportunidades = false }: 
     try {
       setSavingOpportunityProposal(true);
       setOpportunityProposalError("");
-      await criarOportunidade(
+      await CrmService.criarOportunidade(
         {
           clientId: lead.id,
           title,
@@ -852,8 +832,7 @@ export default function PaginaDetalhesCliente({ somenteOportunidades = false }: 
           ]
             .filter(Boolean)
             .join("\n"),
-        },
-        token,
+        }
       );
       setFormularioPropostaOportunidade(formularioPropostaOportunidadeVazio());
       await reloadClient();
@@ -985,7 +964,7 @@ export default function PaginaDetalhesCliente({ somenteOportunidades = false }: 
     try {
       setSavingEditingOpportunityId(opportunityId);
 
-      await atualizarOportunidade(
+      await CrmService.atualizarOportunidade(
         opportunityId,
         {
           title,
@@ -994,8 +973,7 @@ export default function PaginaDetalhesCliente({ somenteOportunidades = false }: 
           preContractNotes: montarObservacoesProposta(
             editingOpportunityForm,
           ),
-        },
-        token,
+        }
       );
 
       setEditingOpportunityId(null);
@@ -1041,7 +1019,7 @@ export default function PaginaDetalhesCliente({ somenteOportunidades = false }: 
     try {
       setDeletingOpportunityId(opportunityId);
 
-      await excluirOportunidade(opportunityId, token);
+      await CrmService.excluirOportunidade(opportunityId);
 
       if (editingOpportunityId === opportunityId) {
         setEditingOpportunityId(null);
@@ -1112,13 +1090,12 @@ export default function PaginaDetalhesCliente({ somenteOportunidades = false }: 
 
       const data =
         documentToDelete.category === OPPORTUNITY_PROPOSAL_DOCUMENT_CATEGORY
-          ? await excluirDocumentoPropostaOportunidade(
+          ? await CrmService.excluirDocumentoPropostaOportunidade(
             lead.id,
             documentToDelete.id,
-            token,
             justification,
           )
-          : await solicitarExclusaoDocumentoCliente(lead.id, documentToDelete.id, justification, token);
+          : await CrmService.solicitarExclusaoDocumentoCliente(lead.id, documentToDelete.id, justification);
 
       await reloadClient();
 
@@ -1165,12 +1142,11 @@ export default function PaginaDetalhesCliente({ somenteOportunidades = false }: 
     try {
       setRequestingDeletion(true);
 
-      const result = await requestClientDeletion(
+      const result = await CrmService.requestClientDeletion(
         lead.id,
         {
           reason: deletionReason.trim(),
-        },
-        token,
+        }
       );
 
       setDeletionDialogOpen(false);
@@ -1310,7 +1286,6 @@ export default function PaginaDetalhesCliente({ somenteOportunidades = false }: 
           id={currentLead.id}
           modalidade={currentLead.modalidadeCadastro || 'CLIENTE'}
           documento={currentLead.document}
-          token={token}
           podeEditar={canEditClient}
           aoSalvar={reloadClient}
         />

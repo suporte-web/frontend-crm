@@ -20,7 +20,7 @@ import { Link as RouterLink } from 'react-router-dom';
 import { useNavigate, useSearchParams } from 'react-router-dom';
 
 import { crmPalette, crmPaperSx } from "@/components/mui/crm-primitives";
-import { resetPassword } from "@/stores/login/service";
+import { LoginService } from "@/stores/login/service";
 
 const passwordFieldSx = {
   "& .MuiOutlinedInput-root": {
@@ -82,7 +82,7 @@ function ResetPasswordContent() {
     }
 
     try {
-      const response = await resetPassword({
+      const response = await LoginService.resetPassword({
         token,
         newPassword: newPassword.trim(),
       });

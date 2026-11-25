@@ -27,35 +27,45 @@ function buildEntradaQuery(filters: EntradaFilters = {}) {
   const query = params.toString();
   return query ? `?${query}` : '';
 }
-export async function getEntradas(token: string, filters: EntradaFilters = {}) {
-  const { data } = await Api.get<EntradaTicket[]>(`/entradas${buildEntradaQuery(filters)}`, { headers: { ...(token ? { Authorization: `Bearer ${token}` } : {}) } });
-  return data;
-}
-export async function getEntrada(id: string, token: string) {
-  const { data } = await Api.get<EntradaTicket>(`/entradas/${id}`, { headers: { ...(token ? { Authorization: `Bearer ${token}` } : {}) } });
-  return data;
-}
-export async function assumirEntrada(id: string, token: string) {
-  const { data } = await Api.post<EntradaTicket>(`/entradas/${id}/assumir`, {}, { headers: { ...(token ? { Authorization: `Bearer ${token}` } : {}) } });
-  return data;
-}
-export async function getProspectSuggestions(id: string, token: string) {
-  const { data } = await Api.get<ProspectSuggestions>(`/entradas/${id}/prospects/sugestoes`, { headers: { ...(token ? { Authorization: `Bearer ${token}` } : {}) } });
-  return data;
-}
-export async function linkOrCreateProspect(id: string, payload: LinkProspectPayload, token: string) {
-  const { data } = await Api.post<EntradaTicket>(`/entradas/${id}/prospect`, payload, { headers: { ...(token ? { Authorization: `Bearer ${token}` } : {}) } });
-  return data;
-}
-export async function createEntradaQuote(id: string, payload: CreateEntradaQuotePayload, token: string) {
-  const { data } = await Api.post<Quote>(`/entradas/${id}/cotacao`, payload, { headers: { ...(token ? { Authorization: `Bearer ${token}` } : {}) } });
-  return data;
-}
-export async function finalizarEntrada(id: string, note: string, token: string) {
-  const { data } = await Api.post<EntradaTicket>(`/entradas/${id}/finalizar`, { note }, { headers: { ...(token ? { Authorization: `Bearer ${token}` } : {}) } });
-  return data;
-}
-export async function marcarEntradaPerdida(id: string, note: string, token: string) {
-  const { data } = await Api.post<EntradaTicket>(`/entradas/${id}/perder`, { note }, { headers: { ...(token ? { Authorization: `Bearer ${token}` } : {}) } });
-  return data;
-}
+
+export const EntradasService = {
+  getEntradas: async (filters: EntradaFilters = {}) => {
+    const { data } = await Api.get<EntradaTicket[]>(`/entradas${buildEntradaQuery(filters)}`);
+    return data;
+  },
+
+  getEntrada: async (id: string) => {
+    const { data } = await Api.get<EntradaTicket>(`/entradas/${id}`);
+    return data;
+  },
+
+  assumirEntrada: async (id: string) => {
+    const { data } = await Api.post<EntradaTicket>(`/entradas/${id}/assumir`, {});
+    return data;
+  },
+
+  getProspectSuggestions: async (id: string) => {
+    const { data } = await Api.get<ProspectSuggestions>(`/entradas/${id}/prospects/sugestoes`);
+    return data;
+  },
+
+  linkOrCreateProspect: async (id: string, payload: LinkProspectPayload) => {
+    const { data } = await Api.post<EntradaTicket>(`/entradas/${id}/prospect`, payload);
+    return data;
+  },
+
+  createEntradaQuote: async (id: string, payload: CreateEntradaQuotePayload) => {
+    const { data } = await Api.post<Quote>(`/entradas/${id}/cotacao`, payload);
+    return data;
+  },
+
+  finalizarEntrada: async (id: string, note: string) => {
+    const { data } = await Api.post<EntradaTicket>(`/entradas/${id}/finalizar`, { note });
+    return data;
+  },
+
+  marcarEntradaPerdida: async (id: string, note: string) => {
+    const { data } = await Api.post<EntradaTicket>(`/entradas/${id}/perder`, { note });
+    return data;
+  },
+};

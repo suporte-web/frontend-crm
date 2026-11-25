@@ -19,7 +19,7 @@ function buildTicketQuery(filters: TicketFilters = {}) {
   const query = params.toString();
   return query ? `?${query}` : "";
 }
-async function fetchPropostaWithOptionalFile<T>(endpoint: string, method: 'POST' | 'PATCH', payload: CreatePropostaPayload | UpdatePropostaPayload, token: string, arquivo?: File | null): Promise<T> {
+async function fetchPropostaWithOptionalFile<T>(endpoint: string, method: 'POST' | 'PATCH', payload: CreatePropostaPayload | UpdatePropostaPayload, arquivo?: File | null): Promise<T> {
   let body: typeof payload | FormData = payload;
   if (arquivo) {
     const form = new FormData();
@@ -30,133 +30,159 @@ async function fetchPropostaWithOptionalFile<T>(endpoint: string, method: 'POST'
     form.append('arquivo', arquivo);
     body = form;
   }
-  const { data } = await Api.request<T>({ url: endpoint, method, data: body, headers: { Authorization: `Bearer ${token}` } });
+  const { data } = await Api.request<T>({ url: endpoint, method, data: body });
   return data;
 }
-export async function getAllTickets(token: string, filters: TicketFilters = {}) {
-  const query = buildTicketQuery(filters);
-  const { data } = await Api.get<Ticket[]>(`/tickets${query}`, { headers: { ...(token ? { Authorization: `Bearer ${token}` } : {}) } });
-  return data;
-}
-export async function getMyTickets(token: string, filters: TicketFilters = {}) {
-  const query = buildTicketQuery(filters);
-  const { data } = await Api.get<Ticket[]>(`/tickets/me${query}`, { headers: { ...(token ? { Authorization: `Bearer ${token}` } : {}) } });
-  return data;
-}
-export async function getTicket(id: string, token: string) {
-  const { data } = await Api.get<Ticket>(`/tickets/${id}`, { headers: { ...(token ? { Authorization: `Bearer ${token}` } : {}) } });
-  return data;
-}
-export async function createTicket(payload: CreateTicketPayload, token: string) {
-  const { data } = await Api.post<Ticket>("/tickets", payload, { headers: { ...(token ? { Authorization: `Bearer ${token}` } : {}) } });
-  return data;
-}
-export async function updateTicketStatus(id: string, status: TicketStatus, token: string) {
-  const { data } = await Api.patch<Ticket>(`/tickets/${id}/status`, { status }, { headers: { ...(token ? { Authorization: `Bearer ${token}` } : {}) } });
-  return data;
-}
-export async function replyTicket(id: string, message: string, token: string) {
-  const { data } = await Api.post<Ticket>(`/tickets/${id}/messages`, { message }, { headers: { ...(token ? { Authorization: `Bearer ${token}` } : {}) } });
-  return data;
-}
-export async function addInternalTicketNote(id: string, message: string, token: string) {
-  const { data } = await Api.post<Ticket>(`/tickets/${id}/messages`, { message, isInternal: true }, { headers: { ...(token ? { Authorization: `Bearer ${token}` } : {}) } });
-  return data;
-}
-export async function startTicket(id: string, token: string) {
-  const { data } = await Api.post<Ticket>(`/tickets/${id}/start`, {}, { headers: { ...(token ? { Authorization: `Bearer ${token}` } : {}) } });
-  return data;
-}
-export async function sendPreProposal(id: string, payload: {
-  message: string;
-  preContractNotes?: string;
-  opportunityId?: string;
-}, token: string) {
-  const { data } = await Api.post<Ticket>(`/tickets/${id}/pre-proposal`, payload, { headers: { ...(token ? { Authorization: `Bearer ${token}` } : {}) } });
-  return data;
-}
-export async function clientTicketDecision(id: string, payload: {
-  action: "APPROVE" | "REQUEST_ADJUSTMENT" | "REJECT";
-  message?: string;
-}, token: string) {
-  const { data } = await Api.post<Ticket>(`/tickets/${id}/client-decision`, payload, { headers: { ...(token ? { Authorization: `Bearer ${token}` } : {}) } });
-  return data;
-}
-export async function sendTicketToManagement(id: string, payload: {
-  message?: string;
-}, token: string) {
-  const { data } = await Api.post<Ticket>(`/tickets/${id}/send-to-management`, payload, { headers: { ...(token ? { Authorization: `Bearer ${token}` } : {}) } });
-  return data;
-}
-export async function managementTicketDecision(id: string, payload: {
-  action: "APPROVE" | "REQUEST_ADJUSTMENT" | "REJECT";
-  message?: string;
-  notifyClient?: boolean;
-}, token: string) {
-  const { data } = await Api.post<Ticket>(`/tickets/${id}/management-decision`, payload, { headers: { ...(token ? { Authorization: `Bearer ${token}` } : {}) } });
-  return data;
-}
-/**
-* PROPOSTAS
-*
-* Esses endpoints usam a nova entidade formal `Proposta`.
-* Eles não removem o fluxo antigo de pre-proposal/client-decision.
-*/
-export async function getTicketPropostas(ticketId: string, token: string) {
-  const { data } = await Api.get<Proposta[]>(`/tickets/${ticketId}/propostas`, { headers: { ...(token ? { Authorization: `Bearer ${token}` } : {}) } });
-  return data;
-}
-export async function getTicketProposta(ticketId: string, propostaId: string, token: string) {
-  const { data } = await Api.get<Proposta>(`/tickets/${ticketId}/propostas/${propostaId}`, { headers: { ...(token ? { Authorization: `Bearer ${token}` } : {}) } });
-  return data;
-}
-export function createTicketProposta(ticketId: string, payload: CreatePropostaPayload, token: string, arquivo?: File | null) {
-  return fetchPropostaWithOptionalFile<Proposta>(`/tickets/${ticketId}/propostas`, "POST", payload, token, arquivo);
-}
-export function updateTicketProposta(ticketId: string, propostaId: string, payload: UpdatePropostaPayload, token: string, arquivo?: File | null) {
-  return fetchPropostaWithOptionalFile<Proposta>(`/tickets/${ticketId}/propostas/${propostaId}`, "PATCH", payload, token, arquivo);
-}
-export async function sendTicketPropostaToClient(ticketId: string, propostaId: string, token: string, payload: UpdatePropostaPayload = {}) {
-  const { data } = await Api.post<PropostaActionResponse>(`/tickets/${ticketId}/propostas/${propostaId}/enviar-cliente`, payload, { headers: { ...(token ? { Authorization: `Bearer ${token}` } : {}) } });
-  return data;
-}
-export async function sendTicketPropostaToManagement(ticketId: string, propostaId: string, token: string) {
-  const { data } = await Api.post<PropostaActionResponse>(`/tickets/${ticketId}/propostas/${propostaId}/enviar-gestao`, {}, { headers: { ...(token ? { Authorization: `Bearer ${token}` } : {}) } });
-  return data;
-}
-export async function approveTicketPropostaByClient(ticketId: string, propostaId: string, token: string) {
-  const { data } = await Api.post<ClientPropostaDecisionResponse>(`/tickets/${ticketId}/propostas/${propostaId}/aprovar-cliente`, {}, { headers: { ...(token ? { Authorization: `Bearer ${token}` } : {}) } });
-  return data;
-}
-export async function requestTicketPropostaAdjustmentByClient(ticketId: string, propostaId: string, motivo: string, token: string) {
-  const payload: ClientePropostaDecisionPayload = {
-    motivo,
-  };
-  const { data } = await Api.post<ClientPropostaDecisionResponse>(`/tickets/${ticketId}/propostas/${propostaId}/solicitar-ajuste-cliente`, payload, { headers: { ...(token ? { Authorization: `Bearer ${token}` } : {}) } });
-  return data;
-}
-export async function rejectTicketPropostaByClient(ticketId: string, propostaId: string, motivo: string, token: string) {
-  const payload: ClientePropostaDecisionPayload = {
-    motivo,
-  };
-  const { data } = await Api.post<ClientPropostaDecisionResponse>(`/tickets/${ticketId}/propostas/${propostaId}/recusar-cliente`, payload, { headers: { ...(token ? { Authorization: `Bearer ${token}` } : {}) } });
-  return data;
-}
-export async function approveTicketPropostaByManagement(ticketId: string, propostaId: string, token: string) {
-  const { data } = await Api.post<ManagementPropostaDecisionResponse>(`/tickets/${ticketId}/propostas/${propostaId}/aprovar-gestao`, {}, { headers: { ...(token ? { Authorization: `Bearer ${token}` } : {}) } });
-  return data;
-}
-export async function requestTicketPropostaAdjustmentByManagement(ticketId: string, propostaId: string, motivo: string, token: string) {
-  const payload: GestaoPropostaDecisionPayload = {
-    motivo,
-  };
-  const { data } = await Api.post<ManagementPropostaDecisionResponse>(`/tickets/${ticketId}/propostas/${propostaId}/solicitar-ajuste-gestao`, payload, { headers: { ...(token ? { Authorization: `Bearer ${token}` } : {}) } });
-  return data;
-}
-export async function rejectTicketPropostaByManagement(ticketId: string, propostaId: string, motivo: string, token: string) {
-  const payload: GestaoPropostaDecisionPayload = {
-    motivo,
-  };
-  const { data } = await Api.post<ManagementPropostaDecisionResponse>(`/tickets/${ticketId}/propostas/${propostaId}/recusar-gestao`, payload, { headers: { ...(token ? { Authorization: `Bearer ${token}` } : {}) } });
-  return data;
-}
+
+export const TicketsService = {
+  getAllTickets: async (filters: TicketFilters = {}) => {
+    const query = buildTicketQuery(filters);
+    const { data } = await Api.get<Ticket[]>(`/tickets${query}`);
+    return data;
+  },
+
+  getMyTickets: async (filters: TicketFilters = {}) => {
+    const query = buildTicketQuery(filters);
+    const { data } = await Api.get<Ticket[]>(`/tickets/me${query}`);
+    return data;
+  },
+
+  getTicket: async (id: string) => {
+    const { data } = await Api.get<Ticket>(`/tickets/${id}`);
+    return data;
+  },
+
+  createTicket: async (payload: CreateTicketPayload) => {
+    const { data } = await Api.post<Ticket>("/tickets", payload);
+    return data;
+  },
+
+  updateTicketStatus: async (id: string, status: TicketStatus) => {
+    const { data } = await Api.patch<Ticket>(`/tickets/${id}/status`, { status });
+    return data;
+  },
+
+  replyTicket: async (id: string, message: string) => {
+    const { data } = await Api.post<Ticket>(`/tickets/${id}/messages`, { message });
+    return data;
+  },
+
+  addInternalTicketNote: async (id: string, message: string) => {
+    const { data } = await Api.post<Ticket>(`/tickets/${id}/messages`, { message, isInternal: true });
+    return data;
+  },
+
+  startTicket: async (id: string) => {
+    const { data } = await Api.post<Ticket>(`/tickets/${id}/start`, {});
+    return data;
+  },
+
+  sendPreProposal: async (id: string, payload: {
+    message: string;
+    preContractNotes?: string;
+    opportunityId?: string;
+  }) => {
+    const { data } = await Api.post<Ticket>(`/tickets/${id}/pre-proposal`, payload);
+    return data;
+  },
+
+  clientTicketDecision: async (id: string, payload: {
+    action: "APPROVE" | "REQUEST_ADJUSTMENT" | "REJECT";
+    message?: string;
+  }) => {
+    const { data } = await Api.post<Ticket>(`/tickets/${id}/client-decision`, payload);
+    return data;
+  },
+
+  sendTicketToManagement: async (id: string, payload: {
+    message?: string;
+  }) => {
+    const { data } = await Api.post<Ticket>(`/tickets/${id}/send-to-management`, payload);
+    return data;
+  },
+
+  managementTicketDecision: async (id: string, payload: {
+    action: "APPROVE" | "REQUEST_ADJUSTMENT" | "REJECT";
+    message?: string;
+    notifyClient?: boolean;
+  }) => {
+    const { data } = await Api.post<Ticket>(`/tickets/${id}/management-decision`, payload);
+    return data;
+  },
+
+  /**
+  * PROPOSTAS
+  *
+  * Esses endpoints usam a nova entidade formal `Proposta`.
+  * Eles não removem o fluxo antigo de pre-proposal/client-decision.
+  */
+  getTicketPropostas: async (ticketId: string) => {
+    const { data } = await Api.get<Proposta[]>(`/tickets/${ticketId}/propostas`);
+    return data;
+  },
+
+  getTicketProposta: async (ticketId: string, propostaId: string) => {
+    const { data } = await Api.get<Proposta>(`/tickets/${ticketId}/propostas/${propostaId}`);
+    return data;
+  },
+
+  createTicketProposta: (ticketId: string, payload: CreatePropostaPayload, arquivo?: File | null) => {
+    return fetchPropostaWithOptionalFile<Proposta>(`/tickets/${ticketId}/propostas`, "POST", payload, arquivo);
+  },
+
+  updateTicketProposta: (ticketId: string, propostaId: string, payload: UpdatePropostaPayload, arquivo?: File | null) => {
+    return fetchPropostaWithOptionalFile<Proposta>(`/tickets/${ticketId}/propostas/${propostaId}`, "PATCH", payload, arquivo);
+  },
+
+  sendTicketPropostaToClient: async (ticketId: string, propostaId: string, payload: UpdatePropostaPayload = {}) => {
+    const { data } = await Api.post<PropostaActionResponse>(`/tickets/${ticketId}/propostas/${propostaId}/enviar-cliente`, payload);
+    return data;
+  },
+
+  sendTicketPropostaToManagement: async (ticketId: string, propostaId: string) => {
+    const { data } = await Api.post<PropostaActionResponse>(`/tickets/${ticketId}/propostas/${propostaId}/enviar-gestao`, {});
+    return data;
+  },
+
+  approveTicketPropostaByClient: async (ticketId: string, propostaId: string) => {
+    const { data } = await Api.post<ClientPropostaDecisionResponse>(`/tickets/${ticketId}/propostas/${propostaId}/aprovar-cliente`, {});
+    return data;
+  },
+
+  requestTicketPropostaAdjustmentByClient: async (ticketId: string, propostaId: string, motivo: string) => {
+    const payload: ClientePropostaDecisionPayload = {
+      motivo,
+    };
+    const { data } = await Api.post<ClientPropostaDecisionResponse>(`/tickets/${ticketId}/propostas/${propostaId}/solicitar-ajuste-cliente`, payload);
+    return data;
+  },
+
+  rejectTicketPropostaByClient: async (ticketId: string, propostaId: string, motivo: string) => {
+    const payload: ClientePropostaDecisionPayload = {
+      motivo,
+    };
+    const { data } = await Api.post<ClientPropostaDecisionResponse>(`/tickets/${ticketId}/propostas/${propostaId}/recusar-cliente`, payload);
+    return data;
+  },
+
+  approveTicketPropostaByManagement: async (ticketId: string, propostaId: string) => {
+    const { data } = await Api.post<ManagementPropostaDecisionResponse>(`/tickets/${ticketId}/propostas/${propostaId}/aprovar-gestao`, {});
+    return data;
+  },
+
+  requestTicketPropostaAdjustmentByManagement: async (ticketId: string, propostaId: string, motivo: string) => {
+    const payload: GestaoPropostaDecisionPayload = {
+      motivo,
+    };
+    const { data } = await Api.post<ManagementPropostaDecisionResponse>(`/tickets/${ticketId}/propostas/${propostaId}/solicitar-ajuste-gestao`, payload);
+    return data;
+  },
+
+  rejectTicketPropostaByManagement: async (ticketId: string, propostaId: string, motivo: string) => {
+    const payload: GestaoPropostaDecisionPayload = {
+      motivo,
+    };
+    const { data } = await Api.post<ManagementPropostaDecisionResponse>(`/tickets/${ticketId}/propostas/${propostaId}/recusar-gestao`, payload);
+    return data;
+  },
+};

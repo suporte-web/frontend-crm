@@ -25,13 +25,7 @@ import {
 } from "lucide-react";
 import { AppLayout } from "@/components/layout/app-layout";
 import { useAuth } from "@/context/auth-context";
-import {
-  deleteQuote,
-  getQuoteById,
-  respondQuote,
-  updateQuote,
-  updateQuoteStatus,
-} from "@/stores/quotes/service";
+import { QuotesService } from "@/stores/quotes/service";
 import type { CreateQuotePayload, Quote } from "@/types/quotes";
 
 type QuoteFormState = {
@@ -254,7 +248,7 @@ export default function QuoteDetailsPage() {
         setLoading(true);
         setError("");
         const id = routeId;
-        const data = await getQuoteById(id, token);
+        const data = await QuotesService.getQuoteById(id);
 
         if (active) {
           setQuote(data);
@@ -332,7 +326,7 @@ export default function QuoteDetailsPage() {
 
                       try {
                         setSaving(true);
-                        const result = await deleteQuote(quote.id, token);
+                        const result = await QuotesService.deleteQuote(quote.id);
                         notificarCrm(result.message);
                         navigate('/cotacoes');
                       } catch (deleteError) {
@@ -542,10 +536,9 @@ export default function QuoteDetailsPage() {
 
                         try {
                           setSaving(true);
-                          const updated = await updateQuote(
+                          const updated = await QuotesService.updateQuote(
                             quote.id,
-                            buildUpdatePayload(form),
-                            token,
+                            buildUpdatePayload(form)
                           );
                           setQuote(updated);
                           setForm(quoteToFormState(updated));
@@ -763,15 +756,14 @@ export default function QuoteDetailsPage() {
 
                               try {
                                 setSaving(true);
-                                const updated = await respondQuote(
+                                const updated = await QuotesService.respondQuote(
                                   quote.id,
                                   {
                                     price,
                                     commercialNotes:
                                       responseForm.commercialNotes.trim() ||
                                       undefined,
-                                  },
-                                  token,
+                                  }
                                 );
                                 setQuote(updated);
                                 setActionMessage(
@@ -811,13 +803,12 @@ export default function QuoteDetailsPage() {
                                 .value as Quote["status"];
                               try {
                                 setSaving(true);
-                                const updated = await updateQuoteStatus(
+                                const updated = await QuotesService.updateQuoteStatus(
                                   quote.id,
                                   {
                                     status: nextStatus,
                                     notes: statusNotes.trim() || undefined,
-                                  },
-                                  token,
+                                  }
                                 );
                                 setQuote(updated);
                                 setStatusNotes("");

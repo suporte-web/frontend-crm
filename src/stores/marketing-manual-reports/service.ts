@@ -15,15 +15,20 @@ export type ManualReport = ManualReportSummary & {
     rows: string[][];
   };
 };
-export async function listManualReports(token: string, signal?: AbortSignal) {
-  const { data } = await Api.get<ManualReportSummary[]>("/marketing-metrics/manual-reports", { signal, headers: { ...(token ? { Authorization: `Bearer ${token}` } : {}) } });
-  return data;
-}
-export async function getManualReport(token: string, id: string, signal?: AbortSignal) {
-  const { data } = await Api.get<ManualReport>(`/marketing-metrics/manual-reports/${encodeURIComponent(id)}`, { signal, headers: { ...(token ? { Authorization: `Bearer ${token}` } : {}) } });
-  return data;
-}
-export async function importManualReport(token: string, form: FormData): Promise<ManualReport> {
-  const { data } = await Api.post<ManualReport>('/marketing-metrics/manual-reports', form, { headers: { Authorization: `Bearer ${token}` } });
-  return data;
-}
+
+export const MarketingManualReportsService = {
+  listManualReports: async (signal?: AbortSignal) => {
+    const { data } = await Api.get<ManualReportSummary[]>("/marketing-metrics/manual-reports", { signal });
+    return data;
+  },
+
+  getManualReport: async (id: string, signal?: AbortSignal) => {
+    const { data } = await Api.get<ManualReport>(`/marketing-metrics/manual-reports/${encodeURIComponent(id)}`, { signal });
+    return data;
+  },
+
+  importManualReport: async (form: FormData): Promise<ManualReport> => {
+    const { data } = await Api.post<ManualReport>('/marketing-metrics/manual-reports', form);
+    return data;
+  },
+};

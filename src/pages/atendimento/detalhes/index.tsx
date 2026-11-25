@@ -20,7 +20,7 @@ import {
 import { AppLayout } from "@/components/layout/app-layout";
 import { FeedbackToast } from "@/components/ui/feedback-toast";
 import { useAuth } from "@/context/auth-context";
-import { getAtendimentoSac, getParticipantesSac, executarAcaoSac } from "@/stores/atendimento-sac/service";
+import { AtendimentoSacService } from "@/stores/atendimento-sac/service";
 import {
   rotulosStatusSac,
   type AtendimentoSac,
@@ -79,7 +79,7 @@ export default function PaginaDetalheSac() {
   const carregar = useCallback(async () => {
     if (!token) return;
     try {
-      const d = await getAtendimentoSac(token, id);
+      const d = await AtendimentoSacService.getAtendimentoSac(id);
       setA(d);
       setErro("");
     } catch (e) {
@@ -89,7 +89,7 @@ export default function PaginaDetalheSac() {
   useEffect(() => {
     void carregar();
     if (token)
-      getParticipantesSac(token)
+      AtendimentoSacService.getParticipantesSac()
         .then(setPessoas)
         .catch(() => undefined);
   }, [token, carregar]);
@@ -136,7 +136,7 @@ export default function PaginaDetalheSac() {
     setOcupado(true);
     setErro("");
     try {
-      await executarAcaoSac(token, id, caminho, dados);
+      await AtendimentoSacService.executarAcaoSac(id, caminho, dados);
       await carregar();
       setMensagem("Atendimento atualizado.");
       return true;
@@ -572,7 +572,6 @@ export default function PaginaDetalheSac() {
                 />
                 {classificavel && (
                   <UploadAnexosSac
-                    token={token}
                     id={id}
                     etapa="CLASSIFICACAO"
                     concluido={carregar}
@@ -702,7 +701,6 @@ export default function PaginaDetalheSac() {
                     }}
                   >
                     <UploadAnexosSac
-                      token={token}
                       id={id}
                       etapa="RNC"
                       concluido={carregar}
@@ -731,7 +729,6 @@ export default function PaginaDetalheSac() {
                 </Typography>
 
                 <UploadAnexosSac
-                  token={token}
                   id={id}
                   etapa="ANEXOS"
                   concluido={carregar}

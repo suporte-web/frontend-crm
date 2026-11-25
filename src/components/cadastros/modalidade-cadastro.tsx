@@ -4,13 +4,12 @@ import { notificarCrm } from '@/lib/feedback-crm';
 
 import { useEffect, useState } from "react";
 import { Box, Button, Chip, MenuItem, Paper, Stack, TextField, Typography } from "@mui/material";
-import { alterarModalidade, type ModalidadeCadastro } from "@/stores/cadastros/service";
+import { CadastrosService, type ModalidadeCadastro } from "@/stores/cadastros/service";
 
-export function ModalidadeCadastro({ id, modalidade, documento, token, podeEditar, aoSalvar }: {
+export function ModalidadeCadastro({ id, modalidade, documento, podeEditar, aoSalvar }: {
   id: string;
   modalidade: ModalidadeCadastro;
   documento?: string | null;
-  token: string;
   podeEditar: boolean;
   aoSalvar: () => Promise<void>;
 }) {
@@ -29,7 +28,7 @@ export function ModalidadeCadastro({ id, modalidade, documento, token, podeEdita
     try {
       setSalvando(true);
       setErro("");
-      await alterarModalidade(id, tipo, documentoInformado || undefined, token);
+      await CadastrosService.alterarModalidade(id, tipo, documentoInformado || undefined);
       await aoSalvar();
       notificarCrm('Modalidade do cadastro atualizada com sucesso.');
     } catch (erro) {

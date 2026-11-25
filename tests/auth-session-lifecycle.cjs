@@ -46,16 +46,16 @@ function harness(fetch) {
       if (name === 'react/jsx-runtime') return { jsx: (_type, props) => props };
       if (name === '@/utils/constants') return { TOKEN_KEY: 'crm_token', USER_KEY: 'crm_user', AUTH_SESSION_EXPIRED_EVENT: 'crm:session-expired' };
       if (name === '@/utils/Api') return { ApiError };
-      if (name === '@/stores/login/service') return {
-        requestCurrentUser: async token => {
-          const response = await fetch('/api/auth/me', { headers: { Authorization: `Bearer ${token}` } });
+      if (name === '@/stores/login/service') return { LoginService: {
+        requestCurrentUser: async () => {
+          const response = await fetch('/api/auth/me', { headers: { Authorization: `Bearer ${stored.get('crm_token')}` } });
           const data = await response.json();
           if (!response.ok) throw new ApiError(data.message, response.status);
           return data;
         },
         requestLogin: (email, password) => fetch('/api/auth/login', { body: JSON.stringify({ email, password }) }),
-        requestChangePassword: (currentPassword, newPassword, token) => fetch('/api/auth/change-password', { headers: { Authorization: `Bearer ${token}` }, body: JSON.stringify({ currentPassword, newPassword }) }),
-      };
+        requestChangePassword: (currentPassword, newPassword) => fetch('/api/auth/change-password', { headers: { Authorization: `Bearer ${stored.get('crm_token')}` }, body: JSON.stringify({ currentPassword, newPassword }) }),
+      } };
       throw new Error(`Unexpected dependency ${name}`);
     },
   });

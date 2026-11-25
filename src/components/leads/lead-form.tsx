@@ -17,7 +17,7 @@ import { ImageUp } from 'lucide-react';
 
 import { LEAD_FUNNEL_STAGES } from '@/constants/lead-funnel';
 import type { CreateLeadPayload } from '@/types/leads';
-import { listarSegmentos, type Segmento } from '@/stores/segmentos/service';
+import { SegmentosService, type Segmento } from '@/stores/segmentos/service';
 
 type LeadFormProps = {
   loading: boolean;
@@ -70,7 +70,7 @@ export function LeadForm({
   const [erroSegmentos, setErroSegmentos] = useState('');
   useEffect(() => {
     const controller = new AbortController();
-    listarSegmentos(controller.signal).then(setSegmentos).catch(error => { if (!controller.signal.aborted) setErroSegmentos(error instanceof Error ? error.message : 'Não foi possível carregar o catálogo.'); });
+    SegmentosService.listarSegmentos(controller.signal).then(setSegmentos).catch(error => { if (!controller.signal.aborted) setErroSegmentos(error instanceof Error ? error.message : 'Não foi possível carregar o catálogo.'); });
     return () => controller.abort();
   }, []);
 

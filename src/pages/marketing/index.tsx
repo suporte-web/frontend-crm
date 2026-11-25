@@ -50,13 +50,7 @@ import {
   crmPalette,
 } from '@/components/mui/crm-primitives';
 import { useAuth } from '@/context/auth-context';
-import {
-  createPortalContent,
-  deletePortalContent,
-  getPortalContents,
-  uploadPortalContentMedia,
-  updatePortalContent,
-} from '@/stores/portal-content/service';
+import { PortalContentService } from '@/stores/portal-content/service';
 import type {
   ContentType,
   PortalContent,
@@ -212,7 +206,7 @@ export default function MarketingPage() {
       setLoading(true);
       setPageError('');
 
-      const contentData = await getPortalContents();
+      const contentData = await PortalContentService.getPortalContents();
 
       setContents(contentData);
     } catch (error) {
@@ -323,13 +317,13 @@ export default function MarketingPage() {
       setFormError('');
 
       if (editingId) {
-        const updated = await updatePortalContent(editingId, payload);
+        const updated = await PortalContentService.updatePortalContent(editingId, payload);
         setContents((prev) =>
           prev.map((item) => (item.id === updated.id ? updated : item)),
         );
         setSuccessMessage('Conteúdo atualizado com sucesso.');
       } else {
-        const created = await createPortalContent(payload);
+        const created = await PortalContentService.createPortalContent(payload);
         setContents((prev) => [created, ...prev]);
         setSuccessMessage('Conteúdo criado com sucesso.');
       }
@@ -349,7 +343,7 @@ export default function MarketingPage() {
     if (!deleteTarget) return;
 
     try {
-      await deletePortalContent(deleteTarget.id);
+      await PortalContentService.deletePortalContent(deleteTarget.id);
       setContents((prev) => prev.filter((item) => item.id !== deleteTarget.id));
       setSuccessMessage('Conteúdo removido com sucesso.');
       if (editingId === deleteTarget.id) {
@@ -393,7 +387,7 @@ export default function MarketingPage() {
       }
 
       setFormError('');
-      const uploaded = await uploadPortalContentMedia(file);
+      const uploaded = await PortalContentService.uploadPortalContentMedia(file);
 
       setForm((prev) => ({
         ...prev,

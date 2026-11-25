@@ -11,7 +11,7 @@ import { ChevronDown } from 'lucide-react';
 import { LeadForm } from '@/components/leads/lead-form';
 import { LeadAttachments } from '@/components/attachments/LeadAttachments';
 import { LeadTimeline } from '@/components/leads/lead-timeline';
-import { atualizarDadosLead, obterDadosLead, registrarObservacaoCadastro } from '@/stores/cadastros/service';
+import { CadastrosService } from '@/stores/cadastros/service';
 import type { Lead, CreateLeadPayload } from '@/types/leads';
 
 export function DadosLeadCadastro({ id, token, podeEditar, aoSalvar }: { id: string; token: string; podeEditar: boolean; aoSalvar: () => Promise<void> }) {
@@ -22,7 +22,7 @@ export function DadosLeadCadastro({ id, token, podeEditar, aoSalvar }: { id: str
   const [observacao, setObservacao] = useState('');
   useEffect(() => {
     let ativo = true;
-    obterDadosLead(id, token).then(valor => { if (ativo) setLead(valor); }).catch(e => { if (ativo) setErro(e instanceof Error ? e.message : 'Erro ao carregar dados do lead.'); }).finally(() => { if (ativo) setCarregando(false); });
+    CadastrosService.obterDadosLead(id).then(valor => { if (ativo) setLead(valor); }).catch(e => { if (ativo) setErro(e instanceof Error ? e.message : 'Erro ao carregar dados do lead.'); }).finally(() => { if (ativo) setCarregando(false); });
     return () => { ativo = false; };
   }, [id, token]);
   const valores = useMemo<Partial<CreateLeadPayload>>(() => {
@@ -37,7 +37,7 @@ export function DadosLeadCadastro({ id, token, podeEditar, aoSalvar }: { id: str
   async function salvar(payload: CreateLeadPayload) {
     try {
       setSalvando(true); setErro('');
-      const atualizado = await atualizarDadosLead(id, payload, token);
+      const atualizado = await CadastrosService.atualizarDadosLead(id, payload);
       setLead(atualizado); await aoSalvar(); notificarCrm('Acompanhamento do lead atualizado com sucesso.'); return false;
     } catch (e) { setErro(e instanceof Error ? e.message : 'Erro ao salvar dados do lead.'); return false; }
     finally { setSalvando(false); }
@@ -46,8 +46,8 @@ export function DadosLeadCadastro({ id, token, podeEditar, aoSalvar }: { id: str
     if (!lead || !observacao.trim()) return;
     try {
       setSalvando(true); setErro('');
-      await registrarObservacaoCadastro(id, observacao.trim(), token);
-      setObservacao(''); setLead(await obterDadosLead(id, token)); notificarCrm('Observação registrada com sucesso.');
+      await CadastrosService.registrarObservacaoCadastro(id, observacao.trim());
+      setObservacao(''); setLead(await CadastrosService.obterDadosLead(id)); notificarCrm('Observação registrada com sucesso.');
     } catch (e) { setErro(e instanceof Error ? e.message : 'Erro ao registrar observação.'); }
     finally { setSalvando(false); }
   }

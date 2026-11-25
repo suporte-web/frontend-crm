@@ -38,12 +38,8 @@ import {
   crmPalette,
 } from '@/components/mui/crm-primitives';
 import { useAuth } from '@/context/auth-context';
-import {
-  exportAuditLogs,
-  getAuditLogSummary,
-  getAuditLogs,
-} from '@/stores/audit-logs/service';
-import { getUsers } from '@/stores/users/service';
+import { AuditLogsService } from '@/stores/audit-logs/service';
+import { UsersService } from '@/stores/users/service';
 import type {
   AuditLog,
   AuditLogCategory,
@@ -446,9 +442,9 @@ export default function LogsPage() {
       setLoading(true);
       setPageError('');
       const [logData, summaryData, userData] = await Promise.all([
-        getAuditLogs(token, apiFilters),
-        getAuditLogSummary(token, apiFilters),
-        getUsers(),
+        AuditLogsService.getAuditLogs(apiFilters),
+        AuditLogsService.getAuditLogSummary(apiFilters),
+        UsersService.getUsers(),
       ]);
       setLogs(logData);
       setSummary(summaryData);
@@ -534,7 +530,7 @@ export default function LogsPage() {
               <Button
                 variant="contained"
                 startIcon={<Download size={17} />}
-                onClick={() => token && exportAuditLogs(token, apiFilters)}
+                onClick={() => token && AuditLogsService.exportAuditLogs(apiFilters)}
                 sx={{
                   minHeight: 44,
                   borderRadius: '10px',

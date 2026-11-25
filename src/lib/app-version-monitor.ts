@@ -1,4 +1,4 @@
-import { getAvailableVersion } from '@/stores/app-version/service';
+import { AppVersionService } from '@/stores/app-version/service';
 
 export const VERSION_CHECK_INTERVAL = 60_000;
 export const VERSION_SNOOZE_INTERVAL = 600_000;
@@ -57,7 +57,7 @@ export class AppVersionMonitor {
     this.controller = controller;
     this.publish({ isChecking: true });
     try {
-      const available = await getAvailableVersion(controller.signal);
+      const available = await AppVersionService.getAvailableVersion(controller.signal);
       if (!this.active || controller.signal.aborted || this.controller !== controller) return;
       const updateAvailable = available.version !== this.state.currentVersion;
       const deferred = this.deferredVersion === available.version && Date.now() < this.deferredUntil;
